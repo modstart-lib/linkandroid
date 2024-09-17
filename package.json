@@ -1,0 +1,73 @@
+{
+    "name": "linkandroid",
+    "version": "0.0.1",
+    "main": "dist-electron/main/index.js",
+    "description": "Link Android to computer easily!",
+    "author": "ModStartLib",
+    "license": "GPL-3.0",
+    "private": true,
+    "keywords": [
+        "electron",
+        "rollup",
+        "vite",
+        "vue3",
+        "vue"
+    ],
+    "debug": {
+        "env": {
+            "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344/"
+        }
+    },
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "dev_debug": "vite --debug",
+        "build": "vite build && electron-builder",
+        "build:debug": "export VSCODE_DEBUG=true && vite build && electron-builder",
+        "build:win": "vite build && electron-builder --win",
+        "build:mac": "vite build && electron-builder --mac",
+        "build:linux": "vite build && electron-builder --linux",
+        "preview": "vite preview"
+    },
+    "devDependencies": {
+        "@arco-design/web-vue": "^2.55.3",
+        "@blockly/continuous-toolbox": "^6.0.3",
+        "@types/lodash-es": "^4.17.12",
+        "@types/splitpanes": "^2.2.6",
+        "@vitejs/plugin-vue": "^5.0.4",
+        "autoprefixer": "^10.4.19",
+        "electron": "^29.1.1",
+        "electron-builder": "^24.13.3",
+        "less": "^4.2.0",
+        "postcss": "^8.4.39",
+        "tailwindcss": "^3.4.4",
+        "typescript": "^5.4.2",
+        "vite": "^5.1.5",
+        "vite-plugin-electron": "^0.28.4",
+        "vite-plugin-electron-renderer": "^0.14.5",
+        "vite-plugin-html": "^3.2.2",
+        "vue": "^3.4.21",
+        "vue-tsc": "^2.0.6"
+    },
+    "dependencies": {
+        "@babel/runtime": "^7.24.8",
+        "@devicefarmer/adbkit": "^3.2.6",
+        "@electron-toolkit/preload": "^3.0.1",
+        "@electron-toolkit/utils": "^3.0.0",
+        "@types/showdown": "^2.0.6",
+        "axios": "^1.7.2",
+        "date-and-time": "^3.4.1",
+        "dayjs": "^1.11.12",
+        "electron-updater": "^6.3.4",
+        "fix-path": "^4.0.0",
+        "js-base64": "^3.7.7",
+        "lodash-es": "^4.17.21",
+        "nodejs-base64": "^2.0.0",
+        "pinia": "^2.1.7",
+        "showdown": "^2.1.0",
+        "splitpanes": "^3.1.5",
+        "tiny-emitter": "^2.1.0",
+        "vue-i18n": "^9.13.1",
+        "vue-router": "^4.4.0"
+    }
+}

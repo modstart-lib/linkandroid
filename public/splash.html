@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%name%</title>
+</head>
+<body>
+<div style="display:flex;flex-direction:column;height:100vh;background:transparent;padding:20px;">
+    <div style="display:flex;justify-content:center;align-items:center;">
+        <div style="margin-right:10px;">
+            <img width="40" src="./logo.svg"/>
+        </div>
+        <div style="margin-right:10px;font-size:20px;font-weight:bold;color:#ea0056;">%name%</div>
+        <div style="font-size:12px;color:#333;">v%version%</div>
+        <div style="flex-grow:1;"></div>
+    </div>
+    <div style="flex-grow:1;margin-top:30px;">
+        <div style="font-size:16px;line-height:2em;margin-bottom:1em;">%slogan%</div>
+        <div style="font-size:14px;line-height:2em;">多设备 · 高清投屏 · 文件管理</div>
+        <div style="font-size:14px;line-height:2em;">Multi Devices · High Definition Screen Mirroring · File Management</div>
+    </div>
+    <div style="color:#999;font-size:12px;">
+        Starting ...
+    </div>
+</div>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-size: 14px;
+        line-height: 2em;
+        font-family: Helvetica Neue,Helvetica,PingFang SC,Tahoma,Arial,sans-serif;
+    }
+
+    body {
+        height: 100vh;
+        background-image: url("./splash-bg.svg");
+        background-size: cover;
+        background-position: right;
+        background-repeat: no-repeat;
+    }
+</style>
+</body>
+</html>

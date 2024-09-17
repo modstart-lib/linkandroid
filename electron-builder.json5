@@ -1,0 +1,157 @@
+// @see https://www.electron.build/configuration/configuration
+{
+    "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+    "appId": "LinkAndroid",
+    "asar": true,
+    "npmRebuild": true,
+    "productName": "LinkAndroid",
+    "directories": {
+        "output": "dist-release",
+        "buildResources": "electron/resources/build"
+    },
+    "files": [
+        "dist",
+        "dist-electron"
+    ],
+    "win": {
+        "target": [
+            {
+                "target": "nsis",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            },
+            {
+                "target": "zip",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            },
+            {
+                "target": "portable",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            },
+            {
+                "target": "appx",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            }
+        ],
+        "artifactName": "${productName}-${version}-win-${arch}.${ext}",
+        "extraResources": [
+            {
+                "from": "electron/resources/extra",
+                "to": "extra",
+                "filter": [
+                    "common",
+                    "win"
+                ]
+            }
+        ]
+    },
+    "nsis": {
+        "artifactName": "${productName}-${version}-win-setup-${arch}.${ext}",
+        "shortcutName": "${productName}",
+        "uninstallDisplayName": "${productName}",
+        "oneClick": false,
+        "perMachine": false,
+        "allowToChangeInstallationDirectory": true,
+        "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+        "artifactName": "${productName}-${version}-win-portable-${arch}.${ext}",
+        "requestExecutionLevel": "user"
+    },
+    "appx": {
+        "identityName": "LinkAndroid",
+        "publisher": "CN=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXX",
+        "publisherDisplayName": "LinkAndroid",
+        "languages": [
+            "zh-CN",
+            "en-US",
+            "zh-TW"
+        ]
+    },
+    "mac": {
+        "icon": "logo.icns",
+        "target": [
+            {
+                "target": "dmg",
+                "arch": [
+                    "universal",
+                    "x64",
+                    "arm64"
+                ]
+            },
+            {
+                "target": "zip",
+                "arch": [
+                    "universal",
+                    "x64",
+                    "arm64"
+                ]
+            }
+        ],
+        "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
+        "extraResources": [
+            {
+                "from": "electron/resources/extra",
+                "to": "extra",
+                "filter": [
+                    "common",
+                    "mac"
+                ]
+            }
+        ],
+        "x64ArchFiles": "Contents/Resources/extra/**/*",
+        "entitlementsInherit": "entitlements.mac.plist",
+        "extendInfo": {
+            "NSDocumentsFolderUsageDescription": "Application requests access to the user's Documents folder.",
+            "NSDownloadsFolderUsageDescription": "Application requests access to the user's Downloads folder."
+        },
+        "type": "development",
+        "notarize": false,
+        "darkModeSupport": false,
+        "hardenedRuntime": false
+    },
+    "linux": {
+        "icon": "logo.icns",
+        "desktop": "logo",
+        "maintainer": "LinkAndroid",
+        "category": "Utility",
+        "target": [
+            {
+                "target": "AppImage",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            },
+            {
+                "target": "deb",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            }
+        ],
+        "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
+        "extraResources": [
+            {
+                "from": "electron/resources/extra",
+                "to": "extra",
+                "filter": [
+                    "common",
+                    "linux"
+                ]
+            }
+        ]
+    }
+}

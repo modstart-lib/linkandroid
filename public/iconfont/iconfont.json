@@ -1,0 +1,65 @@
+{
+  "id": "4682396",
+  "name": "LinkAndroid",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "16513263",
+      "name": "logo",
+      "font_class": "logo",
+      "unicode": "e66b",
+      "unicode_decimal": 58987
+    },
+    {
+      "icon_id": "30808030",
+      "name": "avatar",
+      "font_class": "avatar",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "14027553",
+      "name": "empty-box",
+      "font_class": "empty-box",
+      "unicode": "e620",
+      "unicode_decimal": 58912
+    },
+    {
+      "icon_id": "7239764",
+      "name": "github",
+      "font_class": "github",
+      "unicode": "e732",
+      "unicode_decimal": 59186
+    },
+    {
+      "icon_id": "39287937",
+      "name": "gitee",
+      "font_class": "gitee",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "1115039",
+      "name": "关闭",
+      "font_class": "close",
+      "unicode": "e61b",
+      "unicode_decimal": 58907
+    },
+    {
+      "icon_id": "1649166",
+      "name": "最小化",
+      "font_class": "min",
+      "unicode": "e67a",
+      "unicode_decimal": 59002
+    },
+    {
+      "icon_id": "1818719",
+      "name": "最大化",
+      "font_class": "max",
+      "unicode": "e665",
+      "unicode_decimal": 58981
+    }
+  ]
+}

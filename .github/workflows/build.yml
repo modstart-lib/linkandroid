@@ -1,0 +1,52 @@
+name: Build
+
+on:
+    push:
+        tags:
+            - v*.*.*
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+          include:
+              - os: ubuntu-latest
+                arch: [arm64, amd64]
+              - os: macos-latest
+                arch: [arm64, amd64]
+              - os: windows-latest
+                arch: [arm64, amd64]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Release Files
+        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+            draft: false
+            prerelease: false
+            fail_on_unmatched_files: false
+            files: |
+                dist-release/*.exe
+                dist-release/*.dmg
+                dist-release/*.AppImage
+                dist-release/*.deb
+        env:
+            GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
