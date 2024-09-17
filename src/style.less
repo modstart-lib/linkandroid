@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    //--color-primary: #5154E0;
+    --color-primary: #ea0056;
+    // --color-primary-lighter: #6A6DFF;
+    --color-primary-lighter: lighten(#ea0056, 10%);
+    //--color-bg-page-nav: #2A3A5D;
+    --color-bg-page-nav: #FFFFFF;
+    //--color-bg-page-nav-active: #5154E0;
+    --color-bg-page-nav-active: #FFFFFF;
+    //--color-text-page-nav: #FFFFFF;
+    --color-text-page-nav: #000000;
+    //--color-text-page-nav-active: #EEEEEE;
+    --color-text-page-nav-active: #ea0056;
+    //--color-border-page-nav: #2A3A5D;
+    --color-border-page-nav: #EEEEEE;
+
+    --color-background: #FFFFFF;
+    --window-header-height: 2.5rem;
+    --page-nav-width: 4rem;
+}
+
+body, html {
+    background-color: var(--color-background);
+    font-size: 14px;
+}
+
+@font-face {
+    font-family: AlibabaPuHuiTi;
+    src: url('./assets/fonts/AlibabaPuHuiTi-3-55-Regular.ttf') format('truetype');
+}
+
+/////////// layout start ///////////
+
+.page-container {
+    height: calc(100vh - var(--window-header-height));
+    width: 100vw;
+}
+
+.page-narrow-container {
+    max-width: 100rem;
+    margin: 0 auto;
+}
+
+.page-nav-container {
+    border-right: 1px solid #EEEEEE;
+}
+
+.page-nav-item {
+    color: var(--color-text-page-nav);
+
+    &.active {
+        background: var(--color-bg-page-nav-active);
+        color: var(--color-text-page-nav-active);
+    }
+}
+
+.window-header {
+    -webkit-user-select: none;
+
+    .window-header-title {
+        -webkit-app-region: drag;
+    }
+}
+
+/////////// layout end ///////////
+
+/////////// global start ///////////
+
+.text-link {
+    color: #007bff;
+    cursor: pointer;
+}
+
+.hover\:text-primary {
+    &:hover {
+        color: var(--color-primary);
+    }
+}
+
+.bg-primary {
+    background-color: var(--color-primary);
+}
+
+.text-primary {
+    color: var(--color-primary);
+}
+
+.debug {
+    border: 1px solid red;
+}
+
+/////////// global end ///////////
+
+
+/////////// arco start ///////////
+.arco-btn, .arco-input-wrapper {
+    border-radius: 0.5rem;
+}
+
+.arco-tabs-tab-title {
+    &:before {
+        border-radius: 0.5rem !important;
+    }
+}
+
+.arco-modal-confirm {
+    .arco-modal-header {
+        border-bottom: none;
+    }
+
+    .arco-modal-footer {
+        border-top: none;
+    }
+}
+
+.arco-btn-primary, .arco-btn-primary[type='button'], .arco-btn-primary[type='submit'] {
+    background-color: var(--color-primary);
+}
+
+.arco-btn-primary:hover, .arco-btn-primary[type='button']:hover, .arco-btn-primary[type='submit']:hover {
+    background-color: var(--color-primary-lighter);
+}
+
+/////////// arco end ///////////
+
+/////////// module run start ///////////
+.text-module {
+    color: #562986;
+}
+
+.text-extend {
+    color: var(--color-primary);
+}
+
+.text-pip {
+    color: #FB9916;
+}
+
+/////////// module run end ///////////

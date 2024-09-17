@@ -1,0 +1,8 @@
+version: 1.0.0
+files:
+    - url: LinkAndroid-1.0.0-mac.dmg
+      sha512: abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
+      size: 12345678
+path: LinkAndroid-1.0.0-mac.dmg
+sha512: abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
+releaseDate: 2024-09-01T12:00:00Z
