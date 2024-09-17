@@ -81,24 +81,24 @@
     },
     "mac": {
         "icon": "logo.icns",
-//        "target": [
-//            {
-//                "target": "dmg",
-//                "arch": [
-//                    "universal",
-//                    "x64",
-//                    "arm64"
-//                ]
-//            },
-//            {
-//                "target": "zip",
-//                "arch": [
-//                    "universal",
-//                    "x64",
-//                    "arm64"
-//                ]
-//            }
-//        ],
+        "target": [
+            {
+                "target": "dmg",
+                "arch": [
+                    "universal",
+                    "x64",
+                    "arm64"
+                ]
+            },
+            {
+                "target": "zip",
+                "arch": [
+                    "universal",
+                    "x64",
+                    "arm64"
+                ]
+            }
+        ],
         "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
         "extraResources": [
             {

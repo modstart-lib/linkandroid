@@ -96,9 +96,6 @@ export default defineConfig(({command}) => {
         ],
         build: {
             sourcemap: sourcemap,
-            commonjsOptions: {
-                include: ['blockly/**/*', 'node_modules/**/*']
-            }
         },
         server: process.env.VSCODE_DEBUG && (() => {
             const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL)
@@ -107,10 +104,5 @@ export default defineConfig(({command}) => {
                 port: +url.port,
             }
         })(),
-        // clearScreen: false,
-        optimizeDeps: {
-            include: ['blockly/**/*'],
-            force: true,
-        }
     }
 })

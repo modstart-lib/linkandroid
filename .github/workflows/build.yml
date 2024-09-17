@@ -20,16 +20,22 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+          include:
+              - os: ubuntu-latest
+                arch: [arm64, amd64]
+              - os: macos-latest
+                arch: [arm64, amd64]
+              - os: windows-latest
+                arch: [arm64, amd64]
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install Dependencies
         run: npm install
@@ -40,8 +46,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: release_on_${{ matrix. os }}
-          path: release/
+          name: release_on_${{ matrix.os }}
+          path: |
+            dist-release/*.zip
+            dist-release/*.dmg
           retention-days: 5
