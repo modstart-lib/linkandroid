@@ -85,11 +85,13 @@ function createWindow() {
     }
     if (hasSplashWindow) {
         AppRuntime.splashWindow = new BrowserWindow({
+            title: AppConfig.name,
             width: 600,
             height: 350,
-            transparent: false,
+            transparent: true,
             frame: false,
             alwaysOnTop: true,
+            hasShadow: true,
         })
         if (VITE_DEV_SERVER_URL) {
             AppRuntime.splashWindow.loadURL(path.join(VITE_DEV_SERVER_URL, 'splash.html'))
@@ -102,6 +104,8 @@ function createWindow() {
         title: AppConfig.name,
         ...(!isPackaged ? {icon} : {}),
         frame: false,
+        transparent: true,
+        hasShadow: true,
         center: true,
         minWidth: WindowConstant.initWidth,
         minHeight: WindowConstant.initHeight,
