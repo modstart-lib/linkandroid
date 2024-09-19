@@ -44,6 +44,10 @@ ipcMain.handle('window:setSize', (event, width: number, height: number) => {
     windowSetSize(width, height)
 })
 
+ipcMain.handle('window:close', (event, name: string) => {
+    AppRuntime.windows[name]?.close()
+})
+
 export default {
     quit
 }

@@ -10,6 +10,7 @@ export const AppEnv = {
 export const AppRuntime = {
     splashWindow: null as BrowserWindow,
     mainWindow: null as BrowserWindow,
+    windows: {} as Record<string, BrowserWindow>,
 }
 
 export const waitAppEnvReady = async () => {

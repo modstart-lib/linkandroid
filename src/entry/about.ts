@@ -15,6 +15,8 @@ import Page from "./Page.vue";
 import PageAbout from "../pages/PageAbout.vue";
 
 const app = createApp(Page, {
+    name: 'about',
+    title: t('关于'),
     page: PageAbout
 })
 app.use(ArcoVue)
