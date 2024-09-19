@@ -3,12 +3,12 @@ import {getCurrentInstance, onBeforeMount, onMounted, ref} from "vue";
 import PageNav from "./../components/PageNav.vue";
 import {AppConfig} from "../config";
 import {Dialog} from "../lib/dialog";
-import {i18nTrans} from "../lang";
+import {t} from "../lang";
 
 const platform = ref('')
 
 const doQuit = () => {
-    Dialog.confirm(i18nTrans('quit.confirm'))
+    Dialog.confirm(t('确定退出软件？'))
         .then(() => {
             window.$mapi.app.quit()
         })

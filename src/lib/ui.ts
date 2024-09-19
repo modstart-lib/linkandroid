@@ -50,6 +50,9 @@ export class TabContentScroller {
     }
     private tabContainer: HTMLElement
     private contentContainer: HTMLElement
+    private isScrolling = false
+    private scrollEndTimer: any | null = null
+    private scrollEndCallback: (() => void) | null = null
 
     constructor(tabContainer: HTMLElement, contentContainer: HTMLElement, option: {} = {}) {
         this.option = Object.assign({
@@ -76,10 +79,25 @@ export class TabContentScroller {
         const name = parentSection?.getAttribute('data-section')
         if (name) {
             this.scrollTo(name)
+            this.scrollEndCallback = () => {
+                this.forceActiveTab(name)
+            }
         }
     }
 
     onContentScrollEvent(e: Event) {
+        this.isScrolling = true
+        if (this.scrollEndTimer) {
+            clearTimeout(this.scrollEndTimer)
+        }
+        this.scrollEndTimer = setTimeout(() => {
+            this.isScrolling = false
+            this.scrollEndTimer = null
+            if (this.scrollEndCallback) {
+                this.scrollEndCallback()
+                this.scrollEndCallback = null
+            }
+        }, 100)
         const tabs = this.tabContainer.querySelectorAll('[data-section]')
         for (let i = 0; i < tabs.length; i++) {
             const tab = tabs[i]
@@ -100,6 +118,19 @@ export class TabContentScroller {
         }
     }
 
+    forceActiveTab(name: string) {
+        const tabs = this.tabContainer.querySelectorAll('[data-section]')
+        for (let i = 0; i < tabs.length; i++) {
+            const tab = tabs[i]
+            const tabName = tab.getAttribute('data-section') || ''
+            if (tabName === name) {
+                tab.classList.add(this.option.activeClass)
+            } else {
+                tab.classList.remove(this.option.activeClass)
+            }
+        }
+    }
+
     scrollTo(name: string) {
         const tab = this.tabContainer.querySelector(`[data-section="${name}"]`)
         if (!tab) {
@@ -110,7 +141,7 @@ export class TabContentScroller {
             return
         }
         content.scrollIntoView({
-            behavior: 'smooth',
+            behavior: 'smooth'
         })
     }
 }

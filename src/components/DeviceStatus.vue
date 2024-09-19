@@ -12,15 +12,15 @@ const props = defineProps<Props>()
     <div class="inline-block text-gray-400 text-sm">
         <div v-if="props.status===EnumDeviceStatus.WAIT_CONNECTING">
             <div class="inline-block w-2 h-2 rounded-full bg-gray-500 mr-1"></div>
-            {{ $t('device.status.waitConnecting') }}
+            {{ $t('等待连接') }}
         </div>
         <div v-else-if="props.status===EnumDeviceStatus.CONNECTED">
             <div class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></div>
-            {{ $t('device.status.connected') }}
+            {{ $t('已连接') }}
         </div>
         <div v-else-if="props.status===EnumDeviceStatus.DISCONNECTED">
             <div class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></div>
-            {{ $t('device.status.disconnected') }}
+            {{ $t('已断开') }}
         </div>
     </div>
 </template>

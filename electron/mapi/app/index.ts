@@ -1,4 +1,4 @@
-import {app, ipcMain} from "electron";
+import {app, ipcMain, shell} from "electron";
 import {WindowConstant} from "../../lib/constant";
 import {AppRuntime} from "../env";
 
@@ -29,6 +29,11 @@ const windowSetSize = (width: number, height: number) => {
 ipcMain.handle('app:quit', () => {
     quit()
 })
+
+ipcMain.handle('app:openExternalWeb', (event, url: string) => {
+    return shell.openExternal(url)
+})
+
 ipcMain.handle('window:min', () => {
     windowMin()
 })

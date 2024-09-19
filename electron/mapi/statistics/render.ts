@@ -28,6 +28,8 @@ const tickSendAsync = () => {
             })
         }).then(res => {
             // console.log('tickSend', tickDataList, res)
+        }).catch(err => {
+            
         })
         tickDataList = []
     }, 2000)

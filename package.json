@@ -58,7 +58,7 @@
         "axios": "^1.7.2",
         "date-and-time": "^3.4.1",
         "dayjs": "^1.11.12",
-        "electron-updater": "^6.3.4",
+        "electron-context-menu": "^4.0.4",
         "fix-path": "^4.0.0",
         "js-base64": "^3.7.7",
         "lodash-es": "^4.17.21",

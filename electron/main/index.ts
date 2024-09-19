@@ -1,7 +1,5 @@
-import {app, BrowserWindow, Menu, shell} from 'electron'
+import {app, BrowserWindow, shell} from 'electron'
 import {optimizer} from '@electron-toolkit/utils'
-import {createRequire} from 'node:module'
-import {fileURLToPath} from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
 
@@ -17,10 +15,10 @@ import {AppConfig} from "../../src/config";
 import {buildResolve} from "../util/path";
 import Log from "../mapi/log";
 import Event from "../mapi/event";
-
-const isMac = process.platform === 'darwin'
-const require = createRequire(import.meta.url)
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import {ConfigMenu} from "../config/menu";
+import {ConfigLang} from "../config/lang";
+import {ConfigContextMenu} from "../config/contextMenu";
+import {MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL} from "../util/path-main";
 
 export const logoPath = buildResolve('logo.png')
 export const icoLogoPath = buildResolve('logo.ico')
@@ -36,17 +34,14 @@ export const icnsLogoPath = buildResolve('logo.icns')
 // ├─┬ dist
 // │ └── index.html    > Electron-Renderer
 //
-process.env.APP_ROOT = path.join(__dirname, '../..')
 
-// Menu.setApplicationMenu(null);
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+});
 
-export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
-export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
-export const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
-
-process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
-    ? path.join(process.env.APP_ROOT, 'public')
-    : RENDERER_DIST
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
+});
 
 // Disable GPU Acceleration for Windows 7
 if (os.release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -61,7 +56,7 @@ if (!app.requestSingleInstanceLock()) {
 
 const hasSplashWindow = true
 
-const preload = path.join(__dirname, '../preload/index.mjs')
+const preload = path.join(MAIN_DIST, 'preload/index.mjs')
 const splashHtml = path.join(RENDERER_DIST, 'splash.html')
 const indexHtml = path.join(RENDERER_DIST, 'index.html')
 
@@ -71,6 +66,7 @@ AppEnv.userData = app.getPath('userData')
 AppEnv.isInit = true
 
 MAPI.init()
+ConfigContextMenu.init()
 
 Log.info('Starting')
 Log.info('LaunchInfo', {
@@ -117,11 +113,11 @@ function createWindow() {
             // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
             nodeIntegration: true,
             webSecurity: false,
-            webviewTag: true
-
+            webviewTag: true,
             // Consider using contextBridge.exposeInMainWorld
             // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
-            // contextIsolation: false,
+            contextIsolation: false,
+            // sandbox: false,
         },
     })
 
@@ -154,9 +150,13 @@ function createWindow() {
     // AppRuntime.mainWindow.webContents.on('will-navigate', (event, url) => { }) #344
 }
 
+app.disableHardwareAcceleration();
+
 app.whenReady()
+    .then(ConfigLang.readyAsync)
     .then(() => {
         MAPI.ready()
+        ConfigMenu.ready()
         app.on('browser-window-created', (_, window) => {
             optimizer.watchWindowShortcuts(window)
         })
@@ -168,8 +168,8 @@ app.on('will-quit', () => {
 });
 
 app.on('window-all-closed', () => {
-    AppRuntime.mainWindow = null
     if (process.platform !== 'darwin') app.quit()
+    AppRuntime.mainWindow = null
 })
 
 app.on('second-instance', () => {

@@ -96,6 +96,12 @@ export default defineConfig(({command}) => {
         ],
         build: {
             sourcemap: sourcemap,
+            rollupOptions: {
+                input: {
+                    main: path.resolve(__dirname, 'index.html'),
+                    about: path.resolve(__dirname, 'page/about.html'),
+                }
+            }
         },
         server: process.env.VSCODE_DEBUG && (() => {
             const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL)

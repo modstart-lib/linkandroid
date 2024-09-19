@@ -1,6 +1,7 @@
 import path from "node:path";
-import {AppEnv, waitAppEnvReady} from "../env";
+import {AppEnv} from "../env";
 import fs from "node:fs";
+import {dialog, ipcMain} from "electron";
 
 let data = null
 
@@ -29,13 +30,11 @@ const save = () => {
 }
 
 const all = async () => {
-    await waitAppEnvReady()
     loadIfNeed()
     return data
 }
 
 const get = async (key: string, defaultValue: any = null) => {
-    await waitAppEnvReady()
     loadIfNeed()
     if (!(key in data)) {
         data[key] = defaultValue
@@ -45,19 +44,28 @@ const get = async (key: string, defaultValue: any = null) => {
 }
 
 const set = async (key: string, value: any) => {
-    await waitAppEnvReady()
     loadIfNeed()
     data[key] = value
     save()
 }
+ipcMain.handle('config:all', async (_) => {
+    return await all()
+})
+ipcMain.handle('config:get', async (_, key: string, defaultValue: any = null) => {
+    return await get(key, defaultValue)
+})
+ipcMain.handle('config:set', async (_, key: string, value: any) => {
+    return await set(key, value)
+})
 
 export default {
     all,
     get,
     set,
-    Config: {
-        all,
-        get,
-        set
-    }
+}
+
+export const Config = {
+    all,
+    get,
+    set
 }

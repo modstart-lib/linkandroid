@@ -23,6 +23,10 @@ const windowSetSize = (width: number, height: number) => {
     return ipcRenderer.invoke('window:setSize', width, height)
 }
 
+const openExternalWeb = (url: string) => {
+    return ipcRenderer.invoke('app:openExternalWeb', url)
+}
+
 const resourcePathResolve = async (filePath: string) => {
     await waitAppEnvReady()
     const basePath = isPackaged ? process.resourcesPath : AppEnv.appRoot
@@ -35,6 +39,11 @@ const extraPathResolve = async (filePath: string) => {
     return resolve(basePath, 'extra', filePath)
 }
 
+const appEnv = async () => {
+    await waitAppEnvReady()
+    return AppEnv
+}
+
 export default {
     resourcePathResolve,
     extraPathResolve,
@@ -43,4 +52,6 @@ export default {
     windowMin,
     windowMax,
     windowSetSize,
+    openExternalWeb,
+    appEnv,
 }

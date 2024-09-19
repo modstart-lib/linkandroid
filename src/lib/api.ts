@@ -1,5 +1,6 @@
 import axios, {type AxiosInstance, type AxiosRequestConfig} from "axios"
 import {merge} from "lodash-es"
+import {Dialog} from "./dialog";
 
 function createService() {
     const service = axios.create()
@@ -59,3 +60,28 @@ function createRequest(service: AxiosInstance) {
 const service = createService()
 
 export const request = createRequest(service)
+
+
+export const defaultResponseProcessor = (res: ApiResult<any>, success: Function | null = null, error: Function | null = null) => {
+    if (res.code) {
+        if (error) {
+            if (!error(res)) {
+                Dialog.tipError(res.msg)
+            }
+        } else {
+            Dialog.tipError(res.msg)
+        }
+    } else {
+        if (success) {
+            if (success(res)) {
+                if (res.msg) {
+                    Dialog.tipSuccess(res.msg)
+                }
+            }
+        } else {
+            if (res.msg) {
+                Dialog.tipSuccess(res.msg)
+            }
+        }
+    }
+}

@@ -2,7 +2,9 @@
 
 ## 软件介绍
 
-LinkAndroid 是一个安卓手机连接管理器，可以连接多个手机，一键投屏，手机操作。
+【[中文文档](./README-CN.md)】 【[English](./README.md)】
+
+`LinkAndroid` 是一个 `Android` 手机连接管理器，方便快捷的连接 `Android` 和电脑，可以连接多个手机，一键投屏，手机操作等。
 
 ![](./screenshots/home.png)
 

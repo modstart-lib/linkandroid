@@ -8,6 +8,8 @@ declare interface Window {
             windowMin: () => Promise<void>,
             windowMax: () => Promise<void>,
             windowSetSize: (width: number, height: number) => Promise<void>,
+            openExternalWeb: (url: string) => Promise<void>,
+            appEnv: () => Promise<any>,
         },
         config: {
             get: (key: string, defaultValue: any = null) => Promise<any>,
@@ -37,12 +39,14 @@ declare interface Window {
             openFile: (options: {} = {}) => Promise<any>,
         },
         updater: {
-            checkForUpdate: (callback: (type: 'error' | 'checking' | 'available' | 'notAvailable', data: any) => void) => Promise<void>,
-            downloadUpdate: (callback: (type: 'error' | 'progress' | 'downloaded', data: any) => void) => Promise<void>,
-            quitAndInstall: () => Promise<void>,
+            checkForUpdate: () => Promise<ApiResult<any>>,
         },
         statistics: {
             tick: (name: string, data: any = null) => Promise<void>,
+        },
+        lang: {
+            writeSourceKey: (key: string) => Promise<void>,
+            writeSourceKeyUse: (key: string) => Promise<void>,
         },
         adb: {
             getBinPath: () => Promise<string>,

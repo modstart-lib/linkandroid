@@ -1,7 +1,7 @@
 import {exec as _exec, spawn} from 'node:child_process'
 import util from 'node:util'
 import which from 'which'
-import Config from "../config";
+import Config from "../config/render";
 import {extraResolve} from "../../util/path";
 import {ADB} from '../adb/render'
 

@@ -29,7 +29,7 @@ const activeTab = computed(() => {
                 <div>
                     <icon-mobile class="text-xl"/>
                 </div>
-                <div class="text-sm">{{ $t('device') }}</div>
+                <div class="text-sm">{{ $t('设备') }}</div>
             </a>
             <a class="page-nav-item block text-center py-3"
                :class="activeTab==='setting'?'active':''"
@@ -38,7 +38,7 @@ const activeTab = computed(() => {
                 <div>
                     <icon-settings class="text-xl"/>
                 </div>
-                <div class="text-sm">{{ $t('setting') }}</div>
+                <div class="text-sm">{{ $t('设置') }}</div>
             </a>
         </div>
         <div>

@@ -1,7 +1,7 @@
 import {exposeContext} from "./util";
 import {AppEnv} from "./env";
 
-import config from "./config";
+import config from "./config/render";
 import log from "./log/render";
 import app from "./app/render";
 import storage from "./storage";
@@ -9,7 +9,8 @@ import file from "./file/render";
 import event from "./event/render";
 import ui from "./ui/render";
 import updater from "./updater/render";
-import statistics from "./statistics";
+import statistics from "./statistics/render";
+import lang from "./lang/render";
 import adb from "./adb/render";
 import scrcpy from "./scrcpy/render";
 
@@ -27,6 +28,7 @@ export const MAPI = {
                 ui,
                 updater,
                 statistics,
+                lang,
                 adb,
                 scrcpy,
             })

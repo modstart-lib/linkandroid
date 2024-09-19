@@ -19,6 +19,27 @@ export const StrUtil = {
             result += chars[Math.floor(Math.random() * chars.length)]
         }
         return result
+    },
+    uuid() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            const r = Math.random() * 16 | 0
+            const v = c === 'x' ? r : (r & 0x3 | 0x8)
+            return v.toString(16)
+        })
+    },
+    hashCode(str: string, length: number = 8) {
+        let hash = 0
+        if (str.length === 0) return hash
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i)
+            hash = ((hash << 5) - hash) + char
+            hash = hash & hash
+        }
+        let result = Math.abs(hash).toString(16)
+        if (result.length < length) {
+            result = '0'.repeat(length - result.length) + result
+        }
+        return result
     }
 }
 
@@ -58,5 +79,12 @@ export const FileUtil = {
         } else {
             return (size / 1024 / 1024 / 1024).toFixed(2) + 'GB'
         }
+    }
+}
+
+
+export const JsonUtil = {
+    stringifyOrdered(obj: any) {
+        return JSON.stringify(obj, Object.keys(obj).sort(), 4)
     }
 }

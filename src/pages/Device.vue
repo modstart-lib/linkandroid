@@ -8,7 +8,7 @@ import {mapError} from "../lib/linkandroid";
 import InputInlineEditor from "../components/common/InputInlineEditor.vue";
 import DeviceInfoDialog from "../components/DeviceInfoDialog.vue";
 import {ref} from "vue";
-import {i18nTrans} from "../lang";
+import {t} from "../lang";
 
 const onStdout = (data) => {
     console.log('stdout', data)
@@ -21,7 +21,7 @@ const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const deviceStore = useDeviceStore()
 const doMirror = async (device: DeviceRecord) => {
     if (device.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(i18nTrans('device.status.notConnected'))
+        Dialog.tipError(t('设备未连接'))
         return
     }
     try {
@@ -46,12 +46,12 @@ const doFileManager = async (device: DeviceRecord) => {
     //     Dialog.tipError('设备未连接')
     //     return
     // }
-    Dialog.tipError(i18nTrans('underdevelopment'))
+    Dialog.tipError(t('开发中'))
     // console.log('xxx', await window.$mapi.adb.fileList(device.id, '/'))
 }
 
 const doConnectWifi = async () => {
-    Dialog.tipError(i18nTrans('underdevelopment'))
+    Dialog.tipError(t('开发中'))
     // Dialog.loadingOn('正在连接Wifi设备...')
     // try {
     //     await deviceStore.connectWifi()
@@ -64,10 +64,10 @@ const doConnectWifi = async () => {
 }
 
 const doRefresh = async () => {
-    Dialog.loadingOn(i18nTrans('device.refresh.loading'))
+    Dialog.loadingOn(t('正在刷新设备'))
     try {
         await deviceStore.refresh()
-        Dialog.tipSuccess(i18nTrans('device.refresh.success'))
+        Dialog.tipSuccess(t('刷新设备成功'))
     } catch (e) {
         Dialog.tipError(mapError(e))
     } finally {
@@ -76,11 +76,11 @@ const doRefresh = async () => {
 }
 
 const doDelete = async (device: DeviceRecord) => {
-    Dialog.confirm(i18nTrans('device.delete.confirm')).then(async () => {
-        Dialog.loadingOn(i18nTrans('device.delete.loading'))
+    Dialog.confirm(t('确定删除设备？')).then(async () => {
+        Dialog.loadingOn(t('正在删除'))
         try {
             await deviceStore.delete(device)
-            Dialog.tipSuccess(i18nTrans('device.delete.success'))
+            Dialog.tipSuccess(t('删除成功'))
         } catch (e) {
             Dialog.tipError(mapError(e))
         } finally {
@@ -92,7 +92,7 @@ const doDelete = async (device: DeviceRecord) => {
 const onEditName = async (device: DeviceRecord, name: string) => {
     try {
         await deviceStore.edit(device, {name})
-        Dialog.tipSuccess(i18nTrans('device.editName.success'))
+        Dialog.tipSuccess(t('设备编辑成功'))
     } catch (e) {
         Dialog.tipError(mapError(e))
     }
@@ -104,29 +104,29 @@ const onEditName = async (device: DeviceRecord, name: string) => {
     <div class="p-8">
         <div class="mb-4 flex items-center">
             <div class="text-3xl font-bold flex-grow">
-                {{ $t('device.title') }}
+                {{ $t('设备') }}
             </div>
             <div>
                 <a-button @click="doConnectWifi" class="ml-1">
                     <icon-link class="mr-1"/>
-                    {{ $t('device.connectWifiDevice') }}
+                    {{ $t('通过Wifi连接') }}
                 </a-button>
                 <a-button @click="doRefresh" class="ml-1">
                     <icon-refresh class="mr-1"/>
-                    {{ $t('refresh') }}
+                    {{ $t('刷新') }}
                 </a-button>
             </div>
         </div>
         <div class="-mx-2">
             <div v-if="!deviceStore.records.length" class="py-20">
                 <div class="mb-6">
-                    <a-empty :description="$t('device.emptyTip')"/>
+                    <a-empty :description="$t('还没有设备，使用USB连接电脑开始使用～')"/>
                 </div>
                 <div class="text-center">
                     <a-button v-if="deviceStore.records.length>0"
                               type="primary" @click="doRefresh">
                         <icon-refresh class="mr-1"/>
-                        {{ $t('refresh') }}
+                        {{ $t('刷新') }}
                     </a-button>
                 </div>
             </div>
@@ -155,7 +155,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                         </div>
                         <div class="h-52 relative">
                             <div class="absolute bottom-0 left-0 p-4">
-                                <a-tooltip :content="$t('device.mirrorToDesktop')">
+                                <a-tooltip :content="$t('投屏到电脑')">
                                     <div
                                         @click="doMirror(r)"
                                         class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl text-center overflow-hidden">
@@ -169,7 +169,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                                 </a-tooltip>
                             </div>
                             <div class="absolute bottom-0 right-0 p-4">
-                                <a-tooltip :content="$t('device.fileManager.title')">
+                                <a-tooltip :content="$t('文件管理')">
                                     <a-button class="mr-1"
                                               @click="doFileManager(r)">
                                         <template #icon>
@@ -184,10 +184,10 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                                         </template>
                                     </a-button>
                                     <template #content>
-                                        <a-doption @click="infoDialog?.show(r)">{{ $t('detail') }}</a-doption>
+                                        <a-doption @click="infoDialog?.show(r)">{{ $t('详情') }}</a-doption>
                                         <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED"
                                                    @click="doDelete(r)">
-                                            {{ $t('delete') }}
+                                            {{ $t('删除') }}
                                         </a-doption>
                                     </template>
                                 </a-dropdown>

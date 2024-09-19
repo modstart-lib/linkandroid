@@ -15,7 +15,7 @@ export const AppRuntime = {
 export const waitAppEnvReady = async () => {
     while (!AppEnv.isInit) {
         await new Promise(resolve => {
-            setTimeout(resolve, 100)
+            setTimeout(resolve, 1000)
         })
     }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onBeforeUnmount, onMounted, ref} from 'vue'
 import {AppConfig} from "../config";
-import {changeLocale, getLocale, listLocales} from '../lang'
+import {changeLocale, getLocale, listLocales, t} from '../lang'
 import UpdaterButton from "../components/common/UpdaterButton.vue";
 import {TabContentScroller} from "../lib/ui";
 
@@ -73,13 +73,13 @@ const onLocaleChange = (value: string) => {
             <div data-section="common" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer bg-gray-100">
                 <div class="text-base">
                     <icon-settings/>
-                    {{ $t('setting.common') }}
+                    {{ t('基础设置') }}
                 </div>
             </div>
             <div data-section="about" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer">
                 <div class="text-base">
                     <icon-user/>
-                    {{ $t('setting.about') }}
+                    {{ t('关于软件') }}
                 </div>
             </div>
         </div>
@@ -89,35 +89,35 @@ const onLocaleChange = (value: string) => {
                  style="height:calc(100vh - var(--window-header-height));">
                 <div data-section="common" class="scroll-mt-4">
                     <div class="text-base font-bold mb-4">
-                        {{ $t('setting.common') }}
+                        {{ t('基础设置') }}
                     </div>
                     <div>
                         <a-form :model="common" layout="vertical">
-                            <a-form-item field="name" :label="$t('setting.adb.path')">
+                            <a-form-item field="name" :label="t('ADB路径')">
                                 <a-input
                                     @change="doAdbPathChange"
                                     v-model="common.adbPath as string">
                                     <template #append>
                                         <span @click="doSelectAdbPath"
                                               class="cursor-pointer">
-                                            {{ $t('file.select') }}
+                                            {{ t('选择路径') }}
                                         </span>
                                     </template>
                                 </a-input>
                             </a-form-item>
-                            <a-form-item field="name" :label="$t('setting.scrcpy.path')">
+                            <a-form-item field="name" :label="t('scrcpy路径')">
                                 <a-input
                                     @change="doScrcpyPathChange"
                                     v-model="common.scrcpyPath as string">
                                     <template #append>
                                         <span @click="doSelectScrcpyPath"
                                               class="cursor-pointer">
-                                            {{ $t('file.select') }}
+                                            {{ t('选择路径') }}
                                         </span>
                                     </template>
                                 </a-input>
                             </a-form-item>
-                            <a-form-item field="name" :label="$t('language')">
+                            <a-form-item field="name" :label="t('语言')">
                                 <a-select :model-value="common.locale as string"
                                           @change="onLocaleChange as any">
                                     <a-option v-for="(l,lIndex) in locales"
@@ -132,23 +132,23 @@ const onLocaleChange = (value: string) => {
                 <div class="border-b border-solid border-gray-200 my-6"></div>
                 <div data-section="about" class="scroll-mt-4">
                     <div class="text-base font-bold mb-4">
-                        {{ $t('setting.about') }}
+                        {{ t('关于软件') }}
                     </div>
                     <div class="">
                         <div class="flex mb-3">
-                            <div class="w-20">{{ $t('version') }}</div>
+                            <div class="w-20">{{ t('版本') }}</div>
                             <div class="flex-grow">
                                 v{{ AppConfig.version }}
                             </div>
                         </div>
                         <div class="flex mb-3">
-                            <div class="w-20">{{ $t('setting.about.licence') }}</div>
+                            <div class="w-20">{{ t('声明') }}</div>
                             <div class="flex-grow">
-                                {{ $t('setting.about.licence.content') }}
+                                {{ t('本产品为开源软件，遵循 GPL-3.0 license 协议。') }}
                             </div>
                         </div>
                         <div class="flex mb-3">
-                            <div class="w-20">{{ $t('setting.about.feedback') }}</div>
+                            <div class="w-20">{{ t('反馈') }}</div>
                             <div class="flex-grow">
                                 <a :href="AppConfig.website" target="_blank"
                                    class="text-link">
@@ -157,7 +157,7 @@ const onLocaleChange = (value: string) => {
                             </div>
                         </div>
                         <div class="flex mb-3">
-                            <div class="w-20">{{ $t('setting.about.website') }}</div>
+                            <div class="w-20">{{ t('官网') }}</div>
                             <div class="flex-grow">
                                 <a :href="AppConfig.website" target="_blank"
                                    class="text-link">

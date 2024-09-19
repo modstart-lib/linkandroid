@@ -1,4 +1,5 @@
 import {resolve} from "node:path";
+import url from "node:url";
 
 export const isPackaged = ['true'].includes(process.env.IS_PACKAGED)
 

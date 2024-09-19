@@ -1,7 +1,7 @@
 import {Message, MessageReturn, Modal} from '@arco-design/web-vue';
 import Prompt from "./components/Prompt.vue";
 import {h} from "vue";
-import {i18n} from "../lang";
+import {i18n, t} from "../lang";
 
 let loadingLayers: MessageReturn[] = []
 
@@ -13,7 +13,7 @@ export const Dialog = {
         Message.error(msg);
     },
     confirm: (content: string, title: string | null = null): Promise<void> => {
-        title = title || i18n.global.t('dialog.tips')
+        title = title || t('提示')
         return new Promise((resolve, reject) => {
             Modal.confirm({
                 title,
@@ -22,8 +22,8 @@ export const Dialog = {
                 simple: false,
                 width: '25rem',
                 modalClass: 'arco-modal-confirm',
-                okText: i18n.global.t('dialog.confirm'),
-                cancelText: i18n.global.t('dialog.cancel'),
+                okText: t('确定'),
+                cancelText: t('取消'),
                 onOk: () => {
                     resolve();
                 },
@@ -34,7 +34,7 @@ export const Dialog = {
         });
     },
     alertSuccess: (content: string, title: string | null = null): Promise<void> => {
-        title = title || i18n.global.t('dialog.tips')
+        title = title || t('提示')
         return new Promise((resolve) => {
             Modal.confirm({
                 title,
@@ -48,7 +48,7 @@ export const Dialog = {
         });
     },
     alertError: (content: string, title: string | null = null): Promise<void> => {
-        title = title || i18n.global.t('dialog.tips')
+        title = title || t('提示')
         return new Promise((resolve) => {
             Modal.confirm({
                 title,
@@ -62,7 +62,7 @@ export const Dialog = {
         });
     },
     loadingOn: (content: string | null = null) => {
-        content = content || i18n.global.t('dialog.loading')
+        content = content || t('加载中...')
         const loading = Message.loading({
             content,
             duration: 0
