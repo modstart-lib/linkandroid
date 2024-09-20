@@ -9,6 +9,12 @@ import InputInlineEditor from "../components/common/InputInlineEditor.vue";
 import DeviceInfoDialog from "../components/DeviceInfoDialog.vue";
 import {ref} from "vue";
 import {t} from "../lang";
+import DeviceFileManagerDialog from "../components/DeviceFileManagerDialog.vue";
+import DeviceAppManagerDialog from "../components/DeviceAppManagerDialog.vue";
+import DeviceAppInstallDialog from "../components/DeviceAppInstallDialog.vue";
+import DeviceConnectWifiDialog from "../components/DeviceConnectWifiDialog.vue";
+import DeviceShellDialog from "../components/DeviceShellDialog.vue";
+import DeviceAdbShellDialog from "../components/DeviceAdbShellDialog.vue";
 
 const onStdout = (data) => {
     console.log('stdout', data)
@@ -18,12 +24,20 @@ const onStderr = (data) => {
 }
 
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
+const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
+const appManagerDialog = ref<InstanceType<typeof DeviceAppManagerDialog> | null>(null);
+const appInstallDialog = ref<InstanceType<typeof DeviceAppInstallDialog> | null>(null);
+const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
+const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
+const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
+
 const deviceStore = useDeviceStore()
 const doMirror = async (device: DeviceRecord) => {
     if (device.status !== EnumDeviceStatus.CONNECTED) {
         Dialog.tipError(t('设备未连接'))
         return
     }
+    Dialog.loadingOn(t('正在投屏'))
     try {
         const mirroring = window.$mapi.scrcpy.mirror(device.id, {
             title: device.name as string,
@@ -34,6 +48,7 @@ const doMirror = async (device: DeviceRecord) => {
                 stderr: onStderr,
             }
         })
+        Dialog.loadingOff()
         await sleep(1000)
         await mirroring
     } catch (error) {
@@ -41,27 +56,6 @@ const doMirror = async (device: DeviceRecord) => {
     }
 }
 
-const doFileManager = async (device: DeviceRecord) => {
-    // if (device.status !== EnumDeviceStatus.CONNECTED) {
-    //     Dialog.tipError('设备未连接')
-    //     return
-    // }
-    Dialog.tipError(t('开发中'))
-    // console.log('xxx', await window.$mapi.adb.fileList(device.id, '/'))
-}
-
-const doConnectWifi = async () => {
-    Dialog.tipError(t('开发中'))
-    // Dialog.loadingOn('正在连接Wifi设备...')
-    // try {
-    //     await deviceStore.connectWifi()
-    //     Dialog.tipSuccess('连接Wifi设备成功')
-    // } catch (e) {
-    //     Dialog.tipError(mapError(e))
-    // } finally {
-    //     Dialog.loadingOff()
-    // }
-}
 
 const doRefresh = async () => {
     Dialog.loadingOn(t('正在刷新设备'))
@@ -106,15 +100,29 @@ const onEditName = async (device: DeviceRecord, name: string) => {
             <div class="text-3xl font-bold flex-grow">
                 {{ $t('设备') }}
             </div>
-            <div>
-                <a-button @click="doConnectWifi" class="ml-1">
-                    <icon-link class="mr-1"/>
-                    {{ $t('通过Wifi连接') }}
-                </a-button>
+            <div class="flex items-center">
                 <a-button @click="doRefresh" class="ml-1">
-                    <icon-refresh class="mr-1"/>
+                    <template #icon>
+                        <icon-refresh/>
+                    </template>
                     {{ $t('刷新') }}
                 </a-button>
+<!--                <a-button @click="connectWifiDialog?.show()" class="ml-1">-->
+<!--                    <template #icon>-->
+<!--                        <icon-link/>-->
+<!--                    </template>-->
+<!--                    {{ $t('连接Wifi设备') }}-->
+<!--                </a-button>-->
+<!--                <a-dropdown trigger="hover">-->
+<!--                    <a-button class="ml-1">-->
+<!--                        <template #icon>-->
+<!--                            <icon-caret-down/>-->
+<!--                        </template>-->
+<!--                    </a-button>-->
+<!--                    <template #content>-->
+<!--                        <a-doption @click="shellDialog?.show()">{{ $t('命令行工具') }}</a-doption>-->
+<!--                    </template>-->
+<!--                </a-dropdown>-->
             </div>
         </div>
         <div class="-mx-2">
@@ -131,7 +139,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                 </div>
             </div>
             <div v-else class="flex flex-wrap">
-                <div v-for="(r,rIndex) in deviceStore.records" :key="rIndex" class="w-1/3 2xl:w-1/4 p-3">
+                <div v-for="(r,rIndex) in deviceStore.records" :key="rIndex" class="w-full lg:w-1/2 2xl:w-1/3 p-3">
                     <div
                         class="hover:shadow-lg shadow border border-solid h-64 border-gray-100 rounded-lg flex flex-col">
                         <div class="flex overflow-hidden flex-shrink-0 items-center h-12 px-4 py-2">
@@ -169,25 +177,43 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                                 </a-tooltip>
                             </div>
                             <div class="absolute bottom-0 right-0 p-4">
+                                <a-tooltip :content="$t('应用管理')">
+                                    <a-dropdown trigger="hover">
+                                        <a-button class="ml-1">
+                                            <template #icon>
+                                                <i class="iconfont icon-apk text-gray-400"></i>
+                                            </template>
+                                        </a-button>
+                                        <template #content>
+<!--                                            <a-doption @click="appManagerDialog?.show(r)">{{-->
+<!--                                                    $t('管理应用')-->
+<!--                                                }}-->
+<!--                                            </a-doption>-->
+                                            <a-doption @click="appInstallDialog?.show(r)">{{
+                                                    $t('安装应用')
+                                                }}
+                                            </a-doption>
+                                        </template>
+                                    </a-dropdown>
+                                </a-tooltip>
                                 <a-tooltip :content="$t('文件管理')">
-                                    <a-button class="mr-1"
-                                              @click="doFileManager(r)">
+                                    <a-button class="ml-1" @click="fileManagerDialog?.show(r)">
                                         <template #icon>
                                             <icon-folder class="text-gray-400"/>
                                         </template>
                                     </a-button>
                                 </a-tooltip>
-                                <a-dropdown>
-                                    <a-button>
+                                <a-dropdown trigger="hover">
+                                    <a-button class="ml-1">
                                         <template #icon>
                                             <icon-settings class="text-gray-400"/>
                                         </template>
                                     </a-button>
                                     <template #content>
-                                        <a-doption @click="infoDialog?.show(r)">{{ $t('详情') }}</a-doption>
-                                        <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED"
-                                                   @click="doDelete(r)">
-                                            {{ $t('删除') }}
+<!--                                        <a-doption @click="adbShellDialog?.show()">{{ $t('命令行') }}</a-doption>-->
+                                        <a-doption @click="infoDialog?.show(r)">{{ $t('设备详情') }}</a-doption>
+                                        <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">
+                                            {{ $t('删除设备') }}
                                         </a-doption>
                                     </template>
                                 </a-dropdown>
@@ -198,7 +224,13 @@ const onEditName = async (device: DeviceRecord, name: string) => {
             </div>
         </div>
     </div>
+    <DeviceConnectWifiDialog ref="connectWifiDialog"/>
     <DeviceInfoDialog ref="infoDialog"/>
+    <DeviceFileManagerDialog ref="fileManagerDialog"/>
+    <DeviceAppManagerDialog ref="appManagerDialog"/>
+    <DeviceAppInstallDialog ref="appInstallDialog"/>
+    <DeviceShellDialog ref="shellDialog"/>
+    <DeviceAdbShellDialog ref="adbShellDialog"/>
 </template>
 
 <style scoped>

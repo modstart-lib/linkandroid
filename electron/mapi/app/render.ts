@@ -11,6 +11,20 @@ const platform = () => {
     return process.platform
 }
 
+const isPlatform = (name: 'win' | 'mac' | 'linux') => {
+    const p = process.platform
+    switch (name) {
+        case 'win':
+            return p === 'win32'
+        case 'mac':
+            return p === 'darwin'
+        case 'linux':
+            return p === 'linux'
+        default:
+            return false
+    }
+}
+
 const windowMin = () => {
     return ipcRenderer.invoke('window:min')
 }
@@ -52,6 +66,7 @@ export default {
     resourcePathResolve,
     extraPathResolve,
     platform,
+    isPlatform,
     quit,
     windowMin,
     windowMax,

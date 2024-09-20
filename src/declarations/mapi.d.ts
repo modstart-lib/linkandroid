@@ -4,6 +4,7 @@ declare interface Window {
             resourcePathResolve: (filePath: string) => Promise<string>,
             extraPathResolve: (filePath: string) => Promise<string>,
             platform: () => string,
+            isPlatform: (platform: 'win' | 'mac' | 'linux') => boolean,
             quit: () => Promise<void>,
             windowMin: () => Promise<void>,
             windowMax: () => Promise<void>,
@@ -38,6 +39,7 @@ declare interface Window {
             deletes: (path: string) => Promise<void>,
             rename: (pathOld: string, pathNew: string) => Promise<void>,
             openFile: (options: {} = {}) => Promise<any>,
+            openDirectory: (options: {} = {}) => Promise<any>,
         },
         updater: {
             checkForUpdate: () => Promise<ApiResult<any>>,
@@ -56,13 +58,14 @@ declare interface Window {
             screencap: (serial: string) => Promise<string>,
             watch: (callback: (type: string, data: any) => void) => Promise<void>,
             fileList: (serial: string, filePath: string) => Promise<any>,
-            filePush: (serial: string, localPath: string, devicePath: string, options: {
+            filePush: (serial: string, localPath: string, devicePath: string, options?: {
                 progress: Function | null
             }) => Promise<void>,
-            filePull: (serial: string, devicePath: string, localPath: string, options: {
+            filePull: (serial: string, devicePath: string, localPath: string, options?: {
                 progress: Function | null
             }) => Promise<void>,
             fileDelete: (serial: string, devicePath: string) => Promise<void>,
+            install: (serial: string, localPath: string) => Promise<void>,
         },
         scrcpy: {
             getBinPath: () => Promise<string>,

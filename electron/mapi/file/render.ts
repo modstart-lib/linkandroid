@@ -5,8 +5,13 @@ const openFile = async (options: {} = {}) => {
     return ipcRenderer.invoke('file:openFile', options)
 }
 
+const openDirectory = async (options: {} = {}) => {
+    return ipcRenderer.invoke('file:openDirectory', options)
+}
+
 export default {
     ...fileIndex,
-    openFile
+    openFile,
+    openDirectory
 }
 

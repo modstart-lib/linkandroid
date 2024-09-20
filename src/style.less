@@ -66,6 +66,27 @@ body, html {
     }
 }
 
+
+* {
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #FFFFFF;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #999999;
+        border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: #888888;
+    }
+}
+
 /////////// layout end ///////////
 
 /////////// global start ///////////
@@ -123,6 +144,10 @@ body, html {
 
 .arco-btn-primary:hover, .arco-btn-primary[type='button']:hover, .arco-btn-primary[type='submit']:hover {
     background-color: var(--color-primary-lighter);
+}
+
+.arco-checkbox-checked .arco-checkbox-icon {
+    background-color: var(--color-primary);
 }
 
 /////////// arco end ///////////
