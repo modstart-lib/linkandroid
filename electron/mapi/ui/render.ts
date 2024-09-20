@@ -82,7 +82,7 @@ const initLoaders = () => {
                 setTimeout(() => {
                     safeDOM.remove(document.head, oStyle)
                     safeDOM.remove(document.body, oDiv)
-                }, 500)
+                }, 0)
             },
         }
     }
