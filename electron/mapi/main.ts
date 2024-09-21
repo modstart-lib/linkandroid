@@ -1,6 +1,6 @@
 import config from "./config/main";
 import log from "./log";
-import app from "./app";
+import app from "./app/main";
 import storage from "./storage";
 import file from "./file/main";
 import event from "./event/main";

@@ -3,7 +3,7 @@ import {computed, onBeforeUnmount, onMounted, ref} from "vue";
 import {DeviceRecord, EnumDeviceStatus} from "../types/Device";
 import {Dialog} from "../lib/dialog";
 import {t} from "../lang";
-import {sleep, TimeUtil} from "../lib/util";
+import {ShellUtil, sleep, TimeUtil} from "../lib/util";
 
 const visible = ref(false)
 const device = ref({} as DeviceRecord)
@@ -12,6 +12,8 @@ const recordData = ref({
     format: 'mp4',
     devicePath: '',
     localTempDir: '',
+    localTempMp4Path: null,
+    localTempGifPath: null,
     startTimeInMs: 0,
     endTimeInMs: 0,
     duration: 0,
@@ -21,6 +23,7 @@ const recordData = ref({
     devicePath: string | null,
     localTempDir: string | null,
     localTempMp4Path: string | null,
+    localTempGifPath: string | null,
     startTimeInMs: number,
     endTimeInMs: number,
     duration: number,
@@ -35,6 +38,7 @@ const show = (d: DeviceRecord) => {
     }
     device.value = d
     recordData.value.status = 'idle'
+    recordData.value.format = 'gif'
     recordData.value.duration = 0
     visible.value = true
 }
@@ -73,8 +77,26 @@ const doRecordProcess = async () => {
     await window.$mapi.adb.filePull(device.value.id, recordData.value.devicePath as string, mp4Path)
     await window.$mapi.adb.fileDelete(device.value.id, recordData.value.devicePath as string)
     recordData.value.localTempMp4Path = mp4Path
-    if (recordData.value.format === 'mp4') {
-        recordData.value.status = 'done'
+    switch (recordData.value.format) {
+        case 'mp4':
+            recordData.value.status = 'done'
+            break
+        case 'gif':
+            const gifPath = recordData.value.localTempDir + '/record.gif'
+            const args = [
+                '-i', ShellUtil.quotaPath(mp4Path),
+                '-vf', 'fps=10',
+                '-c:v', 'gif',
+                ShellUtil.quotaPath(gifPath)
+            ]
+            await window.$mapi.ffmpeg.run(args)
+            if (!await window.$mapi.file.exists(window.$mapi.file.absolutePath(gifPath))) {
+                recordData.value.status = 'fail'
+                return
+            }
+            recordData.value.localTempGifPath = gifPath
+            recordData.value.status = 'done'
+            break
     }
 }
 
@@ -87,10 +109,18 @@ const doRecordDownload = async () => {
     if (!formatRegx.test(path)) {
         path += '.' + recordData.value.format
     }
-    const fromPath = window.$mapi.file.absolutePath(recordData.value.localTempMp4Path as string)
     const toPath = window.$mapi.file.absolutePath(path)
     if (await window.$mapi.file.exists(toPath)) {
         await window.$mapi.file.deletes(toPath)
+    }
+    let fromPath
+    switch (recordData.value.format) {
+        case 'mp4':
+            fromPath = window.$mapi.file.absolutePath(recordData.value.localTempMp4Path as string)
+            break
+        case 'gif':
+            fromPath = window.$mapi.file.absolutePath(recordData.value.localTempGifPath as string)
+            break
     }
     await window.$mapi.file.rename(fromPath, toPath)
     const tempDir = window.$mapi.file.absolutePath(recordData.value.localTempDir as string)
@@ -138,7 +168,7 @@ defineExpose({
                     <a-form-item>
                         <a-radio-group v-model="recordData.format" type="button">
                             <a-radio value="mp4">MP4</a-radio>
-                            <a-radio value="gif" disabled>GIF</a-radio>
+                            <a-radio value="gif">GIF</a-radio>
                         </a-radio-group>
                     </a-form-item>
                     <a-form-item>

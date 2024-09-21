@@ -94,6 +94,10 @@ declare interface Window {
                 exec: boolean,
                 option: { stdout: Function, stderr: Function }
             }) => Promise<void>,
+        },
+        ffmpeg: {
+            version: () => Promise<string>,
+            run: (args: string[]) => Promise<string>,
         }
     }
 }

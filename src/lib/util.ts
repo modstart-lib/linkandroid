@@ -71,3 +71,21 @@ export const VersionUtil = {
         return 0
     }
 }
+
+export const BrowserUtil = {
+    isMac() {
+        return navigator.platform.toUpperCase().indexOf('MAC') >= 0
+    },
+    isWindows() {
+        return navigator.platform.toUpperCase().indexOf('WIN') >= 0
+    },
+    isLinux() {
+        return navigator.platform.toUpperCase().indexOf('LINUX') >= 0
+    }
+}
+
+export const ShellUtil = {
+    quotaPath(p: string) {
+        return `"${p}"`
+    }
+}

@@ -62,6 +62,7 @@ const appEnv = async () => {
     return AppEnv
 }
 
+
 export default {
     resourcePathResolve,
     extraPathResolve,
@@ -75,3 +76,4 @@ export default {
     openExternalWeb,
     appEnv,
 }
+

@@ -15,6 +15,7 @@ import DeviceShellDialog from "../components/DeviceShellDialog.vue";
 import DeviceAdbShellDialog from "../components/DeviceAdbShellDialog.vue";
 import DeviceActionApp from "../components/DeviceActionApp.vue";
 import DeviceActionRecord from "../components/DeviceActionRecord.vue";
+import DeviceActionScreenshot from "../components/DeviceActionScreenshot.vue";
 
 const onStdout = (data) => {
     console.log('stdout', data)
@@ -88,21 +89,6 @@ const onEditName = async (device: DeviceRecord, name: string) => {
         Dialog.tipSuccess(t('设备编辑成功'))
     } catch (e) {
         Dialog.tipError(mapError(e))
-    }
-}
-
-const doScreenshot = async (device: DeviceRecord) => {
-    if (device.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t('设备未连接'))
-        return
-    }
-    try {
-        const image = await window.$mapi.adb.screencap(device.id)
-        const base64 = 'data:image/png;base64,' + image
-        await window.$mapi.page.open('thirdPartyImageBeautifier')
-        await window.$mapi.event.callCustom('thirdPartyImageBeautifier', 'doSetImage', base64)
-    } catch (error) {
-        Dialog.tipError(mapError(error))
     }
 }
 
@@ -192,13 +178,7 @@ const doScreenshot = async (device: DeviceRecord) => {
                             </div>
                             <div class="absolute bottom-0 right-0 p-4">
                                 <DeviceActionApp :device="r"/>
-                                <a-tooltip :content="$t('截屏')">
-                                    <a-button class="ml-1" @click="doScreenshot(r)">
-                                        <template #icon>
-                                            <i class="iconfont icon-camera text-gray-400"></i>
-                                        </template>
-                                    </a-button>
-                                </a-tooltip>
+                                <DeviceActionScreenshot :device="r"/>
                                 <DeviceActionRecord :device="r"/>
                                 <a-tooltip :content="$t('文件管理')">
                                     <a-button class="ml-1" @click="fileManagerDialog?.show(r)">

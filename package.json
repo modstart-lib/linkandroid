@@ -59,6 +59,7 @@
         "date-and-time": "^3.4.1",
         "dayjs": "^1.11.12",
         "electron-context-menu": "^4.0.4",
+        "ffmpeg-static": "^5.2.0",
         "fix-path": "^4.0.0",
         "js-base64": "^3.7.7",
         "lodash-es": "^4.17.21",

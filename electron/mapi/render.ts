@@ -14,6 +14,7 @@ import lang from "./lang/render";
 import page from "./page/render";
 import adb from "./adb/render";
 import scrcpy from "./scrcpy/render";
+import ffmpeg from "./ffmpeg/render";
 
 export const MAPI = {
     init(env: typeof AppEnv = null) {
@@ -33,6 +34,7 @@ export const MAPI = {
                 lang,
                 adb,
                 scrcpy,
+                ffmpeg,
             })
             event.init()
             ui.init()

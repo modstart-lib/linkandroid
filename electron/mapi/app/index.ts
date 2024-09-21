@@ -1,53 +1,83 @@
-import {app, ipcMain, shell} from "electron";
-import {WindowConstant} from "../../lib/constant";
-import {AppRuntime} from "../env";
+import util from "node:util";
+import {exec as _exec, spawn} from "node:child_process";
 
-const quit = () => {
-    app.quit()
+
+const exec = util.promisify(_exec)
+
+const shell = async (command: string) => {
+    return exec(command, {
+        env: {...process.env},
+        shell: true,
+    } as any)
 }
 
-const windowMin = () => {
-    AppRuntime.mainWindow?.minimize()
-}
-
-const windowMax = () => {
-    if (AppRuntime.mainWindow.isMaximized()) {
-        AppRuntime.mainWindow.unmaximize()
-        AppRuntime.mainWindow.center()
-    } else {
-        AppRuntime.mainWindow.setMinimumSize(WindowConstant.minWidth, WindowConstant.minHeight)
-        AppRuntime.mainWindow.maximize()
+const spawnShell = async (command: string, option: {
+    stdout: Function,
+    stderr: Function,
+    success: Function,
+    error: Function,
+} | null = null) => {
+    option = option || {} as any
+    // parse entry and args
+    const args = command.split(' ')
+    const commandEntry = args.shift() as string
+    const spawnProcess = spawn(commandEntry, args, {
+        env: {...process.env},
+        shell: true,
+        encoding: 'utf8',
+    } as any)
+    let end = false
+    const stdoutList: string[] = []
+    const stderrList: string[] = []
+    if (spawnProcess) {
+        spawnProcess.stdout?.on('data', (data) => {
+            const stringData = data.toString()
+            stdoutList.push(stringData)
+            option.stdout?.(stringData, spawnProcess)
+        })
+        spawnProcess.stderr?.on('data', (data) => {
+            const stringData = data.toString()
+            stderrList.push(stringData)
+            option.stderr?.(stringData, spawnProcess)
+        })
+    }
+    spawnProcess.on('close', (code) => {
+        if (code === 0 || code === null) {
+            option.success?.(code)
+        } else {
+            option.error?.(`command ${command} failed with code ${code}`)
+        }
+        end = true
+    })
+    spawnProcess.on('error', (err) => {
+        option.error?.(err)
+        end = true
+    })
+    return {
+        stop: () => {
+            spawnProcess.kill('SIGINT')
+        },
+        result: async (): Promise<string> => {
+            if (end) {
+                return stdoutList.join('') + stderrList.join('')
+            }
+            return new Promise((resolve, reject) => {
+                spawnProcess.on('close', (code) => {
+                    if (code === 0 || code === null) {
+                        resolve(stdoutList.join('') + stderrList.join(''))
+                    } else {
+                        reject(`command ${command} failed with code ${code}`)
+                    }
+                })
+                spawnProcess.on('error', (err) => {
+                    reject(err)
+                })
+            })
+        }
     }
 }
 
-const windowSetSize = (width: number, height: number) => {
-    AppRuntime.mainWindow.setMinimumSize(width, height)
-    AppRuntime.mainWindow.setSize(width, height)
-    AppRuntime.mainWindow.center()
-}
-
-ipcMain.handle('app:quit', () => {
-    quit()
-})
-
-ipcMain.handle('app:openExternalWeb', (event, url: string) => {
-    return shell.openExternal(url)
-})
-
-ipcMain.handle('window:min', () => {
-    windowMin()
-})
-ipcMain.handle('window:max', () => {
-    windowMax()
-})
-ipcMain.handle('window:setSize', (event, width: number, height: number) => {
-    windowSetSize(width, height)
-})
-
-ipcMain.handle('window:close', (event, name: string) => {
-    AppRuntime.windows[name]?.close()
-})
-
-export default {
-    quit
+export const Apps = {
+    shell,
+    spawnShell,
 }
