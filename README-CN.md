@@ -32,3 +32,8 @@ npm run dev
 ## License
 
 GPL-3.0
+
+## 本程序中使用到了以下开源项目，特此感谢
+
+- [scrcpy](https://github.com/Genymobile/scrcpy)
+- [image-beautifier](https://github.com/CH563/image-beautifier)

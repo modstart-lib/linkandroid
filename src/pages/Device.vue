@@ -92,6 +92,21 @@ const onEditName = async (device: DeviceRecord, name: string) => {
     }
 }
 
+const doScreenshot = async (device: DeviceRecord) => {
+    if (device.status !== EnumDeviceStatus.CONNECTED) {
+        Dialog.tipError(t('设备未连接'))
+        return
+    }
+    try {
+        const image = await window.$mapi.adb.screencap(device.id)
+        const base64 = 'data:image/png;base64,' + image
+        await window.$mapi.page.open('thirdPartyImageBeautifier')
+        await window.$mapi.event.callCustom('thirdPartyImageBeautifier', 'doSetImage', base64)
+    } catch (error) {
+        Dialog.tipError(mapError(error))
+    }
+}
+
 </script>
 
 <template>
@@ -107,22 +122,22 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                     </template>
                     {{ $t('刷新') }}
                 </a-button>
-<!--                <a-button @click="connectWifiDialog?.show()" class="ml-1">-->
-<!--                    <template #icon>-->
-<!--                        <icon-link/>-->
-<!--                    </template>-->
-<!--                    {{ $t('连接Wifi设备') }}-->
-<!--                </a-button>-->
-<!--                <a-dropdown trigger="hover">-->
-<!--                    <a-button class="ml-1">-->
-<!--                        <template #icon>-->
-<!--                            <icon-caret-down/>-->
-<!--                        </template>-->
-<!--                    </a-button>-->
-<!--                    <template #content>-->
-<!--                        <a-doption @click="shellDialog?.show()">{{ $t('命令行工具') }}</a-doption>-->
-<!--                    </template>-->
-<!--                </a-dropdown>-->
+                <!--                <a-button @click="connectWifiDialog?.show()" class="ml-1">-->
+                <!--                    <template #icon>-->
+                <!--                        <icon-link/>-->
+                <!--                    </template>-->
+                <!--                    {{ $t('连接Wifi设备') }}-->
+                <!--                </a-button>-->
+                <!--                <a-dropdown trigger="hover">-->
+                <!--                    <a-button class="ml-1">-->
+                <!--                        <template #icon>-->
+                <!--                            <icon-caret-down/>-->
+                <!--                        </template>-->
+                <!--                    </a-button>-->
+                <!--                    <template #content>-->
+                <!--                        <a-doption @click="shellDialog?.show()">{{ $t('命令行工具') }}</a-doption>-->
+                <!--                    </template>-->
+                <!--                </a-dropdown>-->
             </div>
         </div>
         <div class="-mx-2">
@@ -185,16 +200,23 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                                             </template>
                                         </a-button>
                                         <template #content>
-<!--                                            <a-doption @click="appManagerDialog?.show(r)">{{-->
-<!--                                                    $t('管理应用')-->
-<!--                                                }}-->
-<!--                                            </a-doption>-->
+                                            <!--                                            <a-doption @click="appManagerDialog?.show(r)">{{-->
+                                            <!--                                                    $t('管理应用')-->
+                                            <!--                                                }}-->
+                                            <!--                                            </a-doption>-->
                                             <a-doption @click="appInstallDialog?.show(r)">{{
                                                     $t('安装应用')
                                                 }}
                                             </a-doption>
                                         </template>
                                     </a-dropdown>
+                                </a-tooltip>
+                                <a-tooltip :content="$t('截屏')">
+                                    <a-button class="ml-1" @click="doScreenshot(r)">
+                                        <template #icon>
+                                            <i class="iconfont icon-camera text-gray-400"></i>
+                                        </template>
+                                    </a-button>
                                 </a-tooltip>
                                 <a-tooltip :content="$t('文件管理')">
                                     <a-button class="ml-1" @click="fileManagerDialog?.show(r)">
@@ -210,7 +232,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                                         </template>
                                     </a-button>
                                     <template #content>
-<!--                                        <a-doption @click="adbShellDialog?.show()">{{ $t('命令行') }}</a-doption>-->
+                                        <!--                                        <a-doption @click="adbShellDialog?.show()">{{ $t('命令行') }}</a-doption>-->
                                         <a-doption @click="infoDialog?.show(r)">{{ $t('设备详情') }}</a-doption>
                                         <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">
                                             {{ $t('删除设备') }}

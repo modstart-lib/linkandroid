@@ -2,12 +2,16 @@
 import {ref} from "vue";
 import {Dialog} from "../lib/dialog";
 import {t} from "../lang";
-import {DeviceRecord} from "../types/Device";
+import {DeviceRecord, EnumDeviceStatus} from "../types/Device";
 
 const visible = ref(false)
 const device = ref({} as DeviceRecord)
 
 const show = (d: DeviceRecord) => {
+    if (d.status !== EnumDeviceStatus.CONNECTED) {
+        Dialog.tipError(t('设备未连接'))
+        return
+    }
     device.value = d
     window.$mapi.file.openFile().then((path: string) => {
         if (path) {

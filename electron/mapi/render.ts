@@ -11,6 +11,7 @@ import ui from "./ui/render";
 import updater from "./updater/render";
 import statistics from "./statistics/render";
 import lang from "./lang/render";
+import page from "./page/render";
 import adb from "./adb/render";
 import scrcpy from "./scrcpy/render";
 
@@ -28,6 +29,7 @@ export const MAPI = {
                 ui,
                 updater,
                 statistics,
+                page,
                 lang,
                 adb,
                 scrcpy,

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 
+import {AppConfig} from "../config";
 </script>
 
 <template>
     <div>
-        page about1111222
+        {{ AppConfig.name }}
+        v{{ AppConfig.version }}
     </div>
 </template>
 

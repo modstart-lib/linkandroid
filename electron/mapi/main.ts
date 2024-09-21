@@ -3,9 +3,10 @@ import log from "./log";
 import app from "./app";
 import storage from "./storage";
 import file from "./file/main";
-import event from "./event";
+import event from "./event/main";
 import ui from "./ui";
 import keys from "./keys/main";
+import page from "./page/main";
 
 const $mapi = {
     app,
@@ -16,6 +17,7 @@ const $mapi = {
     event,
     ui,
     keys,
+    page,
 }
 
 export const MAPI = {

@@ -1,4 +1,4 @@
-import {app, BrowserWindow, shell} from 'electron'
+import {app, BrowserWindow, desktopCapturer, session, shell} from 'electron'
 import {optimizer} from '@electron-toolkit/utils'
 import path from 'node:path'
 import os from 'node:os'
@@ -14,11 +14,11 @@ import {AppConfig} from "../../src/config";
 
 import {buildResolve} from "../util/path";
 import Log from "../mapi/log";
-import Event from "../mapi/event";
 import {ConfigMenu} from "../config/menu";
 import {ConfigLang} from "../config/lang";
 import {ConfigContextMenu} from "../config/contextMenu";
 import {MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL} from "../util/path-main";
+import {Page} from "../page";
 
 export const logoPath = buildResolve('logo.png')
 export const icoLogoPath = buildResolve('logo.ico')
@@ -143,20 +143,25 @@ function createWindow() {
                 }
             }, 1000);
         }
-        Event.send('APP_READY', AppEnv)
+        Page.ready('main')
     })
-
-    // Make all links open with the browser, not with the application
     AppRuntime.mainWindow.webContents.setWindowOpenHandler(({url}) => {
         if (url.startsWith('https:')) shell.openExternal(url)
         return {action: 'deny'}
     })
-    // AppRuntime.mainWindow.webContents.on('will-navigate', (event, url) => { }) #344
 }
 
 app.disableHardwareAcceleration();
 
 app.whenReady()
+    .then(() => {
+        session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
+            desktopCapturer.getSources({types: ['screen']}).then((sources) => {
+                // Grant access to the first screen found.
+                callback({video: sources[0], audio: 'loopback'})
+            })
+        })
+    })
     .then(ConfigLang.readyAsync)
     .then(() => {
         MAPI.ready()

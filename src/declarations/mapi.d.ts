@@ -51,6 +51,13 @@ declare interface Window {
             writeSourceKey: (key: string) => Promise<void>,
             writeSourceKeyUse: (key: string) => Promise<void>,
         },
+        event: {
+            send: (name: string, type: string, data: any) => void,
+            callCustom: (name: string, customType: string, data: any, option?: any) => Promise<ApiResult<any>>,
+        },
+        page: {
+            open: (name: string, option?: any) => Promise<void>,
+        },
         adb: {
             getBinPath: () => Promise<string>,
             setBinPath: (binPath: string) => Promise<boolean>,

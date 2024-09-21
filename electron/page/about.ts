@@ -1,12 +1,17 @@
 import {BrowserWindow} from "electron";
-import {preloadDefault, rendererPath} from "../util/path-main";
+import {preloadDefault} from "../util/path-main";
 import {AppRuntime} from "../mapi/env";
-
+import {t} from "../config/lang";
+import {Page} from "./index";
 
 export const PageAbout = {
-    create() {
+    NAME: 'about',
+    open: async (option: any) => {
         const win = new BrowserWindow({
-            minWidth: 600,
+            title: t('关于'),
+            parent: AppRuntime.mainWindow,
+            minWidth: 800,
+            minHeight: 600,
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false,
@@ -17,18 +22,6 @@ export const PageAbout = {
             frame: false,
             transparent: false,
         });
-
-        rendererPath(win, "page/about.html");
-
-        // await win.webContents.session.setProxy(store.get("代理"));
-
-        // win.webContents.openDevTools();
-
-        win.webContents.on("did-finish-load", () => {
-            // win.webContents.setZoomFactor(store.get("全局.缩放") || 1.0);
-            // win.webContents.send("about", about);
-        });
-
-        AppRuntime.windows['about'] = win;
+        return Page.openWindow(PageAbout.NAME, win, "page/about.html");
     }
 }

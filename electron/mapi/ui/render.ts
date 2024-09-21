@@ -62,7 +62,7 @@ const initLoaders = () => {
   align-items: center;
   justify-content: center;
   background: #f1f5f9;
-  z-index: 9;
+  z-index: 10000;
 }
     `
         const oStyle = document.createElement('style')
@@ -88,10 +88,23 @@ const initLoaders = () => {
     }
 
     const {appendLoading, removeLoading} = useLoading()
-    domReady().then(appendLoading)
 
-    window.onmessage = (ev) => {
-        ev.data.payload === 'removeLoading' && removeLoading()
+    const isMain = () => {
+        let l = window.location.href
+        if (l.indexOf('app.asar/dist/index.html') > 0) {
+            return true
+        }
+        if (l.indexOf('localhost') > 0 && l.indexOf('.html') === -1) {
+            return true
+        }
+        return false
+    }
+
+    if (isMain()) {
+        domReady().then(appendLoading)
+        window.onmessage = (ev) => {
+            ev.data.payload === 'removeLoading' && removeLoading()
+        }
     }
 
     setTimeout(removeLoading, 4999)

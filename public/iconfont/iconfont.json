@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "9332800",
+      "name": "camera",
+      "font_class": "camera",
+      "unicode": "e77d",
+      "unicode_decimal": 59261
+    },
+    {
+      "icon_id": "4866450",
+      "name": "apk",
+      "font_class": "apk",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
       "icon_id": "16513263",
       "name": "logo",
       "font_class": "logo",

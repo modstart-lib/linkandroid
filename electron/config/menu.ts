@@ -61,25 +61,25 @@ const ready = () => {
             ],
         })
     }
-    menuTemplate.push({
-        label: t("帮助"),
-        role: "help",
-        submenu: [
-            // {
-            //     label: t("教程帮助"),
-            //     click: () => {
-            //         createHelpWindow();
-            //     },
-            // },
-            // {type: "separator"},
-            {
-                label: t("关于"),
-                click: () => {
-                    PageAbout.create()
-                },
-            },
-        ],
-    })
+    // menuTemplate.push({
+    //     label: t("帮助"),
+    //     role: "help",
+    //     submenu: [
+    //         // {
+    //         //     label: t("教程帮助"),
+    //         //     click: () => {
+    //         //         createHelpWindow();
+    //         //     },
+    //         // },
+    //         // {type: "separator"},
+    //         // {
+    //         //     label: t("关于"),
+    //         //     click: () => {
+    //         //         PageAbout.open().then()
+    //         //     },
+    //         // },
+    //     ],
+    // })
     const menu = Menu.buildFromTemplate(menuTemplate);
     Menu.setApplicationMenu(menu);
 }

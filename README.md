@@ -32,3 +32,8 @@ npm run dev
 ## License
 
 GPL-3.0
+
+## Thanks
+
+- [scrcpy](https://github.com/Genymobile/scrcpy)
+- [image-beautifier](https://github.com/CH563/image-beautifier)
