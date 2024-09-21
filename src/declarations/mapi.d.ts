@@ -38,8 +38,11 @@ declare interface Window {
             read: (path: string) => Promise<any>,
             deletes: (path: string) => Promise<void>,
             rename: (pathOld: string, pathNew: string) => Promise<void>,
+            temp: (ext: string = 'tmp', prefix: string = 'file') => Promise<string>,
+            tempDir: (prefix: string = 'dir') => Promise<string>,
             openFile: (options: {} = {}) => Promise<any>,
             openDirectory: (options: {} = {}) => Promise<any>,
+            openSave: (options: {} = {}) => Promise<any>,
         },
         updater: {
             checkForUpdate: () => Promise<ApiResult<any>>,
@@ -63,6 +66,12 @@ declare interface Window {
             setBinPath: (binPath: string) => Promise<boolean>,
             devices: () => Promise<any>,
             screencap: (serial: string) => Promise<string>,
+            screenrecord: (serial: string, option?: {
+                progress: (type: 'error' | 'success' | 'stdout' | 'stderr', data: any) => void
+            }) => Promise<{
+                stop: Function | null,
+                devicePath: string,
+            }>,
             watch: (callback: (type: string, data: any) => void) => Promise<void>,
             fileList: (serial: string, filePath: string) => Promise<any>,
             filePush: (serial: string, localPath: string, devicePath: string, options?: {
@@ -70,7 +79,7 @@ declare interface Window {
             }) => Promise<void>,
             filePull: (serial: string, devicePath: string, localPath: string, options?: {
                 progress: Function | null
-            }) => Promise<void>,
+            }) => Promise<any>,
             fileDelete: (serial: string, devicePath: string) => Promise<void>,
             install: (serial: string, localPath: string) => Promise<void>,
             uninstall: (serial: string, packageName: string) => Promise<void>,

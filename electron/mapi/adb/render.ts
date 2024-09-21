@@ -3,7 +3,7 @@ import util from 'node:util'
 import {Adb} from '@devicefarmer/adbkit'
 import {extraResolve} from "../../util/path";
 import Config from "../config/render";
-import {FileUtil} from "../../lib/util";
+import {FileUtil, TimeUtil} from "../../lib/util";
 import dayjs from "dayjs";
 import fs from "node:fs";
 import Client from "@devicefarmer/adbkit/dist/src/adb/client";
@@ -64,11 +64,15 @@ const adbShell = async (command: string) => {
     } as any)
 }
 
-const adbSpawnShell = async (command: string, option: { stdout: Function, stderr: Function } | null = null) => {
-    option = option || {stdout: null, stderr: null}
+const adbSpawnShell = async (command: string, option: {
+    stdout: Function,
+    stderr: Function,
+    success: Function,
+    error: Function,
+} | null = null) => {
+    option = option || {} as any
     const adbSpawnPath = await getBinPath()
     const args = command.split(' ')
-
     const spawnProcess = spawn(`"${adbSpawnPath}"`, args, {
         env: {...process.env},
         shell: true,
@@ -90,18 +94,23 @@ const adbSpawnShell = async (command: string, option: { stdout: Function, stderr
             }
         })
     }
-    return new Promise((resolve, reject) => {
-        spawnProcess.on('close', (code) => {
-            if (code === 0) {
-                resolve(true)
-            } else {
-                reject(new Error(`Command failed with code ${code}`),)
-            }
-        })
-        spawnProcess.on('error', (err) => {
-            reject(err)
-        })
+    spawnProcess.on('close', (code) => {
+        if (code === 0 || code === null) {
+            setTimeout(() => {
+                option.success && option.success(code)
+            }, 10)
+        } else {
+            option.error && option.error(`Command failed with code ${code}`)
+        }
     })
+    spawnProcess.on('error', (err) => {
+        option.error && option.error(err)
+    })
+    return {
+        stop: () => {
+            spawnProcess.kill('SIGINT')
+        }
+    }
 }
 
 const devices = async () => {
@@ -151,6 +160,39 @@ const screencap = async (deviceId: string) => {
         return null
     }
     return await FileUtil.streamToBase64(fileStream)
+}
+
+const screenrecord = async (deviceId: string, option?: {
+    progress: (type: 'error' | 'success', data: any) => {} | null
+}) => {
+    option = option || {} as any
+    const controller = {
+        stop: null as Function | null,
+        devicePath: null as string | null,
+    }
+    controller.devicePath = '/sdcard/LinkAndroid_screenshot_' + TimeUtil.timestampInMs() + '.mp4'
+    const shellControl = await adbSpawnShell(
+        `-s "${deviceId}" shell screenrecord "${controller.devicePath}"`,
+        {
+            stdout: (data) => {
+                console.log('screenrecord.stdout', data)
+            },
+            stderr: (data) => {
+                console.log('screenrecord.stderr', data)
+            },
+            success: (code) => {
+                option.progress?.('success', {})
+            },
+            error: (err) => {
+                option.progress?.('error', {
+                    err,
+                })
+            }
+        })
+    controller.stop = () => {
+        shellControl.stop()
+    }
+    return controller
 }
 
 const install = async (id: string, path: string) => {
@@ -220,23 +262,25 @@ const filePush = async (id: string, localPath: string, devicePath: string, optio
     })
 }
 
-const filePull = async (id: string, devicePath: string, localPath: string, options: {
+const filePull = async (id: string, devicePath: string, localPath: string, option: {
     progress: Function | null
 } = null) => {
-    const {progress} = options || {}
+    const {progress} = option || {}
     const transfer = await (await getClient()).getDevice(id).pull(devicePath)
+    transfer.on('progress', (stats) => {
+        // console.log('filePull.progress', stats)
+        progress?.(stats)
+    })
     return new Promise((resolve, reject) => {
-        transfer.on('progress', (stats) => {
-            progress?.(stats)
-        })
         transfer.on('end', () => {
+            // console.log('filePull.end')
             resolve({
-                localPath,
                 devicePath,
+                localPath,
             })
         })
-
         transfer.on('error', (err) => {
+            // console.log('filePull.error', err)
             reject(err)
         })
         transfer.pipe(fs.createWriteStream(localPath))
@@ -270,6 +314,7 @@ export default {
     getDeviceIP,
     tcpip,
     screencap,
+    screenrecord,
     install,
     uninstall,
     isInstalled,

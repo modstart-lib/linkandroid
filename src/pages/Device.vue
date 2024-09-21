@@ -10,11 +10,11 @@ import DeviceInfoDialog from "../components/DeviceInfoDialog.vue";
 import {ref} from "vue";
 import {t} from "../lang";
 import DeviceFileManagerDialog from "../components/DeviceFileManagerDialog.vue";
-import DeviceAppManagerDialog from "../components/DeviceAppManagerDialog.vue";
-import DeviceAppInstallDialog from "../components/DeviceAppInstallDialog.vue";
 import DeviceConnectWifiDialog from "../components/DeviceConnectWifiDialog.vue";
 import DeviceShellDialog from "../components/DeviceShellDialog.vue";
 import DeviceAdbShellDialog from "../components/DeviceAdbShellDialog.vue";
+import DeviceActionApp from "../components/DeviceActionApp.vue";
+import DeviceActionRecord from "../components/DeviceActionRecord.vue";
 
 const onStdout = (data) => {
     console.log('stdout', data)
@@ -25,13 +25,12 @@ const onStderr = (data) => {
 
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
-const appManagerDialog = ref<InstanceType<typeof DeviceAppManagerDialog> | null>(null);
-const appInstallDialog = ref<InstanceType<typeof DeviceAppInstallDialog> | null>(null);
 const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
 const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
 const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
 
 const deviceStore = useDeviceStore()
+
 const doMirror = async (device: DeviceRecord) => {
     if (device.status !== EnumDeviceStatus.CONNECTED) {
         Dialog.tipError(t('设备未连接'))
@@ -192,25 +191,7 @@ const doScreenshot = async (device: DeviceRecord) => {
                                 </a-tooltip>
                             </div>
                             <div class="absolute bottom-0 right-0 p-4">
-                                <a-tooltip :content="$t('应用管理')">
-                                    <a-dropdown trigger="hover">
-                                        <a-button class="ml-1">
-                                            <template #icon>
-                                                <i class="iconfont icon-apk text-gray-400"></i>
-                                            </template>
-                                        </a-button>
-                                        <template #content>
-                                            <a-doption @click="appManagerDialog?.show(r)">{{
-                                                    $t('管理应用')
-                                                }}
-                                            </a-doption>
-                                            <a-doption @click="appInstallDialog?.show(r)">{{
-                                                    $t('安装应用')
-                                                }}
-                                            </a-doption>
-                                        </template>
-                                    </a-dropdown>
-                                </a-tooltip>
+                                <DeviceActionApp :device="r"/>
                                 <a-tooltip :content="$t('截屏')">
                                     <a-button class="ml-1" @click="doScreenshot(r)">
                                         <template #icon>
@@ -218,6 +199,7 @@ const doScreenshot = async (device: DeviceRecord) => {
                                         </template>
                                     </a-button>
                                 </a-tooltip>
+                                <DeviceActionRecord :device="r"/>
                                 <a-tooltip :content="$t('文件管理')">
                                     <a-button class="ml-1" @click="fileManagerDialog?.show(r)">
                                         <template #icon>
@@ -249,8 +231,6 @@ const doScreenshot = async (device: DeviceRecord) => {
     <DeviceConnectWifiDialog ref="connectWifiDialog"/>
     <DeviceInfoDialog ref="infoDialog"/>
     <DeviceFileManagerDialog ref="fileManagerDialog"/>
-    <DeviceAppManagerDialog ref="appManagerDialog"/>
-    <DeviceAppInstallDialog ref="appInstallDialog"/>
     <DeviceShellDialog ref="shellDialog"/>
     <DeviceAdbShellDialog ref="adbShellDialog"/>
 </template>

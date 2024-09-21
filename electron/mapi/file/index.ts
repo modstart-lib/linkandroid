@@ -157,6 +157,20 @@ const temp = async (ext: string = 'tmp', prefix: string = 'file') => {
     return path.join(root, `${p}.${ext}`)
 }
 
+const tempDir = async (prefix: string = 'dir') => {
+    const root = await tempRoot()
+    const p = [
+        prefix,
+        TimeUtil.timestampInMs(),
+        StrUtil.randomString(32),
+    ].join('_')
+    const dir = path.join(root, p)
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, {recursive: true})
+    }
+    return dir
+}
+
 export default {
     absolutePath,
     exists,
@@ -168,4 +182,6 @@ export default {
     read,
     deletes,
     rename,
+    temp,
+    tempDir
 }

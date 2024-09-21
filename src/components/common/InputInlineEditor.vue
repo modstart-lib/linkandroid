@@ -14,6 +14,11 @@ const onVisibleChange = (visible: boolean) => {
         valueEdit.value = props.value as string
     }
 }
+const doEnter = () => {
+    nextTick(() => {
+        doConfirm()
+    })
+}
 const doConfirm = () => {
     nextTick(() => {
         visible.value = false
@@ -29,7 +34,7 @@ const doConfirm = () => {
             <slot></slot>
             <template #content>
                 <div class="flex">
-                    <a-input v-model="valueEdit">
+                    <a-input v-model="valueEdit" @pressEnter="doEnter">
                         <template #append>
                             <div class="cursor-pointer" @click="doConfirm">
                                 <icon-check/>

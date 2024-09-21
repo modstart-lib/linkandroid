@@ -9,9 +9,14 @@ const openDirectory = async (options: {} = {}) => {
     return ipcRenderer.invoke('file:openDirectory', options)
 }
 
+const openSave = async (options: {} = {}) => {
+    return ipcRenderer.invoke('file:openSave', options)
+}
+
 export default {
     ...fileIndex,
     openFile,
-    openDirectory
+    openDirectory,
+    openSave,
 }
 
