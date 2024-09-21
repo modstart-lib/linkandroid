@@ -64,6 +64,13 @@ declare interface Window {
         adb: {
             getBinPath: () => Promise<string>,
             setBinPath: (binPath: string) => Promise<boolean>,
+            adbShell: (command: string) => Promise<string>,
+            adbSpawnShell: (command: string, option?: {
+                stdout?: Function | null,
+                stderr?: Function | null,
+                success?: Function | null,
+                error?: Function | null,
+            }) => Promise<string>,
             devices: () => Promise<any>,
             screencap: (serial: string) => Promise<string>,
             screenrecord: (serial: string, option?: {
@@ -88,11 +95,16 @@ declare interface Window {
         scrcpy: {
             getBinPath: () => Promise<string>,
             setBinPath: (binPath: string) => Promise<boolean>,
-            mirror: (serial: string, options: {
-                title: string,
-                args: string,
-                exec: boolean,
-                option: { stdout: Function, stderr: Function }
+            shell: (command: string) => Promise<string>,
+            spawnShell: (command: string, option?: {
+                stdout?: Function | null,
+                stderr?: Function | null,
+                success?: Function | null,
+                error?: Function | null,
+            }) => Promise<string>,
+            mirror: (serial: string, option: {
+                title?: string,
+                args?: string,
             }) => Promise<void>,
         },
         ffmpeg: {

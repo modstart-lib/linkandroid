@@ -1,9 +1,9 @@
-import {exec as _exec, spawn} from 'node:child_process'
+import {exec as _exec} from 'node:child_process'
 import util from 'node:util'
 import which from 'which'
 import Config from "../config/render";
 import {extraResolve} from "../../util/path";
-import {ADB} from '../adb/render'
+import {Apps} from "../app";
 
 const exec = util.promisify(_exec)
 
@@ -33,68 +33,35 @@ const setBinPath = async (binPath: string) => {
     return true
 }
 
-const shell = async (command: any, options: { stdout: Function, stderr: Function }) => {
-    const spawnPath = await getBinPath()
-    const adb = await ADB.getBinPath()
-    const args = command.split(' ')
-    const scrcpyProcess = spawn(`"${spawnPath}"`, args, {
-        env: {...process.env, adb},
-        shell: true,
-        encoding: 'utf8',
-    } as any)
-    // console.log(scrcpyProcess.pid)
-    scrcpyProcess.stdout.on('data', (data) => {
-        const stringData = data.toString()
-        if (options && options.stdout) {
-            options.stdout(stringData, scrcpyProcess)
-        }
-    })
-    const stderrList = []
-    scrcpyProcess.stderr.on('data', (data) => {
-        const stringData = data.toString()
-        stderrList.push(stringData)
-        if (options && options.stderr) {
-            options.stderr(stringData, scrcpyProcess)
-        }
-    })
-    return new Promise((resolve, reject) => {
-        scrcpyProcess.on('close', (code) => {
-            if (code === 0) {
-                resolve(null)
-            } else {
-                reject(new Error(stderrList.join(',') || `Command failed with code ${code}`),)
-            }
-        })
-        scrcpyProcess.on('error', (err) => {
-            reject(err)
-        })
-    })
+const shell = async (command: string) => {
+    const scrcpyPath = await getBinPath()
+    return await Apps.shell(`"${scrcpyPath}" ${command}`)
 }
 
-const execShell = async (command: string) => {
-    const spawnPath = await getBinPath()
-    const adb = await ADB.getBinPath()
-    const res = exec(`"${spawnPath}" ${command}`, {
-        env: {...process.env, adb},
-        shell: true,
-        encoding: 'utf8',
-    } as any)
-    return res
+const spawnShell = async (command: string, option: {
+    stdout?: Function,
+    stderr?: Function,
+    success?: Function,
+    error?: Function,
+} | null = null) => {
+    const scrcpyPath = await getBinPath()
+    return await Apps.spawnShell(`"${scrcpyPath}" ${command}`, option)
 }
 
 const mirror = async (
     serial: string,
-    options: { title: string, args: string, exec: boolean, option: { stdout: Function, stderr: Function } }
+    option: {
+        title?: string,
+        args?: string,
+    }
 ) => {
-    const mirrorShell = options.exec ? execShell : shell
-    return mirrorShell(
-        `--serial="${serial}" --window-title="${options.title}" ${options.args}`,
-        options.option
-    )
+    return spawnShell(`--serial="${serial}" --window-title="${option.title}" ${option.args}`)
 }
 
 export default {
     getBinPath,
     setBinPath,
+    shell,
+    spawnShell,
     mirror,
 }

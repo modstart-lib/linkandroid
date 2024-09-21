@@ -1,4 +1,4 @@
-import {exec as _exec, spawn} from 'node:child_process'
+import {exec as _exec} from 'node:child_process'
 import util from 'node:util'
 import {Adb} from '@devicefarmer/adbkit'
 import {extraResolve} from "../../util/path";
@@ -7,6 +7,7 @@ import {FileUtil, TimeUtil} from "../../lib/util";
 import dayjs from "dayjs";
 import fs from "node:fs";
 import Client from "@devicefarmer/adbkit/dist/src/adb/client";
+import {Apps} from "../app";
 
 const exec = util.promisify(_exec)
 
@@ -58,59 +59,17 @@ const getClient = async (): Promise<Client> => {
 
 const adbShell = async (command: string) => {
     const adbPath = await getBinPath()
-    return exec(`"${adbPath}" ${command}`, {
-        env: {...process.env},
-        shell: true,
-    } as any)
+    return await Apps.shell(`"${adbPath}" ${command}`)
 }
 
 const adbSpawnShell = async (command: string, option: {
-    stdout: Function,
-    stderr: Function,
-    success: Function,
-    error: Function,
+    stdout?: Function,
+    stderr?: Function,
+    success?: Function,
+    error?: Function,
 } | null = null) => {
-    option = option || {} as any
-    const adbSpawnPath = await getBinPath()
-    const args = command.split(' ')
-    const spawnProcess = spawn(`"${adbSpawnPath}"`, args, {
-        env: {...process.env},
-        shell: true,
-        encoding: 'utf8',
-    } as any)
-    if (spawnProcess) {
-        spawnProcess.stdout?.on('data', (data) => {
-            const stringData = data.toString()
-            if (option.stdout) {
-                option.stdout(stringData, spawnProcess)
-            }
-        })
-        const stderrList = []
-        spawnProcess.stderr?.on('data', (data) => {
-            const stringData = data.toString()
-            stderrList.push(stringData)
-            if (option.stderr) {
-                option.stderr(stringData, spawnProcess)
-            }
-        })
-    }
-    spawnProcess.on('close', (code) => {
-        if (code === 0 || code === null) {
-            setTimeout(() => {
-                option.success && option.success(code)
-            }, 10)
-        } else {
-            option.error && option.error(`Command failed with code ${code}`)
-        }
-    })
-    spawnProcess.on('error', (err) => {
-        option.error && option.error(err)
-    })
-    return {
-        stop: () => {
-            spawnProcess.kill('SIGINT')
-        }
-    }
+    const adbPath = await getBinPath()
+    return await Apps.spawnShell(`"${adbPath}" ${command}`, option)
 }
 
 const devices = async () => {

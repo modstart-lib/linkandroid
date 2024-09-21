@@ -17,13 +17,6 @@ import DeviceActionApp from "../components/DeviceActionApp.vue";
 import DeviceActionRecord from "../components/DeviceActionRecord.vue";
 import DeviceActionScreenshot from "../components/DeviceActionScreenshot.vue";
 
-const onStdout = (data) => {
-    console.log('stdout', data)
-}
-const onStderr = (data) => {
-    console.log('stderr', data)
-}
-
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
 const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
@@ -42,11 +35,6 @@ const doMirror = async (device: DeviceRecord) => {
         const mirroring = window.$mapi.scrcpy.mirror(device.id, {
             title: device.name as string,
             args: '--always-on-top',
-            exec: false,
-            option: {
-                stdout: onStdout,
-                stderr: onStderr,
-            }
         })
         Dialog.loadingOff()
         await sleep(1000)
@@ -113,16 +101,16 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                 <!--                    </template>-->
                 <!--                    {{ $t('连接Wifi设备') }}-->
                 <!--                </a-button>-->
-                <!--                <a-dropdown trigger="hover">-->
-                <!--                    <a-button class="ml-1">-->
-                <!--                        <template #icon>-->
-                <!--                            <icon-caret-down/>-->
-                <!--                        </template>-->
-                <!--                    </a-button>-->
-                <!--                    <template #content>-->
-                <!--                        <a-doption @click="shellDialog?.show()">{{ $t('命令行工具') }}</a-doption>-->
-                <!--                    </template>-->
-                <!--                </a-dropdown>-->
+                <a-dropdown trigger="hover">
+                    <a-button class="ml-1">
+                        <template #icon>
+                            <icon-caret-down/>
+                        </template>
+                    </a-button>
+                    <template #content>
+                        <a-doption @click="shellDialog?.show()">{{ $t('命令行工具') }}</a-doption>
+                    </template>
+                </a-dropdown>
             </div>
         </div>
         <div class="-mx-2">
@@ -194,7 +182,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                                         </template>
                                     </a-button>
                                     <template #content>
-                                        <!--                                        <a-doption @click="adbShellDialog?.show()">{{ $t('命令行') }}</a-doption>-->
+<!--                                        <a-doption @click="adbShellDialog?.show(r)">{{ $t('命令行') }}</a-doption>-->
                                         <a-doption @click="infoDialog?.show(r)">{{ $t('设备详情') }}</a-doption>
                                         <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">
                                             {{ $t('删除设备') }}

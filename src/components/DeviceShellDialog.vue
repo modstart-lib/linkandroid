@@ -1,18 +1,32 @@
 <script setup lang="ts">
-import {ref} from "vue";
-import {Dialog} from "../lib/dialog";
-import {t} from "../lang";
+import {ref, shallowRef} from "vue";
+import VueCommand, {createQuery} from "vue-command";
+import "vue-command/dist/vue-command.css";
+import {useAdbCommand} from "./DeviceShellAssets/adb";
+import {useBasicCommand} from "./DeviceShellAssets/basic";
+import {useScrcpyCommand} from "./DeviceShellAssets/scrcpy";
 
 const visible = ref(false)
-const createData = ref({
-    ip: '',
-    port: 5555
-})
+const loading = ref(false)
+const history = shallowRef([createQuery()])
+const vueCommand = ref(null)
+const commands = ref({})
+
+const {clearCommand, helpCommand} = useBasicCommand({loading, vueCommand, history, commands})
+const {adbCommand} = useAdbCommand({loading, vueCommand, history})
+const {scrcpyCommand} = useScrcpyCommand({loading, vueCommand, history})
+
+commands.value['adb'] = adbCommand
+commands.value['scrcpy'] = scrcpyCommand
+commands.value['clear'] = clearCommand
+commands.value['help'] = helpCommand
+commands.value['quit'] = () => {
+    visible.value = false
+    return createQuery()
+}
+
 const show = () => {
     visible.value = true
-}
-const doSubmit = async () => {
-    Dialog.tipSuccess(t('创建成功'))
 }
 defineExpose({
     show
@@ -21,19 +35,22 @@ defineExpose({
 
 <template>
     <a-modal v-model:visible="visible"
-             width="40rem"
+             width="50rem"
+             :footer="false"
              title-align="start">
         <template #title>
             {{ $t('命令行工具') }}
         </template>
-        <template #footer>
-            <div></div>
-        </template>
-        <div>
-            <div class="px-2 h-48 bg-gray-100">
-
-            </div>
+        <div style="height:60vh;margin:-0.8rem;border-radius:0.5rem;overflow:hidden;">
+            <VueCommand ref="vueCommand"
+                        style="height:100%;"
+                        :commands="commands"
+                        v-model:history="history"
+                        hide-bar
+                        show-help
+                        :help-text="$t('输入 help 查看帮助')"
+                        :help-timeout="3000"
+            />
         </div>
     </a-modal>
 </template>
-
