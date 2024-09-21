@@ -80,11 +80,15 @@ const extSrc = computed(() => {
     return images['unknown']
 })
 
+const extSrcUrl = computed(() => {
+    return `url("${extSrc.value}")`
+})
+
 </script>
 
 <template>
     <div class="pb-file-ext"
-         :style="{width: props.size, height: props.size,backgroundImage:`url(${extSrc})`}">
+         :style="{width: props.size, height: props.size, backgroundImage:extSrcUrl}">
     </div>
 </template>
 

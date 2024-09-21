@@ -12,6 +12,7 @@ export const PageThirdPartyImageBeautifier = {
             parent: AppRuntime.mainWindow,
             minWidth: 800,
             minHeight: 600,
+            maximizable: true,
             hasShadow: true,
             center: true,
             autoHideMenuBar: true,
@@ -24,6 +25,7 @@ export const PageThirdPartyImageBeautifier = {
             show: true,
             frame: true,
         });
+        win.maximize();
         return Page.openWindow(PageThirdPartyImageBeautifier.NAME, win, "third-party/image-beautifier/index.html");
     }
 }

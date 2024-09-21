@@ -23,7 +23,7 @@ export const deviceStore = defineStore("device", {
         },
         async startWatch() {
             await window.$mapi.adb.watch((type, data) => {
-                console.log('watch', type, data)
+                // console.log('watch', type, data)
                 this.refresh().then(() => {
                 })
             })

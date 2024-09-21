@@ -200,10 +200,10 @@ const doScreenshot = async (device: DeviceRecord) => {
                                             </template>
                                         </a-button>
                                         <template #content>
-                                            <!--                                            <a-doption @click="appManagerDialog?.show(r)">{{-->
-                                            <!--                                                    $t('管理应用')-->
-                                            <!--                                                }}-->
-                                            <!--                                            </a-doption>-->
+                                            <a-doption @click="appManagerDialog?.show(r)">{{
+                                                    $t('管理应用')
+                                                }}
+                                            </a-doption>
                                             <a-doption @click="appInstallDialog?.show(r)">{{
                                                     $t('安装应用')
                                                 }}

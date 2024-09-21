@@ -157,6 +157,10 @@ const install = async (id: string, path: string) => {
     return (await getClient()).getDevice(id).install(path)
 }
 
+const uninstall = async (id: string, pkg: string) => {
+    return (await getClient()).getDevice(id).uninstall(pkg)
+}
+
 const isInstalled = async (id: string, pkg: string) => {
     return (await getClient()).getDevice(id).isInstalled(pkg)
 }
@@ -243,6 +247,17 @@ const fileDelete = async (id: string, devicePath: string) => {
     await adbShell(`-s ${id} shell rm -rf '${devicePath}'`)
 }
 
+const listApps = async (id: string) => {
+    const res = await shell(id, 'pm list packages -3')
+    const records = res.split('\n').filter(item => item)
+        .map(item => item.replace('package:', ''))
+        .map(item => ({
+            id: item,
+            name: item,
+        }))
+    return records
+}
+
 export default {
     getBinPath,
     setBinPath,
@@ -256,6 +271,7 @@ export default {
     tcpip,
     screencap,
     install,
+    uninstall,
     isInstalled,
     version,
     watch,
@@ -263,6 +279,7 @@ export default {
     filePush,
     filePull,
     fileDelete,
+    listApps,
 }
 
 export const ADB = {

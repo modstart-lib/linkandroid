@@ -73,6 +73,8 @@ declare interface Window {
             }) => Promise<void>,
             fileDelete: (serial: string, devicePath: string) => Promise<void>,
             install: (serial: string, localPath: string) => Promise<void>,
+            uninstall: (serial: string, packageName: string) => Promise<void>,
+            listApps: (serial: string) => Promise<any[]>,
         },
         scrcpy: {
             getBinPath: () => Promise<string>,
