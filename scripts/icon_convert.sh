@@ -3,10 +3,13 @@
 # prepare
 # brew install --cask inkscape
 
-# get current script directory
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+echo "Convert icon"
 
-path_build="${DIR}/../electron/resources/build"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT=$(realpath "${DIR}/..")
+echo "PROJECT_ROOT: ${PROJECT_ROOT}"
+
+path_build="${PROJECT_ROOT}/electron/resources/build"
 path_source_png="${path_build}/logo_1024x1024.png"
 
 size=(16 32 44 48 64 128 150 256 512)

@@ -8,12 +8,13 @@ export const PageThirdPartyImageBeautifier = {
     NAME: 'thirdPartyImageBeautifier',
     open: (option: any) => {
         const win = new BrowserWindow({
-            title: t('截图编辑器'),
+            title: t('截图编辑'),
             parent: AppRuntime.mainWindow,
             minWidth: 800,
             minHeight: 600,
             hasShadow: true,
             center: true,
+            autoHideMenuBar: true,
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false,
