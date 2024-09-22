@@ -2,9 +2,9 @@
 import {ref, shallowRef} from "vue";
 import VueCommand, {createQuery} from "vue-command";
 import "vue-command/dist/vue-command.css";
-import {useAdbCommand} from "./DeviceShellAssets/adb";
-import {useBasicCommand} from "./DeviceShellAssets/basic";
-import {useScrcpyCommand} from "./DeviceShellAssets/scrcpy";
+import {useAdbCommand} from "./Shell/adb";
+import {useBasicCommand} from "./Shell/basic";
+import {useScrcpyCommand} from "./Shell/scrcpy";
 
 const visible = ref(false)
 const loading = ref(false)

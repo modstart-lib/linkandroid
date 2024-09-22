@@ -1,5 +1,5 @@
 import {createQuery, createStdout, listFormatter} from "vue-command";
-import {t} from "../../lang";
+import {t} from "../../../lang";
 
 export const useBasicCommand = ({loading, vueCommand, history, commands}) => {
     const clearCommand = () => {

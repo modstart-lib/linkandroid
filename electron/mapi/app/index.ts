@@ -16,7 +16,11 @@ const spawnShell = async (command: string, option: {
     stderr?: Function,
     success?: Function,
     error?: Function,
-} | null = null) => {
+} | null = null): Promise<{
+    stop: () => void,
+    send: (data: any) => void,
+    result: () => Promise<string>
+}> => {
     option = option || {} as any
     let args = command.split(' ')
     const commandEntry = args.shift() as string

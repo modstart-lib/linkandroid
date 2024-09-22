@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import {Dialog} from "../lib/dialog";
-import {t} from "../lang";
-import {DeviceRecord, EnumDeviceStatus} from "../types/Device";
+import {Dialog} from "../../lib/dialog";
+import {t} from "../../lang";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 
 const visible = ref(false)
 const device = ref({} as DeviceRecord)

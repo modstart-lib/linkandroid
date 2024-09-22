@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
-import {DeviceRecord} from "../types/Device";
-import {useDeviceStore} from "../store/modules/device";
+import {DeviceRecord} from "../../types/Device";
+import {useDeviceStore} from "../../store/modules/device";
 
 const deviceStore = useDeviceStore()
 const visible = ref(false)

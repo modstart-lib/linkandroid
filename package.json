@@ -55,6 +55,8 @@
         "@electron-toolkit/preload": "^3.0.1",
         "@electron-toolkit/utils": "^3.0.0",
         "@types/showdown": "^2.0.6",
+        "@xterm/addon-fit": "^0.10.0",
+        "@xterm/xterm": "^5.5.0",
         "axios": "^1.7.2",
         "date-and-time": "^3.4.1",
         "dayjs": "^1.11.12",
@@ -70,7 +72,6 @@
         "tiny-emitter": "^2.1.0",
         "vue-command": "^35.2.1",
         "vue-i18n": "^9.13.1",
-        "vue-router": "^4.4.0",
-        "xterm": "^5.3.0"
+        "vue-router": "^4.4.0"
     }
 }

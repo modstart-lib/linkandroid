@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import android from './AppIconAssets/android.svg'
+import android from './App/Icon/android.svg'
 import {computed} from "vue";
 
 const images = {

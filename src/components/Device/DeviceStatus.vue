@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {EnumDeviceStatus} from "../types/Device";
+import {EnumDeviceStatus} from "../../types/Device";
 
 interface Props {
     status: EnumDeviceStatus | null

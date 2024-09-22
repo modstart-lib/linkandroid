@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import {nextTick, ref, watch} from "vue";
-import {DeviceRecord} from "../types/Device";
-import {Terminal} from "xterm";
-// import * as fit from 'xterm/lib/addons/fit/fit'
-// import 'xterm/lib/addons/fullscreen/fullscreen.css'
+import {DeviceRecord} from "../../types/Device";
+import {Terminal} from '@xterm/xterm';
+import {FitAddon} from '@xterm/addon-fit';
 import 'xterm/css/xterm.css'
-import {t} from "../lang";
+import {t} from "../../lang";
 
 const visible = ref(false)
 const loading = ref(false)
@@ -28,11 +27,14 @@ watch(() => visible.value, async (v) => {
         term.onData((data) => {
             shellController.send(data);
         })
+        const fitAddon = new FitAddon();
+        term.loadAddon(fitAddon);
         term.open(terminal.value as HTMLElement)
         term.clear()
         term.writeln(t('进入设备 {name} 的命令行', {name: device.value?.name}))
         term.writeln('==========================================')
         nextTick(() => {
+            fitAddon.fit()
             term.focus()
         }, 0)
         const command = [
@@ -80,8 +82,8 @@ defineExpose({
             {{ $t('设备 {name} 命令行', {name: device?.name}) }}
         </template>
         <div style="margin:-0.8rem;border-radius:0.5rem;overflow:hidden;background:#000;">
-            <div class="h-full p-2 overflow-hidden" style="height:200px;">
-                <div ref="terminal" style="height:100px;"></div>
+            <div class="h-full p-2 overflow-hidden">
+                <div ref="terminal" style="height:60vh;"></div>
             </div>
         </div>
     </a-modal>

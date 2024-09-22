@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DeviceRecord} from "../types/Device";
+import {DeviceRecord} from "../../types/Device";
 import DeviceAppManagerDialog from "./DeviceAppManagerDialog.vue";
 import DeviceAppInstallDialog from "./DeviceAppInstallDialog.vue";
 import {ref} from "vue";

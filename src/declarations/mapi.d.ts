@@ -38,6 +38,7 @@ declare interface Window {
             read: (path: string) => Promise<any>,
             deletes: (path: string) => Promise<void>,
             rename: (pathOld: string, pathNew: string) => Promise<void>,
+            copy: (pathOld: string, pathNew: string) => Promise<void>,
             temp: (ext: string = 'tmp', prefix: string = 'file') => Promise<string>,
             tempDir: (prefix: string = 'dir') => Promise<string>,
             openFile: (options: {} = {}) => Promise<any>,
@@ -103,11 +104,11 @@ declare interface Window {
                 stderr?: Function | null,
                 success?: Function | null,
                 error?: Function | null,
-            }) => Promise<string>,
+            }) => Promise<any>,
             mirror: (serial: string, option: {
                 title?: string,
                 args?: string,
-            }) => Promise<void>,
+            }) => Promise<any>,
         },
         ffmpeg: {
             version: () => Promise<string>,

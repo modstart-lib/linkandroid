@@ -138,6 +138,18 @@ const rename = async (pathOld: string, pathNew: string) => {
     fs.renameSync(fullPathOld, fullPathNew)
 }
 
+const copy = async (pathOld: string, pathNew: string) => {
+    const fullPathOld = await fullPath(pathOld)
+    const fullPathNew = await fullPath(pathNew)
+    if (!fs.existsSync(fullPathOld)) {
+        return
+    }
+    if (fs.existsSync(fullPathNew)) {
+        throw new Error(`File already exists: ${fullPathNew}`)
+    }
+    fs.copyFileSync(fullPathOld, fullPathNew)
+}
+
 const tempRoot = async () => {
     await waitAppEnvReady()
     const tempDir = path.join(AppEnv.userData, 'temp')
@@ -182,6 +194,7 @@ export default {
     read,
     deletes,
     rename,
+    copy,
     temp,
     tempDir
 }

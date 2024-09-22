@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import {Dialog} from "../lib/dialog";
-import {t} from "../lang";
+import {Dialog} from "../../lib/dialog";
+import {t} from "../../lang";
 
 const visible = ref(false)
 const formData = ref({

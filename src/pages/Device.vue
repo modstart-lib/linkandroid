@@ -1,49 +1,31 @@
 <script setup lang="ts">
 import {useDeviceStore} from "../store/modules/device";
 import {DeviceRecord, EnumDeviceStatus} from "../types/Device";
-import {sleep} from "../lib/util";
-import DeviceStatus from "../components/DeviceStatus.vue";
+import DeviceStatus from "../components/Device/DeviceStatus.vue";
 import {Dialog} from "../lib/dialog";
 import {mapError} from "../lib/linkandroid";
 import InputInlineEditor from "../components/common/InputInlineEditor.vue";
-import DeviceInfoDialog from "../components/DeviceInfoDialog.vue";
+import DeviceInfoDialog from "../components/Device/DeviceInfoDialog.vue";
 import {ref} from "vue";
 import {t} from "../lang";
-import DeviceFileManagerDialog from "../components/DeviceFileManagerDialog.vue";
-import DeviceConnectWifiDialog from "../components/DeviceConnectWifiDialog.vue";
-import DeviceShellDialog from "../components/DeviceShellDialog.vue";
-import DeviceAdbShellDialog from "../components/DeviceAdbShellDialog.vue";
-import DeviceActionApp from "../components/DeviceActionApp.vue";
-import DeviceActionRecord from "../components/DeviceActionRecord.vue";
-import DeviceActionScreenshot from "../components/DeviceActionScreenshot.vue";
+import DeviceFileManagerDialog from "../components/Device/DeviceFileManagerDialog.vue";
+import DeviceConnectWifiDialog from "../components/Device/DeviceConnectWifiDialog.vue";
+import DeviceShellDialog from "../components/Device/DeviceShellDialog.vue";
+import DeviceAdbShellDialog from "../components/Device/DeviceAdbShellDialog.vue";
+import DeviceActionApp from "../components/Device/DeviceActionApp.vue";
+import DeviceActionRecord from "../components/Device/DeviceActionRecord.vue";
+import DeviceActionScreenshot from "../components/Device/DeviceActionScreenshot.vue";
 import {AppConfig} from "../config";
+import DeviceMirrorDialog from "../components/Device/DeviceMirrorDialog.vue";
 
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
 const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
 const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
 const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
+const mirrorDialog = ref<InstanceType<typeof DeviceMirrorDialog> | null>(null);
 
 const deviceStore = useDeviceStore()
-
-const doMirror = async (device: DeviceRecord) => {
-    if (device.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t('设备未连接'))
-        return
-    }
-    Dialog.loadingOn(t('正在投屏'))
-    try {
-        const mirroring = window.$mapi.scrcpy.mirror(device.id, {
-            title: device.name as string,
-            args: '--always-on-top',
-        })
-        Dialog.loadingOff()
-        await sleep(1000)
-        await mirroring
-    } catch (error) {
-        Dialog.tipError(mapError(error))
-    }
-}
 
 
 const doRefresh = async () => {
@@ -145,9 +127,10 @@ const doHelp = () => {
                 </div>
             </div>
             <div v-else class="flex flex-wrap">
-                <div v-for="(r,rIndex) in deviceStore.records" :key="rIndex" class="w-full lg:w-1/2 2xl:w-1/3 p-3">
+                <div v-for="(r,rIndex) in deviceStore.records" :key="rIndex"
+                     class="w-full lg:w-1/2 2xl:w-1/3 p-3">
                     <div
-                        class="hover:shadow-lg shadow border border-solid h-64 border-gray-100 rounded-lg flex flex-col">
+                        class="hover:shadow-lg bg-white shadow border border-solid h-64 border-gray-100 rounded-lg flex flex-col">
                         <div class="flex overflow-hidden flex-shrink-0 items-center h-12 px-4 py-2">
                             <div class="overflow-hidden">
                                 <div class="font-bold truncate cursor-pointer">
@@ -170,9 +153,8 @@ const doHelp = () => {
                         <div class="h-52 relative">
                             <div class="absolute bottom-0 left-0 p-4">
                                 <a-tooltip :content="$t('投屏到电脑')">
-                                    <div
-                                        @click="doMirror(r)"
-                                        class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl bg-black text-center overflow-hidden">
+                                    <div @click="mirrorDialog?.show(r)"
+                                         class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl bg-black text-center overflow-hidden">
                                         <div v-if="r.screenshot">
                                             <img :src="r.screenshot" class="max-h-44 max-w-44 rounded-sm"/>
                                         </div>
@@ -185,6 +167,13 @@ const doHelp = () => {
                                 </a-tooltip>
                             </div>
                             <div class="absolute bottom-0 right-0 p-4">
+                                <a-tooltip :content="$t('投屏到电脑')">
+                                    <a-button class="ml-1" @click="mirrorDialog?.show(r)">
+                                        <template #icon>
+                                            <i class="iconfont icon-mirror text-gray-400"></i>
+                                        </template>
+                                    </a-button>
+                                </a-tooltip>
                                 <DeviceActionApp :device="r"/>
                                 <DeviceActionScreenshot :device="r"/>
                                 <DeviceActionRecord :device="r"/>
@@ -221,6 +210,7 @@ const doHelp = () => {
     <DeviceFileManagerDialog ref="fileManagerDialog"/>
     <DeviceShellDialog ref="shellDialog"/>
     <DeviceAdbShellDialog ref="adbShellDialog"/>
+    <DeviceMirrorDialog ref="mirrorDialog"/>
 </template>
 
 <style scoped>

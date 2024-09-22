@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import {DeviceRecord, EnumDeviceStatus} from "../types/Device";
-import {Dialog} from "../lib/dialog";
-import {t} from "../lang";
-import {mapError} from "../lib/linkandroid";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
+import {Dialog} from "../../lib/dialog";
+import {t} from "../../lang";
+import {mapError} from "../../lib/linkandroid";
 
 const props = defineProps<{
     device: DeviceRecord

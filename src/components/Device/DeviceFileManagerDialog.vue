@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
-import {Dialog} from "../lib/dialog";
-import {t} from "../lang";
-import {DeviceRecord, EnumDeviceStatus} from "../types/Device";
-import FileExt from "./common/FileExt.vue";
+import {Dialog} from "../../lib/dialog";
+import {t} from "../../lang";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
+import FileExt from "../common/FileExt.vue";
 
 const visible = ref(false)
 const isEditPath = ref(false)

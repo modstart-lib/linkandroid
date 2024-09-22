@@ -35,6 +35,9 @@ export const TimeUtil = {
     formatDate(time: number) {
         return dayjs(time).format('YYYY-MM-DD')
     },
+    datetimeString() {
+        return dayjs().format('YYYYMMDD_HHmmss')
+    },
     secondsToTime(seconds: number) {
         let h: any = Math.floor(seconds / 3600)
         let m: any = Math.floor(seconds % 3600 / 60)

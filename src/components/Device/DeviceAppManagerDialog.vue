@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
-import {Dialog} from "../lib/dialog";
-import {t} from "../lang";
-import {DeviceRecord, EnumDeviceStatus} from "../types/Device";
-import AppIcon from "./common/AppIcon.vue";
-import DeviceAppManagerApp from './config/DeviceAppManagerApp.json'
+import {Dialog} from "../../lib/dialog";
+import {t} from "../../lang";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 import DeviceAppInstallDialog from "./DeviceAppInstallDialog.vue";
+import DeviceAppIcon from "./DeviceAppIcon.vue";
+import NameInfo from './App/NameInfo.json'
 
 const appInstallDialog = ref<InstanceType<typeof DeviceAppInstallDialog> | null>(null);
 
@@ -33,12 +33,12 @@ const filterAppRecords = computed(() => {
     })
 })
 
-const doRefresh = async (isManual: boolean) => {
+const doRefresh = async (isManual?: boolean) => {
     const records = await window.$mapi.adb.listApps(device.value.id)
     appRecords.value = records.map(r => {
         return {
             id: r.id,
-            name: DeviceAppManagerApp[r.id] || r.name,
+            name: NameInfo[r.id] || r.name,
         }
     })
     if (isManual) {
@@ -93,7 +93,7 @@ defineExpose({
                     <div v-for="a in filterAppRecords">
                         <div class="border border-solid border-gray-200 rounded-lg mb-2 p-2 flex items-center">
                             <div class="cursor-pointer w-10 mr-3">
-                                <AppIcon :name="a.id" size="100%"/>
+                                <DeviceAppIcon :name="a.id" size="100%"/>
                             </div>
                             <div class="text-sm truncate w-32 mr-3">
                                 {{ a.name }}
