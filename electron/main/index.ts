@@ -19,10 +19,9 @@ import {ConfigLang} from "../config/lang";
 import {ConfigContextMenu} from "../config/contextMenu";
 import {MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL} from "../util/path-main";
 import {Page} from "../page";
+import {ConfigTray} from "../config/tray";
+import {icnsLogoPath, icoLogoPath, logoPath} from "../config/icon";
 
-export const logoPath = buildResolve('logo.png')
-export const icoLogoPath = buildResolve('logo.ico')
-export const icnsLogoPath = buildResolve('logo.icns')
 
 // The built directory structure
 //
@@ -166,6 +165,7 @@ app.whenReady()
     .then(() => {
         MAPI.ready()
         ConfigMenu.ready()
+        ConfigTray.ready()
         app.on('browser-window-created', (_, window) => {
             optimizer.watchWindowShortcuts(window)
         })

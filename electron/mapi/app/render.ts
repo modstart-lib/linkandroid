@@ -37,6 +37,10 @@ const windowSetSize = (width: number, height: number) => {
     return ipcRenderer.invoke('window:setSize', width, height)
 }
 
+const windowHide = (name: string) => {
+    return ipcRenderer.invoke('window:hide', name)
+}
+
 const windowClose = (name: string) => {
     return ipcRenderer.invoke('window:close', name)
 }
@@ -72,6 +76,7 @@ export default {
     windowMin,
     windowMax,
     windowSetSize,
+    windowHide,
     windowClose,
     openExternalWeb,
     appEnv,

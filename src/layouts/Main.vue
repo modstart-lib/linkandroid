@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import {getCurrentInstance, onBeforeMount, onMounted, ref} from "vue";
+import {onBeforeMount, onMounted, ref} from "vue";
 import PageNav from "./../components/PageNav.vue";
 import {AppConfig} from "../config";
-import {Dialog} from "../lib/dialog";
-import {t} from "../lang";
+import AppQuitConfirm from "../components/AppQuitConfirm.vue";
 
+const appQuitConfirm = ref<InstanceType<typeof AppQuitConfirm> | null>(null);
 const platform = ref('')
 
 const doQuit = () => {
-    Dialog.confirm(t('确定退出软件？'))
-        .then(() => {
-            window.$mapi.app.quit()
-        })
+    appQuitConfirm.value?.show()
 }
 
 onBeforeMount(() => {
@@ -60,4 +57,5 @@ onMounted(() => {
             </div>
         </div>
     </div>
+    <AppQuitConfirm ref="appQuitConfirm"/>
 </template>

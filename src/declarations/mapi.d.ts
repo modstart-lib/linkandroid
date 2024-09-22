@@ -9,7 +9,8 @@ declare interface Window {
             windowMin: () => Promise<void>,
             windowMax: () => Promise<void>,
             windowSetSize: (width: number, height: number) => Promise<void>,
-            windowClose: (name: string) => Promise<void>,
+            windowHide: (name?: string) => Promise<void>,
+            windowClose: (name?: string) => Promise<void>,
             openExternalWeb: (url: string) => Promise<void>,
             appEnv: () => Promise<any>
         },

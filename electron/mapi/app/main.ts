@@ -45,7 +45,19 @@ ipcMain.handle('window:setSize', (event, width: number, height: number) => {
 })
 
 ipcMain.handle('window:close', (event, name: string) => {
-    AppRuntime.windows[name]?.close()
+    if (!name || 'main' === name) {
+        AppRuntime.mainWindow?.close()
+    } else {
+        AppRuntime.windows[name]?.close()
+    }
+})
+
+ipcMain.handle('window:hide', (event, name: string) => {
+    if (!name || 'main' === name) {
+        AppRuntime.mainWindow?.hide()
+    } else {
+        AppRuntime.windows[name]?.hide()
+    }
 })
 
 export default {
