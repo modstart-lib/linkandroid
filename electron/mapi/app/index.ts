@@ -7,6 +7,7 @@ const shell = async (command: string) => {
     return exec(command, {
         env: {...process.env},
         shell: true,
+        encoding: 'utf8',
     } as any)
 }
 
@@ -29,20 +30,26 @@ const spawnShell = async (command: string, option: {
     let end = false
     const stdoutList: string[] = []
     const stderrList: string[] = []
-    spawnProcess.stdout.setEncoding('utf8');
+    // spawnProcess.stdout.setEncoding('utf8');
     spawnProcess.stdout?.on('data', (data) => {
-        // console.log('spawnShell.stdout', data)
         const stringData = data.toString()
+        // console.log('spawnShell.stdout', stringData)
         stdoutList.push(stringData)
         option.stdout?.(stringData, spawnProcess)
     })
-    spawnProcess.stderr.setEncoding('utf8');
+    // spawnProcess.stderr.setEncoding('utf8');
     spawnProcess.stderr?.on('data', (data) => {
-        // console.log('spawnShell.stderr', data)
         const stringData = data.toString()
+        // console.log('spawnShell.stderr', stringData)
         stderrList.push(stringData)
         option.stderr?.(stringData, spawnProcess)
     })
+    // spawnProcess.on('message', (message) => {
+    //     console.log(`Fork process say`, message);
+    // });
+    // spawnProcess.on('spawn', (message) => {
+    //     console.log(`Fork process spawn`, message);
+    // })
     spawnProcess.on('close', (code) => {
         // console.log('spawnShell.close', code)
         if (code === 0 || code === null) {
@@ -53,13 +60,16 @@ const spawnShell = async (command: string, option: {
         end = true
     })
     spawnProcess.on('error', (err) => {
-        // console.log('spawnShell.error', err)
+        console.log('spawnShell.error', err)
         option.error?.(err)
         end = true
     })
     return {
         stop: () => {
             spawnProcess.kill('SIGINT')
+        },
+        send: (data) => {
+            spawnProcess.stdin.write(data)
         },
         result: async (): Promise<string> => {
             if (end) {

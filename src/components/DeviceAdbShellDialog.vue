@@ -14,11 +14,16 @@ const terminal = ref<Element | null>(null)
 
 const term = new Terminal({
     fontSize: 14,
-    screenKeys: true,
-    useStyle: true
+    useStyle: true,
+    convertEol: true,
+    disableStdin: false,
 });
 term.onData((data) => {
-    term.write(data);
+    console.log('onData', JSON.stringify(data))
+    const dataNew = data.replace(/\r/g, '\n\r')
+    console.log('onData', JSON.stringify(dataNew))
+    term.write(dataNew);
+    shellController.send(dataNew)
 })
 let shellController = null as any
 const show = (d: DeviceRecord) => {
@@ -36,9 +41,11 @@ const show = (d: DeviceRecord) => {
         shellController = await window.$mapi.adb.adbSpawnShell(command, {
             stdout: (data) => {
                 console.log('stdout', data)
+                term.write(data)
             },
             stderr: (data) => {
                 console.log('stdout', data)
+                term.write(data)
             },
             success: (data) => {
                 console.log('success', data)
@@ -47,9 +54,10 @@ const show = (d: DeviceRecord) => {
                 console.log('error', data)
             },
         })
-        setTimeout(() => {
-            shellController.stop()
-        }, 3000)
+        // setTimeout(() => {
+        //     shellController.send("ls /\n")
+        //     // shellController.stop()
+        // }, 3000)
         console.log('shellController', shellController)
         console.log('shellController.result', await shellController.result())
     })
