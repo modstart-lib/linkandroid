@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import {nextTick, ref, watch} from "vue";
-import {DeviceRecord} from "../../types/Device";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 import {Terminal} from '@xterm/xterm';
 import {FitAddon} from '@xterm/addon-fit';
 import 'xterm/css/xterm.css'
 import {t} from "../../lang";
+import {Dialog} from "../../lib/dialog";
 
 const visible = ref(false)
 const loading = ref(false)
@@ -65,6 +66,10 @@ watch(() => visible.value, async (v) => {
     }
 })
 const show = (d: DeviceRecord) => {
+    if (d.status !== EnumDeviceStatus.CONNECTED) {
+        Dialog.tipError(t('设备未连接'))
+        return
+    }
     device.value = d
     visible.value = true
 }
