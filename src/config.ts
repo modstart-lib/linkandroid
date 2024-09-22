@@ -10,5 +10,6 @@ export const AppConfig = {
     updaterUrl: 'https://linkandroid.com/updater',
     downloadUrl: 'https://linkandroid.com/download',
     statisticsUrl: 'https://linkandroid.com/collect',
+    helpUrl: 'https://linkandroid.com/help',
 }
 

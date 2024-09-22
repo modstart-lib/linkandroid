@@ -16,6 +16,7 @@ import DeviceAdbShellDialog from "../components/DeviceAdbShellDialog.vue";
 import DeviceActionApp from "../components/DeviceActionApp.vue";
 import DeviceActionRecord from "../components/DeviceActionRecord.vue";
 import DeviceActionScreenshot from "../components/DeviceActionScreenshot.vue";
+import {AppConfig} from "../config";
 
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -80,16 +81,22 @@ const onEditName = async (device: DeviceRecord, name: string) => {
     }
 }
 
+const doHelp = () => {
+    window.$mapi.app.openExternalWeb(AppConfig.helpUrl)
+}
+
 </script>
 
 <template>
-    <div class="p-8">
+    <div class="pb-device-container p-8 min-h-full relative"
+         :class="{'has-records':deviceStore.records.length>0}">
         <div class="mb-4 flex items-center">
             <div class="text-3xl font-bold flex-grow">
                 {{ $t('设备') }}
             </div>
             <div class="flex items-center">
-                <a-button @click="doRefresh" class="ml-1">
+                <a-button v-if="deviceStore.records.length>0"
+                          @click="doRefresh" class="ml-1">
                     <template #icon>
                         <icon-refresh/>
                     </template>
@@ -115,14 +122,25 @@ const onEditName = async (device: DeviceRecord, name: string) => {
         </div>
         <div class="-mx-2">
             <div v-if="!deviceStore.records.length" class="py-20">
-                <div class="mb-6">
-                    <a-empty :description="$t('还没有设备，使用USB连接电脑开始使用～')"/>
-                </div>
                 <div class="text-center">
-                    <a-button v-if="deviceStore.records.length>0"
+                    <img class="h-40 m-auto opacity-50" src="./../assets/image/device-empty.svg"/>
+                </div>
+                <div class="mt-10 text-center text-lg text-gray-400">
+                    {{ $t('还没有设备，使用USB连接电脑开始使用～') }}
+                </div>
+                <div class="mt-10 text-center">
+                    <a-button class="mx-1"
                               type="primary" @click="doRefresh">
-                        <icon-refresh class="mr-1"/>
+                        <template #icon>
+                            <icon-refresh class="mr-1"/>
+                        </template>
                         {{ $t('刷新') }}
+                    </a-button>
+                    <a-button class="mx-1" @click="doHelp">
+                        <template #icon>
+                            <icon-book class="mr-1"/>
+                        </template>
+                        {{ $t('教程') }}
                     </a-button>
                 </div>
             </div>
@@ -204,5 +222,14 @@ const onEditName = async (device: DeviceRecord, name: string) => {
 </template>
 
 <style scoped>
-
+.pb-device-container {
+    &.has-records {
+        background-image: url("./../assets/image/device-bg.svg");
+        background-size: 15rem 15rem;
+        background-position: 98% 98%;
+        background-blend-mode: lighten;
+        background-color: rgba(255, 255, 255, 0.8);
+        background-repeat: no-repeat;
+    }
+}
 </style>
