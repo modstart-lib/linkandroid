@@ -20,7 +20,7 @@ commands.value['adb'] = adbCommand
 commands.value['scrcpy'] = scrcpyCommand
 commands.value['clear'] = clearCommand
 commands.value['help'] = helpCommand
-commands.value['quit'] = () => {
+commands.value['exit'] = () => {
     visible.value = false
     return createQuery()
 }

@@ -95,12 +95,12 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                     </template>
                     {{ $t('刷新') }}
                 </a-button>
-                <!--                <a-button @click="connectWifiDialog?.show()" class="ml-1">-->
-                <!--                    <template #icon>-->
-                <!--                        <icon-link/>-->
-                <!--                    </template>-->
-                <!--                    {{ $t('连接Wifi设备') }}-->
-                <!--                </a-button>-->
+                <a-button @click="connectWifiDialog?.show()" class="ml-1">
+                    <template #icon>
+                        <icon-link/>
+                    </template>
+                    {{ $t('连接Wifi设备') }}
+                </a-button>
                 <a-dropdown trigger="hover">
                     <a-button class="ml-1">
                         <template #icon>
@@ -182,7 +182,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                                         </template>
                                     </a-button>
                                     <template #content>
-<!--                                        <a-doption @click="adbShellDialog?.show(r)">{{ $t('命令行') }}</a-doption>-->
+                                        <a-doption @click="adbShellDialog?.show(r)">{{ $t('命令行') }}</a-doption>
                                         <a-doption @click="infoDialog?.show(r)">{{ $t('设备详情') }}</a-doption>
                                         <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">
                                             {{ $t('删除设备') }}

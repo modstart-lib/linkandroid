@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {nextTick, ref} from "vue";
+import {nextTick, ref, watch} from "vue";
 import {DeviceRecord} from "../types/Device";
 import {Terminal} from "xterm";
 // import * as fit from 'xterm/lib/addons/fit/fit'
@@ -12,55 +12,59 @@ const loading = ref(false)
 const device = ref<DeviceRecord | null>(null)
 const terminal = ref<Element | null>(null)
 
-const term = new Terminal({
-    fontSize: 14,
-    useStyle: true,
-    convertEol: true,
-    disableStdin: false,
-});
-term.onData((data) => {
-    console.log('onData', JSON.stringify(data))
-    const dataNew = data.replace(/\r/g, '\n\r')
-    console.log('onData', JSON.stringify(dataNew))
-    term.write(dataNew);
-    shellController.send(dataNew)
-})
+let term = null as any
 let shellController = null as any
-const show = (d: DeviceRecord) => {
-    device.value = d
-    visible.value = true
-    nextTick(async () => {
+watch(() => visible.value, async (v) => {
+    if (v) {
+        term = new Terminal({
+            fontSize: 14,
+            cursorBlink: true,
+            cursorStyle: 'underline',
+            cols: 80,
+            rows: 10,
+            // logLevel: 'trace',
+            convertEol: true,
+        })
+        term.onData((data) => {
+            shellController.send(data);
+        })
         term.open(terminal.value as HTMLElement)
-        term.focus()
         term.clear()
-        term.writeln(t('进入设备 {name} 的命令行', {name: d.name}))
+        term.writeln(t('进入设备 {name} 的命令行', {name: device.value?.name}))
         term.writeln('==========================================')
+        nextTick(() => {
+            term.focus()
+        }, 0)
         const command = [
-            '-s', device.value?.id as string, 'shell'
+            '-s', device.value?.id as string, 'shell', '-tt',
         ].join(' ')
         shellController = await window.$mapi.adb.adbSpawnShell(command, {
             stdout: (data) => {
-                console.log('stdout', data)
+                // console.log('stdout', JSON.stringify(data))
                 term.write(data)
             },
             stderr: (data) => {
-                console.log('stdout', data)
+                // console.log('stdout', JSON.stringify(data))
                 term.write(data)
             },
             success: (data) => {
-                console.log('success', data)
+                // console.log('success', data)
+                nextTick(() => {
+                    visible.value = false
+                })
             },
-            error: (data) => {
-                console.log('error', data)
+            error: (data, code) => {
+                // console.log('error', code, data)
             },
         })
-        // setTimeout(() => {
-        //     shellController.send("ls /\n")
-        //     // shellController.stop()
-        // }, 3000)
-        console.log('shellController', shellController)
-        console.log('shellController.result', await shellController.result())
-    })
+    } else {
+        term && term.dispose()
+        shellController?.stop()
+    }
+})
+const show = (d: DeviceRecord) => {
+    device.value = d
+    visible.value = true
 }
 defineExpose({
     show
@@ -76,8 +80,8 @@ defineExpose({
             {{ $t('设备 {name} 命令行', {name: device?.name}) }}
         </template>
         <div style="margin:-0.8rem;border-radius:0.5rem;overflow:hidden;background:#000;">
-            <div class="h-full p-2 overflow-hidden" style="height:60vh;">
-                <div ref="terminal"></div>
+            <div class="h-full p-2 overflow-hidden" style="height:200px;">
+                <div ref="terminal" style="height:100px;"></div>
             </div>
         </div>
     </a-modal>

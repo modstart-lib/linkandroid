@@ -91,6 +91,8 @@ declare interface Window {
             install: (serial: string, localPath: string) => Promise<void>,
             uninstall: (serial: string, packageName: string) => Promise<void>,
             listApps: (serial: string) => Promise<any[]>,
+            connect: (host: string, port: number) => Promise<void>,
+            disconnect: (host: string, port: number) => Promise<void>,
         },
         scrcpy: {
             getBinPath: () => Promise<string>,

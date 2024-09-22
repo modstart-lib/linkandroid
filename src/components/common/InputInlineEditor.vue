@@ -5,7 +5,7 @@ const props = defineProps<{
     value: string | null | undefined
 }>()
 const emit = defineEmits({
-    'change': (value: string) => true
+    change: (value: string) => true
 })
 const visible = ref(false)
 const valueEdit = ref('')

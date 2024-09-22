@@ -20,7 +20,7 @@ const spawnShell = async (command: string, option: {
     option = option || {} as any
     let args = command.split(' ')
     const commandEntry = args.shift() as string
-    // console.log('spawnShell', commandEntry, args)
+    // console.log('spawnShell', commandEntry, args, process.env)
     const spawnProcess = spawn(commandEntry, args, {
         env: {...process.env},
         shell: true,
@@ -55,7 +55,7 @@ const spawnShell = async (command: string, option: {
         if (code === 0 || code === null) {
             option.success?.(code)
         } else {
-            option.error?.(`command ${command} failed with code ${code}`)
+            option.error?.(`command ${command} failed with code ${code}`, code)
         }
         end = true
     })
