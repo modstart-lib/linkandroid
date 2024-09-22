@@ -172,12 +172,14 @@ const doHelp = () => {
                                 <a-tooltip :content="$t('投屏到电脑')">
                                     <div
                                         @click="doMirror(r)"
-                                        class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl text-center overflow-hidden">
+                                        class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl bg-black text-center overflow-hidden">
                                         <div v-if="r.screenshot">
-                                            <img :src="r.screenshot" class="max-h-44 max-w-44"/>
+                                            <img :src="r.screenshot" class="max-h-44 max-w-44 rounded-sm"/>
                                         </div>
-                                        <div v-else class="w-24 h-44 bg-gray-200 text-xs text-gray-400 flex">
-                                            <div class="m-auto">PREVIEW</div>
+                                        <div v-else class="w-24 h-44 bg-gray-200 text-xs text-gray-300 flex rounded-sm">
+                                            <div class="m-auto">
+                                                <icon-eye class="text-2xl"/>
+                                            </div>
                                         </div>
                                     </div>
                                 </a-tooltip>

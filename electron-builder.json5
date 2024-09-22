@@ -14,6 +14,12 @@
         "dist",
         "dist-electron"
     ],
+    "extraResources": [
+        {
+            "from": "node_modules/ffmpeg-static",
+            "to": "bin/ffmpeg",
+        }
+    ],
     "win": {
         icon: "electron/resources/build/logo.ico",
         //        "target": [
@@ -76,16 +82,16 @@
     },
     "mac": {
         "icon": "logo.icns",
-        "target": [
-            {
-                "target": "dmg",
-                "arch": [
-                    "universal",
-                    "x64",
-                    "arm64"
-                ]
-            }
-        ],
+        //        "target": [
+        //            {
+        //                "target": "dmg",
+        //                "arch": [
+        //                    "universal",
+        //                    "x64",
+        //                    "arm64"
+        //                ]
+        //            }
+        //        ],
         "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
         "extraResources": [
             {
