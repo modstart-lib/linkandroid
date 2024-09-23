@@ -56,11 +56,19 @@ const spawnShell = async (command: string, option: {
     //     console.log(`Fork process spawn`, message);
     // })
     spawnProcess.on('close', (code) => {
-        // console.log('spawnShell.close', code)
-        if (code === 0 || code === null) {
-            option.success?.(code)
+        console.log('spawnShell.close', code)
+        if (isWin) {
+            if (code === 1) {
+                option.success?.(code)
+            } else {
+                option.error?.(`command ${command} failed with code ${code}`, code)
+            }
         } else {
-            option.error?.(`command ${command} failed with code ${code}`, code)
+            if (code === 0 || code === null) {
+                option.success?.(code)
+            } else {
+                option.error?.(`command ${command} failed with code ${code}`, code)
+            }
         }
         end = true
     })
