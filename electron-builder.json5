@@ -2,7 +2,7 @@
 {
     "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
     "appId": "LinkAndroid",
-    "asar": false,
+    "asar": true,
     "npmRebuild": true,
     "productName": "LinkAndroid",
     "directories": {
@@ -82,16 +82,15 @@
     },
     "mac": {
         "icon": "logo.icns",
-        //        "target": [
-        //            {
-        //                "target": "dmg",
-        //                "arch": [
-        //                    "universal",
-        //                    "x64",
-        //                    "arm64"
-        //                ]
-        //            }
-        //        ],
+        "target": [
+            {
+                "target": "dmg",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            }
+        ],
         "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
         "extraResources": [
             {
