@@ -49,8 +49,6 @@ const ready = () => {
     ])
 
     tray.setContextMenu(contextMenu)
-
-    console.log('Tray is ready')
 }
 
 const show = () => {

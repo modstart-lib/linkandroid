@@ -16,7 +16,6 @@ const show = (d: DeviceRecord) => {
     window.$mapi.file.openFile().then((path: string) => {
         if (path) {
             Dialog.loadingOn(t('正在安装'))
-            console.log('install', device.value.id, path)
             window.$mapi.adb.install(device.value.id, path)
                 .then(() => {
                     Dialog.loadingOff()

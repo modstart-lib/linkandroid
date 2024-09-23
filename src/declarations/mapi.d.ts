@@ -95,6 +95,9 @@ declare interface Window {
             listApps: (serial: string) => Promise<any[]>,
             connect: (host: string, port: number) => Promise<void>,
             disconnect: (host: string, port: number) => Promise<void>,
+            getDeviceIP: (serial: string) => Promise<string>,
+            tcpip: (serial: string, port: number) => Promise<number>,
+            info: (serial: string) => Promise<any>,
         },
         scrcpy: {
             getBinPath: () => Promise<string>,

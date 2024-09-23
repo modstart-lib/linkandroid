@@ -17,6 +17,9 @@ import DeviceActionRecord from "../components/Device/DeviceActionRecord.vue";
 import DeviceActionScreenshot from "../components/Device/DeviceActionScreenshot.vue";
 import {AppConfig} from "../config";
 import DeviceMirrorDialog from "../components/Device/DeviceMirrorDialog.vue";
+import DeviceActionWifiOn from "../components/Device/DeviceActionWifiOn.vue";
+import DeviceActionMirrorCamera from "../components/Device/DeviceActionMirrorCamera.vue";
+import DeviceActionMirrorOTG from "../components/Device/DeviceActionMirrorOTG.vue";
 
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -24,6 +27,7 @@ const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
 const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
 const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
 const mirrorDialog = ref<InstanceType<typeof DeviceMirrorDialog> | null>(null);
+const mirrorOTGDialog = ref<InstanceType<typeof DeviceMirrorOTGDialog> | null>(null);
 
 const deviceStore = useDeviceStore()
 
@@ -191,6 +195,9 @@ const doHelp = () => {
                                         </template>
                                     </a-button>
                                     <template #content>
+                                        <DeviceActionWifiOn :device="r"/>
+                                        <DeviceActionMirrorCamera :device="r"/>
+                                        <DeviceActionMirrorOTG :device="r"/>
                                         <a-doption @click="adbShellDialog?.show(r)">{{ $t('命令行') }}</a-doption>
                                         <a-doption @click="infoDialog?.show(r)">{{ $t('设备详情') }}</a-doption>
                                         <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">

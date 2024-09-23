@@ -261,6 +261,13 @@ const listApps = async (id: string) => {
     return records
 }
 
+const info = async (id: string) => {
+    const result = {}
+    // get android version : adb shell getprop ro.build.version.release
+    result['version'] = parseInt(await shell(id, 'getprop ro.build.version.release'))
+    return result
+}
+
 export default {
     getBinPath,
     setBinPath,
@@ -284,6 +291,7 @@ export default {
     filePull,
     fileDelete,
     listApps,
+    info
 }
 
 export const ADB = {
