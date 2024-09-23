@@ -2,12 +2,12 @@
 import {nextTick, ref, watch} from "vue";
 import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 import {Terminal} from '@xterm/xterm';
+import '@xterm/xterm/css/xterm.css';
 import {FitAddon} from '@xterm/addon-fit';
 import {t} from "../../lang";
 import {Dialog} from "../../lib/dialog";
 
 const visible = ref(false)
-const loading = ref(false)
 const device = ref<DeviceRecord | null>(null)
 const terminal = ref<Element | null>(null)
 
