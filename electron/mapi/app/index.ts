@@ -1,5 +1,6 @@
 import util from "node:util";
 import {exec as _exec, spawn} from "node:child_process";
+import {isWin} from "../../util/path";
 
 const exec = util.promisify(_exec)
 
@@ -71,8 +72,13 @@ const spawnShell = async (command: string, option: {
     return {
         stop: () => {
             console.log('spawnShell.stop', spawnProcess)
-            spawnProcess.kill()
-            // spawnProcess.kill('SIGINT')
+            if (isWin) {
+                _exec(`taskkill /pid ${spawnProcess.pid} /T /F`, (err, stdout, stderr) => {
+                    console.log('taskkill', err, stdout, stderr)
+                })
+            } else {
+                spawnProcess.kill('SIGINT')
+            }
         },
         send: (data) => {
             spawnProcess.stdin.write(data)

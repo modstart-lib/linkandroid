@@ -4,6 +4,12 @@ export const isPackaged = ['true'].includes(process.env.IS_PACKAGED)
 
 export const isDev = !isPackaged
 
+export const isWin = process.platform === 'win32'
+
+export const isMac = process.platform === 'darwin'
+
+export const isLinux = process.platform === 'linux'
+
 export const buildResolve = (value: string) => {
     return resolve(`electron/resources/build/${value}`)
 }
