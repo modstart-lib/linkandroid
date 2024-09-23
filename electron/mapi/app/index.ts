@@ -82,7 +82,7 @@ const spawnShell = async (command: string, option: {
             // console.log('spawnShell.stop', spawnProcess)
             if (isWin) {
                 _exec(`taskkill /pid ${spawnProcess.pid} /T /F`, (err, stdout, stderr) => {
-                    console.log('taskkill', err, stdout, stderr)
+                    // console.log('taskkill', err, stdout, stderr)
                 })
             } else {
                 spawnProcess.kill('SIGINT')
