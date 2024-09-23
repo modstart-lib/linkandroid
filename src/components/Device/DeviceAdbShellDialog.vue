@@ -3,7 +3,6 @@ import {nextTick, ref, watch} from "vue";
 import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 import {Terminal} from '@xterm/xterm';
 import {FitAddon} from '@xterm/addon-fit';
-import 'xterm/css/xterm.css'
 import {t} from "../../lang";
 import {Dialog} from "../../lib/dialog";
 
