@@ -56,7 +56,7 @@ const spawnShell = async (command: string, option: {
     //     console.log(`Fork process spawn`, message);
     // })
     spawnProcess.on('close', (code) => {
-        console.log('spawnShell.close', code)
+        // console.log('spawnShell.close', code)
         if (isWin) {
             if (code === 1) {
                 option.success?.(code)
@@ -73,13 +73,13 @@ const spawnShell = async (command: string, option: {
         end = true
     })
     spawnProcess.on('error', (err) => {
-        console.log('spawnShell.error', err)
+        // console.log('spawnShell.error', err)
         option.error?.(err)
         end = true
     })
     return {
         stop: () => {
-            console.log('spawnShell.stop', spawnProcess)
+            // console.log('spawnShell.stop', spawnProcess)
             if (isWin) {
                 _exec(`taskkill /pid ${spawnProcess.pid} /T /F`, (err, stdout, stderr) => {
                     console.log('taskkill', err, stdout, stderr)

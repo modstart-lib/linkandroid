@@ -134,17 +134,17 @@ const screenrecord = async (deviceId: string, option?: {
         `-s "${deviceId}" shell screenrecord "${controller.devicePath}"`,
         {
             stdout: (data) => {
-                console.log('screenrecord.stdout', data)
+                // console.log('screenrecord.stdout', data)
             },
             stderr: (data) => {
-                console.log('screenrecord.stderr', data)
+                // console.log('screenrecord.stderr', data)
             },
             success: (code) => {
-                console.log('screenrecord.success', code)
+                // console.log('screenrecord.success', code)
                 option.progress?.('success', {})
             },
             error: (err) => {
-                console.log('screenrecord.error', err)
+                // console.log('screenrecord.error', err)
                 option.progress?.('error', {
                     err,
                 })

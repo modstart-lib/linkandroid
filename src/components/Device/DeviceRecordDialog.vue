@@ -69,7 +69,7 @@ const doRecordStart = async () => {
     recordData.value.localTempMp4Path = null
     recordData.value.resultPath.mp4 = null
     recordData.value.resultPath.gif = null
-    console.log('doRecordStart.start')
+    // console.log('doRecordStart.start')
     recordController = await window.$mapi.adb.screenrecord(device.value.id, {
         progress: (type: string, data: any) => {
             if (type === 'success') {
@@ -78,11 +78,11 @@ const doRecordStart = async () => {
         },
     })
     recordData.value.devicePath = recordController.devicePath
-    console.log('doRecordStart.end', recordController)
+    // console.log('doRecordStart.end', recordController)
 }
 
 const doRecordStop = async () => {
-    console.log('doRecordStart.stop', recordController)
+    // console.log('doRecordStart.stop', recordController)
     if (recordController) {
         recordController.stop()
     }
