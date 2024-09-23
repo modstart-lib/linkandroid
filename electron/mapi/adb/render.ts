@@ -140,9 +140,11 @@ const screenrecord = async (deviceId: string, option?: {
                 console.log('screenrecord.stderr', data)
             },
             success: (code) => {
+                console.log('screenrecord.success', code)
                 option.progress?.('success', {})
             },
             error: (err) => {
+                console.log('screenrecord.error', err)
                 option.progress?.('error', {
                     err,
                 })

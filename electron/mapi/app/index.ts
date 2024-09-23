@@ -70,6 +70,7 @@ const spawnShell = async (command: string, option: {
     })
     return {
         stop: () => {
+            console.log('spawnShell.stop', spawnProcess)
             spawnProcess.kill('SIGINT')
         },
         send: (data) => {
