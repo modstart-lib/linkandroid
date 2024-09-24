@@ -29,5 +29,4 @@ package-lock.json
 pnpm-lock.yaml
 yarn.lock
 
-/third-party/
 src/lang/source-use.json
