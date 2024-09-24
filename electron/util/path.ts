@@ -10,6 +10,10 @@ export const isMac = process.platform === 'darwin'
 
 export const isLinux = process.platform === 'linux'
 
+export const isMain = process.type === 'browser'
+
+export const isRender = process.type === 'renderer'
+
 export const buildResolve = (value: string) => {
     return resolve(`electron/resources/build/${value}`)
 }

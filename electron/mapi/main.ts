@@ -1,5 +1,5 @@
 import config from "./config/main";
-import log from "./log";
+import log from "./log/main";
 import app from "./app/main";
 import storage from "./storage";
 import file from "./file/main";

@@ -1,6 +1,7 @@
 import util from "node:util";
 import {exec as _exec, spawn} from "node:child_process";
 import {isWin} from "../../util/path";
+import {Log} from "../log/index";
 
 const exec = util.promisify(_exec)
 
@@ -25,7 +26,7 @@ const spawnShell = async (command: string, option: {
     option = option || {} as any
     let args = command.split(' ')
     const commandEntry = args.shift() as string
-    // console.log('spawnShell', commandEntry, args, process.env)
+    Log.info('App.spawnShell', {commandEntry, args})
     const spawnProcess = spawn(commandEntry, args, {
         env: {...process.env},
         shell: true,
@@ -38,25 +39,25 @@ const spawnShell = async (command: string, option: {
     // spawnProcess.stdout.setEncoding('utf8');
     spawnProcess.stdout?.on('data', (data) => {
         const stringData = data.toString()
-        // console.log('spawnShell.stdout', stringData)
+        Log.info('App.spawnShell.stdout', stringData)
         stdoutList.push(stringData)
         option.stdout?.(stringData, spawnProcess)
     })
     // spawnProcess.stderr.setEncoding('utf8');
     spawnProcess.stderr?.on('data', (data) => {
         const stringData = data.toString()
-        // console.log('spawnShell.stderr', stringData)
+        Log.info('App.spawnShell.stderr', stringData)
         stderrList.push(stringData)
         option.stderr?.(stringData, spawnProcess)
     })
-    // spawnProcess.on('message', (message) => {
-    //     console.log(`Fork process say`, message);
-    // });
-    // spawnProcess.on('spawn', (message) => {
-    //     console.log(`Fork process spawn`, message);
-    // })
+    spawnProcess.on('message', (message) => {
+        Log.info('App.spawnShell.message', message)
+    });
+    spawnProcess.on('spawn', (message) => {
+        Log.info('App.spawnShell.spawn', message)
+    })
     spawnProcess.on('close', (code) => {
-        // console.log('spawnShell.close', code)
+        Log.info('App.spawnShell.close', JSON.stringify(code))
         if (isWin) {
             if (code === 1) {
                 option.success?.(code)
@@ -73,16 +74,16 @@ const spawnShell = async (command: string, option: {
         end = true
     })
     spawnProcess.on('error', (err) => {
-        // console.log('spawnShell.error', err)
+        Log.info('App.spawnShell.error', err)
         option.error?.(err)
         end = true
     })
     return {
         stop: () => {
-            // console.log('spawnShell.stop', spawnProcess)
+            Log.info('App.spawnShell.stop')
             if (isWin) {
                 _exec(`taskkill /pid ${spawnProcess.pid} /T /F`, (err, stdout, stderr) => {
-                    // console.log('taskkill', err, stdout, stderr)
+                    console.log('taskkill', err, stdout, stderr)
                 })
             } else {
                 spawnProcess.kill('SIGINT')
@@ -97,6 +98,7 @@ const spawnShell = async (command: string, option: {
             }
             return new Promise((resolve, reject) => {
                 spawnProcess.on('close', (code) => {
+                    Log.info('App.spawnShell.close', JSON.stringify(code))
                     if (code === 0 || code === null) {
                         resolve(stdoutList.join('') + stderrList.join(''))
                     } else {
@@ -104,6 +106,7 @@ const spawnShell = async (command: string, option: {
                     }
                 })
                 spawnProcess.on('error', (err) => {
+                    Log.info('App.spawnShell.error', err)
                     reject(err)
                 })
             })

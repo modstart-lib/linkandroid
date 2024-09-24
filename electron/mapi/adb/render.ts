@@ -131,7 +131,7 @@ const screenrecord = async (deviceId: string, option?: {
     }
     controller.devicePath = '/sdcard/LinkAndroid_screenshot_' + TimeUtil.timestampInMs() + '.mp4'
     const shellControl = await adbSpawnShell(
-        `-s "${deviceId}" shell screenrecord "${controller.devicePath}"`,
+        `-s "${deviceId}" shell screenrecord1 "${controller.devicePath}"`,
         {
             stdout: (data) => {
                 // console.log('screenrecord.stdout', data)

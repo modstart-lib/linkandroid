@@ -1,8 +1,8 @@
-import fs from "node:fs";
+import electron from "electron";
 import date from "date-and-time";
 import path from "node:path";
 import {AppEnv} from "../env";
-import {ipcMain} from "electron";
+import fs from "node:fs";
 
 let fileName = null
 let fileStream = null
@@ -48,19 +48,30 @@ const error = (label: string, data: any = null) => {
     return log('ERROR', label, data)
 }
 
-ipcMain.handle('log:info', (event, label: string, data: any) => {
-    info(label, data)
-})
-ipcMain.handle('log:error', (event, label: string, data: any) => {
-    error(label, data)
-})
+const infoRenderOrMain = (label: string, data: any = null) => {
+    if (electron.ipcRenderer) {
+        return electron.ipcRenderer.invoke('log:info', label, data)
+    } else {
+        return info(label, data)
+    }
+}
+const errorRenderOrMain = (label: string, data: any = null) => {
+    if (electron.ipcRenderer) {
+        return electron.ipcRenderer.invoke('log:error', label, data)
+    } else {
+        return error(label, data)
+    }
+}
+
 
 export default {
     info,
     error,
+    infoRenderOrMain,
+    errorRenderOrMain,
 }
 
 export const Log = {
-    info,
-    error
+    info: infoRenderOrMain,
+    error: errorRenderOrMain,
 }

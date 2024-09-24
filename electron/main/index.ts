@@ -11,9 +11,7 @@ import {MAPI} from '../mapi/main';
 
 import {WindowConstant} from "../lib/constant";
 import {AppConfig} from "../../src/config";
-
-import {buildResolve} from "../util/path";
-import Log from "../mapi/log";
+import Log from "../mapi/log/main";
 import {ConfigMenu} from "../config/menu";
 import {ConfigLang} from "../config/lang";
 import {ConfigContextMenu} from "../config/contextMenu";
@@ -21,7 +19,6 @@ import {MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL} from "../util/path-main";
 import {Page} from "../page";
 import {ConfigTray} from "../config/tray";
 import {icnsLogoPath, icoLogoPath, logoPath} from "../config/icon";
-
 
 // The built directory structure
 //
