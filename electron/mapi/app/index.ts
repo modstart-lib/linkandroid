@@ -56,7 +56,7 @@ const spawnShell = async (command: string, option: {
         Log.info('App.spawnShell.exit', JSON.stringify(code))
         exitCode = code
         if (isWin) {
-            if (0 === code) {
+            if (0 === code || 1 === code) {
                 isSuccess = true
             }
         } else {
