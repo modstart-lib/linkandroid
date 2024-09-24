@@ -35,7 +35,10 @@ const log = (level: 'INFO' | 'ERROR', label: string, data: any = null) => {
     line.push(level)
     line.push(label)
     if (data) {
-        line.push(JSON.stringify(data))
+        if (!['number', 'string'].includes(typeof data)) {
+            data = JSON.stringify(data)
+        }
+        line.push(data)
     }
     console.log(line.join(' - '))
     fileStream.write(line.join(' - ') + "\n")
