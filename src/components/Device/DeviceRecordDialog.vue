@@ -74,6 +74,8 @@ const doRecordStart = async () => {
         progress: (type: string, data: any) => {
             if (type === 'success') {
                 doRecordProcess().then()
+            } else if (type === 'error') {
+                recordData.value.status = 'fail'
             }
         },
     })

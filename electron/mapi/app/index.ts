@@ -34,6 +34,8 @@ const spawnShell = async (command: string, option: {
     } as any)
     // console.log('spawnProcess.start', spawnProcess)
     let end = false
+    let isSuccess = false
+    let exitCode = -1
     const stdoutList: string[] = []
     const stderrList: string[] = []
     // spawnProcess.stdout.setEncoding('utf8');
@@ -56,20 +58,28 @@ const spawnShell = async (command: string, option: {
     spawnProcess.on('spawn', (message) => {
         Log.info('App.spawnShell.spawn', message)
     })
+    spawnProcess.on('exit', (code) => {
+        Log.info('App.spawnShell.exit', JSON.stringify(code))
+    })
+    spawnProcess.on('disconnect', () => {
+        Log.info('App.spawnShell.disconnect')
+    })
     spawnProcess.on('close', (code) => {
-        Log.info('App.spawnShell.close', JSON.stringify(code))
+        Log.info('App.spawnShell.code', code)
+        exitCode = code
         if (isWin) {
-            if (code === 1) {
-                option.success?.(code)
-            } else {
-                option.error?.(`command ${command} failed with code ${code}`, code)
+            if (1 === code) {
+                isSuccess = true
             }
         } else {
-            if (code === 0 || code === null) {
-                option.success?.(code)
-            } else {
-                option.error?.(`command ${command} failed with code ${code}`, code)
+            if (0 === code || null === code) {
+                isSuccess = true
             }
+        }
+        if (isSuccess) {
+            option.success?.(null)
+        } else {
+            option.error?.(`command ${command} failed with code ${code}`)
         }
         end = true
     })
@@ -83,13 +93,14 @@ const spawnShell = async (command: string, option: {
             Log.info('App.spawnShell.stop')
             if (isWin) {
                 _exec(`taskkill /pid ${spawnProcess.pid} /T /F`, (err, stdout, stderr) => {
-                    console.log('taskkill', err, stdout, stderr)
+                    Log.info('App.spawnShell.stop.taskkill', JSON.parse(JSON.stringify({err, stdout, stderr})))
                 })
             } else {
                 spawnProcess.kill('SIGINT')
             }
         },
         send: (data) => {
+            Log.info('App.spawnShell.send', data)
             spawnProcess.stdin.write(data)
         },
         result: async (): Promise<string> => {
@@ -98,16 +109,20 @@ const spawnShell = async (command: string, option: {
             }
             return new Promise((resolve, reject) => {
                 spawnProcess.on('close', (code) => {
-                    Log.info('App.spawnShell.close', JSON.stringify(code))
-                    if (code === 0 || code === null) {
-                        resolve(stdoutList.join('') + stderrList.join(''))
-                    } else {
-                        reject(`command ${command} failed with code ${code}`)
+                    const watchEnd = () => {
+                        setTimeout(() => {
+                            if (!end) {
+                                watchEnd()
+                                return
+                            }
+                            if (isSuccess) {
+                                resolve(stdoutList.join('') + stderrList.join(''))
+                            } else {
+                                reject(`command ${command} failed with code ${exitCode}`)
+                            }
+                        }, 10)
                     }
-                })
-                spawnProcess.on('error', (err) => {
-                    Log.info('App.spawnShell.error', err)
-                    reject(err)
+                    watchEnd()
                 })
             })
         }
