@@ -52,27 +52,15 @@ const spawnShell = async (command: string, option: {
         stderrList.push(stringData)
         option.stderr?.(stringData, spawnProcess)
     })
-    spawnProcess.on('message', (message) => {
-        Log.info('App.spawnShell.message', message)
-    });
-    spawnProcess.on('spawn', (message) => {
-        Log.info('App.spawnShell.spawn', message)
-    })
     spawnProcess.on('exit', (code) => {
         Log.info('App.spawnShell.exit', JSON.stringify(code))
-    })
-    spawnProcess.on('disconnect', () => {
-        Log.info('App.spawnShell.disconnect')
-    })
-    spawnProcess.on('close', (code) => {
-        Log.info('App.spawnShell.code', code)
         exitCode = code
         if (isWin) {
-            if (1 === code) {
+            if (0 === code) {
                 isSuccess = true
             }
         } else {
-            if (0 === code || null === code) {
+            if (null === code || 0 === code) {
                 isSuccess = true
             }
         }
@@ -108,7 +96,7 @@ const spawnShell = async (command: string, option: {
                 return stdoutList.join('') + stderrList.join('')
             }
             return new Promise((resolve, reject) => {
-                spawnProcess.on('close', (code) => {
+                spawnProcess.on('exit', (code) => {
                     const watchEnd = () => {
                         setTimeout(() => {
                             if (!end) {
