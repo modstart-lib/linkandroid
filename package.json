@@ -2,7 +2,7 @@
     "name": "linkandroid",
     "version": "0.0.7",
     "main": "dist-electron/main/index.js",
-    "description": "Link Android to computer easily!",
+    "description": "Link android to PC easily",
     "author": "ModStartLib",
     "license": "GPL-3.0",
     "private": true,

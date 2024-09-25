@@ -6,9 +6,20 @@
 
 【[中文文档](./README-CN.md)】 【[English](./README.md)】
 
-`LinkAndroid` is an `Android` phone connection manager that can easily connect `Android` and computers, connect multiple phones, one-click screen mirroring, and phone operation.
+`LinkAndroid` is an all-in-one mobile phone connection assistant that can easily connect `Android` and computers. After connecting the phone, you can screen mirroring, GIF/MP4 screen recording, screenshots, file management, and phone operation.
 
 ## Features
+
+- multiple phone connect supported
+- screen mirroring, based on scrcpy, support phone operation
+- screenshot, image beautifier will be opened automatically after screenshot
+- GIF/MP4 screen recording
+- application management
+- file management, support upload/download/delete
+- shell command, support adb, screen command and phone shell command
+- 1i8n support, English/Simplified Chinese supported 
+
+## Previews
 
 ### Screen mirroring
 
@@ -32,30 +43,30 @@
 
 ## We uses
 
-- `Electron`
-- `Vue3`
-- `scrcpy`
+- `electron`
+- `vue3`
 - `typescript`
-
-## Features
-
-- Multi-phone control
-- One-click screen mirroring
-- Phone operation
-- Internationalization, supports Simplified Chinese and English
 
 ## Development
 
-```
+> only node 20 tested
+
+```shell
+# install dependencies
 npm install
+# run in dev mode
 npm run dev
+# build
+npm run build
 ```
+
+## Thanks
+
+- [image-beautifier](https://github.com/CH563/image-beautifier)
+- [scrcpy](https://github.com/Genymobile/scrcpy)
+- [adb](https://developer.android.com/studio/command-line/adb)
+- [ffmpeg](https://ffmpeg.org/)
 
 ## License
 
 GPL-3.0
-
-## Thanks
-
-- [scrcpy](https://github.com/Genymobile/scrcpy)
-- [image-beautifier](https://github.com/CH563/image-beautifier)
