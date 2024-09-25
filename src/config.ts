@@ -2,7 +2,7 @@ import packageJson from '../package.json';
 
 export const AppConfig = {
     name: 'LinkAndroid',
-    slogan: 'Link Android to PC Easily !',
+    slogan: 'Your Android PC Assistant',
     version: packageJson.version,
     website: 'https://linkandroid.com',
     websiteGithub: 'https://github.com/modstart-lib/linkandroid',

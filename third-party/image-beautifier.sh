@@ -13,5 +13,6 @@ echo "THIRD_PARTY_ROOT: ${THIRD_PARTY_ROOT}"
 echo "Build image beautifier"
 cd "${THIRD_PARTY_ROOT}/image-beautifier"
 npm run build
+cp -av others dist/
 rm -rfv "${THIRD_PARTY_PUBLIC_ROOT}/image-beautifier"
 mv "${THIRD_PARTY_ROOT}/image-beautifier/dist" "${THIRD_PARTY_PUBLIC_ROOT}/image-beautifier"
