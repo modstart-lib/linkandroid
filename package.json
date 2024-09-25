@@ -31,7 +31,6 @@
     },
     "devDependencies": {
         "@arco-design/web-vue": "^2.55.3",
-        "@blockly/continuous-toolbox": "^6.0.3",
         "@types/lodash-es": "^4.17.12",
         "@types/splitpanes": "^2.2.6",
         "@vitejs/plugin-vue": "^5.0.4",

@@ -6,7 +6,29 @@
 
 `LinkAndroid` is an `Android` phone connection manager that can easily connect `Android` and computers, connect multiple phones, one-click screen mirroring, and phone operation.
 
-![](./screenshots/home.png)
+![](./screenshots/en/home.png)
+
+## Features
+
+### Screen mirroring
+
+![](./screenshots/cn/mirror.png)
+
+### Screen recording
+
+![](./screenshots/cn/screenrecord.png)
+
+### Screenshot
+
+![](./screenshots/cn/screenshot.png)
+
+### Command line
+
+![](./screenshots/cn/screenshot.png)
+
+### App management
+
+![](./screenshots/cn/appmanage.png)
 
 ## We uses
 
