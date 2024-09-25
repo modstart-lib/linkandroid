@@ -1,12 +1,12 @@
 # LinkAndroid
 
+![](./screenshots/en/home.png)
+
 ## Guide
 
 【[中文文档](./README-CN.md)】 【[English](./README.md)】
 
 `LinkAndroid` is an `Android` phone connection manager that can easily connect `Android` and computers, connect multiple phones, one-click screen mirroring, and phone operation.
-
-![](./screenshots/en/home.png)
 
 ## Features
 
