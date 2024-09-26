@@ -72,6 +72,18 @@ export const VersionUtil = {
             }
         }
         return 0
+    },
+    gt(v1: string, v2: string) {
+        return VersionUtil.compare(v1, v2) > 0
+    },
+    ge(v1: string, v2: string) {
+        return VersionUtil.compare(v1, v2) >= 0
+    },
+    lt(v1: string, v2: string) {
+        return VersionUtil.compare(v1, v2) < 0
+    },
+    le: (v1: string, v2: string) => {
+        return VersionUtil.compare(v1, v2) <= 0
     }
 }
 

@@ -4,6 +4,7 @@ import {Dialog} from "../../lib/dialog";
 import {AppConfig} from "../../config";
 import {t} from "../../lang";
 import {defaultResponseProcessor} from "../../lib/api";
+import {VersionUtil} from "../../lib/util";
 
 const updaterCheckLoading = ref(false)
 
@@ -16,7 +17,7 @@ const doVersionCheck = () => {
                 Dialog.tipError(t('检测更新失败'))
                 return
             }
-            if (res.data.version === AppConfig.version) {
+            if (VersionUtil.le(res.data.version, AppConfig.version)) {
                 Dialog.tipSuccess(t('已经是最新版本'))
                 return
             }
