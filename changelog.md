@@ -1,6 +1,4 @@
-
-
-
 ## v0.0.7
 
-- feature: add image compress to image beautifier 
+- 新增: 增加设备置顶功能，便于排序
+- 新增：截图增加图片美化功能

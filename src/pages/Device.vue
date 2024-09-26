@@ -6,7 +6,7 @@ import {Dialog} from "../lib/dialog";
 import {mapError} from "../lib/linkandroid";
 import InputInlineEditor from "../components/common/InputInlineEditor.vue";
 import DeviceInfoDialog from "../components/Device/DeviceInfoDialog.vue";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {t} from "../lang";
 import DeviceFileManagerDialog from "../components/Device/DeviceFileManagerDialog.vue";
 import DeviceConnectWifiDialog from "../components/Device/DeviceConnectWifiDialog.vue";
@@ -27,10 +27,13 @@ const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
 const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
 const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
 const mirrorDialog = ref<InstanceType<typeof DeviceMirrorDialog> | null>(null);
-const mirrorOTGDialog = ref<InstanceType<typeof DeviceMirrorOTGDialog> | null>(null);
 
 const deviceStore = useDeviceStore()
 
+const deviceRecords = computed(() => {
+    const records = deviceStore.records
+    return records
+})
 
 const doRefresh = async () => {
     Dialog.loadingOn(t('正在刷新设备'))
@@ -107,7 +110,7 @@ const doHelp = () => {
             </div>
         </div>
         <div class="-mx-2">
-            <div v-if="!deviceStore.records.length" class="py-20">
+            <div v-if="!deviceRecords.length" class="py-20">
                 <div class="text-center">
                     <img class="h-40 m-auto opacity-50" src="./../assets/image/device-empty.svg"/>
                 </div>
@@ -131,7 +134,7 @@ const doHelp = () => {
                 </div>
             </div>
             <div v-else class="flex flex-wrap">
-                <div v-for="(r,rIndex) in deviceStore.records" :key="rIndex"
+                <div v-for="(r,rIndex) in deviceRecords" :key="rIndex"
                      class="w-full lg:w-1/2 2xl:w-1/3 p-3">
                     <div
                         class="hover:shadow-lg bg-white shadow border border-solid h-64 border-gray-100 rounded-lg flex flex-col">
@@ -188,7 +191,7 @@ const doHelp = () => {
                                         </template>
                                     </a-button>
                                 </a-tooltip>
-                                <a-dropdown trigger="hover">
+                                <a-dropdown trigger="hover" :popup-max-height="false">
                                     <a-button class="ml-1">
                                         <template #icon>
                                             <icon-settings class="text-gray-400"/>
@@ -198,10 +201,17 @@ const doHelp = () => {
                                         <DeviceActionWifiOn :device="r"/>
                                         <DeviceActionMirrorCamera :device="r"/>
                                         <DeviceActionMirrorOTG :device="r"/>
-                                        <a-doption @click="adbShellDialog?.show(r)">{{ $t('命令行') }}</a-doption>
-                                        <a-doption @click="infoDialog?.show(r)">{{ $t('设备详情') }}</a-doption>
+                                        <a-doption @click="adbShellDialog?.show(r)">
+                                            {{ $t('命令行') }}
+                                        </a-doption>
+                                        <a-doption @click="infoDialog?.show(r)">
+                                            {{ $t('设备详情') }}
+                                        </a-doption>
                                         <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">
                                             {{ $t('删除设备') }}
+                                        </a-doption>
+                                        <a-doption v-if="rIndex>0" @click="deviceStore.doTop(rIndex)">
+                                            {{ $t('置顶') }}
                                         </a-doption>
                                     </template>
                                 </a-dropdown>

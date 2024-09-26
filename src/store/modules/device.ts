@@ -103,6 +103,12 @@ export const deviceStore = defineStore("device", {
             })
             await window.$mapi.storage.set("device", "records", savedRecords)
         },
+        async doTop(index: number) {
+            const record = this.records[index]
+            this.records.splice(index, 1)
+            this.records.unshift(record)
+            await this.sync()
+        }
     }
 })
 
