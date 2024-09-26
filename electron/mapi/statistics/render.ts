@@ -1,4 +1,5 @@
 import {AppConfig} from "../../../src/config";
+import {platformArch, platformName, platformUUID, platformVersion} from "../../util/path";
 
 let tickDataList = []
 
@@ -24,12 +25,19 @@ const tickSendAsync = () => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                data: tickDataList
+                data: tickDataList,
+                version: AppConfig.version,
+                uuid: platformUUID(),
+                platform: {
+                    name: platformName(),
+                    version: platformVersion(),
+                    arch: platformArch(),
+                }
             })
         }).then(res => {
             // console.log('tickSend', tickDataList, res)
         }).catch(err => {
-            
+
         })
         tickDataList = []
     }, 2000)
@@ -39,8 +47,6 @@ const tick = (name: string, data: any) => {
     tickDataList.push({
         name,
         data,
-        version: AppConfig.version,
-        platform: process.platform
     })
     tickSendAsync()
 }

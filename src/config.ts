@@ -8,8 +8,8 @@ export const AppConfig = {
     websiteGithub: 'https://github.com/modstart-lib/linkandroid',
     websiteGitee: 'https://gitee.com/modstart-lib/linkandroid',
     updaterUrl: 'https://linkandroid.com/updater',
-    downloadUrl: 'https://linkandroid.com/download',
+    downloadUrl: 'https://linkandroid.com',
     statisticsUrl: 'https://linkandroid.com/collect',
-    helpUrl: 'https://linkandroid.com/help',
+    helpUrl: 'https://linkandroid.com',
 }
 

@@ -15,7 +15,7 @@
     "000abf5b": "Feedback",
     "000b1ac9": "Copy",
     "000b2b1e": "Statement",
-    "000b96b9": "Official Website",
+    "000b96b9": "Website",
     "000b9e5c": "Install",
     "000bba3b": "Help",
     "000c3f65": "Screenshot",
@@ -56,6 +56,7 @@
     "25a0c8e1": "Download Successful",
     "26267a87": "Stop Recording",
     "263ee622": "About the Software",
+    "26aa0dba": "Current Version is the latest version",
     "272e273c": "Show All",
     "2795b9d3": "Delete Successful",
     "279acc4d": "Delete Device",
@@ -108,5 +109,6 @@
     "6f369807": "Screenshot Editor",
     "7553a957": "Connect via Wifi",
     "7b11c571": "No devices available, connect to the computer via USB to get started~",
-    "7cb31927": "Confirm Uninstall Application {name}?"
+    "7cb31927": "Confirm Uninstall Application {name}?",
+    "7d2a202f": "New version v{version} found, download now?"
 }

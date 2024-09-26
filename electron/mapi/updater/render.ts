@@ -1,4 +1,5 @@
 import {AppConfig} from "../../../src/config";
+import {platformArch, platformName, platformUUID, platformVersion} from "../../util/path";
 
 const checkForUpdate = async () => {
     try {
@@ -7,7 +8,15 @@ const checkForUpdate = async () => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: '{}'
+            body: JSON.stringify({
+                version: AppConfig.version,
+                uuid: platformUUID(),
+                platform: {
+                    name: platformName(),
+                    version: platformVersion(),
+                    arch: platformArch(),
+                }
+            })
         })
         return await res.json()
     } catch (e) {

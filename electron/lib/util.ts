@@ -82,7 +82,6 @@ export const FileUtil = {
     }
 }
 
-
 export const JsonUtil = {
     stringifyOrdered(obj: any) {
         return JSON.stringify(obj, Object.keys(obj).sort(), 4)
