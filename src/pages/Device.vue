@@ -16,17 +16,18 @@ import DeviceActionApp from "../components/Device/DeviceActionApp.vue";
 import DeviceActionRecord from "../components/Device/DeviceActionRecord.vue";
 import DeviceActionScreenshot from "../components/Device/DeviceActionScreenshot.vue";
 import {AppConfig} from "../config";
-import DeviceMirrorDialog from "../components/Device/DeviceMirrorDialog.vue";
 import DeviceActionWifiOn from "../components/Device/DeviceActionWifiOn.vue";
 import DeviceActionMirrorCamera from "../components/Device/DeviceActionMirrorCamera.vue";
 import DeviceActionMirrorOTG from "../components/Device/DeviceActionMirrorOTG.vue";
+import DeviceActionMirror from "../components/Device/DeviceActionMirror.vue";
 
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
 const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
 const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
 const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
-const mirrorDialog = ref<InstanceType<typeof DeviceMirrorDialog> | null>(null);
+
+const actionMirrors = ref<Record<string, InstanceType<typeof DeviceActionMirror> | null>>({})
 
 const deviceStore = useDeviceStore()
 
@@ -160,7 +161,7 @@ const doHelp = () => {
                         <div class="h-52 relative">
                             <div class="absolute bottom-0 left-0 p-4">
                                 <a-tooltip :content="$t('投屏到电脑')">
-                                    <div @click="mirrorDialog?.show(r)"
+                                    <div @click="actionMirrors[rIndex]?.start()"
                                          class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl bg-black text-center overflow-hidden">
                                         <div v-if="r.screenshot">
                                             <img :src="r.screenshot" class="max-h-44 max-w-44 rounded-sm"/>
@@ -174,13 +175,7 @@ const doHelp = () => {
                                 </a-tooltip>
                             </div>
                             <div class="absolute bottom-0 right-0 p-4">
-                                <a-tooltip :content="$t('投屏到电脑')">
-                                    <a-button class="ml-1" @click="mirrorDialog?.show(r)">
-                                        <template #icon>
-                                            <i class="iconfont icon-mirror text-gray-400"></i>
-                                        </template>
-                                    </a-button>
-                                </a-tooltip>
+                                <DeviceActionMirror ref="actionMirrors" :device="r"/>
                                 <DeviceActionApp :device="r"/>
                                 <DeviceActionScreenshot :device="r"/>
                                 <DeviceActionRecord :device="r"/>
@@ -227,7 +222,6 @@ const doHelp = () => {
     <DeviceFileManagerDialog ref="fileManagerDialog"/>
     <DeviceShellDialog ref="shellDialog"/>
     <DeviceAdbShellDialog ref="adbShellDialog"/>
-    <DeviceMirrorDialog ref="mirrorDialog"/>
 </template>
 
 <style scoped>

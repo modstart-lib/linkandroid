@@ -14,9 +14,8 @@ process.env.DESKTOP_PATH = app.getPath('desktop')
 
 process.env.CWD = process.cwd()
 
-export const isPackaged = ['true'].includes(process.env.IS_PACKAGED)
+export const isDummy = false
 
-export const isDev = !isPackaged
 
-export const isMac = process.platform === 'darwin'
+
 

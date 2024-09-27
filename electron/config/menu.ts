@@ -1,5 +1,5 @@
 import {app, Menu} from "electron";
-import {isDev, isMac} from "../util/process";
+import {isDev, isMac} from "../util/path";
 import {t} from "./lang";
 import {PageAbout} from "../page/about";
 

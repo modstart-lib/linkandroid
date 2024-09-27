@@ -4,7 +4,7 @@ import path from 'node:path'
 import os from 'node:os'
 
 /** process.js 必须位于非依赖项的顶部 */
-import {isPackaged} from "../util/process";
+import {isDummy} from "../util/process";
 
 import {AppEnv, AppRuntime} from "../mapi/env";
 import {MAPI} from '../mapi/main';
@@ -19,6 +19,7 @@ import {MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL} from "../util/path-main";
 import {Page} from "../page";
 import {ConfigTray} from "../config/tray";
 import {icnsLogoPath, icoLogoPath, logoPath} from "../config/icon";
+import {isDev,isPackaged} from "../util/path";
 
 // The built directory structure
 //
@@ -132,10 +133,13 @@ function createWindow() {
         if (hasSplashWindow) {
             AppRuntime.mainWindow?.show()
             setTimeout(() => {
-                AppRuntime.splashWindow?.close()
-                AppRuntime.splashWindow = null
-                if (!isPackaged) {
-                    AppRuntime.mainWindow.webContents.openDevTools()
+                try {
+                    AppRuntime.splashWindow?.close()
+                    AppRuntime.splashWindow = null
+                    if (!isPackaged) {
+                        AppRuntime.mainWindow.webContents.openDevTools()
+                    }
+                } catch (e) {
                 }
             }, 1000);
         }
@@ -147,7 +151,9 @@ function createWindow() {
     })
 }
 
-app.disableHardwareAcceleration();
+if (isDev) {
+    app.disableHardwareAcceleration();
+}
 
 app.whenReady()
     .then(() => {

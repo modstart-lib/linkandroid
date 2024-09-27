@@ -53,9 +53,19 @@ const mirror = async (
     option: {
         title?: string,
         args?: string,
-    }
+        stdout?: Function,
+        stderr?: Function,
+        success?: Function,
+        error?: Function,
+    },
 ) => {
-    return spawnShell(`--serial="${serial}" --window-title="${option.title}" ${option.args}`)
+    option = option || {}
+    return spawnShell(`--serial="${serial}" --window-title="${option.title}" ${option.args}`, {
+        stdout: option.stdout,
+        stderr: option.stderr,
+        success: option.success,
+        error: option.error,
+    })
 }
 
 export default {

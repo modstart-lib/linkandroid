@@ -2,7 +2,7 @@ import {Config} from "../mapi/config/main";
 import source from "./../../src/lang/source.json";
 import enUS from "./../../src/lang/en-US.json";
 import zhCN from "./../../src/lang/zh-CN.json";
-import {isDev} from "../util/process";
+import {isDev} from "../util/path";
 import lang from "../mapi/lang/main";
 
 export const defaultLocale = 'zh-CN'
