@@ -82,7 +82,7 @@ const doHelp = () => {
 </script>
 
 <template>
-    <div class="pb-device-container p-8 min-h-full relative"
+    <div class="pb-device-container p-8 min-h-full relative select-none"
          :class="{'has-records':deviceStore.records.length>0}">
         <div class="mb-4 flex items-center">
             <div class="text-3xl font-bold flex-grow">

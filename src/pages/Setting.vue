@@ -67,7 +67,7 @@ const onLocaleChange = (value: string) => {
 </script>
 
 <template>
-    <div class="flex">
+    <div class="flex select-none">
         <div ref="tabContainer"
              class="p-8 w-56 flex-shrink-0 border-r border-solid border-gray-100">
             <div data-section="common" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer bg-gray-100">
@@ -93,7 +93,7 @@ const onLocaleChange = (value: string) => {
                     </div>
                     <div>
                         <a-form :model="common" layout="vertical">
-                            <a-form-item field="name" :label="t('ADB路径')">
+                            <a-form-item field="name" :label="t('adb路径')">
                                 <a-input
                                     @change="doAdbPathChange"
                                     v-model="common.adbPath as string">

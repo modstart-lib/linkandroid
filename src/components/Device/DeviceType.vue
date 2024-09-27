@@ -17,8 +17,7 @@ const props = defineProps<Props>()
 
 <template>
     <a-tooltip :content="tipText">
-        <div class="text-white h-6 w-6 text-center leading-6 rounded text-sm inline-block mr-1"
-             :class="{'bg-yellow-400': props.type===EnumDeviceType.WIFI, 'bg-blue-500': props.type===EnumDeviceType.USB}">
+        <div class="h-6 w-6 text-center text-gray-500 leading-6 rounded text-sm inline-block mr-1">
             <i v-if="props.type===EnumDeviceType.USB" class="iconfont icon-usb"></i>
             <i v-else-if="props.type===EnumDeviceType.WIFI" class="iconfont icon-network"></i>
         </div>
