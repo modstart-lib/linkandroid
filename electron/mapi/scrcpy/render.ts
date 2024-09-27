@@ -2,7 +2,7 @@ import {exec as _exec} from 'node:child_process'
 import util from 'node:util'
 import which from 'which'
 import Config from "../config/render";
-import {extraResolve} from "../../util/path";
+import {extraResolve} from "../../lib/env";
 import {Apps} from "../app";
 
 const exec = util.promisify(_exec)

@@ -1,5 +1,5 @@
 import {app, ipcMain, shell} from "electron";
-import {WindowConstant} from "../../lib/constant";
+import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
 
 const quit = () => {
@@ -15,7 +15,7 @@ const windowMax = () => {
         AppRuntime.mainWindow.unmaximize()
         AppRuntime.mainWindow.center()
     } else {
-        AppRuntime.mainWindow.setMinimumSize(WindowConstant.minWidth, WindowConstant.minHeight)
+        AppRuntime.mainWindow.setMinimumSize(WindowConfig.minWidth, WindowConfig.minHeight)
         AppRuntime.mainWindow.maximize()
     }
 }

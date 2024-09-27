@@ -1,6 +1,6 @@
 import {ipcRenderer} from "electron";
 import {resolve} from "node:path";
-import {isPackaged} from "../../util/path";
+import {isPackaged} from "../../lib/env";
 import {AppEnv, waitAppEnvReady} from "../env";
 
 const quit = () => {

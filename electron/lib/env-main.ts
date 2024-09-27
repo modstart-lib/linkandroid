@@ -1,6 +1,6 @@
 import url, {fileURLToPath} from "node:url";
 import {BrowserWindow} from "electron";
-import {isPackaged} from "./path";
+import {isPackaged} from "./env";
 import path, {join} from "node:path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

@@ -1,7 +1,7 @@
 import {exec as _exec} from 'node:child_process'
 import util from 'node:util'
 import {Adb} from '@devicefarmer/adbkit'
-import {extraResolve} from "../../util/path";
+import {extraResolve} from "../../lib/env";
 import Config from "../config/render";
 import {FileUtil, TimeUtil} from "../../lib/util";
 import dayjs from "dayjs";

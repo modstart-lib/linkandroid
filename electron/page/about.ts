@@ -1,5 +1,5 @@
 import {BrowserWindow} from "electron";
-import {preloadDefault} from "../util/path-main";
+import {preloadDefault} from "../lib/env-main";
 import {AppRuntime} from "../mapi/env";
 import {t} from "../config/lang";
 import {Page} from "./index";

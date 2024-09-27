@@ -1,4 +1,4 @@
-import {preloadDefault, rendererPath} from "../util/path-main";
+import {preloadDefault, rendererPath} from "../lib/env-main";
 import {AppRuntime} from "../mapi/env";
 import {BrowserWindow} from "electron";
 import {Page} from "./index";

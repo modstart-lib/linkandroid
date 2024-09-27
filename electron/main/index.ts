@@ -4,22 +4,22 @@ import path from 'node:path'
 import os from 'node:os'
 
 /** process.js 必须位于非依赖项的顶部 */
-import {isDummy} from "../util/process";
+import {isDummy} from "../lib/process";
 
 import {AppEnv, AppRuntime} from "../mapi/env";
 import {MAPI} from '../mapi/main';
 
-import {WindowConstant} from "../lib/constant";
+import {WindowConfig} from "../config/window";
 import {AppConfig} from "../../src/config";
 import Log from "../mapi/log/main";
 import {ConfigMenu} from "../config/menu";
 import {ConfigLang} from "../config/lang";
 import {ConfigContextMenu} from "../config/contextMenu";
-import {MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL} from "../util/path-main";
+import {MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL} from "../lib/env-main";
 import {Page} from "../page";
 import {ConfigTray} from "../config/tray";
 import {icnsLogoPath, icoLogoPath, logoPath} from "../config/icon";
-import {isDev,isPackaged} from "../util/path";
+import {isDev,isPackaged} from "../lib/env";
 
 // The built directory structure
 //
@@ -104,10 +104,10 @@ function createWindow() {
         transparent: true,
         hasShadow: true,
         center: true,
-        minWidth: WindowConstant.initWidth,
-        minHeight: WindowConstant.initHeight,
-        width: WindowConstant.initWidth,
-        height: WindowConstant.initHeight,
+        minWidth: WindowConfig.initWidth,
+        minHeight: WindowConfig.initHeight,
+        width: WindowConfig.initWidth,
+        height: WindowConfig.initHeight,
         backgroundColor: '#f1f5f9',
         webPreferences: {
             preload,

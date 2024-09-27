@@ -1,6 +1,6 @@
 import util from "node:util";
 import {exec as _exec, spawn} from "node:child_process";
-import {isWin} from "../../util/path";
+import {isWin} from "../../lib/env";
 import {Log} from "../log/index";
 
 const exec = util.promisify(_exec)

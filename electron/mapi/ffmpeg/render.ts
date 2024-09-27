@@ -1,6 +1,6 @@
 import ffmpegPath from "ffmpeg-static";
 import {Apps} from "../app";
-import {binResolve, isPackaged} from "../../util/path";
+import {binResolve, isPackaged} from "../../lib/env";
 
 const getBinPath = () => {
     if (isPackaged) {

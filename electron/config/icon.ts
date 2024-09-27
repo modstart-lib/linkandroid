@@ -1,4 +1,4 @@
-import {buildResolve, extraResolve} from "../util/path";
+import {buildResolve, extraResolve} from "../lib/env";
 
 export const logoPath = buildResolve('logo.png')
 export const icoLogoPath = buildResolve('logo.ico')

@@ -2,7 +2,6 @@
 
 declare namespace NodeJS {
     interface ProcessEnv {
-        VSCODE_DEBUG?: 'true'
         /**
          * The built directory structure
          *
