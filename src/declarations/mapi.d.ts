@@ -63,6 +63,9 @@ declare interface Window {
         page: {
             open: (name: string, option?: any) => Promise<void>,
         },
+        user: {
+            open: (option?: any) => Promise<void>,
+        },
         adb: {
             getBinPath: () => Promise<string>,
             setBinPath: (binPath: string) => Promise<boolean>,

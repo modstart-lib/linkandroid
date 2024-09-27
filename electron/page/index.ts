@@ -1,11 +1,13 @@
 import {Events} from "../mapi/event/main";
 import {AppEnv, AppRuntime} from "../mapi/env";
+import {PageUser} from "./user";
 import {PageThirdPartyImageBeautifier} from "./thirdPartyImageBeautifier";
 import {BrowserWindow, shell} from "electron";
 import {rendererPath} from "../lib/env-main";
 
 const Pages = {
     'thirdPartyImageBeautifier': PageThirdPartyImageBeautifier,
+    'user': PageUser,
 }
 
 export const Page = {

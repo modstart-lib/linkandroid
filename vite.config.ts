@@ -100,6 +100,7 @@ export default defineConfig(({command}) => {
                 input: {
                     main: path.resolve(__dirname, 'index.html'),
                     about: path.resolve(__dirname, 'page/about.html'),
+                    user: path.resolve(__dirname, 'page/user.html'),
                 }
             }
         },

@@ -90,6 +90,7 @@ const initLoaders = () => {
     const {appendLoading, removeLoading} = useLoading()
 
     const isMain = () => {
+        return true;
         let l = window.location.href
         if (l.indexOf('app.asar/dist/index.html') > 0) {
             return true
