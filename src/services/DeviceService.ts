@@ -1,4 +1,5 @@
-import {DeviceRecord, EnumDeviceStatus} from "../types/Device";
+import {DeviceRecord, EnumDeviceStatus, EnumDeviceType} from "../types/Device";
+import {isIPWithPort} from "../lib/linkandroid";
 
 
 export const DeviceService = {
@@ -8,6 +9,7 @@ export const DeviceService = {
         for (const d of res || []) {
             data.push({
                 id: d.id,
+                type: isIPWithPort(d.id) ? EnumDeviceType.WIFI : EnumDeviceType.USB,
                 status: EnumDeviceStatus.CONNECTED,
                 name: d.model ? d.model.split(':')[1] : d.id,
                 raw: d

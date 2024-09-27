@@ -12,6 +12,14 @@ export function isIPWithPort(ip: string) {
     return regex.test(ip)
 }
 
+export function parseIPPort(ip: string) {
+    const [ip_, port] = ip.split(':')
+    return {
+        ip: restoreIP(ip_),
+        port: parseInt(port)
+    }
+}
+
 export function mapError(msg: any) {
     if (typeof msg !== 'string') {
         msg = msg.toString()

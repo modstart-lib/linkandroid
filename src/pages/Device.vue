@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {useDeviceStore} from "../store/modules/device";
-import {DeviceRecord, EnumDeviceStatus} from "../types/Device";
+import {DeviceRecord, EnumDeviceStatus, EnumDeviceType} from "../types/Device";
 import DeviceStatus from "../components/Device/DeviceStatus.vue";
 import {Dialog} from "../lib/dialog";
 import {mapError} from "../lib/linkandroid";
@@ -20,6 +20,8 @@ import DeviceActionWifiOn from "../components/Device/DeviceActionWifiOn.vue";
 import DeviceActionMirrorCamera from "../components/Device/DeviceActionMirrorCamera.vue";
 import DeviceActionMirrorOTG from "../components/Device/DeviceActionMirrorOTG.vue";
 import DeviceActionMirror from "../components/Device/DeviceActionMirror.vue";
+import DeviceActionDisconnect from "../components/Device/DeviceActionDisconnect.vue";
+import DeviceType from "../components/Device/DeviceType.vue";
 
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -28,6 +30,7 @@ const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(nul
 const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
 
 const actionMirrors = ref<Record<string, InstanceType<typeof DeviceActionMirror> | null>>({})
+const helpShow = ref(false)
 
 const deviceStore = useDeviceStore()
 
@@ -116,7 +119,7 @@ const doHelp = () => {
                     <img class="h-40 m-auto opacity-50" src="./../assets/image/device-empty.svg"/>
                 </div>
                 <div class="mt-10 text-center text-lg text-gray-400">
-                    {{ $t('还没有设备，使用USB连接电脑开始使用～') }}
+                    <div>{{ $t('还没有设备，使用USB连接电脑开始使用～') }}</div>
                 </div>
                 <div class="mt-10 text-center">
                     <a-button class="mx-1"
@@ -126,12 +129,25 @@ const doHelp = () => {
                         </template>
                         {{ $t('刷新') }}
                     </a-button>
-                    <a-button class="mx-1" @click="doHelp">
+                    <a-button class="mx-1" @click="helpShow=true">
                         <template #icon>
                             <icon-book class="mr-1"/>
                         </template>
-                        {{ $t('教程') }}
+                        {{ $t('如何连接？') }}
                     </a-button>
+                </div>
+                <div v-if="helpShow" class="pt-5 text-center">
+                    <div class="inline-block bg-gray-100 text-left rounded-lg p-6 leading-8">
+                        <div>① {{ $t('打开手机USB调试') }}</div>
+                        <div>② {{ $t('使用USB连接电脑') }}</div>
+                        <div class="pt-3">
+                            {{ $t('更多内容，请查看') }}
+                            <a href="javascript:;" class="text-link" @click="doHelp">
+                                <icon-book/>
+                                {{ $t('在线文档') }}
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div v-else class="flex flex-wrap">
@@ -142,6 +158,7 @@ const doHelp = () => {
                         <div class="flex overflow-hidden flex-shrink-0 items-center h-12 px-4 py-2">
                             <div class="overflow-hidden">
                                 <div class="font-bold truncate cursor-pointer">
+                                    <DeviceType :type="r.type"/>
                                     <span>
                                         {{ r.name }}
                                     </span>
@@ -208,6 +225,9 @@ const doHelp = () => {
                                         <a-doption v-if="rIndex>0" @click="deviceStore.doTop(rIndex)">
                                             {{ $t('置顶') }}
                                         </a-doption>
+                                        <DeviceActionDisconnect
+                                            v-if="r.type===EnumDeviceType.WIFI && r.status===EnumDeviceStatus.CONNECTED"
+                                            :device="r"/>
                                     </template>
                                 </a-dropdown>
                             </div>

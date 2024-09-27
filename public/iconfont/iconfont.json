@@ -6,6 +6,48 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "703631",
+      "name": "network",
+      "font_class": "network",
+      "unicode": "ea7c",
+      "unicode_decimal": 60028
+    },
+    {
+      "icon_id": "22417575",
+      "name": "usb",
+      "font_class": "usb",
+      "unicode": "e652",
+      "unicode_decimal": 58962
+    },
+    {
+      "icon_id": "29522572",
+      "name": "mirror",
+      "font_class": "mirror",
+      "unicode": "e674",
+      "unicode_decimal": 58996
+    },
+    {
+      "icon_id": "7594184",
+      "name": "stop",
+      "font_class": "stop",
+      "unicode": "ea89",
+      "unicode_decimal": 60041
+    },
+    {
+      "icon_id": "19653791",
+      "name": "video",
+      "font_class": "video",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "22668251",
+      "name": "android",
+      "font_class": "android",
+      "unicode": "e703",
+      "unicode_decimal": 59139
+    },
+    {
       "icon_id": "9332800",
       "name": "camera",
       "font_class": "camera",

@@ -13,7 +13,7 @@ const exec = util.promisify(_exec)
 
 let client = null
 window.addEventListener('beforeunload', () => {
-    destroy()
+    // destroy()
 })
 
 const destroy = () => {

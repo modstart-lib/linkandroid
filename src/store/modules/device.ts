@@ -62,6 +62,7 @@ export const deviceStore = defineStore("device", {
                 const record = this.records.find((record) => record.id === device.id)
                 if (record) {
                     record.status = EnumDeviceStatus.CONNECTED
+                    record.type = device.type
                     return
                 }
                 this.records.push(device)

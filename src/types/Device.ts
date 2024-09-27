@@ -4,8 +4,14 @@ export enum EnumDeviceStatus {
     DISCONNECTED = 'disconnected',
 }
 
+export enum EnumDeviceType {
+    USB = 'usb',
+    WIFI = 'wifi',
+}
+
 export type DeviceRecord = {
     id: string,
+    type: EnumDeviceType,
     status: EnumDeviceStatus,
     name: string | null,
     screenshot: string | null,

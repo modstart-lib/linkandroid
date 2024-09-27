@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4682396 */
-  src: url('iconfont.woff2?t=1726896139241') format('woff2'),
-       url('iconfont.woff?t=1726896139241') format('woff'),
-       url('iconfont.ttf?t=1726896139241') format('truetype');
+  src: url('iconfont.woff2?t=1727418577495') format('woff2'),
+       url('iconfont.woff?t=1727418577495') format('woff'),
+       url('iconfont.ttf?t=1727418577495') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,30 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-network:before {
+  content: "\ea7c";
+}
+
+.icon-usb:before {
+  content: "\e652";
+}
+
+.icon-mirror:before {
+  content: "\e674";
+}
+
+.icon-stop:before {
+  content: "\ea89";
+}
+
+.icon-video:before {
+  content: "\e612";
+}
+
+.icon-android:before {
+  content: "\e703";
 }
 
 .icon-camera:before {

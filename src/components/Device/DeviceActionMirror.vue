@@ -25,7 +25,6 @@ const doMirror = async () => {
             args: '--always-on-top',
             stdout: (data: string) => {
                 console.log('stdout', data)
-                Dialog.tipSuccess(t('投屏成功'))
             },
             stderr: (data: string) => {
                 console.error('stderr', data)
@@ -39,6 +38,8 @@ const doMirror = async () => {
                 mirrorController.value = null
             }
         })
+        await sleep(1000)
+        Dialog.tipSuccess(t('投屏成功'))
     } catch (error) {
         Dialog.tipError(mapError(error))
     } finally {
@@ -46,7 +47,6 @@ const doMirror = async () => {
     }
 }
 const start = () => {
-    console.log('start')
     doMirror().then()
 }
 defineExpose({
