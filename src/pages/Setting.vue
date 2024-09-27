@@ -138,7 +138,12 @@ const onLocaleChange = (value: string) => {
                         <div class="flex mb-3">
                             <div class="w-20">{{ t('版本') }}</div>
                             <div class="flex-grow">
-                                v{{ AppConfig.version }}
+                                <div class="inline-block">
+                                    v{{ AppConfig.version }}
+                                </div>
+                                <div class="inline-block ml-3">
+                                    <UpdaterButton/>
+                                </div>
                             </div>
                         </div>
                         <div class="flex mb-3">
@@ -163,9 +168,6 @@ const onLocaleChange = (value: string) => {
                                    class="text-link">
                                     {{ AppConfig.website }}
                                 </a>
-                                <div class="inline-block ml-3">
-                                    <UpdaterButton/>
-                                </div>
                             </div>
                         </div>
                         <div class="mb-3">

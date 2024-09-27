@@ -2,6 +2,7 @@
 import {computed, ref} from "vue";
 import {DeviceRecord} from "../../types/Device";
 import {useDeviceStore} from "../../store/modules/device";
+import {t} from "../../lang";
 
 const deviceStore = useDeviceStore()
 const visible = ref(false)
@@ -21,11 +22,11 @@ const show = (device: DeviceRecord) => {
 
 const infoColumns = [
     {
-        title: 'Name',
+        title: t('名称'),
         dataIndex: 'name',
     },
     {
-        title: 'Value',
+        title: t('值'),
         dataIndex: 'value',
     },
 ];

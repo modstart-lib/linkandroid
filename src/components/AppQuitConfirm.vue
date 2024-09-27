@@ -35,12 +35,12 @@ defineExpose({
              :title="$t('提示')"
              title-align="start">
         <template #footer>
-            <a-button @click="doMin">最小化</a-button>
-            <a-button @click="doCancel">取消</a-button>
-            <a-button type="primary" @click="doConfirm">确定</a-button>
+            <a-button @click="doMin">{{ $t('隐藏窗口') }}</a-button>
+            <a-button @click="doCancel">{{ $t('取消') }}</a-button>
+            <a-button type="primary" @click="doConfirm">{{ $t('确定') }}</a-button>
         </template>
         <div>
-            <div class="text-center">确定退出软件？</div>
+            <div class="text-center">{{ $t('确定退出软件？') }}</div>
         </div>
     </a-modal>
 </template>
