@@ -5,6 +5,7 @@ import os from 'node:os'
 
 /** process.js 必须位于非依赖项的顶部 */
 import {isDummy} from "../lib/process";
+const isDummyNew = isDummy
 
 import {AppEnv, AppRuntime} from "../mapi/env";
 import {MAPI} from '../mapi/main';
@@ -19,7 +20,7 @@ import {MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL} from "../lib/env-main";
 import {Page} from "../page";
 import {ConfigTray} from "../config/tray";
 import {icnsLogoPath, icoLogoPath, logoPath} from "../config/icon";
-import {isDev,isPackaged} from "../lib/env";
+import {isDev, isPackaged} from "../lib/env";
 
 // The built directory structure
 //
