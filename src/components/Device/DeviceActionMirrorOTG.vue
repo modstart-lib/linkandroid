@@ -5,12 +5,15 @@ import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
 import {sleep} from "../../lib/util";
 import {mapError} from "../../lib/linkandroid";
+import {ref} from "vue";
 
 const props = defineProps<{
     device: DeviceRecord
 }>()
+
+const mirrorController = ref(null as any)
 const doMirror = async () => {
-    if (device.value.status !== EnumDeviceStatus.CONNECTED) {
+    if (props.device.status !== EnumDeviceStatus.CONNECTED) {
         Dialog.tipError(t('设备未连接'))
         return
     }
@@ -20,8 +23,8 @@ const doMirror = async () => {
         '--always-on-top'
     ]
     try {
-        const mirrorController = await window.$mapi.scrcpy.mirror(device.value.id, {
-            title: device.value.name as string,
+        mirrorController.value = await window.$mapi.scrcpy.mirror(props.device.id, {
+            title: props.device.name as string,
             args: args.join(' '),
         })
         await sleep(1000)

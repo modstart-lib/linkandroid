@@ -23,7 +23,7 @@ const doMirror = async () => {
         Dialog.tipError(t('设备版本过低，不支持此功能'))
         return
     }
-    Dialog.loadingOn(t('正在进入摄像头'))
+    Dialog.loadingOn(t('正在打开摄像头'))
     const args = [
         '--video-source=camera',
         '--always-on-top'
@@ -34,7 +34,7 @@ const doMirror = async () => {
             args: args.join(' '),
         })
         await sleep(1000)
-        Dialog.tipSuccess(t('进入摄像头成功'))
+        Dialog.tipSuccess(t('打开摄像头成功'))
     } catch (error) {
         Dialog.tipError(mapError(error))
     } finally {
@@ -45,7 +45,7 @@ const doMirror = async () => {
 
 <template>
     <a-doption @click="doMirror">
-        {{ $t('进入摄像头') }}
+        {{ $t('打开摄像头') }}
     </a-doption>
 </template>
 

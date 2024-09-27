@@ -22,6 +22,7 @@ import DeviceActionMirrorOTG from "../components/Device/DeviceActionMirrorOTG.vu
 import DeviceActionMirror from "../components/Device/DeviceActionMirror.vue";
 import DeviceActionDisconnect from "../components/Device/DeviceActionDisconnect.vue";
 import DeviceType from "../components/Device/DeviceType.vue";
+import DeviceActionConnect from "../components/Device/DeviceActionConnect.vue";
 
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -210,24 +211,31 @@ const doHelp = () => {
                                         </template>
                                     </a-button>
                                     <template #content>
-                                        <DeviceActionWifiOn :device="r"/>
+                                        <DeviceActionDisconnect
+                                            v-if="r.type===EnumDeviceType.WIFI && r.status===EnumDeviceStatus.CONNECTED"
+                                            :device="r"/>
+                                        <DeviceActionConnect
+                                            v-if="r.type===EnumDeviceType.WIFI && r.status===EnumDeviceStatus.DISCONNECTED"
+                                            :device="r"/>
+                                        <DeviceActionWifiOn
+                                            v-if="r.type===EnumDeviceType.USB"
+                                            :device="r"/>
                                         <DeviceActionMirrorCamera :device="r"/>
-                                        <DeviceActionMirrorOTG :device="r"/>
+                                        <DeviceActionMirrorOTG
+                                            v-if="r.type===EnumDeviceType.USB"
+                                            :device="r"/>
                                         <a-doption @click="adbShellDialog?.show(r)">
                                             {{ $t('命令行') }}
-                                        </a-doption>
-                                        <a-doption @click="infoDialog?.show(r)">
-                                            {{ $t('设备详情') }}
-                                        </a-doption>
-                                        <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">
-                                            {{ $t('删除设备') }}
                                         </a-doption>
                                         <a-doption v-if="rIndex>0" @click="deviceStore.doTop(rIndex)">
                                             {{ $t('置顶') }}
                                         </a-doption>
-                                        <DeviceActionDisconnect
-                                            v-if="r.type===EnumDeviceType.WIFI && r.status===EnumDeviceStatus.CONNECTED"
-                                            :device="r"/>
+                                        <a-doption @click="infoDialog?.show(r)">
+                                            {{ $t('详情') }}
+                                        </a-doption>
+                                        <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">
+                                            {{ $t('删除设备') }}
+                                        </a-doption>
                                     </template>
                                 </a-dropdown>
                             </div>
