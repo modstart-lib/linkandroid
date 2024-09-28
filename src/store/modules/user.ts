@@ -50,6 +50,7 @@ export const userStore = defineStore("user", {
                 return
             }
             const result = await userInfoApi()
+            // console.log('refreshUserInfo', result)
             this.apiToken = result.data.apiToken
             this.user = Object.assign(this.user, result.data.user)
             this.data = result.data.data

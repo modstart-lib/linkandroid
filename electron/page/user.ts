@@ -1,8 +1,10 @@
-import {BrowserWindow} from "electron";
+import {BrowserWindow, shell} from "electron";
 import {preloadDefault} from "../lib/env-main";
 import {AppRuntime} from "../mapi/env";
 import {t} from "../config/lang";
 import {Page} from "./index";
+import {AppConfig} from "../../src/config";
+import {User} from "../mapi/user/main";
 
 export const PageUser = {
     NAME: 'user',
@@ -26,6 +28,24 @@ export const PageUser = {
             center: true,
             transparent: false,
         });
+        win.webContents.on('did-attach-webview', function (e, webContent) {
+            webContent.on('will-navigate', function (e, url) {
+                const urlPath = new URL(url).pathname
+                const whiteList = [
+                    '/member_vip',
+                    '/app_manager/user',
+                    '/login',
+                    '/register',
+                    '/logout',
+                ]
+                if (whiteList.includes(urlPath)) return
+                e.preventDefault()
+                User.getApiToken().then(apiToken => {
+                    url = `${AppConfig.apiBaseUrl}/app_manager/enter?url=` + encodeURIComponent(url) + `&api_token=${apiToken}`
+                    shell.openExternal(url)
+                })
+            })
+        })
         return Page.openWindow(PageUser.NAME, win, "page/user.html");
     }
 }

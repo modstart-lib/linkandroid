@@ -16,6 +16,10 @@ const get = async (): Promise<{
     return {apiToken, user, data}
 }
 
+const getApiToken = async (): Promise<string> => {
+    return await storage.get('user', 'apiToken', '')
+}
+
 const save = async (data: {
     apiToken: string,
     user: object,
@@ -38,4 +42,8 @@ export default {
     init,
     get,
     save
+}
+
+export const User = {
+    getApiToken
 }

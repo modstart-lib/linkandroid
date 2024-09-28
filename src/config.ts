@@ -10,7 +10,7 @@ export const AppConfig = {
     websiteGithub: 'https://github.com/modstart-lib/linkandroid',
     websiteGitee: 'https://gitee.com/modstart-lib/linkandroid',
     apiBaseUrl: `${BASE_URL}/api`,
-    userEnable: false,
+    userEnable: true,
     updaterUrl: `${BASE_URL}/app_manager/updater`,
     downloadUrl: `${BASE_URL}/app_manager/download`,
     statisticsUrl: `${BASE_URL}/app_manager/collect`,
