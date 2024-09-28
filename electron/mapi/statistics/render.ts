@@ -1,5 +1,6 @@
 import {AppConfig} from "../../../src/config";
 import {platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
+import {post} from "../../lib/api";
 
 let tickDataList = []
 
@@ -14,30 +15,24 @@ const tickSendAsync = () => {
         tickDataList = []
         return
     }
-    tickSendTimer = setTimeout(() => {
+    tickSendTimer = setTimeout(async () => {
         tickSendTimer = null
         if (!tickDataList.length) {
             return
         }
-        fetch(AppConfig.statisticsUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                data: tickDataList,
-                version: AppConfig.version,
-                uuid: platformUUID(),
-                platform: {
-                    name: platformName(),
-                    version: platformVersion(),
-                    arch: platformArch(),
-                }
-            })
+        post(AppConfig.statisticsUrl, {
+            data: tickDataList,
+            version: AppConfig.version,
+            uuid: platformUUID(),
+            platform: {
+                name: platformName(),
+                version: platformVersion(),
+                arch: platformArch(),
+            }
         }).then(res => {
             // console.log('tickSend', tickDataList, res)
         }).catch(err => {
-
+            // console.error('tickSend', tickDataList, err)
         })
         tickDataList = []
     }, 2000)

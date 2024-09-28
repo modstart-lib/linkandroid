@@ -1,9 +1,9 @@
 import {defineStore} from "pinia"
 import store from "../index";
-import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
+import {DeviceRecord, EnumDeviceStatus, EnumDeviceType} from "../../types/Device";
 import {clone, cloneDeep} from "lodash-es";
 import {toRaw} from "vue";
-import {DeviceService} from "../../services/DeviceService";
+import {isIPWithPort} from "../../lib/linkandroid";
 
 export const deviceStore = defineStore("device", {
     state: () => ({
@@ -50,8 +50,22 @@ export const deviceStore = defineStore("device", {
                 await this.updateScreenshot()
             }, 5 * 1000)
         },
+        async list(): Promise<DeviceRecord[]> {
+            const res = await window.$mapi.adb.devices()
+            const data: DeviceRecord[] = []
+            for (const d of res || []) {
+                data.push({
+                    id: d.id,
+                    type: isIPWithPort(d.id) ? EnumDeviceType.WIFI : EnumDeviceType.USB,
+                    status: EnumDeviceStatus.CONNECTED,
+                    name: d.model ? d.model.split(':')[1] : d.id,
+                    raw: d
+                } as DeviceRecord)
+            }
+            return data
+        },
         async refresh() {
-            const devices = await DeviceService.list()
+            const devices = await this.list()
             // this.records = []
             this.records.forEach((record) => {
                 record.status = EnumDeviceStatus.WAIT_CONNECTING

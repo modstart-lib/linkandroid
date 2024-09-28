@@ -17,7 +17,7 @@ const doScreenshot = async () => {
         const image = await window.$mapi.adb.screencap(props.device.id)
         const base64 = 'data:image/png;base64,' + image
         await window.$mapi.page.open('thirdPartyImageBeautifier')
-        await window.$mapi.event.callCustom('thirdPartyImageBeautifier', 'doSetImage', base64)
+        await window.$mapi.event.callThirdParty('thirdPartyImageBeautifier', 'doSetImage', base64)
     } catch (error) {
         Dialog.tipError(mapError(error))
     }

@@ -1,10 +1,12 @@
 import {request,} from "../lib/api";
 
-export type LoginResponseData = ApiResult<{ token: string }>
-
-export function loginApi() {
-    return request<LoginResponseData>({
-        url: "login",
+export function userInfoApi(): Promise<ApiResult<{
+    apiToken: string,
+    user: object,
+    data: any
+}>> {
+    return request({
+        url: "app_manager/user_info",
         method: "post"
     })
 }

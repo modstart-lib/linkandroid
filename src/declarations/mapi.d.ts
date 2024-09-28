@@ -58,13 +58,32 @@ declare interface Window {
         },
         event: {
             send: (name: string, type: string, data: any) => void,
-            callCustom: (name: string, customType: string, data: any, option?: any) => Promise<ApiResult<any>>,
+            callThirdParty: (name: string, type: string, data: any, option?: any) => Promise<ApiResult<any>>,
+            callPage: (name: string, type: string, data?: any, option?: any) => Promise<ApiResult<any>>,
         },
         page: {
             open: (name: string, option?: any) => Promise<void>,
         },
         user: {
             open: (option?: any) => Promise<void>,
+            get: () => Promise<{
+                apiToken: string,
+                user: {
+                    id: string,
+                    name: string,
+                    avatar: string,
+                },
+                data: any,
+            }>,
+            save: (data: {
+                apiToken: string,
+                user: {
+                    id: string,
+                    name: string,
+                    avatar: string,
+                },
+                data: any,
+            }) => Promise<void>,
         },
         adb: {
             getBinPath: () => Promise<string>,

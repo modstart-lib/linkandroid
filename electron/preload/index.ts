@@ -4,37 +4,54 @@ import {MAPI} from "../mapi/render";
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
 MAPI.init()
+
+window['__callPage'] = {}
+
 ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
-    switch (payload.type) {
-        case 'APP_READY':
-            MAPI.init(payload.data.AppEnv)
-            // @ts-ignore
-            window['__thirdParty'] = window['__thirdParty'] || {}
-            window['__thirdParty'].name = payload.data.name
-            break
-        case 'CUSTOM':
-            const {type, data} = payload.data
-            const resultEventName = `event:callCustom:${payload.id}`
-            const send = (code: number, msg: string, data?: any) => {
-                ipcRenderer.send(resultEventName, {code, msg, data})
-            }
-            if (!window['__thirdParty']) {
-                send(-1, 'error')
-                return
-            }
-            if (!window['__thirdParty']['events'] || !window['__thirdParty']['events'][type]) {
-                send(-1, 'event not found')
-                return
-            }
-            window['__thirdParty']['events'][type](
-                (resultData: any) => send(0, 'ok', resultData),
-                (error: string) => send(-1, error),
-                data
-            )
-            break
-        default:
-            console.warn('Unknown message from main process:', JSON.stringify(payload))
-            break
+    if ('APP_READY' === payload.type) {
+        MAPI.init(payload.data.AppEnv)
+        // @ts-ignore
+        window['__thirdParty'] = window['__thirdParty'] || {}
+        window['__thirdParty'].name = payload.data.name
+    } else if ('CALL_THIRD_PARTY' === payload.type) {
+        const {type, data} = payload.data
+        const resultEventName = `event:callThirdParty:${payload.id}`
+        const send = (code: number, msg: string, data?: any) => {
+            ipcRenderer.send(resultEventName, {code, msg, data})
+        }
+        if (!window['__thirdParty']) {
+            send(-1, 'error')
+            return
+        }
+        if (!window['__thirdParty']['events'] || !window['__thirdParty']['events'][type]) {
+            send(-1, 'event not found')
+            return
+        }
+        window['__thirdParty']['events'][type](
+            (resultData: any) => send(0, 'ok', resultData),
+            (error: string) => send(-1, error),
+            data
+        )
+    } else if ('CALL_PAGE' === payload.type) {
+        const {type, data} = payload.data
+        const resultEventName = `event:callPage:${payload.id}`
+        const send = (code: number, msg: string, data?: any) => {
+            ipcRenderer.send(resultEventName, {code, msg, data})
+        }
+        if (!window['__callPage']) {
+            send(-1, 'error')
+            return
+        }
+        if (!window['__callPage'][type]) {
+            send(-1, 'event not found')
+            return
+        }
+        window['__callPage'][type](data).then(
+            (resultData: any) => send(0, 'ok', resultData),
+            (error: string) => send(-1, error)
+        )
+    } else {
+        console.warn('Unknown message from main process:', JSON.stringify(payload))
     }
 })
 

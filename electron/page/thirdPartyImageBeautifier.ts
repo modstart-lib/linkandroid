@@ -10,8 +10,10 @@ export const PageThirdPartyImageBeautifier = {
         const win = new BrowserWindow({
             title: t('截图编辑'),
             parent: AppRuntime.mainWindow,
-            minWidth: 800,
-            minHeight: 600,
+            minWidth: 900,
+            minHeight: 700,
+            width: 900,
+            height: 700,
             maximizable: true,
             hasShadow: true,
             center: true,
@@ -25,7 +27,7 @@ export const PageThirdPartyImageBeautifier = {
             show: true,
             frame: true,
         });
-        win.maximize();
+        // win.maximize();
         return Page.openWindow(PageThirdPartyImageBeautifier.NAME, win, "third-party/image-beautifier/index.html");
     }
 }

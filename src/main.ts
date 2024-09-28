@@ -24,7 +24,7 @@ app.use(router)
 Message._context = app._context
 app.config.globalProperties.$mapi = window.$mapi
 app.config.globalProperties.$dialog = Dialog
-app.config.globalProperties.$t = t
+app.config.globalProperties.$t = t as any
 app.mount('#app')
     .$nextTick(() => {
         postMessage({payload: 'removeLoading'}, '*')

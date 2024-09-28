@@ -10,10 +10,10 @@ export const PageUser = {
         const win = new BrowserWindow({
             title: t('用户中心'),
             parent: AppRuntime.mainWindow,
-            minWidth: 600,
-            minHeight: 400,
-            width: 600,
-            height: 400,
+            minWidth: 800,
+            minHeight: 600,
+            width: 800,
+            height: 600,
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false,
@@ -23,6 +23,7 @@ export const PageUser = {
             },
             show: true,
             frame: false,
+            center: true,
             transparent: false,
         });
         return Page.openWindow(PageUser.NAME, win, "page/user.html");

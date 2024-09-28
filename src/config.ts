@@ -1,6 +1,6 @@
 import packageJson from '../package.json';
 
-const BASE_URL = 'https://linkandroid.com/app_manager';
+const BASE_URL = 'https://linkandroid.com';
 
 export const AppConfig = {
     name: 'LinkAndroid',
@@ -9,11 +9,11 @@ export const AppConfig = {
     website: `${BASE_URL}`,
     websiteGithub: 'https://github.com/modstart-lib/linkandroid',
     websiteGitee: 'https://gitee.com/modstart-lib/linkandroid',
+    apiBaseUrl: `${BASE_URL}/api`,
     userEnable: false,
-    userUrl: `${BASE_URL}/user`,
-    updaterUrl: `${BASE_URL}/updater`,
-    downloadUrl: `${BASE_URL}/download`,
-    statisticsUrl: `${BASE_URL}/collect`,
-    helpUrl: `${BASE_URL}/help`,
+    updaterUrl: `${BASE_URL}/app_manager/updater`,
+    downloadUrl: `${BASE_URL}/app_manager/download`,
+    statisticsUrl: `${BASE_URL}/app_manager/collect`,
+    helpUrl: `${BASE_URL}/app_manager/help`,
 }
 
