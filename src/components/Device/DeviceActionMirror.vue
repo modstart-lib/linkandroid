@@ -13,16 +13,22 @@ const props = defineProps<{
 const mirrorController = ref<null | any>(null)
 
 const doMirror = async () => {
-    console.log('doMirror')
     if (props.device.status !== EnumDeviceStatus.CONNECTED) {
         Dialog.tipError(t('设备未连接'))
         return
     }
+    if(mirrorController.value){
+        mirrorController.value.stop()
+        return
+    }
     Dialog.loadingOn(t('正在投屏'))
     try {
+        const args = [
+            // '--always-on-top',
+        ]
         mirrorController.value = await window.$mapi.scrcpy.mirror(props.device.id, {
             title: props.device.name as string,
-            args: '--always-on-top',
+            args: args.join(' '),
             stdout: (data: string) => {
                 console.log('stdout', data)
             },
