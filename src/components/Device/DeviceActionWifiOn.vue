@@ -13,7 +13,7 @@ const doWifiOn = async () => {
         Dialog.tipError(t('设备未连接'))
         return
     }
-    Dialog.loadingOn(t('正在添加为Wifi设备'))
+    Dialog.loadingOn(t('正在添加为网络设备'))
     try {
         const host = await window.$mapi.adb.getDeviceIP(props.device.id)
         if (!host) {
@@ -22,7 +22,7 @@ const doWifiOn = async () => {
         const port = await window.$mapi.adb.tcpip(props.device.id, 5555)
         await sleep(1000)
         await window.$mapi.adb.connect(host, port)
-        Dialog.tipSuccess(t('添加为Wifi设备成功'))
+        Dialog.tipSuccess(t('添加为网络设备成功'))
     } catch (error) {
         Dialog.tipError(mapError(error))
     } finally {
@@ -33,7 +33,7 @@ const doWifiOn = async () => {
 
 <template>
     <a-doption @click="doWifiOn">
-        {{ $t('添加为Wifi设备') }}
+        {{ $t('添加为网络设备') }}
     </a-doption>
 </template>
 

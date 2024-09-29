@@ -37,7 +37,7 @@ defineExpose({
              width="40rem"
              title-align="start">
         <template #title>
-            {{ $t('连接Wifi设备') }}
+            {{ $t('连接网络设备') }}
         </template>
         <template #footer>
             <a-button type="primary"

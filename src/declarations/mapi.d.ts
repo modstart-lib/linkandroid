@@ -119,6 +119,7 @@ declare interface Window {
             disconnect: (host: string, port: number) => Promise<void>,
             getDeviceIP: (serial: string) => Promise<string>,
             tcpip: (serial: string, port: number) => Promise<number>,
+            usb: (serial: string) => Promise<void>,
             info: (serial: string) => Promise<any>,
         },
         scrcpy: {

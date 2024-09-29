@@ -107,6 +107,10 @@ const tcpip = async (id, port = 5555) => {
     return (await getClient()).getDevice(id).tcpip(port)
 }
 
+const usb = async (id) => {
+    return (await getClient()).getDevice(id).usb()
+}
+
 const screencap = async (deviceId: string) => {
     let fileStream = null
     try {
@@ -279,6 +283,7 @@ export default {
     disconnect,
     getDeviceIP,
     tcpip,
+    usb,
     screencap,
     screenrecord,
     install,

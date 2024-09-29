@@ -23,6 +23,7 @@ import DeviceActionMirror from "../components/Device/DeviceActionMirror.vue";
 import DeviceActionDisconnect from "../components/Device/DeviceActionDisconnect.vue";
 import DeviceType from "../components/Device/DeviceType.vue";
 import DeviceActionConnect from "../components/Device/DeviceActionConnect.vue";
+import DeviceActionWifiOff from "../components/Device/DeviceActionWifiOff.vue";
 
 const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -100,7 +101,7 @@ const doHelp = () => {
                     <template #icon>
                         <icon-link/>
                     </template>
-                    {{ $t('连接Wifi设备') }}
+                    {{ $t('连接网络设备') }}
                 </a-button>
                 <a-dropdown trigger="hover">
                     <a-button class="ml-1">
@@ -220,6 +221,9 @@ const doHelp = () => {
                                         <DeviceActionWifiOn
                                             v-if="r.type===EnumDeviceType.USB"
                                             :device="r"/>
+                                        <DeviceActionWifiOff
+                                            v-if="r.type===EnumDeviceType.WIFI"
+                                            :device="r" />
                                         <DeviceActionMirrorCamera :device="r"/>
                                         <DeviceActionMirrorOTG
                                             v-if="r.type===EnumDeviceType.USB"
