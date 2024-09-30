@@ -23,23 +23,23 @@
 
 ### Screen mirroring
 
-![](./screenshots/cn/mirror.png)
+![](./screenshots/en/mirror.png)
 
 ### Screen recording
 
-![](./screenshots/cn/screenrecord.png)
+![](./screenshots/en/screenrecord.png)
 
 ### Screenshot
 
-![](./screenshots/cn/screenshot.png)
+![](./screenshots/en/screenshot.png)
 
 ### Command line
 
-![](./screenshots/cn/screenshot.png)
+![](./screenshots/en/screenshot.png)
 
 ### App management
 
-![](./screenshots/cn/appmanage.png)
+![](./screenshots/en/appmanage.png)
 
 ## Get the app
 
