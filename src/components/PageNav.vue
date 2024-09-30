@@ -3,6 +3,7 @@ import {computed} from 'vue'
 import {useRouter} from 'vue-router'
 import {AppConfig} from "../config";
 import {useUserStore} from "../store/modules/user";
+import {t} from "../lang";
 
 const route = useRouter()
 const user = useUserStore()
@@ -18,6 +19,10 @@ const activeTab = computed(() => {
     }
 })
 
+const userTip = computed(() => {
+    return user.user.id ? user.user.name : t('未登录')
+})
+
 const doUser = async () => {
     if (!AppConfig.userEnable) {
         return
@@ -29,11 +34,22 @@ const doUser = async () => {
 
 <template>
     <div class="page-nav-container flex flex-col h-full">
-        <div class="py-4 px-3 cursor-pointer"
-             @click="doUser">
-            <img v-if="!user.isInit||!user.user.id" class="rounded-full border border-solid border-gray-200"
-                 src="./../assets/image/avatar.svg"/>
-            <img v-else :src="user.user.avatar as string" class="rounded-full border border-solid border-gray-200"/>
+        <div class="py-4 px-3 " :class="AppConfig.userEnable?'cursor-pointer':''" @click="doUser">
+            <a-tooltip v-if="AppConfig.userEnable"
+                       :content="userTip as string" position="right">
+                <img v-if="!user.isInit||!user.user.id"
+                     class="rounded-full border border-solid border-gray-200"
+                     src="./../assets/image/avatar.svg"/>
+                <img v-else :src="user.user.avatar as string"
+                     class="rounded-full border border-solid border-gray-200"/>
+            </a-tooltip>
+            <div v-else>
+                <img v-if="!user.isInit||!user.user.id"
+                     class="rounded-full border border-solid border-gray-200"
+                     src="./../assets/image/avatar.svg"/>
+                <img v-else :src="user.user.avatar as string"
+                     class="rounded-full border border-solid border-gray-200"/>
+            </div>
         </div>
         <div class="flex-grow mt-2">
             <a class="page-nav-item block text-center py-3"

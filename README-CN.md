@@ -41,6 +41,25 @@
 
 ![](./screenshots/cn/appmanage.png)
 
+## 安装使用
+
+### Windows
+
+- 访问 [https://linkandroid.com](https://linkandroid.com) 下载 Windows 安装包，一键安装即可
+
+### MacOS
+
+- 访问 [https://linkandroid.com](https://linkandroid.com) 下载 MacOS 安装包，一键安装完成；
+- 手动安装 `scrcpy`，可参考 [scrcpy 教程](https://github.com/Genymobile/scrcpy)
+  - [https://github.com/Genymobile/scrcpy/blob/master/doc/macos.md](https://github.com/Genymobile/scrcpy/blob/master/doc/macos.md)
+
+### Linux
+
+- 访问 [https://linkandroid.com](https://linkandroid.com) 下载 Linux 安装包，一键安装完成；
+- 手动安装 `scrcpy`，可参考 [scrcpy 教程](https://github.com/Genymobile/scrcpy)
+    - [https://github.com/Genymobile/scrcpy/blob/master/doc/linux.md](https://github.com/Genymobile/scrcpy/blob/master/doc/linux.md)
+
+ 
 ## 技术栈
 
 - `electron`

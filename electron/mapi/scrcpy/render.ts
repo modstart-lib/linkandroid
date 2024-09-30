@@ -4,6 +4,7 @@ import which from 'which'
 import Config from "../config/render";
 import {extraResolve} from "../../lib/env";
 import {Apps} from "../app";
+import fs from "node:fs";
 
 const exec = util.promisify(_exec)
 
