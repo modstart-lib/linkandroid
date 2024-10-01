@@ -39,5 +39,9 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-            path: dist-release/*
+            path: |
+                dist-release/*.exe
+                dist-release/*.dmg
+                dist-release/*.AppImage
+                dist-release/*.deb
 
