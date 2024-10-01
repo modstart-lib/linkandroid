@@ -28,7 +28,7 @@ const ready = () => {
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: ('显示主界面'),
+            label: t('显示主界面'),
             click: () => {
                 showApp()
             },

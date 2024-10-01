@@ -6,14 +6,16 @@ import UpdaterButton from "../components/common/UpdaterButton.vue";
 import {TabContentScroller} from "../lib/ui";
 
 const locales = ref(listLocales())
-const common = ref({
+const basic = ref({
     locale: null as string | null,
     adbPath: null as string | null,
     scrcpyPath: null as string | null,
+    exitMode: '',
 })
 const doLoad = async () => {
-    common.value.adbPath = await window.$mapi.adb.getBinPath()
-    common.value.scrcpyPath = await window.$mapi.scrcpy.getBinPath()
+    basic.value.adbPath = await window.$mapi.adb.getBinPath()
+    basic.value.scrcpyPath = await window.$mapi.scrcpy.getBinPath()
+    basic.value.exitMode = await window.$mapi.config.get('exitMode', '')
 }
 
 onMounted(doLoad)
@@ -38,6 +40,10 @@ const doSelectScrcpyPath = async () => {
         await doScrcpyPathChange(scrcpyPath)
     }
 }
+const onExitModeChange = async (value: string) => {
+    await window.$mapi.config.set('exitMode', value)
+    basic.value.exitMode = value
+}
 
 let tabContentScroller: TabContentScroller | null = null
 const contentContainer = ref<HTMLElement | null>(null)
@@ -56,11 +62,11 @@ onBeforeUnmount(() => {
 })
 
 onMounted(async () => {
-    common.value.locale = await getLocale()
+    basic.value.locale = await getLocale()
 })
 const onLocaleChange = (value: string) => {
     changeLocale(value)
-    common.value.locale = value as any
+    basic.value.locale = value as any
 }
 
 
@@ -70,7 +76,7 @@ const onLocaleChange = (value: string) => {
     <div class="flex select-none">
         <div ref="tabContainer"
              class="p-8 w-56 flex-shrink-0 border-r border-solid border-gray-100">
-            <div data-section="common" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer bg-gray-100">
+            <div data-section="basic" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer bg-gray-100">
                 <div class="text-base">
                     <icon-settings/>
                     {{ t('基础设置') }}
@@ -87,16 +93,16 @@ const onLocaleChange = (value: string) => {
             <div ref="contentContainer"
                  class="overflow-y-auto p-8 leading-8"
                  style="height:calc(100vh - var(--window-header-height));">
-                <div data-section="common" class="scroll-mt-4">
+                <div data-section="basic" class="scroll-mt-4">
                     <div class="text-base font-bold mb-4">
                         {{ t('基础设置') }}
                     </div>
                     <div>
-                        <a-form :model="common" layout="vertical">
+                        <a-form :model="basic" layout="vertical">
                             <a-form-item field="name" :label="t('adb路径')">
                                 <a-input
                                     @change="doAdbPathChange"
-                                    v-model="common.adbPath as string">
+                                    v-model="basic.adbPath as string">
                                     <template #append>
                                         <span @click="doSelectAdbPath"
                                               class="cursor-pointer">
@@ -108,7 +114,7 @@ const onLocaleChange = (value: string) => {
                             <a-form-item field="name" :label="t('scrcpy路径')">
                                 <a-input
                                     @change="doScrcpyPathChange"
-                                    v-model="common.scrcpyPath as string">
+                                    v-model="basic.scrcpyPath as string">
                                     <template #append>
                                         <span @click="doSelectScrcpyPath"
                                               class="cursor-pointer">
@@ -118,13 +124,20 @@ const onLocaleChange = (value: string) => {
                                 </a-input>
                             </a-form-item>
                             <a-form-item field="name" :label="t('语言')">
-                                <a-select :model-value="common.locale as string"
+                                <a-select :model-value="basic.locale as string"
                                           @change="onLocaleChange as any">
                                     <a-option v-for="(l,lIndex) in locales"
                                               :key="l.name"
                                               :value="l.name">{{ l.label }}
                                     </a-option>
                                 </a-select>
+                            </a-form-item>
+                            <a-form-item field="name" :label="t('点击关闭时')">
+                                <a-radio-group v-model="basic.exitMode" @change="onExitModeChange">
+                                    <a-radio value="exit">{{ t('直接退出') }}</a-radio>
+                                    <a-radio value="hide">{{ t('隐藏窗口') }}</a-radio>
+                                    <a-radio value="">{{ t('每次询问') }}</a-radio>
+                                </a-radio-group>
                             </a-form-item>
                         </a-form>
                     </div>

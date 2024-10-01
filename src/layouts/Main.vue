@@ -7,8 +7,8 @@ import AppQuitConfirm from "../components/AppQuitConfirm.vue";
 const appQuitConfirm = ref<InstanceType<typeof AppQuitConfirm> | null>(null);
 const platform = ref('')
 
-const doQuit = () => {
-    appQuitConfirm.value?.show()
+const doQuit = async () => {
+    await appQuitConfirm.value?.show()
 }
 
 onBeforeMount(() => {

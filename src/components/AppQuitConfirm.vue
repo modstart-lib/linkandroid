@@ -1,24 +1,45 @@
 <script setup lang="ts">
 
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 
 const visible = ref(false)
-const show = () => {
-    visible.value = true
-}
+const remember = ref(false)
+// exit | hide
+const exitMode = ref('')
 
-const doMin = () => {
-    visible.value = false
-    window.$mapi.app.windowHide()
+const show = async () => {
+    exitMode.value = await window.$mapi.config.get('exitMode', '')
+    if (exitMode.value) {
+        if (exitMode.value === 'exit') {
+            await doExit()
+        } else if (exitMode.value === 'hide') {
+            await doHide()
+        }
+        return
+    }
+    visible.value = true
 }
 
 const doCancel = () => {
     visible.value = false
 }
 
-const doConfirm = () => {
+const doHide = async () => {
+    if (remember.value) {
+        exitMode.value = 'hide'
+        await window.$mapi.config.set('exitMode', exitMode.value)
+    }
     visible.value = false
-    window.$mapi.app.quit()
+    await window.$mapi.app.windowHide()
+}
+
+const doExit = async () => {
+    if (remember.value) {
+        exitMode.value = 'exit'
+        await window.$mapi.config.set('exitMode', exitMode.value)
+    }
+    visible.value = false
+    await window.$mapi.app.quit()
 }
 
 defineExpose({
@@ -35,12 +56,15 @@ defineExpose({
              :title="$t('提示')"
              title-align="start">
         <template #footer>
-            <a-button @click="doMin">{{ $t('隐藏窗口') }}</a-button>
             <a-button @click="doCancel">{{ $t('取消') }}</a-button>
-            <a-button type="primary" @click="doConfirm">{{ $t('确定') }}</a-button>
+            <a-button @click="doHide">{{ $t('隐藏窗口') }}</a-button>
+            <a-button type="primary" @click="doExit">{{ $t('退出') }}</a-button>
         </template>
         <div>
             <div class="text-center">{{ $t('确定退出软件？') }}</div>
+            <div class="text-center">
+                <a-checkbox v-model="remember">{{ $t('记住我的选择') }}</a-checkbox>
+            </div>
         </div>
     </a-modal>
 </template>

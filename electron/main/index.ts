@@ -5,6 +5,7 @@ import os from 'node:os'
 
 /** process.js 必须位于非依赖项的顶部 */
 import {isDummy} from "../lib/process";
+
 const isDummyNew = isDummy
 
 import {AppEnv, AppRuntime} from "../mapi/env";
@@ -137,9 +138,6 @@ function createWindow() {
                 try {
                     AppRuntime.splashWindow?.close()
                     AppRuntime.splashWindow = null
-                    if (!isPackaged) {
-                        AppRuntime.mainWindow.webContents.openDevTools()
-                    }
                 } catch (e) {
                 }
             }, 1000);
