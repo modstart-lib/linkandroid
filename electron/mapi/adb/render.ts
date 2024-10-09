@@ -1,7 +1,7 @@
 import {exec as _exec} from 'node:child_process'
 import util from 'node:util'
 import {Adb} from '@devicefarmer/adbkit'
-import {extraResolve} from "../../lib/env";
+import {extraResolve, platformArch, platformName} from "../../lib/env";
 import Config from "../config/render";
 import {FileUtil, TimeUtil} from "../../lib/util";
 import dayjs from "dayjs";
@@ -28,12 +28,16 @@ const getBinPath = async () => {
     if (binPath) {
         return binPath
     }
-    switch (process.platform) {
-        case 'win32':
+    const arch = platformArch()
+    switch (platformName()) {
+        case 'win':
             return extraResolve('win/android-platform-tools/adb.exe')
-        case 'darwin':
+        case 'osx':
             return extraResolve('mac/android-platform-tools/adb')
         case 'linux':
+            if ('arm64' == arch) {
+                return extraResolve('linux/android-platform-tools/adb')
+            }
             return extraResolve('linux/android-platform-tools/adb')
     }
 }

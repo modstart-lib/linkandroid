@@ -1,10 +1,10 @@
-import {BrowserWindow, globalShortcut} from "electron";
+import {BrowserWindow, globalShortcut, app} from "electron";
 
 const eventListeners = {}
 
 // 连续点击的快捷键
 let continuousKeys = []
-const addKey = (key, expire = 1000) => {
+const addKey = (key: string, expire = 1000) => {
     let now = Date.now()
     continuousKeys.push({key, expire: now + expire})
     continuousKeys = continuousKeys.filter(item => item.expire > now)
@@ -40,12 +40,18 @@ const ready = () => {
         }
     });
 
-    globalShortcut.register('CommandOrControl+M', () => {
-        addKey('CommandOrControl+M')
+    app.on('browser-window-focus', () => {
+        globalShortcut.register('CommandOrControl+M', () => {
+            addKey('CommandOrControl+M')
+        });
+        globalShortcut.register('CommandOrControl+O', () => {
+            addKey('CommandOrControl+O')
+        });
     });
-    globalShortcut.register('CommandOrControl+O', () => {
-        addKey('CommandOrControl+O')
-    });
+
+    app.on('browser-window-blur', () => {
+        globalShortcut.unregisterAll();
+    })
 
 }
 
