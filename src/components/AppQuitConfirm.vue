@@ -60,8 +60,10 @@ defineExpose({
         </template>
         <div>
             <div class="text-center">{{ $t('确定退出软件？') }}</div>
-            <div class="text-center">
-                <a-checkbox v-model="remember">{{ $t('记住我的选择') }}</a-checkbox>
+            <div class="text-center mt-4">
+                <a-checkbox v-model="remember">
+                    <span class="text-sm text-gray-500">{{ $t('记住我的选择') }}</span>
+                </a-checkbox>
             </div>
         </div>
     </a-modal>
