@@ -235,7 +235,7 @@ const doHelp = () => {
                                             {{ $t('置顶') }}
                                         </a-doption>
                                         <a-doption @click="infoDialog?.show(r)">
-                                            {{ $t('详情') }}
+                                            {{ $t('设备设置') }}
                                         </a-doption>
                                         <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">
                                             {{ $t('删除设备') }}

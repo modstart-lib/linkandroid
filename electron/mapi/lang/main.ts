@@ -23,7 +23,7 @@ const fileSyncer = {
         this.lock[file] = sourceContent
         return JSON.parse(sourceContent)
     },
-    writeJson: async function (file: string, data: any) {
+    writeJson: async function (file: string, data: any, order: 'key' | 'value' = 'key') {
         if (!this.lock[file]) {
             return new Promise<any>((resolve) => {
                 setTimeout(() => {
@@ -35,7 +35,14 @@ const fileSyncer = {
             AppEnv.appRoot,
             file,
         ].join('/'))
-        const jsonString = JsonUtil.stringifyOrdered(data)
+        let jsonString
+        if (order === 'key') {
+            jsonString = JsonUtil.stringifyOrdered(data)
+        } else {
+            console.log('xxx', data)
+            jsonString = JsonUtil.stringifyValueOrdered(data)
+            console.log('xxx', jsonString)
+        }
         if (jsonString !== this.lock[file]) {
             await Files.write(filePath, jsonString)
         }
@@ -64,7 +71,7 @@ const writeSourceKeyUse = async (key: string) => {
     } else {
         json[key]++
     }
-    await fileSyncer.writeJson('src/lang/source-use.json', json)
+    await fileSyncer.writeJson('src/lang/source-use.json', json, 'value')
 }
 
 ipcMain.handle('lang:writeSourceKey', async (_, key) => {

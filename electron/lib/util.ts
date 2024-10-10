@@ -92,5 +92,14 @@ export const FileUtil = {
 export const JsonUtil = {
     stringifyOrdered(obj: any) {
         return JSON.stringify(obj, Object.keys(obj).sort(), 4)
+    },
+    stringifyValueOrdered(obj: any) {
+        const sortedData = Object.fromEntries(
+            Object.entries(obj).sort(([, a], [, b]) => {
+                // @ts-ignore
+                return a as any - b as any
+            })
+        );
+        return JSON.stringify(sortedData, null, 4)
     }
 }
