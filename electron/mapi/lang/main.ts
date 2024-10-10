@@ -39,9 +39,7 @@ const fileSyncer = {
         if (order === 'key') {
             jsonString = JsonUtil.stringifyOrdered(data)
         } else {
-            console.log('xxx', data)
             jsonString = JsonUtil.stringifyValueOrdered(data)
-            console.log('xxx', jsonString)
         }
         if (jsonString !== this.lock[file]) {
             await Files.write(filePath, jsonString)
@@ -55,6 +53,7 @@ const writeSourceKey = async (key: string) => {
     const sourceIds: string[] = Object.values(json)
     if (!json[key]) {
         json[key] = StrUtil.hashCodeWithDuplicateCheck(key, sourceIds)
+        console.log('Lang.autoWriteSourceKey', key, json[key])
     }
     await fileSyncer.writeJson('src/lang/source.json', json)
     for (let l of langMessageList) {
