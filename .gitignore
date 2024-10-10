@@ -30,3 +30,4 @@ pnpm-lock.yaml
 yarn.lock
 
 src/lang/source-use.json
+/data

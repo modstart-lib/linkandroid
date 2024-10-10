@@ -1,0 +1,62 @@
+<script setup lang="ts">
+
+import {AppConfig} from "../../config";
+import {t} from "../../lang";
+import UpdaterButton from "../common/UpdaterButton.vue";
+
+const licenseYear = new Date().getFullYear()
+
+</script>
+
+<template>
+    <div class="flex mb-3">
+        <div class="w-20">{{ t('版本') }}</div>
+        <div class="flex-grow">
+            <div class="inline-block">
+                v{{ AppConfig.version }}
+            </div>
+            <div class="inline-block ml-3">
+                <UpdaterButton/>
+            </div>
+        </div>
+    </div>
+    <div class="flex mb-3">
+        <div class="w-20">{{ t('官网') }}</div>
+        <div class="flex-grow">
+            <a :href="AppConfig.website" target="_blank"
+               class="text-link">
+                {{ AppConfig.website }}
+            </a>
+            <a :href="AppConfig.feedbackUrl"
+               target="_blank"
+               class="arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-medium arco-btn-status-normal ml-3">
+                <icon-customer-service class="mr-1"/>
+                {{ t('使用反馈') }}
+            </a>
+        </div>
+    </div>
+    <div class="flex mb-3">
+        <div class="w-20">{{ t('声明') }}</div>
+        <div class="flex-grow">
+            {{ t('本产品为开源软件，遵循 GPL-3.0 license 协议。') }}
+        </div>
+    </div>
+    <div class="mb-3">
+        <a :href="AppConfig.websiteGithub"
+           target="_blank"
+           class="bg-gray-100 mr-1 rounded-lg py-2 px-8 inline-flex items-center mb-3 hover:shadow-lg">
+            <img src="./../../assets/image/github.svg" class="w-12 h-12 mr-2"/>
+            <div class="flex-grow">Github</div>
+        </a>
+        <a :href="AppConfig.websiteGitee"
+           target="_blank"
+           class="bg-gray-100 mr-1 rounded-lg py-2 px-8 inline-flex items-center hover:shadow-lg">
+            <img src="./../../assets/image/gitee.svg" class="w-12 h-12 mr-2"/>
+            <div class="flex-grow">Gitee</div>
+        </a>
+    </div>
+    <div class="text-gray-400">
+        &copy; {{ licenseYear }} {{ AppConfig.name }}
+    </div>
+</template>
+

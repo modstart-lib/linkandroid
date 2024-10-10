@@ -1,6 +1,7 @@
 import {debounce} from 'lodash-es'
 import {createStderr, createStdout, textFormatter} from 'vue-command'
 import {useFixCursor} from "./index";
+import {t} from "../../../lang";
 
 export const useAdbCommand = ({loading, vueCommand, history}) => {
     const adbCommand = async (args) => {
@@ -22,6 +23,22 @@ export const useAdbCommand = ({loading, vueCommand, history}) => {
                 useFixCursor(history)
                 appendToHistory(createStderr(stderrText))
             },
+            success() {
+                if (!stdoutText) {
+                    stdoutText += t('执行成功')
+                }
+                useFixCursor(history)
+                appendToHistory(createStderr(stdoutText))
+                loading.value = false
+            },
+            error() {
+                if (!stdoutText) {
+                    stdoutText += t('执行失败')
+                }
+                useFixCursor(history)
+                appendToHistory(createStderr(stdoutText))
+                loading.value = false
+            }
         })
         return textFormatter('Waiting...')
     }

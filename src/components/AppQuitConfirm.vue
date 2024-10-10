@@ -1,14 +1,14 @@
 <script setup lang="ts">
 
-import {onMounted, ref} from "vue";
+import {ref} from "vue";
+import {useSettingStore} from "../store/modules/setting";
 
 const visible = ref(false)
 const remember = ref(false)
-// exit | hide
-const exitMode = ref('')
+const setting = useSettingStore()
+const exitMode = setting.configGet('exitMode', '')
 
 const show = async () => {
-    exitMode.value = await window.$mapi.config.get('exitMode', '')
     if (exitMode.value) {
         if (exitMode.value === 'exit') {
             await doExit()
@@ -26,8 +26,7 @@ const doCancel = () => {
 
 const doHide = async () => {
     if (remember.value) {
-        exitMode.value = 'hide'
-        await window.$mapi.config.set('exitMode', exitMode.value)
+        await setting.setConfig('exitMode', 'hide')
     }
     visible.value = false
     await window.$mapi.app.windowHide()
@@ -35,8 +34,7 @@ const doHide = async () => {
 
 const doExit = async () => {
     if (remember.value) {
-        exitMode.value = 'exit'
-        await window.$mapi.config.set('exitMode', exitMode.value)
+        await setting.setConfig('exitMode', 'exit')
     }
     visible.value = false
     await window.$mapi.app.quit()
