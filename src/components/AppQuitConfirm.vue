@@ -55,8 +55,8 @@ defineExpose({
              title-align="start">
         <template #footer>
             <a-button @click="doCancel">{{ $t('取消') }}</a-button>
-            <a-button @click="doHide">{{ $t('隐藏窗口') }}</a-button>
-            <a-button type="primary" @click="doExit">{{ $t('退出') }}</a-button>
+            <a-button @click="doExit">{{ $t('退出') }}</a-button>
+            <a-button type="primary" @click="doHide">{{ $t('隐藏窗口') }}</a-button>
         </template>
         <div>
             <div class="text-center">{{ $t('确定退出软件？') }}</div>
