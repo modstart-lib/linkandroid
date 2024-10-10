@@ -85,6 +85,11 @@ declare interface Window {
                 data: any,
             }) => Promise<void>,
         },
+        misc: {
+            // define any string to any value
+            [key: string]: Function,
+        },
+
         adb: {
             getBinPath: () => Promise<string>,
             setBinPath: (binPath: string) => Promise<boolean>,

@@ -13,6 +13,8 @@ import statistics from "./statistics/render";
 import lang from "./lang/render";
 import page from "./page/render";
 import user from "./user/render";
+import misc from "./misc/render";
+
 import adb from "./adb/render";
 import scrcpy from "./scrcpy/render";
 import ffmpeg from "./ffmpeg/render";
@@ -33,10 +35,12 @@ export const MAPI = {
                 statistics,
                 page,
                 lang,
+                user,
+                misc,
+
                 adb,
                 scrcpy,
                 ffmpeg,
-                user,
             })
             event.init()
             ui.init()

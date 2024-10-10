@@ -8,6 +8,7 @@ import ui from "./ui";
 import keys from "./keys/main";
 import page from "./page/main";
 import user from "./user/main";
+import misc from "./misc/main";
 
 const $mapi = {
     app,
@@ -20,6 +21,7 @@ const $mapi = {
     keys,
     page,
     user,
+    misc
 }
 
 export const MAPI = {
