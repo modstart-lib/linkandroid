@@ -1,4 +1,4 @@
-import {dialog, ipcMain} from "electron";
+import {dialog, ipcMain, shell} from "electron";
 import fileIndex from "./index";
 
 ipcMain.handle('file:openFile', async (_, options) => {
@@ -40,6 +40,10 @@ ipcMain.handle('file:openSave', async (_, options) => {
         return null
     }
     return res.filePath || null
+})
+
+ipcMain.handle('file:openPath', async (_, path, options) => {
+    return shell.openPath(path)
 })
 
 export default {

@@ -19,7 +19,7 @@ const onLocaleChange = (value: string) => {
 </script>
 
 <template>
-    <a-form :model="null as any" layout="vertical">
+    <a-form :model="{}" layout="vertical">
         <a-form-item field="name" :label="t('语言')">
             <a-select :model-value="locale as string"
                       @change="onLocaleChange as any">

@@ -14,8 +14,37 @@ const logsDir = () => {
     return path.join(AppEnv.userData, 'logs')
 }
 
+const root = () => {
+    return logsDir()
+}
+
 const file = () => {
     return path.join(logsDir(), 'log_' + stringDatetime() + '.log')
+}
+
+const cleanOldLogs = (keepDays: number) => {
+    const logDir = logsDir()
+    if (!fs.existsSync(logDir)) {
+        return
+    }
+    const files = fs.readdirSync(logDir)
+    const now = new Date()
+    files.forEach(file => {
+        const filePath = path.join(logDir, file)
+        const d = file.split('_')[1].split('.')[0];
+        // YYYYMMDD to Date
+        const fileDate = new Date(
+            parseInt(d.substring(0, 4)),
+            parseInt(d.substring(4, 6)) - 1,
+            parseInt(d.substring(6, 8))
+        )
+        const diff = Math.abs(now.getTime() - fileDate.getTime())
+        const diffDays = Math.ceil(diff / (1000 * 3600 * 24))
+        // console.log('fileDate', file, fileDate, diffDays)
+        if (diffDays > keepDays) {
+            fs.unlinkSync(filePath)
+        }
+    })
 }
 
 const log = (level: 'INFO' | 'ERROR', label: string, data: any = null) => {
@@ -29,6 +58,7 @@ const log = (level: 'INFO' | 'ERROR', label: string, data: any = null) => {
             fileStream.end()
         }
         fileStream = fs.createWriteStream(fileName, {flags: 'a'})
+        cleanOldLogs(14)
     }
     let line = []
     line.push(date.format(new Date(), 'YYYY-MM-DD HH:mm:ss'))
@@ -68,6 +98,7 @@ const errorRenderOrMain = (label: string, data: any = null) => {
 
 
 export default {
+    root,
     info,
     error,
     infoRenderOrMain,

@@ -41,7 +41,7 @@ const doSelectScrcpyPath = async () => {
 </script>
 
 <template>
-    <a-form :model="null as any" layout="vertical">
+    <a-form :model="{}" layout="vertical">
         <a-form-item field="name" :label="t('adb路径')">
             <a-input
                 @change="doAdbPathChange"

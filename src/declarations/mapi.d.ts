@@ -20,6 +20,7 @@ declare interface Window {
             all: () => Promise<any>,
         },
         log: {
+            root: () => string,
             info: (msg: string, data: any = null) => Promise<void>,
             error: (msg: string, data: any = null) => Promise<void>,
         },
@@ -29,6 +30,7 @@ declare interface Window {
             set: (group: string, key: string, value: any) => Promise<void>,
         },
         file: {
+            fullPath: (path: string) => Promise<string>,
             absolutePath: (path: string) => string,
             exists: (path: string) => Promise<boolean>,
             isDirectory: (path: string) => Promise<boolean>,
@@ -45,6 +47,7 @@ declare interface Window {
             openFile: (options: {} = {}) => Promise<any>,
             openDirectory: (options: {} = {}) => Promise<any>,
             openSave: (options: {} = {}) => Promise<any>,
+            openPath: (path: string, options: {} = {}) => Promise<void>,
         },
         updater: {
             checkForUpdate: () => Promise<ApiResult<any>>,

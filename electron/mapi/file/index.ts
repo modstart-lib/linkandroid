@@ -184,6 +184,7 @@ const tempDir = async (prefix: string = 'dir') => {
 }
 
 export default {
+    fullPath,
     absolutePath,
     exists,
     isDirectory,

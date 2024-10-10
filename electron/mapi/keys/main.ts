@@ -4,7 +4,7 @@ const eventListeners = {}
 
 // 连续点击的快捷键
 let continuousKeys = []
-const addKey = (key: string, expire = 1000) => {
+const addKeyInput = (key: string, expire = 1000) => {
     let now = Date.now()
     continuousKeys.push({key, expire: now + expire})
     continuousKeys = continuousKeys.filter(item => item.expire > now)
@@ -17,7 +17,7 @@ const addKey = (key: string, expire = 1000) => {
     }
 }
 
-const addKeyListener = (keys, callback) => {
+const addMultiKeyListener = (keys: string[], callback: Function) => {
     if (!Array.isArray(keys)) {
         keys = [keys]
     }
@@ -25,9 +25,35 @@ const addKeyListener = (keys, callback) => {
     eventListeners[key] = callback
 }
 
+const createKeyInputListener = (key: string) => {
+    return () => {
+        addKeyInput(key)
+    }
+}
+
+const keyMap = {
+    'CommandOrControl+L': createKeyInputListener('CommandOrControl+L'),
+    'CommandOrControl+A': createKeyInputListener('CommandOrControl+A'),
+    'CommandOrControl+C': createKeyInputListener('CommandOrControl+C'),
+}
+
 const ready = () => {
 
-    addKeyListener(['CommandOrControl+M', 'CommandOrControl+O'], () => {
+    app.on('browser-window-focus', () => {
+        for (let key in keyMap) {
+            globalShortcut.register(key, keyMap[key])
+        }
+    });
+
+    app.on('browser-window-blur', () => {
+        for (let key in keyMap) {
+            globalShortcut.unregister(key)
+        }
+    })
+
+    addMultiKeyListener([
+        'CommandOrControl+L', 'CommandOrControl+A', 'CommandOrControl+C'
+    ], () => {
         let focusedWindow = BrowserWindow.getFocusedWindow();
         if (focusedWindow) {
             if (focusedWindow.webContents.isDevToolsOpened()) {
@@ -39,19 +65,6 @@ const ready = () => {
             }
         }
     });
-
-    app.on('browser-window-focus', () => {
-        globalShortcut.register('CommandOrControl+M', () => {
-            addKey('CommandOrControl+M')
-        });
-        globalShortcut.register('CommandOrControl+O', () => {
-            addKey('CommandOrControl+O')
-        });
-    });
-
-    app.on('browser-window-blur', () => {
-        globalShortcut.unregisterAll();
-    })
 
 }
 

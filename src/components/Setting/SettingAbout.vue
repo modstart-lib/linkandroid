@@ -6,10 +6,14 @@ import UpdaterButton from "../common/UpdaterButton.vue";
 
 const licenseYear = new Date().getFullYear()
 
+const doOpenLog = async () => {
+    await window.$mapi.file.openPath(window.$mapi.log.root())
+}
+
 </script>
 
 <template>
-    <div class="flex mb-3">
+    <div class="flex mb-3 items-center">
         <div class="w-20">{{ t('版本') }}</div>
         <div class="flex-grow">
             <div class="inline-block">
@@ -20,7 +24,7 @@ const licenseYear = new Date().getFullYear()
             </div>
         </div>
     </div>
-    <div class="flex mb-3">
+    <div class="flex mb-3 items-center">
         <div class="w-20">{{ t('官网') }}</div>
         <div class="flex-grow">
             <a :href="AppConfig.website" target="_blank"
@@ -33,9 +37,16 @@ const licenseYear = new Date().getFullYear()
                 <icon-customer-service class="mr-1"/>
                 {{ t('使用反馈') }}
             </a>
+            <a-button class="ml-3"
+                      @click="doOpenLog">
+                <template #icon>
+                    <icon-file/>
+                </template>
+                {{ t('日志') }}
+            </a-button>
         </div>
     </div>
-    <div class="flex mb-3">
+    <div class="flex mb-3 items-center">
         <div class="w-20">{{ t('声明') }}</div>
         <div class="flex-grow">
             {{ t('本产品为开源软件，遵循 GPL-3.0 license 协议。') }}
