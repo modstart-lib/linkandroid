@@ -10,15 +10,12 @@ const routes = [
             {path: 'home', component: () => import('./pages/Home.vue')},
             {path: 'device', component: () => import('./pages/Device.vue')},
             {path: 'setting', component: () => import('./pages/Setting.vue')},
-            {path: 'about', component: () => import('./pages/About.vue')},
-            {path: 'account', component: () => import('./pages/Account.vue')},
         ]
     },
     {
         path: '/',
         component: () => import('./layouts/Raw.vue'),
         children: [
-            {path: 'login', component: () => import('./pages/Login.vue')},
         ]
     },
 ]
