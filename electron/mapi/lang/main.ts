@@ -1,7 +1,7 @@
 import {Files} from "../file/main";
 import {AppEnv} from "../env";
 import {JsonUtil, StrUtil} from "../../lib/util";
-import {ConfigLang} from "../../config/lang";
+import {langMessageList} from "../../config/lang";
 import {ipcMain} from "electron";
 
 const fileSyncer = {
@@ -45,26 +45,16 @@ const fileSyncer = {
 
 const writeSourceKey = async (key: string) => {
     const json = await fileSyncer.readJson('src/lang/source.json')
-    const sourceIds = Object.values(json)
+    const sourceIds: string[] = Object.values(json)
     if (!json[key]) {
-        let success = false
-        let id = StrUtil.hashCode(key)
-        for (let i = 0; i < 10; i++) {
-            if (!sourceIds.includes(id)) {
-                json[key] = id
-                success = true
-                break
-            }
-            id = StrUtil.uuid().substring(0, 8)
-        }
-        if (!success) {
-            console.log('writeSourceKey.error', key)
-        }
+        json[key] = StrUtil.hashCodeWithDuplicateCheck(key, sourceIds)
     }
     await fileSyncer.writeJson('src/lang/source.json', json)
-    const jsonLang = await fileSyncer.readJson(`src/lang/${ConfigLang.getLocale()}.json`)
-    jsonLang[json[key]] = key
-    await fileSyncer.writeJson(`src/lang/${ConfigLang.getLocale()}.json`, jsonLang)
+    for (let l of langMessageList) {
+        const jsonLang = await fileSyncer.readJson(`src/lang/${l.name}.json`)
+        jsonLang[json[key]] = key
+        await fileSyncer.writeJson(`src/lang/${l.name}.json`, jsonLang)
+    }
 }
 
 const writeSourceKeyUse = async (key: string) => {

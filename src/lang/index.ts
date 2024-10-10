@@ -1,14 +1,12 @@
 import {createI18n} from "vue-i18n";
 
 import {isDev} from "../lib/env";
-import {StringUtil} from "../lib/util";
-
-let localeInit = false
-export const defaultLocale = 'zh-CN'
-
 import source from "./source.json";
 import enUS from "./en-US.json";
 import zhCN from "./zh-CN.json";
+
+let localeInit = false
+export const defaultLocale = 'zh-CN'
 
 export const messageList = [
     {
@@ -117,74 +115,4 @@ export const t = (key: string, param: object | null = null) => {
     }
     // @ts-ignore
     return i18n.global.t(key, param as any)
-}
-
-const fileSyncer = {
-    lock: {},
-    readJson: async function (file: string) {
-        if (this.lock[file]) {
-            return new Promise<any>((resolve) => {
-                setTimeout(() => {
-                    resolve(this.readJson(file))
-                }, 100)
-            })
-        }
-        this.lock[file] = true
-        const appEnv = await window.$mapi.app.appEnv()
-        let filePath = window.$mapi.file.absolutePath([
-            appEnv.appRoot,
-            file,
-        ].join('/'))
-        const sourceContent = (await window.$mapi.file.read(filePath)) || '{}'
-        this.lock[file] = sourceContent
-        return JSON.parse(sourceContent)
-    },
-    writeJson: async function (file: string, data: any) {
-        if (!this.lock[file]) {
-            return new Promise<any>((resolve) => {
-                setTimeout(() => {
-                    resolve(this.writeJson(file, data))
-                }, 100)
-            })
-        }
-        const appEnv = await window.$mapi.app.appEnv()
-        let filePath = window.$mapi.file.absolutePath([
-            appEnv.appRoot,
-            file,
-        ].join('/'))
-        const jsonString = JSON.stringify(data, null, 4)
-        if (jsonString !== this.lock[file]) {
-            await window.$mapi.file.write(filePath, jsonString)
-        }
-        this.lock[file] = false
-    }
-}
-
-const writeSourceKey = async (key: string) => {
-    const json = await fileSyncer.readJson('src/lang/source.json')
-    const sourceIds = Object.values(json)
-    if (!json[key]) {
-        for (let i = 0; i < 10; i++) {
-            const id = StringUtil.uuid().substring(0, 8)
-            if (!sourceIds.includes(id)) {
-                json[key] = id
-                break
-            }
-        }
-    }
-    await fileSyncer.writeJson('src/lang/source.json', json)
-    const locale = await getLocale()
-    const jsonLang = await fileSyncer.readJson(`src/lang/${locale}.json`)
-    jsonLang[json[key]] = key
-    await fileSyncer.writeJson(`src/lang/${locale}.json`, jsonLang)
-}
-
-const writeSourceKeyUse = async (key: string) => {
-    const json = await fileSyncer.readJson('src/lang/source-use.json')
-    if (!json[key]) {
-        json[key] = 1
-    } else {
-        json[key]++
-    }
-    await fileSyncer.writeJson('src/lang/source-use.json', json)
 }

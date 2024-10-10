@@ -40,6 +40,13 @@ export const StrUtil = {
             result = '0'.repeat(length - result.length) + result
         }
         return result
+    },
+    hashCodeWithDuplicateCheck(str: string, check: string[], length: number = 8) {
+        let code = this.hashCode(str, length)
+        while (check.includes(code)) {
+            code = this.uuid().substring(0, length)
+        }
+        return code
     }
 }
 

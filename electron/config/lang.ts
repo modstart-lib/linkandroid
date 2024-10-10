@@ -9,7 +9,7 @@ export const defaultLocale = 'zh-CN'
 
 let locale = defaultLocale
 
-export const messageList = [
+export const langMessageList = [
     {
         name: 'en-US',
         label: 'English',
@@ -24,7 +24,7 @@ export const messageList = [
 
 const buildMessages = (): any => {
     let messages = {}
-    for (let m of messageList) {
+    for (let m of langMessageList) {
         let msgList = {}
         for (let k in source) {
             const v = source[k]
