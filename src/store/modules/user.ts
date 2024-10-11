@@ -3,6 +3,9 @@ import store from "../index";
 import {userInfoApi} from "../../api/user";
 import {toRaw} from "vue";
 import {AppConfig} from "../../config";
+import {useSettingStore} from "./setting";
+
+const setting = useSettingStore()
 
 export const userStore = defineStore("user", {
     state() {
@@ -49,6 +52,7 @@ export const userStore = defineStore("user", {
             this.apiToken = result.data.apiToken
             this.user = Object.assign(this.user, result.data.user)
             this.data = result.data.data
+            await setting.initBasic(result.data.basic)
             const saved = toRaw({
                 apiToken: this.apiToken,
                 user: toRaw(this.user as any),

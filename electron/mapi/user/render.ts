@@ -8,7 +8,7 @@ const open = async (option: any) => {
 const get = async (): Promise<{
     apiToken: string,
     user: object,
-    data: any
+    data: any,
 }> => {
     return electron.ipcRenderer.invoke('user:get')
 }

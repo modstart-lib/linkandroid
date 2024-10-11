@@ -8,7 +8,7 @@ const init = () => {
 const get = async (): Promise<{
     apiToken: string,
     user: object,
-    data: any
+    data: any,
 }> => {
     const apiToken = await storage.get('user', 'apiToken', '')
     const user = await storage.get('user', 'user', {})
