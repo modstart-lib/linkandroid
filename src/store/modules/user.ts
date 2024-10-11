@@ -24,12 +24,10 @@ export const userStore = defineStore("user", {
             await this.refreshUserInfo()
         },
         async load() {
-            if (AppConfig.userEnable) {
-                const {apiToken, user, data} = await window.$mapi.user.get()
-                this.apiToken = apiToken
-                this.user = Object.assign(this.user, user)
-                this.data = data
-            }
+            const {apiToken, user, data} = await window.$mapi.user.get()
+            this.apiToken = apiToken
+            this.user = Object.assign(this.user, user)
+            this.data = data
             this.isInit = true
         },
         async waitInit() {
@@ -46,9 +44,6 @@ export const userStore = defineStore("user", {
             })
         },
         async refreshUserInfo() {
-            if (!AppConfig.userEnable) {
-                return
-            }
             const result = await userInfoApi()
             // console.log('refreshUserInfo', result)
             this.apiToken = result.data.apiToken

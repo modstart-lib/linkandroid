@@ -2,11 +2,13 @@ import {defineStore} from "pinia"
 import store from "../index";
 import {AppConfig} from "../../config";
 import {computed} from "vue";
+import {cloneDeep} from "lodash-es";
 
 export const settingStore = defineStore("setting", {
     state() {
         return {
             version: AppConfig.version,
+            basic: cloneDeep(AppConfig.basic),
             config: {},
         }
     },

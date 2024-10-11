@@ -4,9 +4,11 @@ import {useRouter} from 'vue-router'
 import {AppConfig} from "../config";
 import {useUserStore} from "../store/modules/user";
 import {t} from "../lang";
+import {useSettingStore} from "../store/modules/setting";
 
 const route = useRouter()
 const user = useUserStore()
+const setting = useSettingStore()
 
 const activeTab = computed(() => {
     switch (route.currentRoute.value.path) {
@@ -24,7 +26,7 @@ const userTip = computed(() => {
 })
 
 const doUser = async () => {
-    if (!AppConfig.userEnable) {
+    if (!setting.basic.userEnable) {
         return
     }
     await window.$mapi.user.open()
@@ -34,8 +36,8 @@ const doUser = async () => {
 
 <template>
     <div class="page-nav-container flex flex-col h-full">
-        <div class="py-4 px-3 " :class="AppConfig.userEnable?'cursor-pointer':''" @click="doUser">
-            <a-tooltip v-if="AppConfig.userEnable"
+        <div class="py-4 px-3 " :class="setting.basic.userEnable?'cursor-pointer':''" @click="doUser">
+            <a-tooltip v-if="setting.basic.userEnable"
                        :content="userTip as string" position="right">
                 <img v-if="!user.isInit||!user.user.id"
                      class="rounded-full border border-solid border-gray-200"
