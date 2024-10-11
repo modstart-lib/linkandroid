@@ -3,6 +3,7 @@ import store from "../index";
 import {AppConfig} from "../../config";
 import {computed} from "vue";
 import {cloneDeep} from "lodash-es";
+import {settingRequest} from "../../api/setting";
 
 export const settingStore = defineStore("setting", {
     state() {
@@ -15,6 +16,14 @@ export const settingStore = defineStore("setting", {
     actions: {
         async init() {
             this.config = await window.$mapi.config.all()
+            await this.initSetting()
+        },
+        async initSetting() {
+            try {
+                const result = await settingRequest()
+                this.basic = Object.assign(this.basic, result.data.basic)
+            } catch (e) {
+            }
         },
         async setConfig(key: string, value: any) {
             this.config[key] = value
