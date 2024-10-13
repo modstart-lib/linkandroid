@@ -45,7 +45,7 @@ export const TimeUtil = {
         if (h < 10) h = '0' + h
         if (m < 10) m = '0' + m
         if (s < 10) s = '0' + s
-        return `${h}:${m}:${s}`
+        return '00' == h ? `${m}:${s}` : `${h}:${m}:${s}`
     }
 }
 
