@@ -42,6 +42,7 @@ export const TimeUtil = {
         return dayjs().format('YYYYMMDD_HHmmss')
     },
     secondsToTime(seconds: number) {
+        seconds = parseInt(seconds.toString())
         let h: any = Math.floor(seconds / 3600)
         let m: any = Math.floor(seconds % 3600 / 60)
         let s: any = Math.floor(seconds % 60)

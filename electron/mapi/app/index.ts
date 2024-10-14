@@ -131,7 +131,7 @@ const spawnShell = async (command: string | string[], option: {
 const availablePort = async (start: number): Promise<number> => {
     for (let i = start; i < 65535; i++) {
         const available = await isPortAvailable('0.0.0.0', i)
-        console.log('isPortAvailable', i, available)
+        // console.log('isPortAvailable', i, available)
         if (available) {
             return i
         }
