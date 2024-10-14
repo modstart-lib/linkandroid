@@ -1,6 +1,7 @@
 import util from "node:util";
+import net from "node:net";
 import {exec as _exec, spawn} from "node:child_process";
-import {isWin} from "../../lib/env";
+import {isLinux, isMac, isWin} from "../../lib/env";
 import {Log} from "../log/index";
 
 const exec = util.promisify(_exec)
@@ -13,7 +14,7 @@ const shell = async (command: string) => {
     } as any)
 }
 
-const spawnShell = async (command: string, option: {
+const spawnShell = async (command: string | string[], option: {
     stdout?: Function,
     stderr?: Function,
     success?: Function,
@@ -24,8 +25,14 @@ const spawnShell = async (command: string, option: {
     result: () => Promise<string>
 }> => {
     option = option || {} as any
-    let args = command.split(' ')
-    const commandEntry = args.shift() as string
+    let commandEntry = '', args = []
+    if (Array.isArray(command)) {
+        commandEntry = command[0]
+        args = command.slice(1)
+    } else {
+        let args = command.split(' ')
+        commandEntry = args.shift() as string
+    }
     Log.info('App.spawnShell', {commandEntry, args})
     const spawnProcess = spawn(commandEntry, args, {
         env: {...process.env},
@@ -117,7 +124,51 @@ const spawnShell = async (command: string, option: {
     }
 }
 
+/**
+ * 获取一个可用的端口
+ * @param start 开始的端口
+ */
+const availablePort = async (start: number): Promise<number> => {
+    for (let i = start; i < 65535; i++) {
+        const available = await isPortAvailable('0.0.0.0', i)
+        console.log('isPortAvailable', i, available)
+        if (available) {
+            return i
+        }
+    }
+    throw new Error('no available port')
+}
+
+const isPortAvailable = async (host: string, port: number): Promise<boolean> => {
+
+    return new Promise((resolve) => {
+        const server = net.createServer()
+        server.listen(port, host)
+        server.on('listening', () => {
+            server.close()
+            resolve(true)
+        })
+        server.on('error', () => {
+            resolve(false)
+        })
+    })
+}
+
+const fixExecutable = async (executable: string) => {
+    if (isMac || isLinux) {
+        // chmod +x executable
+        await shell(`chmod +x "${executable}"`)
+    }
+}
+
 export const Apps = {
     shell,
     spawnShell,
+}
+
+export default {
+    shell,
+    spawnShell,
+    availablePort,
+    fixExecutable,
 }

@@ -14,6 +14,10 @@ const logsDir = () => {
     return path.join(AppEnv.userData, 'logs')
 }
 
+const appLogsDir = () => {
+    return path.join(AppEnv.userData, 'data/logs')
+}
+
 const root = () => {
     return logsDir()
 }
@@ -23,28 +27,45 @@ const file = () => {
 }
 
 const cleanOldLogs = (keepDays: number) => {
-    const logDir = logsDir()
-    if (!fs.existsSync(logDir)) {
-        return
-    }
-    const files = fs.readdirSync(logDir)
-    const now = new Date()
-    files.forEach(file => {
-        const filePath = path.join(logDir, file)
-        const d = file.split('_')[1].split('.')[0];
-        // YYYYMMDD to Date
-        const fileDate = new Date(
-            parseInt(d.substring(0, 4)),
-            parseInt(d.substring(4, 6)) - 1,
-            parseInt(d.substring(6, 8))
-        )
-        const diff = Math.abs(now.getTime() - fileDate.getTime())
-        const diffDays = Math.ceil(diff / (1000 * 3600 * 24))
-        // console.log('fileDate', file, fileDate, diffDays)
-        if (diffDays > keepDays) {
-            fs.unlinkSync(filePath)
+    const logDirs = [
+        // 系统日志
+        logsDir(),
+        // 应用日志
+        appLogsDir()
+    ]
+    for (const logDir of logDirs) {
+        if (!fs.existsSync(logDir)) {
+            return
         }
-    })
+        const files = fs.readdirSync(logDir)
+        const now = new Date()
+        // console.log('cleanOldLogs', logDir, files)
+        for (let file of files) {
+            const filePath = path.join(logDir, file)
+            let date = null
+            for (let s of file.split('_')) {
+                // 匹配 YYYYMMDD
+                if (s.match(/^\d{8}$/)) {
+                    date = s
+                    break
+                }
+            }
+            if (!date) {
+                continue
+            }
+            const fileDate = new Date(
+                parseInt(date.substring(0, 4)),
+                parseInt(date.substring(4, 6)) - 1,
+                parseInt(date.substring(6, 8))
+            )
+            const diff = Math.abs(now.getTime() - fileDate.getTime())
+            const diffDays = Math.ceil(diff / (1000 * 3600 * 24))
+            // console.log('fileDate', file, fileDate, diffDays)
+            if (diffDays > keepDays) {
+                fs.unlinkSync(filePath)
+            }
+        }
+    }
 }
 
 const log = (level: 'INFO' | 'ERROR', label: string, data: any = null) => {

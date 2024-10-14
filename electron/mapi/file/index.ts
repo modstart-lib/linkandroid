@@ -183,6 +183,96 @@ const tempDir = async (prefix: string = 'dir') => {
     return dir
 }
 
+const watchText = async (path: string, callback: (data: {}) => void): Promise<{
+    stop: Function,
+}> => {
+    if (!path) {
+        throw new Error('path is empty')
+    }
+    const fp = await fullPath(path)
+    let watcher = null
+    let fd = null
+    const watchFileExists = () => {
+        if (fs.existsSync(fp)) {
+            watcher = null
+            watchFileContent()
+            return
+        }
+        watcher = setTimeout(() => {
+            watchFileExists()
+        }, 1000)
+    }
+    const watchFileContent = () => {
+        const CHUNK_SIZE = 16 * 1024;
+        const fd = fs.openSync(fp, 'r')
+        let position = 0
+        let lineNumber = 0
+        let content = ''
+        const parseContentLine = () => {
+            while (true) {
+                const index = content.indexOf('\n')
+                if (index < 0) {
+                    break
+                }
+                const line = content.substring(0, index)
+                content = content.substring(index + 1)
+                callback({
+                    num: lineNumber++,
+                    text: line,
+                })
+                // console.log('watchText.line', line, content)
+            }
+        }
+        const readChunk = () => {
+            const buf = new Buffer(CHUNK_SIZE);
+            const bytesRead = fs.readSync(fd, buf, 0, CHUNK_SIZE, position)
+            position += bytesRead
+            content += buf.toString('utf8', 0, bytesRead)
+            parseContentLine()
+            if (bytesRead < CHUNK_SIZE) {
+                watcher = setTimeout(readChunk, 1000);
+            } else {
+                readChunk()
+            }
+        }
+        readChunk()
+    }
+    watchFileExists()
+    const stop = () => {
+        // console.log('watchText stop', fp)
+        if (fd) {
+            fs.closeSync(fd)
+        }
+        if (watcher) {
+            clearTimeout(watcher)
+        }
+    }
+    // console.log('watchText', fp)
+    return {
+        stop,
+    }
+}
+
+let appendTextPathCached = null
+let appendTextStreamCached = null
+
+const appendText = async (path: string, data: any) => {
+    const fp = await fullPath(path)
+    if (path !== appendTextPathCached) {
+        appendTextPathCached = path
+        if (appendTextStreamCached) {
+            appendTextStreamCached.end()
+            appendTextStreamCached = null
+        }
+        const fullPathDir = nodePath.dirname(fp)
+        if (!fs.existsSync(fullPathDir)) {
+            fs.mkdirSync(fullPathDir, {recursive: true})
+        }
+        appendTextStreamCached = fs.createWriteStream(fp, {flags: 'a'})
+    }
+    appendTextStreamCached.write(data)
+}
+
 export default {
     fullPath,
     absolutePath,
@@ -197,5 +287,7 @@ export default {
     rename,
     copy,
     temp,
-    tempDir
+    tempDir,
+    watchText,
+    appendText,
 }

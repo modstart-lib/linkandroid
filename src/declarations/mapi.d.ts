@@ -12,7 +12,20 @@ declare interface Window {
             windowHide: (name?: string) => Promise<void>,
             windowClose: (name?: string) => Promise<void>,
             openExternalWeb: (url: string) => Promise<void>,
-            appEnv: () => Promise<any>
+            appEnv: () => Promise<any>,
+            shell: (command: string, option: {} | null) => Promise<void>,
+            spawnShell: (command: string | string[], option: {
+                stdout?: Function,
+                stderr?: Function,
+                success?: Function,
+                error?: Function,
+            } | null) => Promise<{
+                stop: () => void,
+                send: (data: any) => void,
+                result: () => Promise<string>
+            }>,
+            availablePort: (start: number) => Promise<number>,
+            fixExecutable: (executable: string) => Promise<void>,
         },
         config: {
             get: (key: string, defaultValue: any = null) => Promise<any>,
@@ -44,6 +57,10 @@ declare interface Window {
             copy: (pathOld: string, pathNew: string) => Promise<void>,
             temp: (ext: string = 'tmp', prefix: string = 'file') => Promise<string>,
             tempDir: (prefix: string = 'dir') => Promise<string>,
+            watchText: (path: string, callback: (data: {}) => void) => Promise<{
+                stop: Function,
+            }>,
+            appendText: (path: string, data: any) => Promise<void>,
             openFile: (options: {} = {}) => Promise<any>,
             openDirectory: (options: {} = {}) => Promise<any>,
             openSave: (options: {} = {}) => Promise<any>,

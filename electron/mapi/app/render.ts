@@ -2,6 +2,7 @@ import {ipcRenderer} from "electron";
 import {resolve} from "node:path";
 import {isPackaged} from "../../lib/env";
 import {AppEnv, waitAppEnvReady} from "../env";
+import appIndex from "./index";
 
 const quit = () => {
     return ipcRenderer.invoke('app:quit')
@@ -80,5 +81,9 @@ export default {
     windowClose,
     openExternalWeb,
     appEnv,
+    shell: appIndex.shell,
+    spawnShell: appIndex.spawnShell,
+    availablePort: appIndex.availablePort,
+    fixExecutable: appIndex.fixExecutable,
 }
 

@@ -35,6 +35,9 @@ export const TimeUtil = {
     formatDate(time: number) {
         return dayjs(time).format('YYYY-MM-DD')
     },
+    dateString() {
+        return dayjs().format('YYYYMMDD')
+    },
     datetimeString() {
         return dayjs().format('YYYYMMDD_HHmmss')
     },
