@@ -5,11 +5,13 @@ import {onBeforeUnmount, onMounted, ref} from "vue";
 const props = withDefaults(defineProps<{
     file: string,
     maxLines?: number,
-    height?: string
+    height?: string,
+    autoScroll?: boolean,
 }>(), {
     file: '',
     maxLines: 1000,
     height: '100%',
+    autoScroll: true
 })
 
 interface LogItem {
@@ -36,7 +38,9 @@ onBeforeUnmount(() => {
 
 <template>
     <div>
-        <LogViewer :height="props.height" :logs="logs"/>
+        <LogViewer :height="props.height"
+                   :logs="logs"
+                   :auto-scroll="autoScroll"/>
     </div>
 </template>
 
