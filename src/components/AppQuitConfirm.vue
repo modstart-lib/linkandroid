@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {ref} from "vue";
+import {nextTick, ref} from "vue";
 import {useSettingStore} from "../store/modules/setting";
 
 const visible = ref(false)
@@ -29,7 +29,9 @@ const doHide = async () => {
         await setting.setConfig('exitMode', 'hide')
     }
     visible.value = false
-    await window.$mapi.app.windowHide()
+    setTimeout(async () => {
+        await window.$mapi.app.windowHide()
+    }, 100)
 }
 
 const doExit = async () => {
