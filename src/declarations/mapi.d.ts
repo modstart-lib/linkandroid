@@ -1,10 +1,13 @@
+import {platformName} from "../../electron/lib/env";
+
 declare interface Window {
     $mapi: {
         app: {
             resourcePathResolve: (filePath: string) => Promise<string>,
             extraPathResolve: (filePath: string) => Promise<string>,
-            platform: () => string,
-            isPlatform: (platform: 'win' | 'mac' | 'linux') => boolean,
+            platformName: () => 'win' | 'osx' | 'linux' | null,
+            platformArch: () => 'x86' | 'arm64' | null,
+            isPlatform: (platform: 'win' | 'osx' | 'linux') => boolean,
             quit: () => Promise<void>,
             windowMin: () => Promise<void>,
             windowMax: () => Promise<void>,

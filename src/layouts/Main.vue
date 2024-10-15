@@ -5,14 +5,14 @@ import {AppConfig} from "../config";
 import AppQuitConfirm from "../components/AppQuitConfirm.vue";
 
 const appQuitConfirm = ref<InstanceType<typeof AppQuitConfirm> | null>(null);
-const platform = ref('')
+const platformName = ref('')
 
 const doQuit = async () => {
     await appQuitConfirm.value?.show()
 }
 
 onBeforeMount(() => {
-    platform.value = window.$mapi?.app?.platform()
+    platformName.value = window.$mapi?.app?.platformName() as any
 })
 
 onMounted(() => {

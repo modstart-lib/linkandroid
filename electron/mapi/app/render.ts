@@ -1,6 +1,6 @@
 import {ipcRenderer} from "electron";
 import {resolve} from "node:path";
-import {isPackaged} from "../../lib/env";
+import {isPackaged, platformName, platformArch} from "../../lib/env";
 import {AppEnv, waitAppEnvReady} from "../env";
 import appIndex from "./index";
 
@@ -8,22 +8,8 @@ const quit = () => {
     return ipcRenderer.invoke('app:quit')
 }
 
-const platform = () => {
-    return process.platform
-}
-
-const isPlatform = (name: 'win' | 'mac' | 'linux') => {
-    const p = process.platform
-    switch (name) {
-        case 'win':
-            return p === 'win32'
-        case 'mac':
-            return p === 'darwin'
-        case 'linux':
-            return p === 'linux'
-        default:
-            return false
-    }
+const isPlatform = (name: 'win' | 'osx' | 'linux') => {
+    return platformName() === name
 }
 
 const windowMin = () => {
@@ -71,7 +57,8 @@ const appEnv = async () => {
 export default {
     resourcePathResolve,
     extraPathResolve,
-    platform,
+    platformName,
+    platformArch,
     isPlatform,
     quit,
     windowMin,
