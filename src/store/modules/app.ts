@@ -3,17 +3,19 @@ import store from "../index";
 
 export const appStore = defineStore("app", {
     state() {
-        return {
-            // appRoot: null as string | null,
-        }
+        return {}
     },
     actions: {
-        setAppRoot(root: string) {
-            // this.appRoot = root
-        }
+        async init() {
+
+        },
     }
 })
 
+export const app = appStore(store)
+app.init().then(() => {
+})
+
 export const useAppStore = () => {
-    return appStore(store)
+    return app
 }

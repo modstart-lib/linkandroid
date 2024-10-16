@@ -13,6 +13,7 @@ import './style.less'
 import {Dialog} from "./lib/dialog";
 
 import {CommonComponents} from "./components/common";
+import {TaskManager} from "./task";
 
 const app = createApp(App)
 app.use(ArcoVue)
@@ -25,6 +26,7 @@ Message._context = app._context
 app.config.globalProperties.$mapi = window.$mapi
 app.config.globalProperties.$dialog = Dialog
 app.config.globalProperties.$t = t as any
+TaskManager.init()
 app.mount('#app')
     .$nextTick(() => {
         postMessage({payload: 'removeLoading'}, '*')
