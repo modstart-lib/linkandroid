@@ -4,7 +4,6 @@ import migration from './migration';
 import {AppEnv} from "../env";
 import {Log} from "../log/main";
 import {ipcMain} from "electron";
-import logIndex from "../log";
 
 let dbPath: string | null = null
 let dbConn: Database | null = null;
