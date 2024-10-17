@@ -16,6 +16,8 @@ export type TaskRecord = {
     bizId: string;
     bizParam: any;
     runStart: number;
+    queryAfter: number;
+    queryInterval: number;
     timeout: number;
 }
 
@@ -63,6 +65,7 @@ export const taskStore = defineStore("task", {
                     .runFunc(record.bizId, record.bizParam)
                     .then(() => {
                         if (this.bizMap[record.biz].queryFunc) {
+                            record.queryAfter = Date.now() + record.queryInterval
                             record.status = 'querying'
                         } else {
                             record.status = 'success'
@@ -78,12 +81,16 @@ export const taskStore = defineStore("task", {
                 if (record.status !== 'querying' && record.status !== 'running') {
                     continue
                 }
+                if (record.queryAfter > Date.now()) {
+                    continue
+                }
                 const taskBiz = this.bizMap[record.biz]
                 taskBiz.queryFunc?.(record.bizId, record.bizParam)
                     .then((status) => {
                         switch (status) {
                             case 'unknown':
                             case 'running':
+                                record.queryAfter = Date.now() + record.queryInterval
                                 break
                             case 'success':
                                 record.status = 'success'
@@ -133,6 +140,9 @@ export const taskStore = defineStore("task", {
                 }
                 changed = true
                 record.status = 'delete'
+                if (!this.bizMap[record.biz]) {
+                    continue
+                }
                 this.bizMap[record.biz]
                     .failFunc(record.bizId, record.msg, record.bizParam)
                     .then(() => {
@@ -173,6 +183,7 @@ export const taskStore = defineStore("task", {
             }
             param = Object.assign({
                 timeout: 60 * 1000,
+                queryInterval: 1 * 1000,
             }, param)
             const taskRecord = {
                 id: `${biz}-${Date.now()}-${StringUtil.random(8)}`,
@@ -182,6 +193,8 @@ export const taskStore = defineStore("task", {
                 bizId,
                 bizParam,
                 runStart: 0,
+                queryAfter: 0,
+                queryInterval: param['queryInterval'],
                 timeout: param['timeout'],
             } as TaskRecord
             this.records.push(taskRecord)
