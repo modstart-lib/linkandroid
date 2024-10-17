@@ -32,9 +32,7 @@ const createKeyInputListener = (key: string) => {
 }
 
 const keyMap = {
-    'CommandOrControl+L': createKeyInputListener('CommandOrControl+L'),
-    'CommandOrControl+A': createKeyInputListener('CommandOrControl+A'),
-    'CommandOrControl+C': createKeyInputListener('CommandOrControl+C'),
+    'CommandOrControl+Shift+H': createKeyInputListener('CommandOrControl+Shift+H'),
 }
 
 const ready = () => {
@@ -52,7 +50,7 @@ const ready = () => {
     })
 
     addMultiKeyListener([
-        'CommandOrControl+L', 'CommandOrControl+A', 'CommandOrControl+C'
+        'CommandOrControl+Shift+H', 'CommandOrControl+Shift+H', 'CommandOrControl+Shift+H'
     ], () => {
         let focusedWindow = BrowserWindow.getFocusedWindow();
         if (focusedWindow) {
