@@ -135,6 +135,10 @@ const rename = async (pathOld: string, pathNew: string) => {
     if (fs.existsSync(fullPathNew)) {
         throw new Error(`File already exists: ${fullPathNew}`)
     }
+    const dir = nodePath.dirname(fullPathNew)
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, {recursive: true})
+    }
     fs.renameSync(fullPathOld, fullPathNew)
 }
 

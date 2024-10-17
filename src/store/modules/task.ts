@@ -105,7 +105,7 @@ export const taskStore = defineStore("task", {
                     continue
                 }
                 // console.log('querying', JSON.stringify(record, null, 2))
-                if (record.queryAfter > Date.now()) {
+                if (record.queryAfter <= 0 || record.queryAfter > Date.now()) {
                     continue
                 }
                 const taskBiz = this.bizMap[record.biz]

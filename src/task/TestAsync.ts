@@ -3,6 +3,7 @@ import {TaskBiz} from "../store/modules/task";
 export const TestAsync: TaskBiz = {
     runFunc: async (bizId, bizParam) => {
         console.log('TestAsync.runFunc', {bizId, bizParam})
+        return 'success'
     },
     queryFunc(bizId, bizParam) {
         return new Promise((resolve) => {
