@@ -26,7 +26,19 @@ const db = {
         });
     },
     async insert(sql: string, params: any = []) {
-        return await this.execute(sql, params);
+        return new Promise((resolve, reject) => {
+            if (!dbSuccess) {
+                reject('DB not initialized');
+            } else {
+                dbConn.prepare(sql).run(...params, function (err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(this.lastID);
+                    }
+                });
+            }
+        });
     },
     async first(sql: string, params: any = []) {
         return new Promise((resolve, reject) => {
