@@ -28,6 +28,7 @@ dist-release
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+database.db
 
 src/lang/source-use.json
 /data

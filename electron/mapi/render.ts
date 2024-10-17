@@ -5,6 +5,7 @@ import config from "./config/render";
 import log from "./log/render";
 import app from "./app/render";
 import storage from "./storage";
+import db from "./db/render";
 import file from "./file/render";
 import event from "./event/render";
 import ui from "./ui/render";
@@ -28,6 +29,7 @@ export const MAPI = {
                 log,
                 config,
                 storage,
+                db,
                 file,
                 event,
                 ui,
@@ -42,6 +44,7 @@ export const MAPI = {
                 scrcpy,
                 ffmpeg,
             })
+            db.init()
             event.init()
             ui.init()
         } else {

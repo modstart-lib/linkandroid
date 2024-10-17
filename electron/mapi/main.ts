@@ -2,6 +2,7 @@ import config from "./config/main";
 import log from "./log/main";
 import app from "./app/main";
 import storage from "./storage";
+import db from "./db/main";
 import file from "./file/main";
 import event from "./event/main";
 import ui from "./ui";
@@ -15,6 +16,7 @@ const $mapi = {
     log,
     config,
     storage,
+    db,
     file,
     event,
     ui,
@@ -26,6 +28,7 @@ const $mapi = {
 
 export const MAPI = {
     init() {
+        $mapi.db.init()
         $mapi.event.init()
     },
     ready() {

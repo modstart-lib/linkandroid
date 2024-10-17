@@ -45,6 +45,14 @@ declare interface Window {
             get: (group: string, key: string, defaultValue: any) => Promise<any>,
             set: (group: string, key: string, value: any) => Promise<void>,
         },
+        db: {
+            execute: (sql: string, params: any = []) => Promise<any>,
+            insert: (sql: string, params: any = []) => Promise<any>,
+            first: (sql: string, params: any = []) => Promise<any>,
+            select: (sql: string, params: any = []) => Promise<any>,
+            update: (sql: string, params: any = []) => Promise<any>,
+            delete: (sql: string, params: any = []) => Promise<any>,
+        },
         file: {
             fullPath: (path: string) => Promise<string>,
             absolutePath: (path: string) => string,
