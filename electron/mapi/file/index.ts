@@ -21,28 +21,52 @@ const fullPath = async (path: string) => {
     return nodePath.join(root(), path)
 }
 
-const exists = async (path: string) => {
-    const fp = await fullPath(path)
+const exists = async (path: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     return fs.existsSync(fp)
 }
 
-const isDirectory = async (path: string) => {
-    const fp = await fullPath(path)
+const isDirectory = async (path: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     if (!fs.existsSync(fp)) {
         return false
     }
     return fs.statSync(fp).isDirectory()
 }
 
-const mkdir = async (path: string) => {
-    const fp = await fullPath(path)
+const mkdir = async (path: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     if (!fs.existsSync(fp)) {
         fs.mkdirSync(fp, {recursive: true})
     }
 }
 
-const list = async (path: string) => {
-    const fp = await fullPath(path)
+const list = async (path: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     if (!fs.existsSync(fp)) {
         return []
     }
@@ -59,8 +83,14 @@ const list = async (path: string) => {
     })
 }
 
-const listAll = async (path: string) => {
-    const fp = await fullPath(path)
+const listAll = async (path: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     if (!fs.existsSync(fp)) {
         return []
     }
@@ -89,8 +119,14 @@ const listAll = async (path: string) => {
     return listDirectory(fp)
 }
 
-const write = async (path: string, data: any) => {
-    const fp = await fullPath(path)
+const write = async (path: string, data: any, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     const fullPathDir = nodePath.dirname(fp)
     if (!fs.existsSync(fullPathDir)) {
         fs.mkdirSync(fullPathDir, {recursive: true})
@@ -104,8 +140,14 @@ const write = async (path: string, data: any) => {
     fs.writeSync(f, data.content)
     fs.closeSync(f)
 }
-const read = async (path: string) => {
-    const fp = await fullPath(path)
+const read = async (path: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     if (!fs.existsSync(fp)) {
         return null
     }
@@ -114,8 +156,14 @@ const read = async (path: string) => {
     fs.closeSync(f)
     return content
 }
-const deletes = async (path: string) => {
-    const fp = await fullPath(path)
+const deletes = async (path: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     if (!fs.existsSync(fp)) {
         return
     }
@@ -126,9 +174,16 @@ const deletes = async (path: string) => {
         fs.unlinkSync(fp)
     }
 }
-const rename = async (pathOld: string, pathNew: string) => {
-    const fullPathOld = await fullPath(pathOld)
-    const fullPathNew = await fullPath(pathNew)
+const rename = async (pathOld: string, pathNew: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fullPathOld = pathOld
+    let fullPathNew = pathNew
+    if (!option.isFullPath) {
+        fullPathOld = await fullPath(pathOld)
+        fullPathNew = await fullPath(pathNew)
+    }
     if (!fs.existsSync(fullPathOld)) {
         return
     }
@@ -142,15 +197,23 @@ const rename = async (pathOld: string, pathNew: string) => {
     fs.renameSync(fullPathOld, fullPathNew)
 }
 
-const copy = async (pathOld: string, pathNew: string) => {
-    const fullPathOld = await fullPath(pathOld)
-    const fullPathNew = await fullPath(pathNew)
+const copy = async (pathOld: string, pathNew: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fullPathOld = pathOld
+    let fullPathNew = pathNew
+    if (!option.isFullPath) {
+        fullPathOld = await fullPath(pathOld)
+        fullPathNew = await fullPath(pathNew)
+    }
     if (!fs.existsSync(fullPathOld)) {
-        return
+        throw new Error(`FileNotFound:${fullPathOld}`)
     }
     if (fs.existsSync(fullPathNew)) {
-        throw new Error(`File already exists: ${fullPathNew}`)
+        throw new Error(`FileAlreadyExists:${fullPathNew}`)
     }
+    // console.log('copy', fullPathOld, fullPathNew)
     fs.copyFileSync(fullPathOld, fullPathNew)
 }
 
@@ -187,13 +250,19 @@ const tempDir = async (prefix: string = 'dir') => {
     return dir
 }
 
-const watchText = async (path: string, callback: (data: {}) => void): Promise<{
+const watchText = async (path: string, callback: (data: {}) => void, option?: Record<string, any>): Promise<{
     stop: Function,
 }> => {
     if (!path) {
         throw new Error('path is empty')
     }
-    const fp = await fullPath(path)
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     let watcher = null
     let fd = null
     const watchFileExists = () => {
@@ -260,8 +329,14 @@ const watchText = async (path: string, callback: (data: {}) => void): Promise<{
 let appendTextPathCached = null
 let appendTextStreamCached = null
 
-const appendText = async (path: string, data: any) => {
-    const fp = await fullPath(path)
+const appendText = async (path: string, data: any, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
     if (path !== appendTextPathCached) {
         appendTextPathCached = path
         if (appendTextStreamCached) {
