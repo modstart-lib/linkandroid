@@ -3,7 +3,7 @@ name: Build
 on:
     push:
         branches:
-            - main-disable
+            - main
 
 jobs:
   build:
@@ -27,6 +27,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Build Prepare (macOS)
+        if: runner.os == 'macOS'
+        run: |
+            brew install python-setuptools
 
       - name: Install Dependencies
         run: npm install

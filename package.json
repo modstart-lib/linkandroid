@@ -27,7 +27,9 @@
         "build:win": "vite build && electron-builder --win",
         "build:mac": "vite build && electron-builder --mac",
         "build:linux": "vite build && electron-builder --linux",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "postinstall": "electron-builder install-app-deps",
+        "postuninstall": "electron-builder install-app-deps"
     },
     "devDependencies": {
         "@arco-design/web-vue": "^2.55.3",

@@ -28,6 +28,11 @@ jobs:
         with:
           node-version: 20
 
+      - name: Build Prepare (macOS)
+        if: runner.os == 'macOS'
+        run: |
+            brew install python-setuptools
+
       - name: Install Dependencies
         run: npm install
 
