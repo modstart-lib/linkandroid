@@ -8,39 +8,46 @@ import {Dialog} from "../../lib/dialog";
 import {AudioUtil} from "../../lib/audio";
 
 const props = withDefaults(defineProps<{
+    url?: string;
     recordEnable?: boolean;
     trimEnable?: boolean;
     downloadEnable?: boolean;
-    url?: string;
-    lazyLoad?: boolean;
+    showWave?: boolean;
 }>(), {
+    url: '',
     recordEnable: false,
     trimEnable: false,
     downloadEnable: false,
-    url: "",
-    lazyLoad: false,
+    showWave: false,
 });
 
-const isAudioEmpty = ref(false);
-const isLoaded = ref(false);
-const isManualPlay = ref(false);
-const isAutoPlay = ref(false);
+// 波形相关
 const wave = ref<WaveSurfer | null>(null);
 const waveContainer = ref(null);
 const waveUrl = ref<string | null>(null);
+const waveUrlSource = ref<'url' | 'trim' | 'record' | null>(null);
+const waveVisible = ref(false);
+const waveLoadAutoPlay = ref(false);
+const waveIsLoaded = ref(false);
+const waveRecord = ref<any>(null);
+
+const trimUrl = ref<string | null>(null);
+
 const isPlaying = ref(false);
+const isTrimming = ref(false);
+
+const recordUrl = ref<string | null>(null);
+const isRecording = ref(false);
+const recordDeviceSelect = ref(null);
+const recordDevices = ref<{ id: string, name: string }[]>([]);
+const recordVisible = ref(false);
+
 const timeTotal = ref<number>(0);
 const timeCurrent = ref<number>(0);
 let regions = RegionsPlugin.create()
 regions.enableDragSelection({
     color: 'rgba(255, 0, 0, 0.1)',
 })
-
-const waveRecord = ref<any>(null);
-const isRecording = ref(false);
-const recordDeviceSelect = ref(null);
-const recordDevices = ref<{ id: string, name: string }[]>([]);
-const isCutting = ref(false);
 
 const timeTotalSecond = computed(() => {
     return Math.round(timeTotal.value);
@@ -54,6 +61,16 @@ const timeTotalFormat = computed(() => {
 const timeCurrentFormat = computed(() => {
     return TimeUtil.secondsToTime(timeCurrentSecond.value);
 });
+const isAudioEmpty = computed(() => {
+    return !props.url && !trimUrl.value && !recordUrl.value;
+});
+const debugInfo = computed(() => {
+    return {
+        waveUrl: waveUrl.value,
+        waveUrlSource: waveUrlSource.value,
+        waveIsLoaded: waveIsLoaded.value,
+    }
+})
 
 onMounted(() => {
     wave.value = WaveSurfer.create({
@@ -72,10 +89,11 @@ onMounted(() => {
         renderRecordedAudio: false
     }))
     waveRecord.value.on('record-end', (blob) => {
-        waveUrl.value = URL.createObjectURL(blob)
+        recordUrl.value = URL.createObjectURL(blob)
     })
     wave.value.on("play", () => {
         isPlaying.value = true;
+        waveVisible.value = true;
     });
     wave.value.on("pause", () => {
         isPlaying.value = false;
@@ -88,24 +106,22 @@ onMounted(() => {
     });
     wave.value.on("ready", () => {
         if (isAudioEmpty.value) {
-            isAudioEmpty.value = false;
             return;
         }
+        waveIsLoaded.value = true;
         timeTotal.value = wave.value?.getDuration() as number;
-        if (isAutoPlay.value) {
+        if (waveLoadAutoPlay.value) {
             wave.value?.play();
-            isAutoPlay.value = false;
+            waveLoadAutoPlay.value = false;
         }
     });
     wave.value.on("timeupdate", () => {
         timeCurrent.value = wave.value?.getCurrentTime() as number;
     });
-    waveUrl.value = props.url;
-    if (!waveUrl.value || props.lazyLoad) {
-        isAudioEmpty.value = true;
-        wave.value.loadBlob(AudioUtil.audioBufferToWavBlob(AudioUtil.audioBufferEmpty()));
-    }
     if (props.recordEnable) {
+        if (!props.url) {
+            recordVisible.value = true
+        }
         RecordPlugin.getAvailableAudioDevices().then((devices) => {
             recordDevices.value = devices.map((device) => {
                 return {
@@ -128,45 +144,57 @@ onBeforeUnmount(() => {
     }
 });
 
+watch(() => props.url, (url) => {
+    if (url) {
+        waveUrl.value = url;
+        waveUrlSource.value = 'url';
+    }
+}, {
+    immediate: true
+});
+watch(() => trimUrl.value, (url) => {
+    if (url) {
+        waveUrl.value = url;
+        waveUrlSource.value = 'trim';
+    }
+}, {
+    immediate: true
+});
+watch(() => recordUrl.value, (url) => {
+    if (url) {
+        waveUrl.value = url;
+        waveUrlSource.value = 'record';
+    }
+}, {
+    immediate: true
+});
 watchEffect(() => {
     if (wave.value && waveUrl.value) {
-        if (!props.lazyLoad || isManualPlay.value) {
-            wave.value.load(waveUrl.value);
-            isLoaded.value = true;
-        }
+        waveIsLoaded.value = false
+        wave.value.load(waveUrl.value);
     }
 });
-
-watch(() => props.url, (url) => {
-    waveUrl.value = url;
-});
-
-const doLoadAndPlay = () => {
-    isManualPlay.value = true;
-    if (waveUrl.value) {
-        isAutoPlay.value = true;
-        wave.value?.load(waveUrl.value);
-    }
-};
 
 const doPlay = () => {
-    if (!isLoaded.value) {
-        doLoadAndPlay();
+    if (!waveUrl.value) {
+        return
+    }
+    if (!waveIsLoaded.value) {
+        waveLoadAutoPlay.value = true;
+        wave.value?.load(waveUrl.value);
         return
     }
     wave.value?.play();
 };
-
 const doPause = () => {
     wave.value?.pause();
 };
-
 const onSeek = (value: number) => {
     wave.value?.seekTo(value / timeTotal.value);
 };
 
-const doCutSubmit = async () => {
-    if (!isCutting.value) {
+const doTrimSave = async () => {
+    if (!isTrimming.value) {
         return
     }
     const region = regions.getRegions()[0];
@@ -175,15 +203,13 @@ const doCutSubmit = async () => {
         region.start,
         region.end,
     )
-    isCutting.value = false;
+    isTrimming.value = false;
     regions.clearRegions()
-    // const trimmedBlob = bufferToBlob(buffer);
-    waveUrl.value = URL.createObjectURL(AudioUtil.audioBufferToWavBlob(buffer));
     wave.value?.empty();
-    wave.value?.load(waveUrl.value);
+    trimUrl.value = URL.createObjectURL(AudioUtil.audioBufferToWavBlob(buffer));
 };
 
-const doCut = async () => {
+const doTrim = async () => {
     if (!waveUrl.value) {
         return
     }
@@ -201,7 +227,8 @@ const doCut = async () => {
         drag: true,
         resize: true,
     })
-    isCutting.value = true;
+    isTrimming.value = true;
+    waveVisible.value = true;
 };
 
 const doDownload = () => {
@@ -214,6 +241,10 @@ const doDownload = () => {
     a.click();
 };
 
+const doRecord = () => {
+    recordVisible.value = true;
+}
+
 const doRecordStart = async () => {
     if (waveRecord.value.isRecording() || waveRecord.value.isPaused()) {
         waveRecord.value.stopRecording()
@@ -222,9 +253,9 @@ const doRecordStart = async () => {
     try {
         await waveRecord.value.startRecording({deviceId: recordDeviceSelect.value})
         isRecording.value = true;
+        waveVisible.value = true;
     } catch (e) {
-        console.error(e)
-        Dialog.tipError((e as any).message)
+        Dialog.tipError(`${e}`)
     }
 }
 
@@ -233,20 +264,26 @@ const doRecordStop = async () => {
         await waveRecord.value.stopRecording()
         isRecording.value = false;
     }
+    recordVisible.value = false
+}
+
+const doRecordBack = async () => {
+    recordVisible.value = false
 }
 
 const doRecordClean = async () => {
-    waveUrl.value = null
-    wave.value?.empty()
+    recordVisible.value = true
 }
 </script>
 
 <template>
     <div class="border rounded-lg py-2">
-        <div class="px-2 overflow-hidden" :style="(isLoaded||isRecording) ? 'height:40px;' : 'height:0;'">
+        <pre v-if="0" style="white-space:wrap;font-size:10px;">{{ JSON.stringify(debugInfo, null, 2) }}</pre>
+        <div class="px-2 overflow-hidden"
+             :style="((isRecording||isTrimming||(showWave&&!recordVisible)) && waveVisible) ? 'height:40px;' : 'height:0;'">
             <div ref="waveContainer" style="height:40px;" class="w-full overflow-hidden"></div>
         </div>
-        <div v-if="waveUrl" class="h-10 px-2 flex items-center">
+        <div v-if="!recordVisible&&waveUrl" class="h-10 px-2 flex items-center">
             <div>
                 <div v-if="!isPlaying"
                      @click="doPlay" class="cursor-pointer w-8 h-8 inline-flex">
@@ -257,37 +294,67 @@ const doRecordClean = async () => {
                     <icon-pause-circle class="m-auto text-gray-700 hover:text-primary text-2xl"/>
                 </div>
             </div>
-            <div class="ml-3 text-gray-500 w-24 text-sm">
+            <div class="ml-3 text-gray-500 w-24 text-sm font-mono">
                 {{ timeCurrentFormat + '/' + timeTotalFormat }}
             </div>
             <div class="ml-3 flex-grow">
                 <a-slider :model-value="timeCurrent"
                           :max="timeTotal"
                           @change="onSeek as any"
+                          :show-tooltip="false"
+                          :step="0.001"
                           :min="0"/>
             </div>
             <div class="ml-3">
-                <a-tooltip :content="$t('重新录制')">
-                    <div v-if="!props.url"
-                         @click="doRecordClean" class="cursor-pointer w-8 h-8 inline-flex">
-                        <icon-refresh class="m-auto text-gray-700 hover:text-primary text-2xl"/>
+                <a-tooltip :content="$t('收起')"
+                           v-if="showWave&&waveVisible&&!isTrimming&&!isRecording">
+                    <div @click="waveVisible=false"
+                         class="cursor-pointer w-8 h-8 inline-flex">
+                        <icon-up class="m-auto text-gray-700 hover:text-primary text-2xl"/>
                     </div>
                 </a-tooltip>
-                <div v-if="!isCutting && props.trimEnable" @click="doCut" class="cursor-pointer w-8 h-8 inline-flex">
-                    <icon-pen-fill class="m-auto text-gray-700 hover:text-primary text-2xl"/>
-                </div>
-                <div v-if="isCutting && props.trimEnable" @click="doCutSubmit"
-                     class="cursor-pointer w-8 h-8 inline-flex">
-                    <icon-check class="m-auto text-gray-700 hover:text-primary text-2xl"/>
-                </div>
-                <div v-if="!isCutting && props.downloadEnable" @click="doDownload"
-                     class="cursor-pointer w-8 h-8 inline-flex">
-                    <icon-download class="m-auto text-gray-700 hover:text-primary text-2xl"/>
-                </div>
+                <a-tooltip :content="$t('重新录制')"
+                           v-if="recordUrl&&!isTrimming">
+                    <div @click="doRecordClean" class="cursor-pointer w-8 h-8 inline-flex">
+                        <i class="iconfont icon-refresh-circle m-auto text-gray-700 hover:text-primary text-2xl"></i>
+                    </div>
+                </a-tooltip>
+                <a-tooltip :content="$t('裁剪音频')"
+                           v-if="!isTrimming && props.trimEnable">
+                    <div @click="doTrim"
+                         class="cursor-pointer w-8 h-8 inline-flex">
+                        <i class="iconfont icon-cut m-auto text-gray-700 hover:text-primary text-2xl"></i>
+                    </div>
+                </a-tooltip>
+                <a-tooltip :content="$t('确定裁剪')"
+                           v-if="isTrimming && props.trimEnable">
+                    <div @click="doTrimSave"
+                         class="cursor-pointer w-8 h-8 inline-flex">
+                        <icon-check class="m-auto text-gray-700 hover:text-primary text-2xl"/>
+                    </div>
+                </a-tooltip>
+                <a-tooltip :content="$t('下载音频')"
+                           v-if="!isTrimming && props.downloadEnable">
+                    <div @click="doDownload"
+                         class="cursor-pointer w-8 h-8 inline-flex">
+                        <icon-download class="m-auto text-gray-700 hover:text-primary text-2xl"/>
+                    </div>
+                </a-tooltip>
+                <a-tooltip :content="$t('录制音频')"
+                           v-if="props.recordEnable && !isTrimming && !recordUrl">
+                    <div @click="doRecord"
+                         class="cursor-pointer w-8 h-8 inline-flex">
+                        <i class="iconfont icon-mic m-auto text-gray-700 hover:text-primary text-2xl"></i>
+                    </div>
+                </a-tooltip>
             </div>
         </div>
-        <div v-else-if="props.recordEnable" class="h-10 px-2 flex items-center">
+        <div v-if="recordEnable&&recordVisible" class="h-10 px-2 flex items-center">
             <div>
+                <div v-if="!isRecording && waveUrl" @click="doRecordBack"
+                     class="cursor-pointer w-8 h-8 inline-flex">
+                    <icon-left class="m-auto text-gray-700 hover:text-primary text-2xl"/>
+                </div>
                 <div v-if="!isRecording"
                      @click="doRecordStart" class="cursor-pointer w-8 h-8 inline-flex">
                     <icon-record class="m-auto text-red-700 hover:text-primary text-2xl"/>
