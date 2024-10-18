@@ -3,6 +3,7 @@ import {trayPath} from "./icon";
 import {AppRuntime} from "../mapi/env";
 import {AppConfig} from "../../src/config";
 import {t} from "./lang";
+import {isWin} from "../lib/env";
 
 let tray = null
 
@@ -25,6 +26,12 @@ const ready = () => {
     tray = new Tray(trayPath)
 
     tray.setToolTip(AppConfig.name)
+
+    if (isWin) {
+        tray.on('click', () => {
+            showApp()
+        })
+    }
 
     const contextMenu = Menu.buildFromTemplate([
         {
