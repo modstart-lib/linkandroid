@@ -30,7 +30,7 @@ const spawnShell = async (command: string | string[], option: {
         commandEntry = command[0]
         args = command.slice(1)
     } else {
-        let args = command.split(' ')
+        args = command.split(' ')
         commandEntry = args.shift() as string
     }
     Log.info('App.spawnShell', {commandEntry, args})

@@ -18,7 +18,11 @@ export type DeviceRecord = {
     status?: any,
     runtime?: any,
     screenshot?: string | null,
-    setting?: {},
+    setting?: {
+        dimWhenMirror: boolean,
+        alwaysTop: boolean,
+        mirrorSound: boolean,
+    },
 }
 
 export type DeviceRuntime = {

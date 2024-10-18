@@ -5,7 +5,7 @@ import DeviceStatus from "../components/Device/DeviceStatus.vue";
 import {Dialog} from "../lib/dialog";
 import {mapError} from "../lib/error";
 import InputInlineEditor from "../components/common/InputInlineEditor.vue";
-import DeviceInfoDialog from "../components/Device/DeviceInfoDialog.vue";
+import DeviceSettingDialog from "../components/Device/DeviceSettingDialog.vue";
 import {computed, ref} from "vue";
 import {t} from "../lang";
 import DeviceFileManagerDialog from "../components/Device/DeviceFileManagerDialog.vue";
@@ -25,7 +25,7 @@ import DeviceType from "../components/Device/DeviceType.vue";
 import DeviceActionConnect from "../components/Device/DeviceActionConnect.vue";
 import DeviceActionWifiOff from "../components/Device/DeviceActionWifiOff.vue";
 
-const infoDialog = ref<InstanceType<typeof DeviceInfoDialog> | null>(null);
+const settingDialog = ref<InstanceType<typeof DeviceSettingDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
 const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
 const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
@@ -234,7 +234,7 @@ const doHelp = () => {
                                         <a-doption v-if="rIndex>0" @click="deviceStore.doTop(rIndex)">
                                             {{ $t('置顶') }}
                                         </a-doption>
-                                        <a-doption @click="infoDialog?.show(r)">
+                                        <a-doption @click="settingDialog?.show(r)">
                                             {{ $t('设备设置') }}
                                         </a-doption>
                                         <a-doption v-if="r.status===EnumDeviceStatus.DISCONNECTED" @click="doDelete(r)">
@@ -250,7 +250,7 @@ const doHelp = () => {
         </div>
     </div>
     <DeviceConnectWifiDialog ref="connectWifiDialog"/>
-    <DeviceInfoDialog ref="infoDialog"/>
+    <DeviceSettingDialog ref="settingDialog"/>
     <DeviceFileManagerDialog ref="fileManagerDialog"/>
     <DeviceShellDialog ref="shellDialog"/>
     <DeviceAdbShellDialog ref="adbShellDialog"/>

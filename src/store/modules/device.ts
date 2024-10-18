@@ -53,7 +53,11 @@ export const deviceStore = defineStore("device", {
                         record.status = createDeviceStatus(record)
                         record.runtime = createDeviceRuntime(record)
                         record.screenshot = record.screenshot || null
-                        record.setting = record.setting || {}
+                        record.setting = record.setting || {
+                            dimWhenMirror: false,
+                            alwaysTop: false,
+                            mirrorSound: false,
+                        }
                     })
                     this.records = records
                 })
@@ -119,7 +123,11 @@ export const deviceStore = defineStore("device", {
                         status: createDeviceStatus(device),
                         runtime: createDeviceRuntime(device),
                         screenshot: null,
-                        setting: {},
+                        setting: {
+                            dimWhenMirror: false,
+                            alwaysTop: false,
+                            mirrorSound: false,
+                        },
                     }
                     this.records.unshift(record)
                     changed = true
@@ -167,6 +175,14 @@ export const deviceStore = defineStore("device", {
                 await this.sync()
             }
         },
+        async updateSetting(id: string, setting: any) {
+            const record = this.records.find((record) => record.id === id)
+            if (!record) {
+                return
+            }
+            record.setting = Object.assign(record.setting || {}, setting)
+            await this.sync()
+        },
         async sync() {
             const savedRecords = toRaw(cloneDeep(this.records))
             savedRecords.forEach((record) => {
@@ -194,9 +210,14 @@ export const deviceStore = defineStore("device", {
                 return
             }
             Dialog.loadingOn(t('正在投屏'))
-            const args = [
-                // '--always-on-top',
-            ]
+            const args: string[] = []
+            if (device.setting?.alwaysTop) {
+                args.push('--always-on-top')
+            }
+            if (device.setting?.mirrorSound) {
+            } else {
+                args.push('--no-audio')
+            }
             try {
                 runtime.mirrorController = await window.$mapi.scrcpy.mirror(device.id, {
                     title: device.name as string,
@@ -218,6 +239,9 @@ export const deviceStore = defineStore("device", {
                 })
                 await sleep(1000)
                 Dialog.tipSuccess(t('投屏成功'))
+                if (device.setting?.dimWhenMirror) {
+
+                }
             } catch (error) {
                 Dialog.tipError(mapError(error))
             } finally {

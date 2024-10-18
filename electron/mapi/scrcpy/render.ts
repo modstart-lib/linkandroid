@@ -46,6 +46,7 @@ const spawnShell = async (command: string, option: {
     error?: Function,
 } | null = null) => {
     const scrcpyPath = await getBinPath()
+    // console.log('spawnShell', `"${scrcpyPath}" ${command}`)
     return await Apps.spawnShell(`"${scrcpyPath}" ${command}`, option)
 }
 
@@ -61,6 +62,7 @@ const mirror = async (
     },
 ) => {
     option = option || {}
+    // console.log('mirror', serial, option.args)
     return spawnShell(`--serial="${serial}" --window-title="${option.title}" ${option.args}`, {
         stdout: option.stdout,
         stderr: option.stderr,
