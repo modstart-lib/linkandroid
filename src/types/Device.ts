@@ -12,10 +12,16 @@ export enum EnumDeviceType {
 export type DeviceRecord = {
     id: string,
     type: EnumDeviceType,
-    status: EnumDeviceStatus,
     name: string | null,
-    screenshot: string | null,
-    raw: any
+    raw: any,
+
+    status?: any,
+    runtime?: any,
+    screenshot?: string | null,
+    setting?: {},
 }
 
-
+export type DeviceRuntime = {
+    status: EnumDeviceStatus,
+    mirrorController: any,
+}

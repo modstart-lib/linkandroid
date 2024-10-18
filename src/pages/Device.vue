@@ -223,7 +223,7 @@ const doHelp = () => {
                                             :device="r"/>
                                         <DeviceActionWifiOff
                                             v-if="r.type===EnumDeviceType.WIFI"
-                                            :device="r" />
+                                            :device="r"/>
                                         <DeviceActionMirrorCamera :device="r"/>
                                         <DeviceActionMirrorOTG
                                             v-if="r.type===EnumDeviceType.USB"

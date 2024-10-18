@@ -1,5 +1,3 @@
-import {platformName} from "../../electron/lib/env";
-
 declare interface Window {
     $mapi: {
         app: {
