@@ -3,7 +3,7 @@ import store from "../index";
 import {toRaw} from "vue";
 import {cloneDeep} from "lodash-es";
 import {StringUtil} from "../../lib/util";
-import {mapError} from "../../lib/aigcpanel";
+import {mapError} from "../../lib/error";
 
 export type TaskRecordStatus = 'queue' | 'running' | 'querying' | 'success' | 'fail' | 'delete'
 

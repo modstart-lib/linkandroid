@@ -3,7 +3,7 @@ import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
 import {sleep} from "../../lib/util";
-import {mapError} from "../../lib/linkandroid";
+import {mapError} from "../../lib/error";
 
 const props = defineProps<{
     device: DeviceRecord

@@ -3,7 +3,7 @@ import {useDeviceStore} from "../store/modules/device";
 import {DeviceRecord, EnumDeviceStatus, EnumDeviceType} from "../types/Device";
 import DeviceStatus from "../components/Device/DeviceStatus.vue";
 import {Dialog} from "../lib/dialog";
-import {mapError} from "../lib/linkandroid";
+import {mapError} from "../lib/error";
 import InputInlineEditor from "../components/common/InputInlineEditor.vue";
 import DeviceInfoDialog from "../components/Device/DeviceInfoDialog.vue";
 import {computed, ref} from "vue";
