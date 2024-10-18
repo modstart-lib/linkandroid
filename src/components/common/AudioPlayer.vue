@@ -83,6 +83,7 @@ onMounted(() => {
         plugins: [regions],
         autoplay: false,
         cursorWidth: 0,
+        sampleRate: 16000,
     });
     waveRecord.value = wave.value.registerPlugin(RecordPlugin.create({
         scrollingWaveform: false,
@@ -274,6 +275,21 @@ const doRecordBack = async () => {
 const doRecordClean = async () => {
     recordVisible.value = true
 }
+
+const setRecordFromFile = async (file: File) => {
+    recordUrl.value = URL.createObjectURL(file)
+    recordVisible.value = false
+}
+
+const getAudioBuffer = () => {
+    return wave.value?.getDecodedData() as AudioBuffer
+}
+
+defineExpose({
+    setRecordFromFile,
+    getAudioBuffer
+})
+
 </script>
 
 <template>

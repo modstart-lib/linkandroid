@@ -140,6 +140,24 @@ const write = async (path: string, data: any, option?: Record<string, any>) => {
     fs.writeSync(f, data.content)
     fs.closeSync(f)
 }
+
+const writeBuffer = async (path: string, data: any, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
+    const fullPathDir = nodePath.dirname(fp)
+    if (!fs.existsSync(fullPathDir)) {
+        fs.mkdirSync(fullPathDir, {recursive: true})
+    }
+    const f = fs.openSync(fp, 'w')
+    fs.writeSync(f, data)
+    fs.closeSync(f)
+}
+
 const read = async (path: string, option?: Record<string, any>) => {
     option = Object.assign({
         isFullPath: false,
@@ -156,6 +174,24 @@ const read = async (path: string, option?: Record<string, any>) => {
     fs.closeSync(f)
     return content
 }
+
+const readBuffer = async (path: string, option?: Record<string, any>) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
+    if (!fs.existsSync(fp)) {
+        return null
+    }
+    const f = fs.openSync(fp, 'r')
+    const content = fs.readFileSync(f)
+    fs.closeSync(f)
+    return content
+}
+
 const deletes = async (path: string, option?: Record<string, any>) => {
     option = Object.assign({
         isFullPath: false,
@@ -361,7 +397,9 @@ export default {
     list,
     listAll,
     write,
+    writeBuffer,
     read,
+    readBuffer,
     deletes,
     rename,
     copy,
