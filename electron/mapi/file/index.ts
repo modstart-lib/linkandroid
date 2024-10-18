@@ -294,6 +294,7 @@ const watchText = async (path: string, callback: (data: {}) => void, option?: Re
     }
     option = Object.assign({
         isFullPath: false,
+        limit: 0,
     }, option)
     let fp = path
     if (!option.isFullPath) {
@@ -301,6 +302,8 @@ const watchText = async (path: string, callback: (data: {}) => void, option?: Re
     }
     let watcher = null
     let fd = null
+    let isFirstReading = true
+    let firstReadingLines = []
     const watchFileExists = () => {
         if (fs.existsSync(fp)) {
             watcher = null
@@ -325,10 +328,19 @@ const watchText = async (path: string, callback: (data: {}) => void, option?: Re
                 }
                 const line = content.substring(0, index)
                 content = content.substring(index + 1)
-                callback({
+                const lineItem = {
                     num: lineNumber++,
                     text: line,
-                })
+                }
+                if (option.limit > 0 && isFirstReading) {
+                    // 限制显示模式并且是第一次读取，暂时先不回调
+                    firstReadingLines.push(lineItem)
+                    while (firstReadingLines.length >= option.limit) {
+                        firstReadingLines.shift()
+                    }
+                } else {
+                    callback(lineItem)
+                }
                 // console.log('watchText.line', line, content)
             }
         }
@@ -339,6 +351,13 @@ const watchText = async (path: string, callback: (data: {}) => void, option?: Re
             content += buf.toString('utf8', 0, bytesRead)
             parseContentLine()
             if (bytesRead < CHUNK_SIZE) {
+                isFirstReading = false
+                if (firstReadingLines.length > 0) {
+                    firstReadingLines.forEach((lineItem) => {
+                        callback(lineItem)
+                    })
+                    firstReadingLines = []
+                }
                 watcher = setTimeout(readChunk, 1000);
             } else {
                 readChunk()

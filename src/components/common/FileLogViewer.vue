@@ -27,6 +27,8 @@ onMounted(async () => {
         while (logs.value.length > props.maxLines) {
             logs.value.shift()
         }
+    }, {
+        limit: props.maxLines
     })
 })
 onBeforeUnmount(() => {
