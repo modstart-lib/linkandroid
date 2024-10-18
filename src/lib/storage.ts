@@ -1,4 +1,4 @@
-export const Storage = {
+export const StorageUtil = {
     /**
      * @Util 存储数据
      * @param key String 键
@@ -30,7 +30,7 @@ export const Storage = {
      * @param defaultValue Array 默认值
      * @return Array 返回值
      */
-    getArray: function (key: string, defaultValue: any): Array<any> {
+    getArray: function (key: string, defaultValue?: any): any {
         defaultValue = defaultValue || []
         let value = window.localStorage.getItem(key)
         if (!value) {
@@ -52,7 +52,7 @@ export const Storage = {
      * @param defaultValue Object 默认值
      * @return Array 返回值
      */
-    getObject: function (key: string, defaultValue: any): Object {
+    getObject: function (key: string, defaultValue?: any): any {
         defaultValue = defaultValue || {}
         let value = window.localStorage.getItem(key)
         if (!value) {
