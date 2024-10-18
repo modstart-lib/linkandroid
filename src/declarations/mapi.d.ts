@@ -124,13 +124,13 @@ declare interface Window {
         adb: {
             getBinPath: () => Promise<string>,
             setBinPath: (binPath: string) => Promise<boolean>,
-            adbShell: (command: string) => Promise<string>,
+            adbShell: (command: string, deviceId?: string) => Promise<string>,
             adbSpawnShell: (command: string, option?: {
                 stdout?: Function | null,
                 stderr?: Function | null,
                 success?: Function | null,
                 error?: Function | null,
-            }) => Promise<string>,
+            }, deviceId?: string) => Promise<string>,
             devices: () => Promise<any>,
             screencap: (serial: string) => Promise<string>,
             screenrecord: (serial: string, option?: {

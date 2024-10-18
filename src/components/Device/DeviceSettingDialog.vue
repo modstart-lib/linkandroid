@@ -68,7 +68,7 @@ defineExpose({
             <div class="overflow-y-auto p-5" style="height:calc(80vh - 200px);">
                 <a-form :model="{}" layout="vertical">
                     <a-form-item :label="$t('投屏')">
-                        <a-checkbox v-if="0" v-model="formData.dimWhenMirror" size="small" class="mr-2">
+                        <a-checkbox v-model="formData.dimWhenMirror" size="small" class="mr-2">
                             {{ $t('投屏时调暗屏幕') }}
                         </a-checkbox>
                         <a-checkbox v-model="formData.alwaysTop" size="small" class="mr-2">

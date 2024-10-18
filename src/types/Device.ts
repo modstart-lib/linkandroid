@@ -28,4 +28,5 @@ export type DeviceRecord = {
 export type DeviceRuntime = {
     status: EnumDeviceStatus,
     mirrorController: any,
+    screenBrightness?: number,
 }

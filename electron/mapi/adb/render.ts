@@ -61,19 +61,29 @@ const getClient = async (): Promise<Client> => {
     return client
 }
 
-const adbShell = async (command: string) => {
+const adbShell = async (command: string, deviceId?: string) => {
     const adbPath = await getBinPath()
-    return await Apps.shell(`"${adbPath}" ${command}`)
+    if (deviceId) {
+        deviceId = `-s "${deviceId}"`
+    } else {
+        deviceId = ''
+    }
+    return await Apps.shell(`"${adbPath}" ${deviceId} ${command}`)
 }
 
-const adbSpawnShell = async (command: string, option: {
+const adbSpawnShell = async (command: string, option?: {
     stdout?: Function,
     stderr?: Function,
     success?: Function,
     error?: Function,
-} | null = null) => {
+} | null, deviceId?: string) => {
     const adbPath = await getBinPath()
-    return await Apps.spawnShell(`"${adbPath}" ${command}`, option)
+    if (deviceId) {
+        deviceId = `-s "${deviceId}"`
+    } else {
+        deviceId = ''
+    }
+    return await Apps.spawnShell(`"${adbPath}" ${deviceId} ${command}`, option)
 }
 
 const devices = async () => {

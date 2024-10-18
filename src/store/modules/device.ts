@@ -218,30 +218,48 @@ export const deviceStore = defineStore("device", {
             } else {
                 args.push('--no-audio')
             }
+            const mirrorStart = async () => {
+                if (device.setting?.dimWhenMirror) {
+                    try {
+                        const result = await window.$mapi.adb.adbShell('shell settings get system screen_brightness', device.id)
+                        // @ts-ignore
+                        device.runtime.screenBrightness = parseInt(result?.stdout)
+                        await window.$mapi.adb.adbShell('shell settings put system screen_brightness 1', device.id)
+                    } catch (e) {
+                    }
+                }
+            }
+            const mirrorEnd = async () => {
+                if (device.setting?.dimWhenMirror) {
+                    if (device.runtime.screenBrightness) {
+                        await window.$mapi.adb.adbShell(`shell settings put system screen_brightness ${device.runtime.screenBrightness}`, device.id)
+                    }
+                }
+            }
             try {
                 runtime.mirrorController = await window.$mapi.scrcpy.mirror(device.id, {
                     title: device.name as string,
                     args: args.join(' '),
                     stdout: (data: string) => {
-                        console.log('stdout', data)
+                        console.log('mirror.stdout', data)
                     },
                     stderr: (data: string) => {
-                        console.error('stderr', data)
+                        console.error('mirror.stderr', data)
                     },
                     success: (code: number) => {
-                        console.log('success', code)
+                        console.log('mirror.success', code)
                         runtime.mirrorController = null
+                        mirrorEnd().then()
                     },
                     error: (code: number) => {
-                        console.error('error', code)
+                        console.error('mirror.error', code)
                         runtime.mirrorController = null
+                        mirrorEnd().then()
                     }
                 })
                 await sleep(1000)
                 Dialog.tipSuccess(t('投屏成功'))
-                if (device.setting?.dimWhenMirror) {
-
-                }
+                await mirrorStart()
             } catch (error) {
                 Dialog.tipError(mapError(error))
             } finally {
