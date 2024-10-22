@@ -9,4 +9,6 @@ ipcMain.handle('misc:unzip', async (_, zipPath: string, dest: string) => {
     return await index.unzip(zipPath, dest)
 })
 
-export default {}
+export default {
+    ...index,
+}
