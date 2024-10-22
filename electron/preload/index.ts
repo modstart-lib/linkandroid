@@ -50,6 +50,16 @@ ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
             (resultData: any) => send(0, 'ok', resultData),
             (error: string) => send(-1, error)
         )
+    } else if ('CHANNEL' === payload.type) {
+        // console.log('CHANNEL', payload)
+        const {channel, data} = payload.data
+        if (!window['__channel']) {
+            return
+        }
+        if (!window['__channel'][channel]) {
+            return
+        }
+        window['__channel'][channel](data)
     } else {
         console.warn('Unknown message from main process:', JSON.stringify(payload))
     }

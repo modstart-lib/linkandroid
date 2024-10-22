@@ -7,7 +7,7 @@ import {mapError} from "../../lib/error";
 
 export type TaskRecordStatus = 'queue' | 'running' | 'querying' | 'success' | 'fail' | 'delete'
 
-export type TaskRecordRunStatus = 'retry' | 'success'
+export type TaskRecordRunStatus = 'retry' | 'success' | 'querying'
 
 export type TaskRecordQueryStatus = 'running' | 'success' | 'fail'
 
@@ -87,23 +87,27 @@ export const taskStore = defineStore("task", {
                     record.status = 'running'
                     record.runStart = Date.now()
                     record.runCalling = true
+                    this.fireChange(record, 'running')
                     this.bizMap[record.biz]
                         .runFunc(record.bizId, record.bizParam)
                         .then((status: TaskRecordRunStatus) => {
-                            if ('retry' === status) {
-                                record.status = 'queue'
-                                record.runStart = 0
-                                record.runAfter = Date.now() + 1000
-                            } else {
-                                if (!!this.bizMap[record.biz].queryFunc) {
+                            switch (status) {
+                                case 'success':
+                                    record.status = 'success'
+                                    break
+                                case 'querying':
                                     record.queryAfter = Date.now() + record.queryInterval
                                     record.status = 'querying'
-                                } else {
-                                    record.status = 'success'
-                                }
+                                    break
+                                case 'retry':
+                                    record.status = 'queue'
+                                    record.runStart = 0
+                                    record.runAfter = Date.now() + 1000
+                                    break
                             }
                         })
                         .catch((e) => {
+                            console.error('task.runFunc.error', e)
                             record.status = 'fail'
                             record.msg = mapError(e)
                         })
@@ -136,6 +140,7 @@ export const taskStore = defineStore("task", {
                             }
                         })
                         .catch((e) => {
+                            console.error('task.queryFunc.error', e)
                             record.status = 'fail'
                             record.msg = mapError(e)
                             changed = true
@@ -166,6 +171,7 @@ export const taskStore = defineStore("task", {
                             record.status = 'delete'
                         })
                         .catch((e) => {
+                            console.error('task.successFunc.error', e)
                             record.status = 'fail'
                             record.msg = mapError(e)
                         })
@@ -190,6 +196,8 @@ export const taskStore = defineStore("task", {
                         .then(() => {
                         })
                         .catch((e) => {
+                            console.error('task.failFunc.error', e)
+                            window.$mapi.log.error(`task.failFunc:${e}`)
                         })
                         .finally(() => {
                             this.fireChange(record, 'fail')

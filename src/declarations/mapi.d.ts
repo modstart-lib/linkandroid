@@ -91,6 +91,10 @@ declare interface Window {
             send: (name: string, type: string, data: any) => void,
             callThirdParty: (name: string, type: string, data: any, option?: any) => Promise<ApiResult<any>>,
             callPage: (name: string, type: string, data?: any, option?: any) => Promise<ApiResult<any>>,
+            // channel main <-> render
+            channelCreate: (callback: (data: any) => void) => Promise<string>,
+            channelDestroy: (channel: string) => Promise<void>,
+            channelSend: (channel: string, data: any) => Promise<void>,
         },
         page: {
             open: (name: string, option?: any) => Promise<void>,
@@ -180,7 +184,11 @@ declare interface Window {
         ffmpeg: {
             version: () => Promise<string>,
             run: (args: string[]) => Promise<string>,
-        }
+        },
+        server: {
+            // define any string to any value
+            [key: string]: Function,
+        },
     }
 }
 

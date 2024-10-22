@@ -11,6 +11,8 @@ import page from "./page/main";
 import user from "./user/main";
 import misc from "./misc/main";
 
+import server from "./server/main";
+
 const $mapi = {
     app,
     log,
@@ -23,7 +25,8 @@ const $mapi = {
     keys,
     page,
     user,
-    misc
+    misc,
+    server
 }
 
 export const MAPI = {

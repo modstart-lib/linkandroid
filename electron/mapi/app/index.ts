@@ -130,17 +130,18 @@ const spawnShell = async (command: string | string[], option: {
  */
 const availablePort = async (start: number): Promise<number> => {
     for (let i = start; i < 65535; i++) {
-        const available = await isPortAvailable('0.0.0.0', i)
-        // console.log('isPortAvailable', i, available)
-        if (available) {
+        const available = await isPortAvailable(i, '0.0.0.0')
+        const availableLocal = await isPortAvailable(i, '127.0.0.1')
+        // console.log('isPortAvailable', i, available, availableLocal)
+        if (available && availableLocal) {
             return i
         }
     }
     throw new Error('no available port')
 }
 
-const isPortAvailable = async (host: string, port: number): Promise<boolean> => {
 
+const isPortAvailable = async (port: number, host?: string): Promise<boolean> => {
     return new Promise((resolve) => {
         const server = net.createServer()
         server.listen(port, host)
@@ -164,6 +165,8 @@ const fixExecutable = async (executable: string) => {
 export const Apps = {
     shell,
     spawnShell,
+    availablePort,
+    isPortAvailable,
 }
 
 export default {
