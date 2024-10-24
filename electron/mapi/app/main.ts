@@ -1,6 +1,7 @@
 import {app, ipcMain, shell} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
+import {isMac} from "../../lib/env";
 
 const quit = () => {
     app.quit()
@@ -11,7 +12,11 @@ const windowMin = () => {
 }
 
 const windowMax = () => {
-    if (AppRuntime.mainWindow.isMaximized()) {
+    if (AppRuntime.mainWindow.isFullScreen()) {
+        AppRuntime.mainWindow.setFullScreen(false)
+        AppRuntime.mainWindow.unmaximize()
+        AppRuntime.mainWindow.center()
+    } else if (AppRuntime.mainWindow.isMaximized()) {
         AppRuntime.mainWindow.unmaximize()
         AppRuntime.mainWindow.center()
     } else {
@@ -57,6 +62,9 @@ ipcMain.handle('window:hide', (event, name: string) => {
         AppRuntime.mainWindow?.hide()
     } else {
         AppRuntime.windows[name]?.hide()
+    }
+    if (isMac) {
+        app.dock.hide()
     }
 })
 

@@ -3,15 +3,21 @@ import {trayPath} from "./icon";
 import {AppRuntime} from "../mapi/env";
 import {AppConfig} from "../../src/config";
 import {t} from "./lang";
-import {isWin} from "../lib/env";
+import {isMac, isWin} from "../lib/env";
 
 let tray = null
 
 const showApp = () => {
+    if (isMac) {
+        app.dock.show()
+    }
     AppRuntime.mainWindow.show()
 }
 
 const hideApp = () => {
+    if (isMac) {
+        app.dock.hide()
+    }
     AppRuntime.mainWindow.hide()
 }
 
@@ -20,9 +26,6 @@ const quitApp = () => {
 }
 
 const ready = () => {
-    if (process.platform === 'darwin') {
-        app.dock.show()
-    }
     tray = new Tray(trayPath)
 
     tray.setToolTip(AppConfig.name)
