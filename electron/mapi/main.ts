@@ -11,7 +11,7 @@ import page from "./page/main";
 import user from "./user/main";
 import misc from "./misc/main";
 
-import server from "./server/main";
+// import server from "./server/main";
 
 const $mapi = {
     app,
@@ -26,7 +26,7 @@ const $mapi = {
     page,
     user,
     misc,
-    server
+    // server
 }
 
 export const MAPI = {

@@ -19,7 +19,7 @@ import misc from "./misc/render";
 import adb from "./adb/render";
 import scrcpy from "./scrcpy/render";
 import ffmpeg from "./ffmpeg/render";
-import server from "./server/render";
+// import server from "./server/render";
 
 export const MAPI = {
     init(env: typeof AppEnv = null) {
@@ -44,7 +44,7 @@ export const MAPI = {
                 adb,
                 scrcpy,
                 ffmpeg,
-                server,
+                // server,
             })
             db.init()
             event.init()
