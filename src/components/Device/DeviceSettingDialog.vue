@@ -3,13 +3,14 @@ import {computed, ref} from "vue";
 import {DeviceRecord} from "../../types/Device";
 import {useDeviceStore} from "../../store/modules/device";
 import {t} from "../../lang";
+import SettingItemYesNoDefault from "../common/SettingItemYesNoDefault.vue";
 
 const deviceStore = useDeviceStore()
 const visible = ref(false)
 const formData = ref({
-    dimWhenMirror: false,
-    alwaysTop: false,
-    mirrorSound: false,
+    dimWhenMirror: '',
+    alwaysTop: '',
+    mirrorSound: '',
 })
 const device = ref<DeviceRecord | null>(null)
 const infoColumns = [
@@ -31,9 +32,9 @@ const deviceDataInfo = computed(() => {
 })
 const show = (record: DeviceRecord) => {
     device.value = record
-    formData.value.dimWhenMirror = record.setting?.dimWhenMirror || false
-    formData.value.alwaysTop = record.setting?.alwaysTop || false
-    formData.value.mirrorSound = record.setting?.mirrorSound || false
+    formData.value.dimWhenMirror = record.setting?.dimWhenMirror || ''
+    formData.value.alwaysTop = record.setting?.alwaysTop || ''
+    formData.value.mirrorSound = record.setting?.mirrorSound || ''
     visible.value = true
 }
 
@@ -53,7 +54,7 @@ defineExpose({
 
 <template>
     <a-modal v-model:visible="visible"
-             width="50rem"
+             width="40rem"
              title-align="start">
         <template #title>
             <icon-mobile/>
@@ -66,31 +67,39 @@ defineExpose({
         </template>
         <div v-if="visible" class="-mx-5 -my-6">
             <div class="overflow-y-auto p-5" style="height:calc(80vh - 200px);">
-                <a-form :model="{}" layout="vertical">
-                    <a-form-item :label="$t('投屏')">
-                        <a-checkbox v-model="formData.dimWhenMirror" size="small" class="mr-2">
-                            {{ $t('投屏时调暗屏幕') }}
-                        </a-checkbox>
-                        <a-checkbox v-model="formData.alwaysTop" size="small" class="mr-2">
-                            {{ $t('投屏总在最上层') }}
-                        </a-checkbox>
-                        <a-checkbox v-model="formData.mirrorSound" size="small" class="mr-2">
-                            {{ $t('投屏时转发声音') }}
-                        </a-checkbox>
-                    </a-form-item>
-                    <a-form-item v-if="device?.raw" :label="$t('其他')">
-                        <div class="w-full">
-                            <a-table :columns="infoColumns"
-                                     size="mini"
-                                     width="100%"
-                                     :data="deviceDataInfo"
-                                     :pagination="false"/>
+                <div>
+                    <div class="font-bold text-xl mb-3">
+                        {{ $t('投屏') }}
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('投屏时调暗屏幕') }}</div>
+                        <div class="">
+                            <SettingItemYesNoDefault v-model="formData.dimWhenMirror"/>
                         </div>
-                    </a-form-item>
-                </a-form>
-            </div>
-            <div>
-
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('投屏总在最上层') }}</div>
+                        <div class="">
+                            <SettingItemYesNoDefault v-model="formData.alwaysTop"/>
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('投屏时转发声音') }}</div>
+                        <div class="">
+                            <SettingItemYesNoDefault v-model="formData.mirrorSound"/>
+                        </div>
+                    </div>
+                    <div class="font-bold text-xl mb-3">
+                        {{ $t('其他') }}
+                    </div>
+                    <div class="w-full">
+                        <a-table :columns="infoColumns"
+                                 size="mini"
+                                 width="100%"
+                                 :data="deviceDataInfo"
+                                 :pagination="false"/>
+                    </div>
+                </div>
             </div>
         </div>
     </a-modal>

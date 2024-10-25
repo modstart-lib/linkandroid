@@ -24,12 +24,14 @@ import DeviceActionDisconnect from "../components/Device/DeviceActionDisconnect.
 import DeviceType from "../components/Device/DeviceType.vue";
 import DeviceActionConnect from "../components/Device/DeviceActionConnect.vue";
 import DeviceActionWifiOff from "../components/Device/DeviceActionWifiOff.vue";
+import DeviceDefaultSettingDialog from "../components/Device/DeviceDefaultSettingDialog.vue";
 
 const settingDialog = ref<InstanceType<typeof DeviceSettingDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
 const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
 const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
 const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
+const defaultSettingDialog = ref<InstanceType<typeof DeviceDefaultSettingDialog> | null>(null);
 
 const actionMirrors = ref<Record<string, InstanceType<typeof DeviceActionMirror> | null>>({})
 const helpShow = ref(false)
@@ -111,6 +113,7 @@ const doHelp = () => {
                     </a-button>
                     <template #content>
                         <a-doption @click="shellDialog?.show()">{{ $t('命令行工具') }}</a-doption>
+                        <a-doption @click="defaultSettingDialog?.show()">{{ $t('默认设置') }}</a-doption>
                     </template>
                 </a-dropdown>
             </div>
@@ -252,8 +255,9 @@ const doHelp = () => {
     <DeviceConnectWifiDialog ref="connectWifiDialog"/>
     <DeviceSettingDialog ref="settingDialog"/>
     <DeviceFileManagerDialog ref="fileManagerDialog"/>
-    <DeviceShellDialog ref="shellDialog"/>
     <DeviceAdbShellDialog ref="adbShellDialog"/>
+    <DeviceShellDialog ref="shellDialog"/>
+    <DeviceDefaultSettingDialog ref="defaultSettingDialog"/>
 </template>
 
 <style scoped>

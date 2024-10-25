@@ -54,9 +54,9 @@ export const deviceStore = defineStore("device", {
                         record.runtime = createDeviceRuntime(record)
                         record.screenshot = record.screenshot || null
                         record.setting = record.setting || {
-                            dimWhenMirror: false,
-                            alwaysTop: false,
-                            mirrorSound: false,
+                            dimWhenMirror: '',
+                            alwaysTop: '',
+                            mirrorSound: '',
                         }
                     })
                     this.records = records
@@ -124,9 +124,9 @@ export const deviceStore = defineStore("device", {
                         runtime: createDeviceRuntime(device),
                         screenshot: null,
                         setting: {
-                            dimWhenMirror: false,
-                            alwaysTop: false,
-                            mirrorSound: false,
+                            dimWhenMirror: '',
+                            alwaysTop: '',
+                            mirrorSound: '',
                         },
                     }
                     this.records.unshift(record)
@@ -211,15 +211,15 @@ export const deviceStore = defineStore("device", {
             }
             Dialog.loadingOn(t('正在投屏'))
             const args: string[] = []
-            if (device.setting?.alwaysTop) {
+            if ('yes' === await this.settingGet(device, 'alwaysTop', 'no')) {
                 args.push('--always-on-top')
             }
-            if (device.setting?.mirrorSound) {
-            } else {
+            if ('no' === await this.settingGet(device, 'mirrorSound', 'no')) {
                 args.push('--no-audio')
             }
+            console.log('mirror', args, await this.settingGet(device, 'alwaysTop', 'no'))
             const mirrorStart = async () => {
-                if (device.setting?.dimWhenMirror) {
+                if ('yes' === await this.settingGet(device, 'dimWhenMirror', 'no')) {
                     try {
                         const result = await window.$mapi.adb.adbShell('shell settings get system screen_brightness', device.id)
                         // @ts-ignore
@@ -230,7 +230,7 @@ export const deviceStore = defineStore("device", {
                 }
             }
             const mirrorEnd = async () => {
-                if (device.setting?.dimWhenMirror) {
+                if ('yes' === await this.settingGet(device, 'dimWhenMirror', 'no')) {
                     if (device.runtime.screenBrightness) {
                         await window.$mapi.adb.adbShell(`shell settings put system screen_brightness ${device.runtime.screenBrightness}`, device.id)
                     }
@@ -265,6 +265,15 @@ export const deviceStore = defineStore("device", {
             } finally {
                 Dialog.loadingOff()
             }
+        },
+        async settingGet(device: DeviceRecord, name: string, defaultValue: any) {
+            console.log('settingGet', [name, device?.setting?.[name], defaultValue])
+            if (device.setting && name in device.setting) {
+                if ('' !== device.setting[name]) {
+                    return device.setting[name]
+                }
+            }
+            return await window.$mapi.config.get(`Device.${name}`, defaultValue)
         }
     }
 })
