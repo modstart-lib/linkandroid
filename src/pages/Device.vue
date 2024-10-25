@@ -235,7 +235,7 @@ const doHelp = () => {
                                             {{ $t('命令行') }}
                                         </a-doption>
                                         <a-doption v-if="rIndex>0" @click="deviceStore.doTop(rIndex)">
-                                            {{ $t('置顶') }}
+                                            {{ $t('设备置顶') }}
                                         </a-doption>
                                         <a-doption @click="settingDialog?.show(r)">
                                             {{ $t('设备设置') }}
