@@ -41,12 +41,42 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Set Build Name ( Linux / macOS )
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: |
+            DIST_FILE_NAME=${{ runner.os }}-${{ runner.arch }}-v$(date +%Y%m%d_%H%M%S)-${RANDOM}
+            echo ::add-mask::$DIST_FILE_NAME
+            echo DIST_FILE_NAME=$DIST_FILE_NAME >> $GITHUB_ENV
+
+      - name: Set Build Name ( Windows )
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+            $randomNumber = Get-Random -Minimum 10000 -Maximum 99999
+            $DIST_FILE_NAME = "Windows-X64-v$(Get-Date -Format 'yyyyMMdd_HHmmss')-$randomNumber"
+            Write-Host "::add-mask::$DIST_FILE_NAME"
+            echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
+
+      - name: Upload
+        uses: modstart/github-oss-action@master
         with:
-            path: |
-                dist-release/*.exe
-                dist-release/*.dmg
-                dist-release/*.AppImage
-                dist-release/*.deb
+            key-id: ${{ secrets.OSS_KEY_ID }}
+            key-secret: ${{ secrets.OSS_KEY_SECRET }}
+            region: ${{ secrets.OSS_REGION }}
+            bucket: ${{ secrets.OSS_BUCKET }}
+            timeout: 3600
+            assets: |
+                dist-release/*.exe:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.dmg:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.AppImage:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.deb:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
+
+#      - name: Upload Artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#            path: |
+#                dist-release/*.exe
+#                dist-release/*.dmg
+#                dist-release/*.AppImage
+#                dist-release/*.deb
 
