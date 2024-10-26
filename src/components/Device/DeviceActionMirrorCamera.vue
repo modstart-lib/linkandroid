@@ -15,10 +15,6 @@ const doMirror = async () => {
         return
     }
     const info = await window.$mapi.adb.info(props.device.id)
-    if (!info) {
-        Dialog.tipError(t('获取设备信息失败'))
-        return
-    }
     if (info.version < 12) {
         Dialog.tipError(t('设备版本过低，不支持此功能'))
         return
@@ -26,7 +22,8 @@ const doMirror = async () => {
     Dialog.loadingOn(t('正在打开摄像头'))
     const args = [
         '--video-source=camera',
-        '--always-on-top'
+        '--always-on-top',
+        // '--camera-facing=back',
     ]
     try {
         const mirrorController = await window.$mapi.scrcpy.mirror(props.device.id, {

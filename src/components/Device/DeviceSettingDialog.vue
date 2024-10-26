@@ -17,7 +17,7 @@ const infoColumns = [
     {
         title: t('名称'),
         dataIndex: 'name',
-        width: 100,
+        width: 200,
     },
     {
         title: t('值'),
@@ -94,7 +94,7 @@ defineExpose({
                     </div>
                     <div class="w-full">
                         <a-table :columns="infoColumns"
-                                 size="mini"
+                                 size="small"
                                  width="100%"
                                  :data="deviceDataInfo"
                                  :pagination="false"/>

@@ -160,7 +160,9 @@ declare interface Window {
             getDeviceIP: (serial: string) => Promise<string>,
             tcpip: (serial: string, port: number) => Promise<number>,
             usb: (serial: string) => Promise<void>,
-            info: (serial: string) => Promise<any>,
+            info: (serial: string) => Promise<{
+                version: number,
+            }>,
         },
         scrcpy: {
             getBinPath: () => Promise<string>,

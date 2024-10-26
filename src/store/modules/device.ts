@@ -210,27 +210,36 @@ export const deviceStore = defineStore("device", {
                 return
             }
             Dialog.loadingOn(t('正在投屏'))
+            const setting = {
+                dimWhenMirror: await this.settingGet(device, 'dimWhenMirror', 'no'),
+                alwaysTop: await this.settingGet(device, 'alwaysTop', 'no'),
+                mirrorSound: await this.settingGet(device, 'mirrorSound', 'no'),
+            }
+            console.log('setting', setting)
             const args: string[] = []
-            if ('yes' === await this.settingGet(device, 'alwaysTop', 'no')) {
+            args.push('--stay-awake')
+            if ('yes' === setting.alwaysTop) {
                 args.push('--always-on-top')
             }
-            if ('no' === await this.settingGet(device, 'mirrorSound', 'no')) {
+            if ('no' === setting.mirrorSound) {
                 args.push('--no-audio')
             }
-            console.log('mirror', args, await this.settingGet(device, 'alwaysTop', 'no'))
             const mirrorStart = async () => {
-                if ('yes' === await this.settingGet(device, 'dimWhenMirror', 'no')) {
+                if ('yes' === setting.dimWhenMirror) {
                     try {
                         const result = await window.$mapi.adb.adbShell('shell settings get system screen_brightness', device.id)
                         // @ts-ignore
                         device.runtime.screenBrightness = parseInt(result?.stdout)
+                        console.log('screenBrightness.backup', device.runtime.screenBrightness)
                         await window.$mapi.adb.adbShell('shell settings put system screen_brightness 1', device.id)
                     } catch (e) {
+                        console.error('dimWhenMirror.error', e)
                     }
                 }
             }
             const mirrorEnd = async () => {
-                if ('yes' === await this.settingGet(device, 'dimWhenMirror', 'no')) {
+                if ('yes' === setting.dimWhenMirror) {
+                    console.log('screenBrightness.restore', device.runtime.screenBrightness)
                     if (device.runtime.screenBrightness) {
                         await window.$mapi.adb.adbShell(`shell settings put system screen_brightness ${device.runtime.screenBrightness}`, device.id)
                     }
@@ -267,7 +276,6 @@ export const deviceStore = defineStore("device", {
             }
         },
         async settingGet(device: DeviceRecord, name: string, defaultValue: any) {
-            console.log('settingGet', [name, device?.setting?.[name], defaultValue])
             if (device.setting && name in device.setting) {
                 if ('' !== device.setting[name]) {
                     return device.setting[name]
