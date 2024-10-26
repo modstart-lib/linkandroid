@@ -28,18 +28,18 @@ jobs:
         with:
           node-version: 20
 
-#      - name: Build Prepare (macOS)
-#        if: runner.os == 'macOS'
-#        run: |
-#            brew install python-setuptools
-#
-#      - name: Install Dependencies
-#        run: npm install
-#
-#      - name: Build Release Files
-#        run: npm run build
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Prepare (macOS)
+        if: runner.os == 'macOS'
+        run: |
+            brew install python-setuptools
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Release Files
+        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set Build Name ( Linux / macOS )
         if: runner.os == 'Linux' || runner.os == 'macOS'
@@ -66,7 +66,6 @@ jobs:
             bucket: ${{ secrets.OSS_BUCKET }}
             callback: ${{ secrets.OSS_CALLBACK }}
             assets: |
-                electron/config/*.ts:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/config/
                 dist-release/*.exe:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
                 dist-release/*.dmg:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
                 dist-release/*.AppImage:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
