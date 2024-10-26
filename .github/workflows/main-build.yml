@@ -64,6 +64,7 @@ jobs:
             key-secret: ${{ secrets.OSS_KEY_SECRET }}
             region: ${{ secrets.OSS_REGION }}
             bucket: ${{ secrets.OSS_BUCKET }}
+            uploadUrlPrefix: ${{ secrets.OSS_UPLOAD_URL_PREFIX }}
             callback: ${{ secrets.OSS_CALLBACK }}
             assets: |
                 electron/config/*.ts:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/config/
