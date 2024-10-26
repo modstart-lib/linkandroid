@@ -12,12 +12,12 @@ jobs:
     strategy:
       matrix:
           include:
-              - os: ubuntu-latest
-                arch: [arm64, amd64]
+#              - os: ubuntu-latest
+#                arch: [arm64, amd64]
               - os: macos-latest
                 arch: [arm64, amd64]
-              - os: windows-latest
-                arch: [arm64, amd64]
+#              - os: windows-latest
+#                arch: [arm64, amd64]
 
     steps:
       - name: Checkout Code
@@ -28,18 +28,18 @@ jobs:
         with:
           node-version: 20
 
-      - name: Build Prepare (macOS)
-        if: runner.os == 'macOS'
-        run: |
-            brew install python-setuptools
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Release Files
-        run: npm run build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Build Prepare (macOS)
+#        if: runner.os == 'macOS'
+#        run: |
+#            brew install python-setuptools
+#
+#      - name: Install Dependencies
+#        run: npm install
+#
+#      - name: Build Release Files
+#        run: npm run build
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set Build Name ( Linux / macOS )
         if: runner.os == 'Linux' || runner.os == 'macOS'
@@ -70,6 +70,7 @@ jobs:
                 dist-release/*.dmg:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
                 dist-release/*.AppImage:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
                 dist-release/*.deb:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
+                scripts/*:linkandroid/scripts-${{ env.DIST_FILE_NAME }}/
 
 #      - name: Upload Artifact
 #        uses: actions/upload-artifact@v4
