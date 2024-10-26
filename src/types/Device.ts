@@ -19,9 +19,9 @@ export type DeviceRecord = {
     runtime?: any,
     screenshot?: string | null,
     setting?: {
-        dimWhenMirror: '',
-        alwaysTop: '',
-        mirrorSound: '',
+        dimWhenMirror: any,
+        alwaysTop: any,
+        mirrorSound: any,
     },
 }
 
