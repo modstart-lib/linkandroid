@@ -38,8 +38,8 @@ const isTrimming = ref(false);
 
 const recordUrl = ref<string | null>(null);
 const isRecording = ref(false);
-const recordDeviceSelect = ref(null);
-const recordDevices = ref<{ id: string, name: string }[]>([]);
+const recordInputDeviceSelect = ref(null);
+const recordInputDevices = ref<{ id: string, name: string }[]>([]);
 const recordVisible = ref(false);
 
 const timeTotal = ref<number>(0);
@@ -124,15 +124,15 @@ onMounted(() => {
             recordVisible.value = true
         }
         RecordPlugin.getAvailableAudioDevices().then((devices) => {
-            recordDevices.value = devices.map((device) => {
+            recordInputDevices.value = devices.map((device) => {
                 return {
                     id: device.deviceId,
                     name: device.label || device.deviceI
                 }
             })
-            if (!recordDeviceSelect.value) {
+            if (!recordInputDeviceSelect.value) {
                 if (devices.length > 0) {
-                    recordDeviceSelect.value = devices[0].deviceId
+                    recordInputDeviceSelect.value = devices[0].deviceId
                 }
             }
         })
@@ -252,7 +252,7 @@ const doRecordStart = async () => {
         return
     }
     try {
-        await waveRecord.value.startRecording({deviceId: recordDeviceSelect.value})
+        await waveRecord.value.startRecording({deviceId: recordInputDeviceSelect.value})
         isRecording.value = true;
         waveVisible.value = true;
     } catch (e) {
@@ -371,19 +371,23 @@ defineExpose({
                      class="cursor-pointer w-8 h-8 inline-flex">
                     <icon-left class="m-auto text-gray-700 hover:text-primary text-2xl"/>
                 </div>
-                <div v-if="!isRecording"
+                <div v-if="recordInputDevices.length && !isRecording"
                      @click="doRecordStart" class="cursor-pointer w-8 h-8 inline-flex">
                     <icon-record class="m-auto text-red-700 hover:text-primary text-2xl"/>
                 </div>
-                <div v-else
+                <div v-else-if="recordInputDevices.length"
                      @click="doRecordStop"
                      class="cursor-pointer w-8 h-8 inline-flex">
                     <icon-record-stop class="m-auto text-gray-700 hover:text-primary text-2xl"/>
                 </div>
             </div>
             <div class="ml-3">
-                <a-select v-model="recordDeviceSelect as any" size="mini" style="width: 100%">
-                    <a-option v-for="device in recordDevices" :key="device.id" :value="device.id">
+                <div v-if="!recordInputDevices.length" class="text-sm bg-gray-100 h-10 leading-10 rounded-lg px-5">
+                    <icon-info-circle/>
+                    {{ $t('未检测到录音设备') }}
+                </div>
+                <a-select v-else v-model="recordInputDeviceSelect as any" size="mini" style="width: 100%">
+                    <a-option v-for="device in recordInputDevices" :key="device.id" :value="device.id">
                         {{ device.name }}
                     </a-option>
                 </a-select>

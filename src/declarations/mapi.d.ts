@@ -121,8 +121,8 @@ declare interface Window {
             }) => Promise<void>,
         },
         misc: {
-            // define any string to any value
-            [key: string]: Function,
+            getZipFileContent: (path: string, pathInZip: string) => Promise<string>,
+            unzip: (zipPath: string, dest: string, option?: { process: Function }) => Promise<void>,
         },
 
         adb: {
@@ -188,8 +188,11 @@ declare interface Window {
             run: (args: string[]) => Promise<string>,
         },
         server: {
-            // define any string to any value
-            [key: string]: Function,
+            start: (serverInfo: ServerInfo) => Promise<void>,
+            ping: (serverInfo: ServerInfo) => Promise<boolean>,
+            stop: (serverInfo: ServerInfo) => Promise<void>,
+            config: (serverInfo: ServerInfo) => Promise<any>,
+            callFunction: (serverInfo: ServerInfo, method: string, data: any) => Promise<any>,
         },
     }
 }
