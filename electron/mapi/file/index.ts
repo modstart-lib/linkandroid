@@ -21,7 +21,7 @@ const fullPath = async (path: string) => {
     return nodePath.join(root(), path)
 }
 
-const exists = async (path: string, option?: Record<string, any>) => {
+const exists = async (path: string, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -32,7 +32,7 @@ const exists = async (path: string, option?: Record<string, any>) => {
     return fs.existsSync(fp)
 }
 
-const isDirectory = async (path: string, option?: Record<string, any>) => {
+const isDirectory = async (path: string, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -46,7 +46,7 @@ const isDirectory = async (path: string, option?: Record<string, any>) => {
     return fs.statSync(fp).isDirectory()
 }
 
-const mkdir = async (path: string, option?: Record<string, any>) => {
+const mkdir = async (path: string, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -59,7 +59,7 @@ const mkdir = async (path: string, option?: Record<string, any>) => {
     }
 }
 
-const list = async (path: string, option?: Record<string, any>) => {
+const list = async (path: string, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -83,7 +83,7 @@ const list = async (path: string, option?: Record<string, any>) => {
     })
 }
 
-const listAll = async (path: string, option?: Record<string, any>) => {
+const listAll = async (path: string, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -119,7 +119,7 @@ const listAll = async (path: string, option?: Record<string, any>) => {
     return listDirectory(fp)
 }
 
-const write = async (path: string, data: any, option?: Record<string, any>) => {
+const write = async (path: string, data: any, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -141,7 +141,7 @@ const write = async (path: string, data: any, option?: Record<string, any>) => {
     fs.closeSync(f)
 }
 
-const writeBuffer = async (path: string, data: any, option?: Record<string, any>) => {
+const writeBuffer = async (path: string, data: any, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -158,7 +158,7 @@ const writeBuffer = async (path: string, data: any, option?: Record<string, any>
     fs.closeSync(f)
 }
 
-const read = async (path: string, option?: Record<string, any>) => {
+const read = async (path: string, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -175,7 +175,7 @@ const read = async (path: string, option?: Record<string, any>) => {
     return content
 }
 
-const readBuffer = async (path: string, option?: Record<string, any>) => {
+const readBuffer = async (path: string, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -192,7 +192,7 @@ const readBuffer = async (path: string, option?: Record<string, any>) => {
     return content
 }
 
-const deletes = async (path: string, option?: Record<string, any>) => {
+const deletes = async (path: string, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -210,7 +210,10 @@ const deletes = async (path: string, option?: Record<string, any>) => {
         fs.unlinkSync(fp)
     }
 }
-const rename = async (pathOld: string, pathNew: string, option?: Record<string, any>) => {
+const rename = async (pathOld: string, pathNew: string, option?: {
+    isFullPath: boolean,
+    overwrite: boolean
+}) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -233,7 +236,7 @@ const rename = async (pathOld: string, pathNew: string, option?: Record<string, 
     fs.renameSync(fullPathOld, fullPathNew)
 }
 
-const copy = async (pathOld: string, pathNew: string, option?: Record<string, any>) => {
+const copy = async (pathOld: string, pathNew: string, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -286,7 +289,10 @@ const tempDir = async (prefix: string = 'dir') => {
     return dir
 }
 
-const watchText = async (path: string, callback: (data: {}) => void, option?: Record<string, any>): Promise<{
+const watchText = async (path: string, callback: (data: {}) => void, option?: {
+    isFullPath: boolean,
+    limit: number,
+}): Promise<{
     stop: Function,
 }> => {
     if (!path) {
@@ -384,7 +390,7 @@ const watchText = async (path: string, callback: (data: {}) => void, option?: Re
 let appendTextPathCached = null
 let appendTextStreamCached = null
 
-const appendText = async (path: string, data: any, option?: Record<string, any>) => {
+const appendText = async (path: string, data: any, option?: { isFullPath: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
     }, option)
