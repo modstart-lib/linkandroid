@@ -253,6 +253,10 @@ const copy = async (pathOld: string, pathNew: string, option?: { isFullPath: boo
         throw new Error(`FileAlreadyExists:${fullPathNew}`)
     }
     // console.log('copy', fullPathOld, fullPathNew)
+    const dir = nodePath.dirname(fullPathNew)
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, {recursive: true})
+    }
     fs.copyFileSync(fullPathOld, fullPathNew)
 }
 
