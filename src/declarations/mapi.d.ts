@@ -24,7 +24,7 @@ declare interface Window {
                 success?: (process: any) => void,
                 error?: (msg: string, exitCode: number, process: any) => void,
                 cwd?: string,
-                encoding?: string,
+                outputEncoding?: string,
                 env?: Record<string, any>,
             } | null) => Promise<{
                 stop: () => void,

@@ -21,6 +21,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
+        "dev:win": "chcp 65001 && vite",
         "dev_debug": "vite --debug",
         "build": "vite build && electron-builder",
         "build:debug": "export VSCODE_DEBUG=true && vite build && electron-builder",
@@ -65,6 +66,7 @@
         "electron-context-menu": "^4.0.4",
         "ffmpeg-static": "^5.2.0",
         "fix-path": "^4.0.0",
+        "iconv-lite": "^0.6.3",
         "js-base64": "^3.7.7",
         "lodash-es": "^4.17.21",
         "nodejs-base64": "^2.0.0",
