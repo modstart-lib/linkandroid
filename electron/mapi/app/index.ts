@@ -29,6 +29,7 @@ const spawnShell = async (command: string | string[], option: {
     error?: (msg: string, exitCode: number, process: any) => void,
     cwd?: string,
     encoding?: string,
+    env?: Record<string, any>,
 } | null = null): Promise<{
     stop: () => void,
     send: (data: any) => void,
@@ -37,6 +38,7 @@ const spawnShell = async (command: string | string[], option: {
     option = Object.assign({
         cwd: process.cwd(),
         encoding: isWin ? undefined : 'utf8',
+        env: {},
     }, option)
     let commandEntry = '', args = []
     if (Array.isArray(command)) {
@@ -53,7 +55,7 @@ const spawnShell = async (command: string | string[], option: {
         }
     })
     const spawnProcess = spawn(commandEntry, args, {
-        env: {...process.env},
+        env: {...process.env, ...option.env},
         cwd: option['cwd'],
         shell: true,
         encoding: option['encoding'],
