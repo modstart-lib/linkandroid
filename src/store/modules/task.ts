@@ -56,6 +56,7 @@ let runNextTimer = null as any
 export const taskStore = defineStore("task", {
     state() {
         return {
+            isInit: false,
             bizMap: {} as Record<string, TaskBiz>,
             records: [] as TaskRecord[],
         }
@@ -65,10 +66,18 @@ export const taskStore = defineStore("task", {
             await window.$mapi.storage.get("task", "records", [])
                 .then((records) => {
                     this.records = records
+                    this.isInit = true
+                    this._run(true)
                 })
+        },
+        async waitInit() {
+            while (!this.isInit) {
+                await new Promise(resolve => setTimeout(resolve, 100))
+            }
         },
         _runExecute() {
             let changed = false
+            // console.log('task._runExecute.start', JSON.stringify(this.records))
             // error record
             this.records.forEach((record) => {
                 if (!this.bizMap[record.biz]) {
@@ -87,10 +96,17 @@ export const taskStore = defineStore("task", {
                     record.status = 'running'
                     record.runStart = Date.now()
                     record.runCalling = true
-                    this.fireChange(record, 'running')
+                    let runCallFinish = false
+                    setTimeout(() => {
+                        if (runCallFinish) {
+                            return
+                        }
+                        this.fireChange(record, 'running')
+                    }, 1000)
                     this.bizMap[record.biz]
                         .runFunc(record.bizId, record.bizParam)
                         .then((status: TaskRecordRunStatus) => {
+                            runCallFinish = true
                             switch (status) {
                                 case 'success':
                                     record.status = 'success'
@@ -107,6 +123,7 @@ export const taskStore = defineStore("task", {
                             }
                         })
                         .catch((e) => {
+                            runCallFinish = true
                             console.error('task.runFunc.error', e)
                             record.status = 'fail'
                             record.msg = mapError(e)
@@ -124,7 +141,7 @@ export const taskStore = defineStore("task", {
                     record.queryCalling = true
                     const taskBiz = this.bizMap[record.biz]
                     taskBiz.queryFunc?.(record.bizId, record.bizParam)
-                        .then((status) => {
+                        .then((status: TaskRecordQueryStatus) => {
                             switch (status) {
                                 case 'running':
                                     record.queryAfter = Date.now() + record.queryInterval
@@ -203,6 +220,7 @@ export const taskStore = defineStore("task", {
                             this.fireChange(record, 'fail')
                         })
                 })
+            // console.log('task._runExecute.end', JSON.stringify(this.records))
             // delete
             this.records = this.records.filter(r => r.status !== 'delete')
             // sync
@@ -245,6 +263,7 @@ export const taskStore = defineStore("task", {
             })
         },
         async dispatch(biz: string, bizId: string, bizParam?: any, param?: object) {
+            await this.waitInit()
             if (!this.bizMap[biz]) {
                 throw new Error('TaskBizNotFound')
             }
@@ -274,6 +293,7 @@ export const taskStore = defineStore("task", {
             this._run(true)
         },
         async sync() {
+            await this.waitInit()
             const savedRecords = toRaw(cloneDeep(this.records))
             savedRecords.forEach((record) => {
                 // record.status = undefined
