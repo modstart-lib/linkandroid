@@ -46,7 +46,12 @@ const spawnShell = async (command: string | string[], option: {
         args = command.split(' ')
         commandEntry = args.shift() as string
     }
-    Log.info('App.spawnShell', {commandEntry, args})
+    Log.info('App.spawnShell', {
+        commandEntry, args, option: {
+            cwd: option['cwd'],
+            encoding: option['encoding'],
+        }
+    })
     const spawnProcess = spawn(commandEntry, args, {
         env: {...process.env},
         cwd: option['cwd'],
