@@ -22,7 +22,7 @@ declare interface Window {
                 stdout?: (data: string, process: any) => void,
                 stderr?: (data: string, process: any) => void,
                 success?: (process: any) => void,
-                error?: (exitCode: number, msg: string, process: any) => void,
+                error?: (msg: string, exitCode: number, process: any) => void,
                 cwd?: string,
                 encoding?: string,
             } | null) => Promise<{

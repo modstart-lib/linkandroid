@@ -26,7 +26,7 @@ const spawnShell = async (command: string | string[], option: {
     stdout?: (data: string, process: any) => void,
     stderr?: (data: string, process: any) => void,
     success?: (process: any) => void,
-    error?: (exitCode: number, msg: string, process: any) => void,
+    error?: (msg: string, exitCode: number, process: any) => void,
     cwd?: string,
     encoding?: string,
 } | null = null): Promise<{
@@ -93,13 +93,13 @@ const spawnShell = async (command: string | string[], option: {
         if (isSuccess) {
             option.success?.(spawnProcess)
         } else {
-            option.error?.(exitCode, `command ${command} failed with code ${code}`, spawnProcess)
+            option.error?.(`command ${command} failed with code ${code}`, exitCode, spawnProcess)
         }
         end = true
     })
     spawnProcess.on('error', (err) => {
         Log.info('App.spawnShell.error', err)
-        option.error?.(-1, err.toString(), spawnProcess)
+        option.error?.(err.toString(), -1, spawnProcess)
         end = true
     })
     return {
