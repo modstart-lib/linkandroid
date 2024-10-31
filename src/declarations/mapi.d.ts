@@ -14,12 +14,17 @@ declare interface Window {
             windowClose: (name?: string) => Promise<void>,
             openExternalWeb: (url: string) => Promise<void>,
             appEnv: () => Promise<any>,
-            shell: (command: string, option: {} | null) => Promise<void>,
+            shell: (command: string, option?: {
+                cwd?: string,
+                encoding?: string,
+            }) => Promise<void>,
             spawnShell: (command: string | string[], option: {
-                stdout?: Function,
-                stderr?: Function,
-                success?: Function,
-                error?: Function,
+                stdout?: (data: string, process: any) => void,
+                stderr?: (data: string, process: any) => void,
+                success?: (process: any) => void,
+                error?: (exitCode: number, msg: string, process: any) => void,
+                cwd?: string,
+                encoding?: string,
             } | null) => Promise<{
                 stop: () => void,
                 send: (data: any) => void,

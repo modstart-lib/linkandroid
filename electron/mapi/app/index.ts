@@ -6,25 +6,38 @@ import {Log} from "../log/index";
 
 const exec = util.promisify(_exec)
 
-const shell = async (command: string) => {
+const shell = async (command: string, option?: {
+    cwd?: string,
+    encoding?: string,
+}) => {
+    option = Object.assign({
+        cwd: process.cwd(),
+        encoding: isWin ? undefined : 'utf8',
+    }, option)
     return exec(command, {
         env: {...process.env},
         shell: true,
-        encoding: 'utf8',
+        encoding: option['encoding'],
+        cwd: option['cwd'],
     } as any)
 }
 
 const spawnShell = async (command: string | string[], option: {
-    stdout?: Function,
-    stderr?: Function,
-    success?: Function,
-    error?: Function,
+    stdout?: (data: string, process: any) => void,
+    stderr?: (data: string, process: any) => void,
+    success?: (process: any) => void,
+    error?: (exitCode: number, msg: string, process: any) => void,
+    cwd?: string,
+    encoding?: string,
 } | null = null): Promise<{
     stop: () => void,
     send: (data: any) => void,
     result: () => Promise<string>
 }> => {
-    option = option || {} as any
+    option = Object.assign({
+        cwd: process.cwd(),
+        encoding: isWin ? undefined : 'utf8',
+    }, option)
     let commandEntry = '', args = []
     if (Array.isArray(command)) {
         commandEntry = command[0]
@@ -36,8 +49,9 @@ const spawnShell = async (command: string | string[], option: {
     Log.info('App.spawnShell', {commandEntry, args})
     const spawnProcess = spawn(commandEntry, args, {
         env: {...process.env},
+        cwd: option['cwd'],
         shell: true,
-        encoding: 'utf8',
+        encoding: option['encoding'],
     } as any)
     // console.log('spawnProcess.start', spawnProcess)
     let end = false
@@ -72,15 +86,15 @@ const spawnShell = async (command: string | string[], option: {
             }
         }
         if (isSuccess) {
-            option.success?.(null)
+            option.success?.(spawnProcess)
         } else {
-            option.error?.(`command ${command} failed with code ${code}`)
+            option.error?.(exitCode, `command ${command} failed with code ${code}`, spawnProcess)
         }
         end = true
     })
     spawnProcess.on('error', (err) => {
         Log.info('App.spawnShell.error', err)
-        option.error?.(err)
+        option.error?.(-1, err.toString(), spawnProcess)
         end = true
     })
     return {
