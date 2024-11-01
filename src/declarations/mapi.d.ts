@@ -31,7 +31,7 @@ declare interface Window {
                 send: (data: any) => void,
                 result: () => Promise<string>
             }>,
-            availablePort: (start: number) => Promise<number>,
+            availablePort: (start: number, lockKey?: string, lockTime?: number) => Promise<number>,
             fixExecutable: (executable: string) => Promise<void>,
         },
         config: {

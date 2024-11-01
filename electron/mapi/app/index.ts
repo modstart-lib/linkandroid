@@ -4,6 +4,7 @@ import {exec as _exec, spawn} from "node:child_process";
 import {isLinux, isMac, isWin} from "../../lib/env";
 import {Log} from "../log/index";
 import iconv from "iconv-lite";
+import {StrUtil} from "../../lib/util";
 
 const exec = util.promisify(_exec)
 
@@ -154,16 +155,48 @@ const spawnShell = async (command: string | string[], option: {
     }
 }
 
+const availablePortLock: {
+    [port: number]: {
+        lockKey: string,
+        lockTime: number,
+    },
+} = {}
+
 /**
  * 获取一个可用的端口
  * @param start 开始的端口
+ * @param lockKey 锁定的key，避免其他进程获取，默认会创建一个随机的key
+ * @param lockTime 锁定时间，避免在本次获取后未启动服务导致其他进程重复获取
  */
-const availablePort = async (start: number): Promise<number> => {
+const availablePort = async (start: number, lockKey?: string, lockTime?: number): Promise<number> => {
+    lockKey = lockKey || StrUtil.randomString(8)
+    lockTime = lockTime || 60
+    // expire lock
+    const now = Date.now()
+    for (const port in availablePortLock) {
+        const lockInfo = availablePortLock[port]
+        if (lockInfo.lockTime < now) {
+            delete availablePortLock[port]
+        }
+    }
     for (let i = start; i < 65535; i++) {
         const available = await isPortAvailable(i, '0.0.0.0')
         const availableLocal = await isPortAvailable(i, '127.0.0.1')
         // console.log('isPortAvailable', i, available, availableLocal)
         if (available && availableLocal) {
+            const lockInfo = availablePortLock[i]
+            if (lockInfo) {
+                if (lockInfo.lockKey === lockKey) {
+                    return i
+                } else {
+                    // other lockKey lock the port
+                    continue
+                }
+            }
+            availablePortLock[i] = {
+                lockKey,
+                lockTime: Date.now() + lockTime * 1000,
+            }
             return i
         }
     }
