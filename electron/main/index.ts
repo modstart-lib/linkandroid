@@ -42,8 +42,7 @@ process.on('unhandledRejection', (reason) => {
     console.error('Unhandled Rejection:', reason);
 });
 
-// Disable GPU Acceleration for Windows 7
-if (os.release().startsWith('6.1')) app.disableHardwareAcceleration()
+app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
@@ -148,10 +147,6 @@ function createWindow() {
         if (url.startsWith('https:')) shell.openExternal(url)
         return {action: 'deny'}
     })
-}
-
-if (isDev) {
-    app.disableHardwareAcceleration();
 }
 
 app.whenReady()
