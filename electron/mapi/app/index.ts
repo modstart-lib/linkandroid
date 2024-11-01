@@ -118,7 +118,15 @@ const spawnShell = async (command: string | string[], option: {
         stop: () => {
             Log.info('App.spawnShell.stop')
             if (isWin) {
-                _exec(`taskkill /pid ${spawnProcess.pid} /T /F`, (err, stdout, stderr) => {
+                _exec(`taskkill /pid ${spawnProcess.pid} /T /F`, {
+                    encoding: 'binary'
+                }, (err, stdout, stderr) => {
+                    if (stdout) {
+                        stdout = outputStringConvert(stdout)
+                    }
+                    if (stderr) {
+                        stderr = outputStringConvert(stderr)
+                    }
                     Log.info('App.spawnShell.stop.taskkill', JSON.parse(JSON.stringify({err, stdout, stderr})))
                 })
             } else {
