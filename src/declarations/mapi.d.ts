@@ -7,9 +7,12 @@ declare interface Window {
             platformArch: () => 'x86' | 'arm64' | null,
             isPlatform: (platform: 'win' | 'osx' | 'linux') => boolean,
             quit: () => Promise<void>,
-            windowMin: () => Promise<void>,
-            windowMax: () => Promise<void>,
-            windowSetSize: (width: number, height: number) => Promise<void>,
+            windowMin: (name?: string) => Promise<void>,
+            windowMax: (name?: string) => Promise<void>,
+            windowSetSize: (name: string | null, width: number, height: number, option?: {
+                includeMinimumSize: boolean,
+                center: boolean
+            }) => Promise<void>,
             windowHide: (name?: string) => Promise<void>,
             windowClose: (name?: string) => Promise<void>,
             openExternalWeb: (url: string) => Promise<void>,

@@ -12,16 +12,19 @@ const isPlatform = (name: 'win' | 'osx' | 'linux') => {
     return platformName() === name
 }
 
-const windowMin = () => {
-    return ipcRenderer.invoke('window:min')
+const windowMin = (name?: string) => {
+    return ipcRenderer.invoke('window:min', name)
 }
 
-const windowMax = () => {
-    return ipcRenderer.invoke('window:max')
+const windowMax = (name?: string) => {
+    return ipcRenderer.invoke('window:max', name)
 }
 
-const windowSetSize = (width: number, height: number) => {
-    return ipcRenderer.invoke('window:setSize', width, height)
+const windowSetSize = (name: string | null, width: number, height: number, option?: {
+    includeMinimumSize: boolean,
+    center: boolean
+}) => {
+    return ipcRenderer.invoke('window:setSize', name, width, height, option)
 }
 
 const windowHide = (name: string) => {

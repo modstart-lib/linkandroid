@@ -52,28 +52,47 @@ const quit = () => {
     app.quit()
 }
 
-const windowMin = () => {
-    AppRuntime.mainWindow?.minimize()
+const windowMin = (name?: string) => {
+    getWindowByName(name)?.minimize()
 }
 
-const windowMax = () => {
-    if (AppRuntime.mainWindow.isFullScreen()) {
-        AppRuntime.mainWindow.setFullScreen(false)
-        AppRuntime.mainWindow.unmaximize()
-        AppRuntime.mainWindow.center()
-    } else if (AppRuntime.mainWindow.isMaximized()) {
-        AppRuntime.mainWindow.unmaximize()
-        AppRuntime.mainWindow.center()
+const windowMax = (name?: string) => {
+    const win = getWindowByName(name)
+    if (!win) {
+        return
+    }
+    if (win.isFullScreen()) {
+        win.setFullScreen(false)
+        win.unmaximize()
+        win.center()
+    } else if (win.isMaximized()) {
+        win.unmaximize()
+        win.center()
     } else {
-        AppRuntime.mainWindow.setMinimumSize(WindowConfig.minWidth, WindowConfig.minHeight)
-        AppRuntime.mainWindow.maximize()
+        win.setMinimumSize(WindowConfig.minWidth, WindowConfig.minHeight)
+        win.maximize()
     }
 }
 
-const windowSetSize = (width: number, height: number) => {
-    AppRuntime.mainWindow.setMinimumSize(width, height)
-    AppRuntime.mainWindow.setSize(width, height)
-    AppRuntime.mainWindow.center()
+const windowSetSize = (name: string | null, width: number, height: number, option?: {
+    includeMinimumSize: boolean,
+    center: boolean
+}) => {
+    const win = getWindowByName(name)
+    if (!win) {
+        return
+    }
+    option = Object.assign({
+        includeMinimumSize: true,
+        center: true
+    }, option)
+    if (option.includeMinimumSize) {
+        win.setMinimumSize(width, height)
+    }
+    win.setSize(width, height)
+    if (option.center) {
+        win.center()
+    }
 }
 
 ipcMain.handle('app:quit', () => {
@@ -84,14 +103,17 @@ ipcMain.handle('app:openExternalWeb', (event, url: string) => {
     return shell.openExternal(url)
 })
 
-ipcMain.handle('window:min', () => {
-    windowMin()
+ipcMain.handle('window:min', (event, name: string) => {
+    windowMin(name)
 })
-ipcMain.handle('window:max', () => {
-    windowMax()
+ipcMain.handle('window:max', (event, name: string) => {
+    windowMax(name)
 })
-ipcMain.handle('window:setSize', (event, width: number, height: number) => {
-    windowSetSize(width, height)
+ipcMain.handle('window:setSize', (event, name: string | null, width: number, height: number, option?: {
+    includeMinimumSize: boolean,
+    center: boolean
+}) => {
+    windowSetSize(name, width, height, option)
 })
 
 ipcMain.handle('window:close', (event, name: string) => {
