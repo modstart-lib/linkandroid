@@ -1,7 +1,52 @@
-import {app, ipcMain, shell} from "electron";
+import {app, BrowserWindow, ipcMain, screen, shell} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
 import {isMac} from "../../lib/env";
+
+
+const getWindowByName = (name: string) => {
+    if (!name || 'main' === name) {
+        return AppRuntime.mainWindow
+    }
+    return AppRuntime.windows[name]
+}
+
+const getCurrentWindow = (window, e) => {
+    let originWindow = BrowserWindow.fromWebContents(e.sender);
+    // if (originWindow !== window) originWindow = detachInstance.getWindow();
+    return originWindow;
+}
+
+const winPosition = {
+    x: 0,
+    y: 0,
+    id: -1,
+    getPosition(): { x: number; y: number } {
+        const {x, y} = screen.getCursorScreenPoint();
+        const currentDisplay = screen.getDisplayNearestPoint({x, y});
+        if (winPosition.id !== currentDisplay.id) {
+            winPosition.id = currentDisplay.id;
+            winPosition.x = parseInt(
+                String(
+                    currentDisplay.workArea.x + currentDisplay.workArea.width / 2 - 400
+                )
+            );
+            winPosition.y = parseInt(
+                String(
+                    currentDisplay.workArea.y + currentDisplay.workArea.height / 2 - 200
+                )
+            );
+        }
+        return {
+            x: winPosition.x,
+            y: winPosition.y,
+        };
+    },
+    setPosition(x: number, y: number): void {
+        winPosition.x = x;
+        winPosition.y = y;
+    },
+};
 
 const quit = () => {
     app.quit()
@@ -50,22 +95,27 @@ ipcMain.handle('window:setSize', (event, width: number, height: number) => {
 })
 
 ipcMain.handle('window:close', (event, name: string) => {
-    if (!name || 'main' === name) {
-        AppRuntime.mainWindow?.close()
-    } else {
-        AppRuntime.windows[name]?.close()
-    }
+    getWindowByName(name)?.close()
 })
 
 ipcMain.handle('window:hide', (event, name: string) => {
-    if (!name || 'main' === name) {
-        AppRuntime.mainWindow?.hide()
-    } else {
-        AppRuntime.windows[name]?.hide()
-    }
+    getWindowByName(name)?.hide()
     if (isMac) {
         app.dock.hide()
     }
+})
+
+ipcMain.handle('window:move', (event, name: string | null, data: {
+    mouseX: number,
+    mouseY: number,
+    width: number,
+    height: number
+}) => {
+    const {x, y} = screen.getCursorScreenPoint();
+    const originWindow = getWindowByName(name);
+    if (!originWindow) return;
+    originWindow.setBounds({x: x - data.mouseX, y: y - data.mouseY, width: data.width, height: data.height});
+    winPosition.setPosition(x - data.mouseX, y - data.mouseY);
 })
 
 export default {

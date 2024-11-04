@@ -32,6 +32,10 @@ const windowClose = (name: string) => {
     return ipcRenderer.invoke('window:close', name)
 }
 
+const windowMove = (name: string | null, data: { mouseX: number, mouseY: number, width: number, height: number }) => {
+    return ipcRenderer.invoke('window:move', name, data)
+}
+
 const openExternalWeb = (url: string) => {
     return ipcRenderer.invoke('app:openExternalWeb', url)
 }
@@ -66,6 +70,7 @@ export default {
     windowSetSize,
     windowHide,
     windowClose,
+    windowMove,
     openExternalWeb,
     appEnv,
     shell: appIndex.shell,
