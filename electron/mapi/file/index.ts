@@ -205,9 +205,17 @@ const deletes = async (path: string, option?: { isFullPath?: boolean, }) => {
     }
     const stat = fs.statSync(fp)
     if (stat.isDirectory()) {
-        fs.rmdirSync(fp, {recursive: true})
+        try {
+            fs.rmdirSync(fp, {recursive: true})
+        } catch (e) {
+            console.log('mapi.file.deletes.error', e)
+        }
     } else {
-        fs.unlinkSync(fp)
+        try {
+            fs.unlinkSync(fp)
+        } catch (e) {
+            console.log('mapi.file.deletes.error', e)
+        }
     }
 }
 const rename = async (pathOld: string, pathNew: string, option?: {
