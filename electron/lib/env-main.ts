@@ -1,5 +1,5 @@
 import url, {fileURLToPath} from "node:url";
-import {BrowserWindow} from "electron";
+import {BrowserView, BrowserWindow} from "electron";
 import {isPackaged} from "./env";
 import path, {join} from "node:path";
 
@@ -17,12 +17,20 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 export const preloadDefault = path.join(MAIN_DIST, 'preload/index.mjs')
 
-export const rendererPath = (window: BrowserWindow, fileName: string) => {
+export const rendererPath = (window: BrowserWindow | BrowserView, fileName: string) => {
     if (!isPackaged && process.env.VITE_DEV_SERVER_URL) {
         const x = new url.URL(rendererDistPath(fileName));
-        window.loadURL(x.toString());
+        if (window instanceof BrowserView) {
+            window.webContents.loadURL(x.toString());
+        } else {
+            window.loadURL(x.toString());
+        }
     } else {
-        window.loadFile(rendererDistPath(fileName));
+        if (window instanceof BrowserView) {
+            window.webContents.loadFile(rendererDistPath(fileName));
+        } else {
+            window.loadFile(rendererDistPath(fileName));
+        }
     }
     window.webContents.on("will-navigate", (event) => {
         event.preventDefault();
