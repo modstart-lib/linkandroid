@@ -2,9 +2,10 @@ import {app, BrowserWindow, ipcMain, screen, shell} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
 import {isMac} from "../../lib/env";
+import {AppPosition} from "./lib/position";
 
 
-const getWindowByName = (name: string) => {
+const getWindowByName = (name?: string) => {
     if (!name || 'main' === name) {
         return AppRuntime.mainWindow
     }
@@ -17,36 +18,6 @@ const getCurrentWindow = (window, e) => {
     return originWindow;
 }
 
-const winPosition = {
-    x: 0,
-    y: 0,
-    id: -1,
-    getPosition(): { x: number; y: number } {
-        const {x, y} = screen.getCursorScreenPoint();
-        const currentDisplay = screen.getDisplayNearestPoint({x, y});
-        if (winPosition.id !== currentDisplay.id) {
-            winPosition.id = currentDisplay.id;
-            winPosition.x = parseInt(
-                String(
-                    currentDisplay.workArea.x + currentDisplay.workArea.width / 2 - 400
-                )
-            );
-            winPosition.y = parseInt(
-                String(
-                    currentDisplay.workArea.y + currentDisplay.workArea.height / 2 - 200
-                )
-            );
-        }
-        return {
-            x: winPosition.x,
-            y: winPosition.y,
-        };
-    },
-    setPosition(x: number, y: number): void {
-        winPosition.x = x;
-        winPosition.y = y;
-    },
-};
 
 const quit = () => {
     app.quit()
@@ -137,9 +108,13 @@ ipcMain.handle('window:move', (event, name: string | null, data: {
     const originWindow = getWindowByName(name);
     if (!originWindow) return;
     originWindow.setBounds({x: x - data.mouseX, y: y - data.mouseY, width: data.width, height: data.height});
-    winPosition.setPosition(x - data.mouseX, y - data.mouseY);
+    AppPosition.set(x - data.mouseX, y - data.mouseY);
 })
 
 export default {
     quit
+}
+
+export const AppsMain = {
+    getWindowByName,
 }
