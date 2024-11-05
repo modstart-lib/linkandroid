@@ -123,6 +123,20 @@ function createWindow() {
         },
     })
 
+    AppRuntime.mainWindow.on('closed', () => {
+        AppRuntime.mainWindow = null
+    })
+    AppRuntime.mainWindow.on('show', () => {
+        AppRuntime.mainWindow.webContents.executeJavaScript(
+            `window.__page && window.__page.hooks && typeof window.__page.hooks.onShow === "function" && window.__page.hooks.onShow()`
+        );
+    });
+    AppRuntime.mainWindow.on('hide', () => {
+        AppRuntime.mainWindow.webContents.executeJavaScript(
+            `window.__page && window.__page.hooks && typeof window.__page.hooks.onHide === "function" && window.__page.hooks.onHide()`
+        );
+    });
+
     // console.log('VITE_DEV_SERVER_URL:', VITE_DEV_SERVER_URL)
     if (VITE_DEV_SERVER_URL) { // #298
         AppRuntime.mainWindow.loadURL(VITE_DEV_SERVER_URL)
@@ -175,7 +189,6 @@ app.on('will-quit', () => {
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
-    AppRuntime.mainWindow = null
 })
 
 app.on('second-instance', () => {

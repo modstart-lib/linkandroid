@@ -5,6 +5,16 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
 MAPI.init()
 
+window['__page'] = {
+    hooks: {},
+    onShow: (cb: Function) => {
+        window['__page'].hooks.onShow = cb
+    },
+    onHide: (cb: Function) => {
+        window['__page'].hooks.onHide = cb
+    }
+}
+
 window['__callPage'] = {}
 
 ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {

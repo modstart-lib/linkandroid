@@ -1,4 +1,9 @@
 declare interface Window {
+    __page: {
+        hooks: {
+            [key: string]: Function
+        }
+    },
     $mapi: {
         app: {
             resourcePathResolve: (filePath: string) => Promise<string>,
