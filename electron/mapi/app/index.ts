@@ -8,20 +8,35 @@ import {StrUtil} from "../../lib/util";
 
 const exec = util.promisify(_exec)
 
+const outputStringConvert = (outputEncoding: 'utf8' | 'cp936', data: any) => {
+    if (!data) {
+        return ''
+    }
+    if (outputEncoding === 'utf8') {
+        return data.toString()
+    }
+    // convert outputEncoding(cp936) to utf8
+    return iconv.decode(Buffer.from(data, 'binary'), outputEncoding)
+}
+
 const shell = async (command: string, option?: {
     cwd?: string,
-    encoding?: string,
+    outputEncoding?: string,
 }) => {
     option = Object.assign({
         cwd: process.cwd(),
-        encoding: 'binary',
+        outputEncoding: isWin ? 'cp936' : 'utf8',
     }, option)
-    return exec(command, {
+    const result = await exec(command, {
         env: {...process.env},
         shell: true,
-        encoding: option['encoding'],
+        encoding: 'binary',
         cwd: option['cwd'],
     } as any)
+    return {
+        stdout: outputStringConvert(option.outputEncoding as any, result.stdout),
+        stderr: outputStringConvert(option.outputEncoding as any, result.stderr),
+    }
 }
 
 const spawnShell = async (command: string | string[], option: {

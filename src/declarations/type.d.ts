@@ -24,7 +24,7 @@ declare interface Window {
             appEnv: () => Promise<any>,
             shell: (command: string, option?: {
                 cwd?: string,
-                encoding?: string,
+                outputEncoding?: string,
             }) => Promise<void>,
             spawnShell: (command: string | string[], option: {
                 stdout?: (data: string, process: any) => void,

@@ -75,6 +75,7 @@ const list = async (path: string, option?: { isFullPath?: boolean, }) => {
         const stat = fs.statSync(nodePath.join(fp, file))
         let f = {
             name: file,
+            pathname: nodePath.join(fp, file),
             isDirectory: stat.isDirectory(),
             size: stat.size,
             lastModified: stat.mtimeMs,
