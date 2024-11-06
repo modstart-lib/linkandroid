@@ -49,6 +49,9 @@ const windowSetSize = (name: string | null, width: number, height: number, optio
     includeMinimumSize: boolean,
     center: boolean
 }) => {
+    width = parseInt(String(width))
+    height = parseInt(String(height))
+    // console.log('windowSetSize', name, width, height, option)
     const win = getWindowByName(name)
     if (!win) {
         return
