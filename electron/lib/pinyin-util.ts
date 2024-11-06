@@ -16,5 +16,8 @@ export const PinyinUtil = {
             inputMark,
             similarity
         }
+    },
+    mark(text) {
+        return `<mark>${text}</mark>`
     }
 }
