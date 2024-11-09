@@ -156,6 +156,11 @@ function createWindow() {
             }, 1000);
         }
         Page.ready('main')
+        if (WindowConfig.alwaysOpenDevTools) {
+            AppRuntime.mainWindow.webContents.openDevTools({
+                mode: 'detach',
+            })
+        }
     })
     AppRuntime.mainWindow.webContents.setWindowOpenHandler(({url}) => {
         if (url.startsWith('https:')) shell.openExternal(url)
