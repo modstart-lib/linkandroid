@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain, screen, shell, clipboard} from "electron";
+import {app, BrowserWindow, ipcMain, screen, shell, clipboard, nativeImage} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
 import {isMac} from "../../lib/env";
@@ -129,6 +129,24 @@ const setClipboardText = (text: string) => {
 
 ipcMain.handle('app:setClipboardText', (event, text: string) => {
     setClipboardText(text)
+})
+
+const getClipboardImage = () => {
+    const image = clipboard.readImage('clipboard')
+    return image.isEmpty() ? '' : image.toDataURL()
+}
+
+ipcMain.handle('app:getClipboardImage', (event) => {
+    return getClipboardImage()
+})
+
+const setClipboardImage = (image: string) => {
+    const img = nativeImage.createFromDataURL(image)
+    clipboard.writeImage(img, 'clipboard')
+}
+
+ipcMain.handle('app:setClipboardImage', (event, image: string) => {
+    setClipboardImage(image)
 })
 
 export default {

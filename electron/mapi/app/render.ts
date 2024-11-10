@@ -68,6 +68,14 @@ const setClipboardText = (text: string) => {
     return ipcRenderer.invoke('app:setClipboardText', text)
 }
 
+const getClipboardImage = () => {
+    return ipcRenderer.invoke('app:getClipboardImage')
+}
+
+const setClipboardImage = (image: string) => {
+    return ipcRenderer.invoke('app:setClipboardImage', image)
+}
+
 export default {
     resourcePathResolve,
     extraPathResolve,
@@ -85,6 +93,8 @@ export default {
     appEnv,
     getClipboardText,
     setClipboardText,
+    getClipboardImage,
+    setClipboardImage,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
     availablePort: appIndex.availablePort,

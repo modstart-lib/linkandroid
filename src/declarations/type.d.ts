@@ -43,6 +43,8 @@ declare interface Window {
             fixExecutable: (executable: string) => Promise<void>,
             getClipboardText: () => Promise<string>,
             setClipboardText: (text: string) => Promise<void>,
+            getClipboardImage: () => Promise<string>,
+            setClipboardImage: (image: string) => Promise<void>,
         },
         config: {
             get: (key: string, defaultValue: any = null) => Promise<any>,
