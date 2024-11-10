@@ -155,4 +155,8 @@ export default {
 
 export const AppsMain = {
     getWindowByName,
+    getClipboardText,
+    setClipboardText,
+    getClipboardImage,
+    setClipboardImage,
 }
