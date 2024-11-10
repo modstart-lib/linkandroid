@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain, screen, shell} from "electron";
+import {app, BrowserWindow, ipcMain, screen, shell, clipboard} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
 import {isMac} from "../../lib/env";
@@ -112,6 +112,23 @@ ipcMain.handle('window:move', (event, name: string | null, data: {
     if (!originWindow) return;
     originWindow.setBounds({x: x - data.mouseX, y: y - data.mouseY, width: data.width, height: data.height});
     AppPosition.set(x - data.mouseX, y - data.mouseY);
+})
+
+
+const getClipboardText = () => {
+    return clipboard.readText('clipboard')
+}
+
+ipcMain.handle('app:getClipboardText', (event) => {
+    return getClipboardText()
+})
+
+const setClipboardText = (text: string) => {
+    clipboard.writeText(text, 'clipboard')
+}
+
+ipcMain.handle('app:setClipboardText', (event, text: string) => {
+    setClipboardText(text)
 })
 
 export default {

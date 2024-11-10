@@ -41,6 +41,8 @@ declare interface Window {
             }>,
             availablePort: (start: number, lockKey?: string, lockTime?: number) => Promise<number>,
             fixExecutable: (executable: string) => Promise<void>,
+            getClipboardText: () => Promise<string>,
+            setClipboardText: (text: string) => Promise<void>,
         },
         config: {
             get: (key: string, defaultValue: any = null) => Promise<any>,

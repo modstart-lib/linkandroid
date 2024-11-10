@@ -60,6 +60,13 @@ const appEnv = async () => {
     return AppEnv
 }
 
+const getClipboardText = () => {
+    return ipcRenderer.invoke('app:getClipboardText')
+}
+
+const setClipboardText = (text: string) => {
+    return ipcRenderer.invoke('app:setClipboardText', text)
+}
 
 export default {
     resourcePathResolve,
@@ -76,6 +83,8 @@ export default {
     windowMove,
     openExternalWeb,
     appEnv,
+    getClipboardText,
+    setClipboardText,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
     availablePort: appIndex.availablePort,
