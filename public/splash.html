@@ -6,7 +6,7 @@
     <title>%name%</title>
 </head>
 <body>
-<div style="display:flex;flex-direction:column;height:100vh;background:transparent;padding:20px;">
+<div class="container">
     <div style="display:flex;justify-content:center;align-items:center;">
         <div style="margin-right:10px;">
             <img width="40" src="./logo.svg"/>
@@ -35,10 +35,21 @@
 
     body {
         height: 100vh;
+        background:transparent;
+        padding:10px;
+    }
+    body .container{
         background-image: url("./splash-bg.svg");
+        display:flex;
+        flex-direction:column;
+        height:calc( 100vh - 20px );
+        padding:20px;
         background-size: cover;
         background-position: right;
         background-repeat: no-repeat;
+        border-radius: 10px;
+        background-color: red;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
 </style>
 </body>

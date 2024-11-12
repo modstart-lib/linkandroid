@@ -102,7 +102,7 @@ function createWindow() {
         title: AppConfig.name,
         ...(!isPackaged ? {icon} : {}),
         frame: false,
-        transparent: true,
+        transparent: false,
         hasShadow: true,
         center: true,
         minWidth: WindowConfig.initWidth,
