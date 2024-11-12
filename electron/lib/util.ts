@@ -1,4 +1,5 @@
 import {Base64} from "js-base64";
+import dayjs from "dayjs";
 
 // const {base64encode, base64decode} = require('nodejs-base64');
 
@@ -56,7 +57,19 @@ export const TimeUtil = {
     },
     timestamp() {
         return Math.floor(Date.now() / 1000)
-    }
+    },
+    format(time: number, format: string = 'YYYY-MM-DD HH:mm:ss') {
+        return dayjs(time).format(format)
+    },
+    formatDate(time: number) {
+        return dayjs(time).format('YYYY-MM-DD')
+    },
+    dateString() {
+        return dayjs().format('YYYYMMDD')
+    },
+    datetimeString() {
+        return dayjs().format('YYYYMMDD_HHmmss')
+    },
 }
 
 
