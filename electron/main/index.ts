@@ -90,6 +90,7 @@ function createWindow() {
             frame: false,
             alwaysOnTop: true,
             hasShadow: true,
+            skipTaskbar: true,
         })
         if (VITE_DEV_SERVER_URL) {
             AppRuntime.splashWindow.loadURL(path.join(VITE_DEV_SERVER_URL, 'splash.html'))
