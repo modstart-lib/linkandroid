@@ -1,13 +1,8 @@
 import {app, BrowserWindow, desktopCapturer, session, shell} from 'electron'
 import {optimizer} from '@electron-toolkit/utils'
-import path from 'node:path'
-import os from 'node:os'
 
 /** process.js 必须位于非依赖项的顶部 */
 import {isDummy} from "../lib/process";
-
-const isDummyNew = isDummy
-
 import {AppEnv, AppRuntime} from "../mapi/env";
 import {MAPI} from '../mapi/main';
 
@@ -17,22 +12,13 @@ import Log from "../mapi/log/main";
 import {ConfigMenu} from "../config/menu";
 import {ConfigLang} from "../config/lang";
 import {ConfigContextMenu} from "../config/contextMenu";
-import {MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL} from "../lib/env-main";
+import {preloadDefault, rendererLoadPath} from "../lib/env-main";
 import {Page} from "../page";
 import {ConfigTray} from "../config/tray";
 import {icnsLogoPath, icoLogoPath, logoPath} from "../config/icon";
-import {isDev, isPackaged} from "../lib/env";
+import {isPackaged} from "../lib/env";
 
-// The built directory structure
-//
-// ├─┬ dist-electron
-// │ ├─┬ main
-// │ │ └── index.js    > Electron-Main
-// │ └─┬ preload
-// │   └── index.mjs   > Preload-Scripts
-// ├─┬ dist
-// │ └── index.html    > Electron-Renderer
-//
+const isDummyNew = isDummy
 
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
@@ -48,15 +34,13 @@ app.disableHardwareAcceleration()
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 
 if (!app.requestSingleInstanceLock()) {
+    // 如何激活已经启动的实例？
+    // https://www.electronjs.org/docs/api/app#apprequestsingleinstancelock
     app.quit()
     process.exit(0)
 }
 
 const hasSplashWindow = true
-
-const preload = path.join(MAIN_DIST, 'preload/index.mjs')
-const splashHtml = path.join(RENDERER_DIST, 'splash.html')
-const indexHtml = path.join(RENDERER_DIST, 'index.html')
 
 AppEnv.appRoot = process.env.APP_ROOT
 AppEnv.appData = app.getPath('appData')
@@ -68,11 +52,9 @@ ConfigContextMenu.init()
 
 Log.info('Starting')
 Log.info('LaunchInfo', {
-    splash: splashHtml,
-    index: indexHtml,
-    isPackaged
+    isPackaged,
+    userData: AppEnv.userData,
 })
-Log.info('UserDataDir', AppEnv.userData)
 
 function createWindow() {
     let icon = logoPath
@@ -92,11 +74,7 @@ function createWindow() {
             hasShadow: true,
             skipTaskbar: true,
         })
-        if (VITE_DEV_SERVER_URL) {
-            AppRuntime.splashWindow.loadURL(path.join(VITE_DEV_SERVER_URL, 'splash.html'))
-        } else {
-            AppRuntime.splashWindow.loadFile(splashHtml)
-        }
+        rendererLoadPath(AppRuntime.splashWindow, 'splash.html')
     }
     AppRuntime.mainWindow = new BrowserWindow({
         show: !hasSplashWindow,
@@ -112,7 +90,7 @@ function createWindow() {
         height: WindowConfig.initHeight,
         backgroundColor: '#f1f5f9',
         webPreferences: {
-            preload,
+            preload: preloadDefault,
             // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
             nodeIntegration: true,
             webSecurity: false,
@@ -138,12 +116,7 @@ function createWindow() {
         );
     });
 
-    // console.log('VITE_DEV_SERVER_URL:', VITE_DEV_SERVER_URL)
-    if (VITE_DEV_SERVER_URL) { // #298
-        AppRuntime.mainWindow.loadURL(VITE_DEV_SERVER_URL)
-    } else {
-        AppRuntime.mainWindow.loadFile(indexHtml)
-    }
+    rendererLoadPath(AppRuntime.mainWindow, 'index.html')
 
     AppRuntime.mainWindow.webContents.on('did-finish-load', () => {
         if (hasSplashWindow) {
@@ -199,8 +172,10 @@ app.on('window-all-closed', () => {
 
 app.on('second-instance', () => {
     if (AppRuntime.mainWindow) {
-        // Focus on the main window if the user tried to open another
-        if (AppRuntime.mainWindow.isMinimized()) AppRuntime.mainWindow.restore()
+        if (AppRuntime.mainWindow.isMinimized()) {
+            AppRuntime.mainWindow.restore()
+        }
+        AppRuntime.mainWindow.show()
         AppRuntime.mainWindow.focus()
     }
 })
@@ -218,19 +193,3 @@ app.on('activate', () => {
 })
 
 
-// New window example arg: new windows url
-// ipcMain.handle('open-win', (_, arg) => {
-//     const childWindow = new BrowserWindow({
-//         webPreferences: {
-//             preload,
-//             nodeIntegration: true,
-//             contextIsolation: false,
-//         },
-//     })
-//
-//     if (VITE_DEV_SERVER_URL) {
-//         childWindow.loadURL(`${VITE_DEV_SERVER_URL}#${arg}`)
-//     } else {
-//         childWindow.loadFile(indexHtml, {hash: arg})
-//     }
-// })

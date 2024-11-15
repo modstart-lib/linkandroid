@@ -17,7 +17,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 export const preloadDefault = path.join(MAIN_DIST, 'preload/index.mjs')
 
-export const rendererPath = (window: BrowserWindow | BrowserView, fileName: string) => {
+export const rendererLoadPath = (window: BrowserWindow | BrowserView, fileName: string) => {
     if (!isPackaged && process.env.VITE_DEV_SERVER_URL) {
         const x = new url.URL(rendererDistPath(fileName));
         if (window instanceof BrowserView) {
@@ -32,12 +32,6 @@ export const rendererPath = (window: BrowserWindow | BrowserView, fileName: stri
             window.loadFile(rendererDistPath(fileName));
         }
     }
-    window.webContents.on("will-navigate", (event) => {
-        event.preventDefault();
-    });
-    window.webContents.setWindowOpenHandler(() => {
-        return {action: "deny"};
-    });
 }
 
 function rendererDistPath(fileName: string) {
