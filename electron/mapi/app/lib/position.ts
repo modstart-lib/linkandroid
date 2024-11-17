@@ -69,6 +69,25 @@ export const AppPosition = {
         cache.x = x;
         cache.y = y;
     },
+    getContextMenuPosition(boxWidth: number, boxHeight: number): {
+        x: number;
+        y: number,
+    } {
+        const {x, y} = screen.getCursorScreenPoint();
+        const currentDisplay = screen.getDisplayNearestPoint({x, y});
+        let resultX = x;
+        let resultY = y;
+        if (currentDisplay.workArea.width - x < boxWidth) {
+            resultX = currentDisplay.workArea.width - boxWidth;
+        }
+        if (currentDisplay.workArea.height - y < boxHeight) {
+            resultY = currentDisplay.workArea.height - boxHeight
+        }
+        return {
+            x: resultX,
+            y: resultY,
+        }
+    },
 };
 
 
