@@ -34,9 +34,13 @@ export const rendererLoadPath = (window: BrowserWindow | BrowserView, fileName: 
     }
 }
 
-function rendererDistPath(fileName: string) {
+export const rendererDistPath = (fileName: string) => {
     if (!isPackaged && process.env.VITE_DEV_SERVER_URL) {
-        return `${process.env.VITE_DEV_SERVER_URL}/${fileName}`;
+        return `${process.env.VITE_DEV_SERVER_URL.replace(/\/+$/, '')}/${fileName}`;
     }
     return join(RENDERER_DIST, fileName);
+}
+
+export const rendererIsUrl = (url: string) => {
+    return url.startsWith('http://') || url.startsWith('https://');
 }
