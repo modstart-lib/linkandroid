@@ -40,6 +40,14 @@ export const UI = {
         if (!dom) return
         domListeners = domListeners.filter(item => item.dom !== dom)
         resizeObserver.unobserve(dom)
+    },
+    fireResize(dom: HTMLElement) {
+        domListeners.forEach(item => {
+            if (item.dom === dom) {
+                const {width, height} = dom.getBoundingClientRect()
+                item.callback(width, height)
+            }
+        })
     }
 }
 
