@@ -1,24 +1,40 @@
-import {BrowserWindow, screen} from "electron";
+import {BrowserView, BrowserWindow, screen} from "electron";
 import {isDev} from "./env";
+import {WindowConfig} from "../config/window";
 
 export const DevToolsManager = {
-    windowWidth: 600,
-    windowHeight: 600,
-    windows: new Map<BrowserWindow, BrowserWindow>(),
-    getOrCreateWindow(name: string, win: BrowserWindow) {
+    rowCount: 4,
+    colCount: 3,
+    windows: new Map<BrowserWindow | BrowserView, BrowserWindow>(),
+    getWindow(win: BrowserWindow | BrowserView) {
+        return this.windows.get(win);
+    },
+    getOrCreateWindow(name: string, win: BrowserWindow | BrowserView) {
         if (this.windows.has(win)) {
             return this.windows.get(win);
         }
-        const {x, y} = this.getDisplayPosition()
+        const {x, y, width, height} = this.getDisplayPosition()
+        // console.log('DevToolsManager', name, {x, y, width, height})
         const devtools = new BrowserWindow({
             show: true,
             x,
             y,
-            width: this.windowWidth,
-            height: this.windowHeight,
+            width,
+            height,
             title: name,
         });
+        // console.log('DevToolsManager', name, {x, y})
         win.webContents.setDevToolsWebContents(devtools.webContents);
+        win.webContents.on('destroyed', () => {
+            // console.log('DevToolsManager', 'destroyed', name)
+            devtools.destroy()
+            this.windows.delete(win)
+        })
+        devtools.webContents.on('dom-ready', () => {
+            setTimeout(() => {
+                devtools.setTitle(name)
+            }, 1000)
+        })
         this.windows.set(win, devtools);
         return devtools;
     },
@@ -32,22 +48,38 @@ export const DevToolsManager = {
         });
     },
     getDisplayPosition(): {
-        x: number, y: number
+        x: number, y: number,
+        width: number, height: number
     } {
         const display = this.getLargestDisplay()
         const {x, y, width, height} = display.workArea;
-        const maxRow = Math.floor(width / this.windowWidth);
+        const itemWidth = Math.floor(width / this.rowCount);
+        const itemHeight = Math.floor(height / this.colCount);
+        const maxRow = Math.floor(width / itemWidth);
         const row = this.windows.size % maxRow;
         const col = Math.floor(this.windows.size / maxRow);
         return {
-            x: x + row * this.windowWidth,
-            y: y + col * this.windowHeight,
+            x: x + row * itemWidth,
+            y: y + col * itemHeight,
+            width: itemWidth,
+            height: itemHeight,
         }
     },
-    register(name: string, win: BrowserWindow) {
+    register(name: string, win: BrowserWindow | BrowserView) {
         if (!isDev) {
             return
         }
         this.getOrCreateWindow(name, win);
+    },
+    autoShow(win: BrowserWindow | BrowserView) {
+        if (!isDev) {
+            return
+        }
+        if (WindowConfig.alwaysOpenDevTools) {
+            win.webContents.openDevTools({
+                mode: 'detach',
+                activate: false,
+            })
+        }
     }
 }
