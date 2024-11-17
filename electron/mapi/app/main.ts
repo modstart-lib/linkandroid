@@ -111,7 +111,7 @@ ipcMain.handle('window:move', (event, name: string | null, data: {
     const originWindow = getWindowByName(name);
     if (!originWindow) return;
     originWindow.setBounds({x: x - data.mouseX, y: y - data.mouseY, width: data.width, height: data.height});
-    AppPosition.set(x - data.mouseX, y - data.mouseY);
+    AppPosition.set(name, x - data.mouseX, y - data.mouseY);
 })
 
 

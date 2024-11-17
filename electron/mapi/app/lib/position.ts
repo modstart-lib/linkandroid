@@ -1,24 +1,41 @@
 import {screen} from "electron";
 
-export const AppPosition = {
+type PositionCache = {
     x: 0,
     y: 0,
     screenWidth: 0,
     screenHeight: 0,
     id: -1,
-    get(calculator?: (screenX: number, screenY: number, screenWidth: number, screenHeight: number) => {
+}
+
+export const AppPosition = {
+    caches: {} as Record<string, PositionCache>,
+    getCache(name: string): PositionCache {
+        if (!this.caches[name]) {
+            this.caches[name] = {
+                x: 0,
+                y: 0,
+                screenWidth: 0,
+                screenHeight: 0,
+                id: -1,
+            }
+        }
+        return this.caches[name];
+    },
+    get(name: string, calculator?: (screenX: number, screenY: number, screenWidth: number, screenHeight: number) => {
         x: number,
         y: number
     }): {
         x: number;
         y: number,
     } {
+        const cache = this.getCache(name)
         const {x, y} = screen.getCursorScreenPoint();
         const currentDisplay = screen.getDisplayNearestPoint({x, y});
-        if (AppPosition.id !== currentDisplay.id) {
-            AppPosition.id = currentDisplay.id;
-            AppPosition.screenWidth = currentDisplay.workArea.width;
-            AppPosition.screenHeight = currentDisplay.workArea.height;
+        if (cache.id !== currentDisplay.id) {
+            cache.id = currentDisplay.id;
+            cache.screenWidth = currentDisplay.workArea.width;
+            cache.screenHeight = currentDisplay.workArea.height;
             if (!calculator) {
                 calculator = (
                     screenX: number,
@@ -26,7 +43,7 @@ export const AppPosition = {
                     screenWidth: number,
                     screenHeight: number
                 ) => {
-                    console.log('calculator', {screenX, screenY, screenWidth, screenHeight});
+                    // console.log('calculator', {screenX, screenY, screenWidth, screenHeight});
                     return {
                         x: screenX + screenWidth / 10,
                         y: screenY + screenHeight / 10,
@@ -36,20 +53,21 @@ export const AppPosition = {
             const res = calculator(
                 currentDisplay.workArea.x,
                 currentDisplay.workArea.y,
-                AppPosition.screenWidth,
-                AppPosition.screenHeight
+                cache.screenWidth,
+                cache.screenHeight
             );
-            AppPosition.x = parseInt(String(res.x));
-            AppPosition.y = parseInt(String(res.y));
+            cache.x = parseInt(String(res.x));
+            cache.y = parseInt(String(res.y));
         }
         return {
-            x: AppPosition.x,
-            y: AppPosition.y,
+            x: cache.x,
+            y: cache.y,
         };
     },
-    set(x: number, y: number): void {
-        AppPosition.x = x;
-        AppPosition.y = y;
+    set(name: string, x: number, y: number): void {
+        const cache = this.getCache(name)
+        cache.x = x;
+        cache.y = y;
     },
 };
 
