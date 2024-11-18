@@ -32,7 +32,9 @@ export const DevToolsManager = {
         })
         devtools.webContents.on('dom-ready', () => {
             setTimeout(() => {
-                devtools.setTitle(name)
+                if (!devtools.isDestroyed()) {
+                    devtools.setTitle(name)
+                }
             }, 1000)
         })
         this.windows.set(win, devtools);
