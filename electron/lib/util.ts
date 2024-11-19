@@ -1,7 +1,7 @@
 import {Base64} from "js-base64";
+import * as crypto from "node:crypto";
 import dayjs from "dayjs";
-
-// const {base64encode, base64decode} = require('nodejs-base64');
+import fs from "node:fs";
 
 export const EncodeUtil = {
     base64Encode(str: string) {
@@ -9,6 +9,9 @@ export const EncodeUtil = {
     },
     base64Decode(str: string) {
         return Base64.decode(str)
+    },
+    md5(str: string) {
+        return crypto.createHash('md5').update(str).digest('hex')
     }
 }
 
@@ -68,7 +71,12 @@ export const TimeUtil = {
         return dayjs().format('YYYYMMDD')
     },
     datetimeString() {
-        return dayjs().format('YYYYMMDD_HHmmss')
+        return dayjs().format('YYYYMMDD_HHmmss_SSS')
+    },
+    timestampDayStart() {
+        const date = new Date()
+        date.setHours(0, 0, 0, 0)
+        return Math.floor(date.getTime() / 1000)
     },
 }
 
@@ -89,6 +97,21 @@ export const FileUtil = {
             })
         })
     },
+    bufferToBase64(buffer: Buffer) {
+        let binary = '';
+        let bytes = new Uint8Array(buffer);
+        let len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return EncodeUtil.base64Encode(binary)
+    },
+    base64ToBuffer(base64: string): Buffer {
+        if (base64.startsWith('data:')) {
+            base64 = base64.split('base64,')[1]
+        }
+        return Buffer.from(base64, 'base64')
+    },
     formatSize(size: number) {
         if (size < 1024) {
             return size + 'B'
@@ -99,6 +122,21 @@ export const FileUtil = {
         } else {
             return (size / 1024 / 1024 / 1024).toFixed(2) + 'GB'
         }
+    },
+    async md5(filePath: string) {
+        return new Promise((resolve, reject) => {
+            const hash = crypto.createHash('md5')
+            const stream = fs.createReadStream(filePath)
+            stream.on('data', (data) => {
+                hash.update(data)
+            })
+            stream.on('end', () => {
+                resolve(hash.digest('hex'))
+            })
+            stream.on('error', (error) => {
+                reject(error)
+            })
+        })
     }
 }
 
@@ -114,5 +152,14 @@ export const JsonUtil = {
             })
         );
         return JSON.stringify(sortedData, null, 4)
+    }
+}
+
+export const ImportUtil = {
+    async loadCommonJs(cjsPath: string) {
+        const md5 = await FileUtil.md5(cjsPath)
+        const backend = await import(`${cjsPath}?t=${md5}`)
+        console.log('loadCommonJs', `${cjsPath}?t=${md5}`)
+        return backend.default
     }
 }
