@@ -27,7 +27,7 @@ onMounted(() => {
                     <img src="/logo.svg" class="w-4 t-4"/>
                 </div>
                 <div class="p-2 flex-grow">
-                    {{ AppConfig.name }} v{{ AppConfig.version }}
+                    {{ AppConfig.name }}
                 </div>
             </div>
             <div class="p-1 leading-4">

@@ -22,6 +22,7 @@ export type DeviceRecord = {
         dimWhenMirror: any,
         alwaysTop: any,
         mirrorSound: any,
+        previewImage: any,
     },
 }
 

@@ -7,11 +7,13 @@ const formData = ref({
     dimWhenMirror: '',
     alwaysTop: '',
     mirrorSound: '',
+    previewImage: '',
 })
 const show = async () => {
     formData.value.dimWhenMirror = await window.$mapi.config.get('Device.dimWhenMirror', 'no')
     formData.value.alwaysTop = await window.$mapi.config.get('Device.alwaysTop', 'no')
     formData.value.mirrorSound = await window.$mapi.config.get('Device.mirrorSound', 'no')
+    formData.value.previewImage = await window.$mapi.config.get('Device.previewImage', 'yes')
     visible.value = true
 }
 
@@ -19,6 +21,7 @@ const doSubmit = async () => {
     await window.$mapi.config.set('Device.dimWhenMirror', formData.value.dimWhenMirror)
     await window.$mapi.config.set('Device.alwaysTop', formData.value.alwaysTop)
     await window.$mapi.config.set('Device.mirrorSound', formData.value.mirrorSound)
+    await window.$mapi.config.set('Device.previewImage', formData.value.previewImage)
     visible.value = false
 }
 
@@ -62,6 +65,12 @@ defineExpose({
                         <div class="flex-grow">{{ $t('投屏时转发声音') }}</div>
                         <div class="">
                             <SettingItemYesNo v-model="formData.mirrorSound"/>
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('显示预览图') }}</div>
+                        <div class="">
+                            <SettingItemYesNo v-model="formData.previewImage"/>
                         </div>
                     </div>
                 </div>

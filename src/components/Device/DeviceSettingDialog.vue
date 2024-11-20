@@ -11,6 +11,7 @@ const formData = ref({
     dimWhenMirror: '',
     alwaysTop: '',
     mirrorSound: '',
+    previewImage: '',
 })
 const device = ref<DeviceRecord | null>(null)
 const infoColumns = [
@@ -35,6 +36,7 @@ const show = (record: DeviceRecord) => {
     formData.value.dimWhenMirror = record.setting?.dimWhenMirror || ''
     formData.value.alwaysTop = record.setting?.alwaysTop || ''
     formData.value.mirrorSound = record.setting?.mirrorSound || ''
+    formData.value.previewImage = record.setting?.previewImage || ''
     visible.value = true
 }
 
@@ -43,6 +45,7 @@ const doSubmit = async () => {
         dimWhenMirror: formData.value.dimWhenMirror,
         alwaysTop: formData.value.alwaysTop,
         mirrorSound: formData.value.mirrorSound,
+        previewImage: formData.value.previewImage,
     })
     visible.value = false
 }
@@ -87,6 +90,12 @@ defineExpose({
                         <div class="flex-grow">{{ $t('投屏时转发声音') }}</div>
                         <div class="">
                             <SettingItemYesNoDefault v-model="formData.mirrorSound"/>
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('显示预览图') }}</div>
+                        <div class="">
+                            <SettingItemYesNoDefault v-model="formData.previewImage"/>
                         </div>
                     </div>
                     <div class="font-bold text-xl mb-3">

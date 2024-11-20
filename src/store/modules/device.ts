@@ -57,6 +57,7 @@ export const deviceStore = defineStore("device", {
                             dimWhenMirror: '',
                             alwaysTop: '',
                             mirrorSound: '',
+                            previewImage: '',
                         }
                     })
                     this.records = records
@@ -127,6 +128,7 @@ export const deviceStore = defineStore("device", {
                             dimWhenMirror: '',
                             alwaysTop: '',
                             mirrorSound: '',
+                            previewImage: '',
                         },
                     }
                     this.records.unshift(record)
