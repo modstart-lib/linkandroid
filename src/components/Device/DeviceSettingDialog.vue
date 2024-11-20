@@ -71,12 +71,12 @@ defineExpose({
                     <div class="font-bold text-xl mb-3">
                         {{ $t('投屏') }}
                     </div>
-                    <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t('投屏时调暗屏幕') }}</div>
-                        <div class="">
-                            <SettingItemYesNoDefault v-model="formData.dimWhenMirror"/>
-                        </div>
-                    </div>
+<!--                    <div class="flex mb-3">-->
+<!--                        <div class="flex-grow">{{ $t('投屏时调暗屏幕') }}</div>-->
+<!--                        <div class="">-->
+<!--                            <SettingItemYesNoDefault v-model="formData.dimWhenMirror"/>-->
+<!--                        </div>-->
+<!--                    </div>-->
                     <div class="flex mb-3">
                         <div class="flex-grow">{{ $t('投屏总在最上层') }}</div>
                         <div class="">
