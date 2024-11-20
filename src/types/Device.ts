@@ -1,3 +1,5 @@
+import {ComputedRef} from "vue";
+
 export enum EnumDeviceStatus {
     WAIT_CONNECTING = 'waitConnecting',
     CONNECTED = 'connected',
@@ -30,4 +32,5 @@ export type DeviceRuntime = {
     status: EnumDeviceStatus,
     mirrorController: any,
     screenBrightness?: number,
+    previewImage: any,
 }

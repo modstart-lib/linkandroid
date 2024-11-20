@@ -185,7 +185,7 @@ const doHelp = () => {
                                 <a-tooltip :content="$t('投屏到电脑')">
                                     <div @click="actionMirrors[rIndex]?.start()"
                                          class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl bg-black text-center overflow-hidden">
-                                        <div v-if="r.screenshot">
+                                        <div v-if="r.screenshot && r.runtime?.previewImage==='yes'">
                                             <img :src="r.screenshot" class="max-h-44 max-w-44 rounded-sm"/>
                                         </div>
                                         <div v-else class="w-24 h-44 bg-gray-200 text-xs text-gray-300 flex rounded-sm">

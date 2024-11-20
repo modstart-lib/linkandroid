@@ -8,35 +8,56 @@ import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
 import {sleep} from "../../lib/util";
 import {mapError} from "../../lib/error";
+import {useSettingStore} from "./setting";
 
 const deviceRuntime = ref<Map<string, DeviceRuntime>>(new Map())
+const setting = useSettingStore()
+const previewImageDefault = setting.configGet('Device.previewImage', 'yes')
 const createDeviceStatus = (record: DeviceRecord): ComputedRef<EnumDeviceStatus> => {
     const id = record.id
     return computed(() => {
         return deviceRuntime.value?.get(id)?.status || EnumDeviceStatus.WAIT_CONNECTING
     })
 }
+
 const createDeviceRuntime = (record: DeviceRecord): ComputedRef<DeviceRuntime> => {
     const id = record.id
     return computed(() => {
-        return deviceRuntime.value?.get(id) || {
+        const value = deviceRuntime.value?.get(id)
+        if (value) {
+            return value
+        }
+        deviceRuntime.value?.set(id, {
             status: EnumDeviceStatus.WAIT_CONNECTING,
             mirrorController: null,
-        } as DeviceRuntime
+            previewImage: record.setting?.previewImage || previewImageDefault,
+        } as DeviceRuntime)
+        return deviceRuntime.value?.get(id) as DeviceRuntime
     })
 }
-const getDeviceRuntime = (record: DeviceRecord): DeviceRuntime => {
+
+const updateDeviceRuntime = (record: DeviceRecord) => {
     const id = record.id
-    const value = deviceRuntime.value?.get(id)
-    if (value) {
-        return value
+    const runtime = deviceRuntime.value?.get(id)
+    if (!runtime) {
+        return
     }
-    deviceRuntime.value?.set(id, {
-        status: EnumDeviceStatus.WAIT_CONNECTING,
-        mirrorController: null,
-    } as DeviceRuntime)
-    return deviceRuntime.value?.get(id) as DeviceRuntime
+    runtime.previewImage = record.setting?.previewImage || previewImageDefault
 }
+
+// const getDeviceRuntime = (record: DeviceRecord): DeviceRuntime => {
+//     const id = record.id
+//     const value = deviceRuntime.value?.get(id)
+//     if (value) {
+//         return value
+//     }
+//     deviceRuntime.value?.set(id, {
+//         status: EnumDeviceStatus.WAIT_CONNECTING,
+//         mirrorController: null,
+//         previewImage: record.setting?.previewImage || previewImageDefault,
+//     } as DeviceRuntime)
+//     return deviceRuntime.value?.get(id) as DeviceRuntime
+// }
 const deleteDeviceRuntime = (record: DeviceRecord) => {
     deviceRuntime.value?.delete(record.id)
 }
@@ -104,7 +125,16 @@ export const deviceStore = defineStore("device", {
                     id: d.id,
                     type: isIPWithPort(d.id) ? EnumDeviceType.WIFI : EnumDeviceType.USB,
                     name: d.model ? d.model.split(':')[1] : d.id,
-                    raw: d
+                    raw: d,
+                    status: createDeviceStatus(d),
+                    runtime: createDeviceRuntime(d),
+                    screenshot: d.screenshot || null,
+                    setting: {
+                        dimWhenMirror: '',
+                        alwaysTop: '',
+                        mirrorSound: '',
+                        previewImage: '',
+                    },
                 })
             }
             return data
@@ -138,15 +168,15 @@ export const deviceStore = defineStore("device", {
             // 设置已连接的设备状态
             const connectedDeviceIds = connectedDevices.map((d) => d.id)
             for (const record of this.records) {
-                const runtime = getDeviceRuntime(record)
+                const runtime = createDeviceRuntime(record)
                 if (connectedDeviceIds.includes(record.id)) {
-                    if (runtime.status !== EnumDeviceStatus.CONNECTED) {
-                        runtime.status = EnumDeviceStatus.CONNECTED
+                    if (runtime.value.status !== EnumDeviceStatus.CONNECTED) {
+                        runtime.value.status = EnumDeviceStatus.CONNECTED
                         changed = true
                     }
                 } else {
-                    if (runtime.status !== EnumDeviceStatus.DISCONNECTED) {
-                        runtime.status = EnumDeviceStatus.DISCONNECTED
+                    if (runtime.value.status !== EnumDeviceStatus.DISCONNECTED) {
+                        runtime.value.status = EnumDeviceStatus.DISCONNECTED
                         changed = true
                     }
                 }
@@ -183,6 +213,7 @@ export const deviceStore = defineStore("device", {
                 return
             }
             record.setting = Object.assign(record.setting || {}, setting)
+            updateDeviceRuntime(record)
             await this.sync()
         },
         async sync() {
@@ -200,13 +231,13 @@ export const deviceStore = defineStore("device", {
             await this.sync()
         },
         async doMirror(device: DeviceRecord) {
-            const runtime = getDeviceRuntime(device)
-            if (runtime.status !== EnumDeviceStatus.CONNECTED) {
+            const runtime = createDeviceRuntime(device)
+            if (runtime.value.status !== EnumDeviceStatus.CONNECTED) {
                 throw new Error('DeviceNotConnected')
             }
-            if (runtime.mirrorController) {
+            if (runtime.value.mirrorController) {
                 try {
-                    runtime.mirrorController.stop()
+                    runtime.value.mirrorController.stop()
                 } catch (e) {
                 }
                 return
@@ -248,7 +279,7 @@ export const deviceStore = defineStore("device", {
                 }
             }
             try {
-                runtime.mirrorController = await window.$mapi.scrcpy.mirror(device.id, {
+                runtime.value.mirrorController = await window.$mapi.scrcpy.mirror(device.id, {
                     title: device.name as string,
                     args: args.join(' '),
                     stdout: (data: string) => {
@@ -259,12 +290,12 @@ export const deviceStore = defineStore("device", {
                     },
                     success: (code: number) => {
                         console.log('mirror.success', code)
-                        runtime.mirrorController = null
+                        runtime.value.mirrorController = null
                         mirrorEnd().then()
                     },
                     error: (code: number) => {
                         console.error('mirror.error', code)
-                        runtime.mirrorController = null
+                        runtime.value.mirrorController = null
                         mirrorEnd().then()
                     }
                 })

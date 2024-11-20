@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {ref} from "vue";
 import SettingItemYesNo from "../common/SettingItemYesNo.vue";
+import {useSettingStore} from "../../store/modules/setting";
 
+const setting = useSettingStore()
 const visible = ref(false)
 const formData = ref({
     dimWhenMirror: '',
@@ -10,18 +12,18 @@ const formData = ref({
     previewImage: '',
 })
 const show = async () => {
-    formData.value.dimWhenMirror = await window.$mapi.config.get('Device.dimWhenMirror', 'no')
-    formData.value.alwaysTop = await window.$mapi.config.get('Device.alwaysTop', 'no')
-    formData.value.mirrorSound = await window.$mapi.config.get('Device.mirrorSound', 'no')
-    formData.value.previewImage = await window.$mapi.config.get('Device.previewImage', 'yes')
+    formData.value.dimWhenMirror = setting.configGet('Device.dimWhenMirror', 'no').value
+    formData.value.alwaysTop = setting.configGet('Device.alwaysTop', 'no').value
+    formData.value.mirrorSound = setting.configGet('Device.mirrorSound', 'no').value
+    formData.value.previewImage = setting.configGet('Device.previewImage', 'no').value
     visible.value = true
 }
 
 const doSubmit = async () => {
-    await window.$mapi.config.set('Device.dimWhenMirror', formData.value.dimWhenMirror)
-    await window.$mapi.config.set('Device.alwaysTop', formData.value.alwaysTop)
-    await window.$mapi.config.set('Device.mirrorSound', formData.value.mirrorSound)
-    await window.$mapi.config.set('Device.previewImage', formData.value.previewImage)
+    await setting.setConfig('Device.dimWhenMirror', formData.value.dimWhenMirror)
+    await setting.setConfig('Device.alwaysTop', formData.value.alwaysTop)
+    await setting.setConfig('Device.mirrorSound', formData.value.mirrorSound)
+    await setting.setConfig('Device.previewImage', formData.value.previewImage)
     visible.value = false
 }
 
