@@ -14,7 +14,7 @@ onMounted(() => {
         tabContainer.value as HTMLElement,
         contentContainer.value as HTMLElement,
         {
-            activeClass: 'bg-gray-100'
+            activeClass: 'menu-active'
         }
     )
 })
@@ -24,11 +24,24 @@ onBeforeUnmount(() => {
 
 </script>
 
+<style lang="less" scoped>
+.menu-active {
+    --tw-bg-opacity: 1;
+    background-color: rgb(243 244 246 / var(--tw-bg-opacity));
+}
+
+[data-theme="dark"] {
+    .menu-active {
+        background-color: var(--color-bg-page-nav-active);;
+    }
+}
+</style>
+
 <template>
     <div class="flex select-none">
         <div ref="tabContainer"
-             class="p-8 w-56 flex-shrink-0 border-r border-solid border-gray-100">
-            <div data-section="basic" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer bg-gray-100">
+             class="p-8 w-56 flex-shrink-0 border-r border-solid border-gray-100 dark:border-gray-600">
+            <div data-section="basic" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer menu-active">
                 <div class="text-base">
                     <icon-settings/>
                     {{ t('基础设置') }}
@@ -57,14 +70,14 @@ onBeforeUnmount(() => {
                         <SettingBasic/>
                     </div>
                 </div>
-                <div class="border-b border-solid border-gray-200 my-6"></div>
+                <div class="border-b border-solid border-gray-200 dark:border-gray-700 my-6"></div>
                 <div data-section="env" class="scroll-mt-4">
                     <div class="text-base font-bold mb-4">{{ t('环境设置') }}</div>
                     <div>
                         <SettingEnv/>
                     </div>
                 </div>
-                <div class="border-b border-solid border-gray-200 my-6"></div>
+                <div class="border-b border-solid border-gray-200 dark:border-gray-700 my-6"></div>
                 <div data-section="about" class="scroll-mt-4">
                     <div class="text-base font-bold mb-4">
                         {{ t('关于软件') }}

@@ -33,7 +33,7 @@ const doOpenLog = async () => {
             </a>
             <a :href="AppConfig.feedbackUrl"
                target="_blank"
-               class="arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-medium arco-btn-status-normal ml-3">
+               class="align-top arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-medium arco-btn-status-normal ml-3">
                 <icon-customer-service class="mr-1"/>
                 {{ t('使用反馈') }}
             </a>
@@ -55,13 +55,13 @@ const doOpenLog = async () => {
     <div class="mb-3">
         <a :href="AppConfig.websiteGithub"
            target="_blank"
-           class="bg-gray-100 mr-1 rounded-lg py-2 px-8 inline-flex items-center mb-3 hover:shadow-lg">
+           class="bg-gray-100 dark:bg-gray-700 w-48 mr-1 rounded-lg py-2 px-8 inline-flex items-center mb-3 hover:shadow-lg">
             <img src="./../../assets/image/github.svg" class="w-12 h-12 mr-2"/>
             <div class="flex-grow">Github</div>
         </a>
         <a :href="AppConfig.websiteGitee"
            target="_blank"
-           class="bg-gray-100 mr-1 rounded-lg py-2 px-8 inline-flex items-center hover:shadow-lg">
+           class="bg-gray-100 dark:bg-gray-700 w-48 mr-1 rounded-lg py-2 px-8 inline-flex items-center hover:shadow-lg">
             <img src="./../../assets/image/gitee.svg" class="w-12 h-12 mr-2"/>
             <div class="flex-grow">Gitee</div>
         </a>
