@@ -158,8 +158,8 @@ export const JsonUtil = {
 export const ImportUtil = {
     async loadCommonJs(cjsPath: string) {
         const md5 = await FileUtil.md5(cjsPath)
-        const backend = await import(`${cjsPath}?t=${md5}`)
-        console.log('loadCommonJs', `${cjsPath}?t=${md5}`)
+        const backend = await import(/* @vite-ignore */ `${cjsPath}?t=${md5}`)
+        // console.log('loadCommonJs', `${cjsPath}?t=${md5}`)
         return backend.default
     }
 }

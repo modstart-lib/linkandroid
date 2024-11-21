@@ -35,7 +35,7 @@ export const settingStore = defineStore("setting", {
             return this.isDarkMode
         },
         setupDarkMode() {
-            console.log('setupDarkMode')
+            // console.log('setupDarkMode')
             if (this.shouldDarkMode()) {
                 document.body.setAttribute('arco-theme', 'dark')
                 document.body.setAttribute('data-theme', 'dark')
@@ -70,8 +70,7 @@ export const settingStore = defineStore("setting", {
 })
 
 const setting = settingStore(store)
-setting.init().then(() => {
-})
+setting.init().then()
 
 export const useSettingStore = () => {
     return setting

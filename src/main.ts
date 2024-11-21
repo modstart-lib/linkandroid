@@ -14,6 +14,7 @@ import {Dialog} from "./lib/dialog";
 
 import {CommonComponents} from "./components/common";
 import {TaskManager} from "./task";
+import {useSettingStore} from "./store/modules/setting";
 
 const app = createApp(App)
 app.use(ArcoVue)
