@@ -1,8 +1,9 @@
-import {app, BrowserWindow, ipcMain, screen, shell, clipboard, nativeImage} from "electron";
+import {app, BrowserWindow, ipcMain, screen, shell, clipboard, nativeImage, nativeTheme} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
 import {isMac} from "../../lib/env";
 import {AppPosition} from "./lib/position";
+import {Events} from "../event/main";
 
 
 const getWindowByName = (name?: string) => {
@@ -147,6 +148,18 @@ const setClipboardImage = (image: string) => {
 
 ipcMain.handle('app:setClipboardImage', (event, image: string) => {
     setClipboardImage(image)
+})
+
+const isDarkMode = () => {
+    return nativeTheme.shouldUseDarkColors
+}
+
+nativeTheme.on('updated', () => {
+    Events.broadcast('DarkModeChange', {isDarkMode: isDarkMode()})
+})
+
+ipcMain.handle('app:isDarkMode', () => {
+    return isDarkMode()
 })
 
 export default {

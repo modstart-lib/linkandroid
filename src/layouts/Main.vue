@@ -21,7 +21,7 @@ onMounted(() => {
 </script>
 <template>
     <div class="window-container">
-        <div class="window-header flex h-10 items-center border-b border-solid border-gray-200">
+        <div class="window-header flex h-10 items-center border-b border-solid border-gray-200 dark:border-gray-600">
             <div class="window-header-title flex-grow flex items-center">
                 <div class="pl-2 py-2">
                     <img src="/logo.svg" class="w-4 t-4"/>

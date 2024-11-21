@@ -9,12 +9,28 @@ export const settingStore = defineStore("setting", {
         return {
             version: AppConfig.version,
             basic: cloneDeep(AppConfig.basic),
+            isDarkMode: false,
             config: {},
         }
     },
     actions: {
         async init() {
+            window.__page.broadcasts['DarkModeChange'] = (data) => {
+                this.isDarkMode = data.isDarkMode
+                this.initDarkMode()
+            }
+            this.isDarkMode = await window.$mapi.app.isDarkMode()
             this.config = await window.$mapi.config.all()
+            this.initDarkMode()
+        },
+        initDarkMode() {
+            if (this.isDarkMode) {
+                document.body.setAttribute('arco-theme', 'dark')
+                document.body.setAttribute('data-theme', 'dark')
+            } else {
+                document.body.removeAttribute('arco-theme');
+                document.body.removeAttribute('data-theme');
+            }
         },
         async initBasic(basic: object) {
             this.basic = Object.assign(this.basic, basic)

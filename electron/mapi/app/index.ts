@@ -5,6 +5,7 @@ import {isLinux, isMac, isWin} from "../../lib/env";
 import {Log} from "../log/index";
 import iconv from "iconv-lite";
 import {StrUtil} from "../../lib/util";
+import {nativeTheme} from "electron";
 
 const exec = util.promisify(_exec)
 

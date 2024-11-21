@@ -4,6 +4,7 @@ export default {
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx,vue}",
     ],
+    darkMode: ['selector', '[data-theme="dark"]'],
     theme: {
         extend: {},
     },

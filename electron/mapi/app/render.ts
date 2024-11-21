@@ -4,6 +4,10 @@ import {isPackaged, platformName, platformArch} from "../../lib/env";
 import {AppEnv, waitAppEnvReady} from "../env";
 import appIndex from "./index";
 
+const isDarkMode = async () => {
+    return ipcRenderer.invoke('app:isDarkMode')
+}
+
 const quit = () => {
     return ipcRenderer.invoke('app:quit')
 }
@@ -77,6 +81,7 @@ const setClipboardImage = (image: string) => {
 }
 
 export default {
+    isDarkMode,
     resourcePathResolve,
     extraPathResolve,
     platformName,

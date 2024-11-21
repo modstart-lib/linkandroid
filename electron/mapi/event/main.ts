@@ -8,7 +8,15 @@ const init = () => {
 }
 
 type NameType = 'main' | string
-type EventType = 'APP_READY' | 'CALL_THIRD_PARTY' | 'CALL_PAGE' | 'CHANNEL'
+type EventType = 'APP_READY' | 'CALL_THIRD_PARTY' | 'CALL_PAGE' | 'CHANNEL' | 'BROADCAST'
+type BroadcastType = 'DarkModeChange'
+
+const broadcast = (type: BroadcastType, data: any = {}) => {
+    send('main', 'BROADCAST', {type, data})
+    for (let name in AppRuntime.windows) {
+        send(name, 'BROADCAST', {type, data})
+    }
+}
 
 const send = (name: NameType, type: EventType, data: any = {}, id?: string): boolean => {
     id = id || StrUtil.randomString(32)
@@ -119,6 +127,7 @@ export default {
 }
 
 export const Events = {
+    broadcast,
     send,
     sendChannel,
     onChannel,

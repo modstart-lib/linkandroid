@@ -1,5 +1,8 @@
 declare interface Window {
     __page: {
+        broadcasts: {
+            [key: string]: Function
+        },
         hooks: {
             [key: string]: Function
         }
@@ -22,6 +25,7 @@ declare interface Window {
             windowClose: (name?: string) => Promise<void>,
             openExternalWeb: (url: string) => Promise<void>,
             appEnv: () => Promise<any>,
+            isDarkMode: () => Promise<boolean>,
             shell: (command: string, option?: {
                 cwd?: string,
                 outputEncoding?: string,

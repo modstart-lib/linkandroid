@@ -18,12 +18,6 @@
     //--color-border-page-nav: #2A3A5D;
     --color-border-page-nav: #EEEEEE;
 
-    --color-background: #FFFFFF;
-    --window-header-height: 2.5rem;
-    --page-nav-width: 4rem;
-}
-
-body {
     --primary-1: 255, 232, 237;
     --primary-2: 251, 183, 198;
     --primary-3: 247, 135, 164;
@@ -38,11 +32,22 @@ body {
     --color-primary-light-2: rgb(var(--primary-2));
     --color-primary-light-3: rgb(var(--primary-3));
     --color-primary-light-4: rgb(var(--primary-4));
+
+    --color-background: #FFFFFF;
+    --color-text: #111111;
+    --window-header-height: 2.5rem;
+    --page-nav-width: 4rem;
+}
+
+[data-theme="dark"] {
+    --color-background: #1A202C;
+    --color-text: #CCCCCC;
 }
 
 body, html {
     background-color: var(--color-background);
     font-size: 14px;
+    color: var(--color-text);
 }
 
 @font-face {

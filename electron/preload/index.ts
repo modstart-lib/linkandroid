@@ -7,6 +7,7 @@ MAPI.init()
 
 window['__page'] = {
     hooks: {},
+    broadcasts: {},
     onShow: (cb: Function) => {
         window['__page'].hooks.onShow = cb
     },
@@ -70,6 +71,11 @@ ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
             return
         }
         window['__channel'][channel](data)
+    }else if ('BROADCAST'===payload.type){
+        const {type, data} = payload.data
+        if (window['__page'].broadcasts[type]) {
+            window['__page'].broadcasts[type](data)
+        }
     } else {
         console.warn('Unknown message from main process:', JSON.stringify(payload))
     }
