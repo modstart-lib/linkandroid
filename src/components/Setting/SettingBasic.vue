@@ -34,7 +34,7 @@ const onLocaleChange = (value: string) => {
                            @change="setting.onConfigChange('darkMode',$event)">
                 <a-radio value="light">{{ t('明亮') }}</a-radio>
                 <a-radio value="dark">{{ t('暗黑') }}</a-radio>
-                <a-radio value="">{{ t('跟随系统') }}</a-radio>
+                <a-radio value="auto">{{ t('跟随系统') }}</a-radio>
             </a-radio-group>
         </a-form-item>
         <a-form-item field="name" :label="t('点击关闭时')">

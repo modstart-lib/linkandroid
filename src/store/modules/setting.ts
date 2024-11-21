@@ -11,7 +11,7 @@ export const settingStore = defineStore("setting", {
             basic: cloneDeep(AppConfig.basic),
             isDarkMode: false,
             config: {
-                darkMode: '' as 'light' | 'dark' | '',
+                darkMode: '' as 'light' | 'dark' | 'auto',
             },
         }
     },
@@ -26,13 +26,15 @@ export const settingStore = defineStore("setting", {
             this.setupDarkMode()
         },
         shouldDarkMode() {
-            const darkMode = this.config['darkMode'] || ''
+            const darkMode = this.config['darkMode'] || 'auto'
             if ('dark' === darkMode) {
                 return true
             } else if ('light' === darkMode) {
                 return false
+            } else if ('auto' === darkMode) {
+                return this.isDarkMode
             }
-            return this.isDarkMode
+            return false
         },
         setupDarkMode() {
             // console.log('setupDarkMode')
