@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root, body {
 
     --primary-1: 255, 232, 237;
     --primary-2: 251, 183, 198;
@@ -41,7 +41,18 @@
     --color-text: #111111;
 }
 
-[data-theme="dark"] {
+body[data-theme="dark"] {
+    --primary-1: 77, 0, 38;
+    --primary-2: 116, 3, 56;
+    --primary-3: 155, 9, 72;
+    --primary-4: 195, 18, 89;
+    --primary-5: 234, 28, 104;
+    --primary-6: 238, 36, 103;
+    --primary-7: 242, 82, 130;
+    --primary-8: 247, 131, 161;
+    --primary-9: 251, 181, 196;
+    --primary-10: 255, 232, 237;
+
     --color-background: #1A202C;
     --color-text: #CCCCCC;
     --color-text-page-nav: #CCCCCC;
