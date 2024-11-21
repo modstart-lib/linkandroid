@@ -29,6 +29,14 @@ const onLocaleChange = (value: string) => {
                 </a-option>
             </a-select>
         </a-form-item>
+        <a-form-item field="name" :label="t('主题样式')">
+            <a-radio-group :model-value="setting.configGet('darkMode').value"
+                           @change="setting.onConfigChange('darkMode',$event)">
+                <a-radio value="light">{{ t('明亮') }}</a-radio>
+                <a-radio value="dark">{{ t('暗黑') }}</a-radio>
+                <a-radio value="">{{ t('跟随系统') }}</a-radio>
+            </a-radio-group>
+        </a-form-item>
         <a-form-item field="name" :label="t('点击关闭时')">
             <a-radio-group :model-value="setting.configGet('exitMode').value"
                            @change="setting.onConfigChange('exitMode',$event)">

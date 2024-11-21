@@ -10,21 +10,33 @@ export const settingStore = defineStore("setting", {
             version: AppConfig.version,
             basic: cloneDeep(AppConfig.basic),
             isDarkMode: false,
-            config: {},
+            config: {
+                darkMode: '' as 'light' | 'dark' | '',
+            },
         }
     },
     actions: {
         async init() {
             window.__page.broadcasts['DarkModeChange'] = (data) => {
                 this.isDarkMode = data.isDarkMode
-                this.initDarkMode()
+                this.setupDarkMode()
             }
             this.isDarkMode = await window.$mapi.app.isDarkMode()
             this.config = await window.$mapi.config.all()
-            this.initDarkMode()
+            this.setupDarkMode()
         },
-        initDarkMode() {
-            if (this.isDarkMode) {
+        shouldDarkMode() {
+            const darkMode = this.config['darkMode'] || ''
+            if ('dark' === darkMode) {
+                return true
+            } else if ('light' === darkMode) {
+                return false
+            }
+            return this.isDarkMode
+        },
+        setupDarkMode() {
+            console.log('setupDarkMode')
+            if (this.shouldDarkMode()) {
                 document.body.setAttribute('arco-theme', 'dark')
                 document.body.setAttribute('data-theme', 'dark')
             } else {
@@ -36,12 +48,15 @@ export const settingStore = defineStore("setting", {
             this.basic = Object.assign(this.basic, basic)
         },
         async setConfig(key: string, value: any) {
+            // console.log('setConfig', key, value)
             this.config[key] = value
             await window.$mapi.config.set(key, value)
+            if ('darkMode' === key) {
+                setTimeout(() => this.setupDarkMode(), 100)
+            }
         },
         async onConfigChange(key: string, value: any) {
-            this.config[key] = value
-            await window.$mapi.config.set(key, value)
+            return await this.setConfig(key, value)
         },
         configGet(key: string, defaultValue: any = null) {
             return computed(() => {
