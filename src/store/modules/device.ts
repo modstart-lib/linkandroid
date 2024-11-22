@@ -20,7 +20,7 @@ const createDeviceStatus = (record: DeviceRecord): ComputedRef<EnumDeviceStatus>
     })
 }
 
-const createDeviceRuntime = (record: DeviceRecord): ComputedRef<DeviceRuntime> => {
+const getDeviceRuntime = (record: DeviceRecord): ComputedRef<DeviceRuntime> => {
     const id = record.id
     return computed(() => {
         const value = deviceRuntime.value?.get(id)
@@ -42,7 +42,10 @@ const updateDeviceRuntime = (record: DeviceRecord) => {
     if (!runtime) {
         return
     }
-    runtime.previewImage = record.setting?.previewImage || previewImageDefault
+    deviceRuntime.value?.set(id, {
+        ...runtime,
+        previewImage: record.setting?.previewImage || previewImageDefault,
+    })
 }
 
 // const getDeviceRuntime = (record: DeviceRecord): DeviceRuntime => {
@@ -72,7 +75,7 @@ export const deviceStore = defineStore("device", {
                 .then((records) => {
                     records.forEach((record: DeviceRecord) => {
                         record.status = createDeviceStatus(record)
-                        record.runtime = createDeviceRuntime(record)
+                        record.runtime = getDeviceRuntime(record)
                         record.screenshot = record.screenshot || null
                         record.setting = record.setting || {
                             dimWhenMirror: '',
@@ -127,7 +130,7 @@ export const deviceStore = defineStore("device", {
                     name: d.model ? d.model.split(':')[1] : d.id,
                     raw: d,
                     status: createDeviceStatus(d),
-                    runtime: createDeviceRuntime(d),
+                    runtime: getDeviceRuntime(d),
                     screenshot: d.screenshot || null,
                     setting: {
                         dimWhenMirror: '',
@@ -152,7 +155,7 @@ export const deviceStore = defineStore("device", {
                         name: device.name,
                         raw: device.raw,
                         status: createDeviceStatus(device),
-                        runtime: createDeviceRuntime(device),
+                        runtime: getDeviceRuntime(device),
                         screenshot: null,
                         setting: {
                             dimWhenMirror: '',
@@ -168,7 +171,7 @@ export const deviceStore = defineStore("device", {
             // 设置已连接的设备状态
             const connectedDeviceIds = connectedDevices.map((d) => d.id)
             for (const record of this.records) {
-                const runtime = createDeviceRuntime(record)
+                const runtime = getDeviceRuntime(record)
                 if (connectedDeviceIds.includes(record.id)) {
                     if (runtime.value.status !== EnumDeviceStatus.CONNECTED) {
                         runtime.value.status = EnumDeviceStatus.CONNECTED
@@ -231,7 +234,7 @@ export const deviceStore = defineStore("device", {
             await this.sync()
         },
         async doMirror(device: DeviceRecord) {
-            const runtime = createDeviceRuntime(device)
+            const runtime = getDeviceRuntime(device)
             if (runtime.value.status !== EnumDeviceStatus.CONNECTED) {
                 throw new Error('DeviceNotConnected')
             }
