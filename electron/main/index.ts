@@ -179,12 +179,12 @@ app.on('second-instance', () => {
 app.on('activate', () => {
     const allWindows = BrowserWindow.getAllWindows()
     if (allWindows.length) {
-        if (!allWindows[0].isVisible()) {
-            allWindows[0].show()
+        if (!AppRuntime.mainWindow.isVisible()) {
+            AppRuntime.mainWindow.show()
         }
-        allWindows[0].focus()
+        AppRuntime.mainWindow.focus()
     } else {
-        createWindow()
+        createWindow().then()
     }
 })
 
