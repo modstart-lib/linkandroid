@@ -60,6 +60,7 @@ jobs:
       - name: Upload
         uses: modstart/github-oss-action@master
         with:
+            title: ${{ github.event.head_commit.message }}
             key-id: ${{ secrets.OSS_KEY_ID }}
             key-secret: ${{ secrets.OSS_KEY_SECRET }}
             region: ${{ secrets.OSS_REGION }}
