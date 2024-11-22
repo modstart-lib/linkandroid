@@ -16,6 +16,8 @@ import {CommonComponents} from "./components/common";
 import {TaskManager} from "./task";
 import {useSettingStore} from "./store/modules/setting";
 
+const settingStore = useSettingStore()
+
 const app = createApp(App)
 app.use(ArcoVue)
 app.use(ArcoVueIcon)
@@ -28,6 +30,7 @@ app.config.globalProperties.$mapi = window.$mapi
 app.config.globalProperties.$dialog = Dialog
 app.config.globalProperties.$t = t as any
 TaskManager.init()
+
 app.mount('#app')
     .$nextTick(() => {
         postMessage({payload: 'removeLoading'}, '*')

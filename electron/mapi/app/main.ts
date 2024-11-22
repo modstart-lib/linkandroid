@@ -4,6 +4,7 @@ import {AppRuntime} from "../env";
 import {isMac} from "../../lib/env";
 import {AppPosition} from "./lib/position";
 import {Events} from "../event/main";
+import {ConfigMain} from "../config/main";
 
 
 const getWindowByName = (name?: string) => {
@@ -154,6 +155,25 @@ const isDarkMode = () => {
     return nativeTheme.shouldUseDarkColors
 }
 
+const shouldDarkMode = async () => {
+    const darkMode = (await ConfigMain.get('darkMode')) || 'auto'
+    if ('dark' === darkMode) {
+        return true
+    } else if ('light' === darkMode) {
+        return false
+    } else if ('auto' === darkMode) {
+        return isDarkMode()
+    }
+    return false
+}
+
+const defaultDarkModeBackgroundColor = async () => {
+    if (await shouldDarkMode()) {
+        return '#1A202C'
+    }
+    return '#FFFFFF'
+}
+
 nativeTheme.on('updated', () => {
     Events.broadcast('DarkModeChange', {isDarkMode: isDarkMode()})
 })
@@ -167,6 +187,8 @@ export default {
 }
 
 export const AppsMain = {
+    shouldDarkMode,
+    defaultDarkModeBackgroundColor,
     getWindowByName,
     getClipboardText,
     setClipboardText,

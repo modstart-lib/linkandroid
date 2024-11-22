@@ -64,7 +64,7 @@ export default {
     set,
 }
 
-export const Config = {
+export const ConfigMain = {
     all,
     get,
     set

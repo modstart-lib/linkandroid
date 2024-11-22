@@ -1,9 +1,9 @@
-import {Config} from "../mapi/config/main";
 import source from "./../../src/lang/source.json";
 import enUS from "./../../src/lang/en-US.json";
 import zhCN from "./../../src/lang/zh-CN.json";
 import {isDev} from "../lib/env";
 import lang from "../mapi/lang/main";
+import {ConfigMain} from "../mapi/config/main";
 
 export const defaultLocale = 'zh-CN'
 
@@ -65,7 +65,7 @@ export const t = (text: string, param: object | null = null) => {
 }
 
 const readyAsync = async () => {
-    locale = await Config.get('lang', defaultLocale)
+    locale = await ConfigMain.get('lang', defaultLocale)
 }
 
 const getLocale = () => {
