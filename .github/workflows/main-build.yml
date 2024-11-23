@@ -73,6 +73,7 @@ jobs:
                 dist-release/*.deb:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
 
       - name: Upload Artifact Windows
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
             name: windows-artifact
@@ -80,6 +81,7 @@ jobs:
                 dist-release/*.exe
 
       - name: Upload Artifact Macos
+        if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
             name: macos-artifact
@@ -87,6 +89,7 @@ jobs:
                 dist-release/*.dmg
 
       - name: Upload Artifact Linux
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
             name: linux-artifact
