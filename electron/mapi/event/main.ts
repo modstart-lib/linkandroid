@@ -16,13 +16,6 @@ const broadcast = (type: BroadcastType, data: any = {}) => {
     for (let name in AppRuntime.windows) {
         send(name, 'BROADCAST', {type, data})
     }
-    for (const view of ManagerWindow.listBrowserViews()) {
-        view.webContents.send('MAIN_PROCESS_MESSAGE', {
-            id: StrUtil.randomString(32),
-            type: 'BROADCAST',
-            data: {type, data}
-        })
-    }
 }
 
 const send = (name: NameType, type: EventType, data: any = {}, id?: string): boolean => {
