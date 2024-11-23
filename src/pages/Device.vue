@@ -142,7 +142,7 @@ const doHelp = () => {
                     </a-button>
                 </div>
                 <div v-if="helpShow" class="pt-5 text-center">
-                    <div class="inline-block bg-gray-100 text-left rounded-lg p-6 leading-8">
+                    <div class="inline-block bg-gray-100 dark:bg-gray-700 text-left rounded-lg p-4">
                         <div>① {{ $t('打开手机USB调试') }}</div>
                         <div>② {{ $t('使用USB连接电脑') }}</div>
                         <div class="pt-3">

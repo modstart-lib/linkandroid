@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "18531027",
+      "name": "empty-box",
+      "font_class": "empty-box",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "10564327",
+      "name": "mic-on",
+      "font_class": "mic",
+      "unicode": "e713",
+      "unicode_decimal": 59155
+    },
+    {
+      "icon_id": "15154559",
+      "name": "重新录制",
+      "font_class": "refresh-circle",
+      "unicode": "e61a",
+      "unicode_decimal": 58906
+    },
+    {
+      "icon_id": "40115915",
+      "name": "剪辑",
+      "font_class": "cut",
+      "unicode": "e861",
+      "unicode_decimal": 59489
+    },
+    {
       "icon_id": "703631",
       "name": "network",
       "font_class": "network",
@@ -74,13 +102,6 @@
       "font_class": "avatar",
       "unicode": "e604",
       "unicode_decimal": 58884
-    },
-    {
-      "icon_id": "14027553",
-      "name": "empty-box",
-      "font_class": "empty-box",
-      "unicode": "e620",
-      "unicode_decimal": 58912
     },
     {
       "icon_id": "7239764",

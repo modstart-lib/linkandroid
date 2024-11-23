@@ -15,9 +15,6 @@ onBeforeMount(() => {
     platformName.value = window.$mapi?.app?.platformName() as any
 })
 
-onMounted(() => {
-    // document.body.setAttribute('arco-theme', 'dark')
-})
 </script>
 <template>
     <div class="window-container">
@@ -32,11 +29,11 @@ onMounted(() => {
             </div>
             <div class="p-1 leading-4">
                 <div class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-primary mr-1"
-                     @click="$mapi.app.windowMin">
+                     @click="$mapi.app.windowMin()">
                     <i class="iconfont text-sm icon-min"></i>
                 </div>
                 <div class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-primary mr-1"
-                     @click="$mapi.app.windowMax">
+                     @click="$mapi.app.windowMax()">
                     <i class="iconfont text-sm icon-max"></i>
                 </div>
                 <div class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-red-500"
