@@ -10,14 +10,14 @@ const getBinPath = () => {
 }
 
 const version = async () => {
-    const controller = await Apps.spawnShell(`${getBinPath()} -version`)
+    const controller = await Apps.spawnShell(`"${getBinPath()}" -version`)
     const text = await controller.result()
     const match = text.match(/ffmpeg version ([\d.]+)/)
     return match ? match[1] : ''
 }
 
 const run = async (args: string[]) => {
-    const controller = await Apps.spawnShell(`${getBinPath()} ${args.join(' ')}`)
+    const controller = await Apps.spawnShell(`"${getBinPath()}" ${args.join(' ')}`)
     return await controller.result()
 }
 
