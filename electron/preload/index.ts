@@ -7,12 +7,24 @@ MAPI.init()
 
 window['__page'] = {
     hooks: {},
-    broadcasts: {},
     onShow: (cb: Function) => {
         window['__page'].hooks.onShow = cb
     },
     onHide: (cb: Function) => {
         window['__page'].hooks.onHide = cb
+    },
+    broadcastListeners: {},
+    onBroadcast: (type: string, cb: Function) => {
+        if (!(type in window['__page'].broadcastListeners)) {
+            window['__page'].broadcastListeners[type] = []
+        }
+        window['__page'].broadcastListeners[type].push(cb)
+    },
+    offBroadcast: (type: string, cb: Function) => {
+        if (!(type in window['__page'].broadcastListeners)) {
+            return
+        }
+        window['__page'].broadcastListeners[type] = window['__page'].broadcastListeners[type].filter(c => c !== cb)
     }
 }
 
@@ -73,8 +85,10 @@ ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
         window['__channel'][channel](data)
     }else if ('BROADCAST'===payload.type){
         const {type, data} = payload.data
-        if (window['__page'].broadcasts[type]) {
-            window['__page'].broadcasts[type](data)
+        if (window['__page'].broadcastListeners[type]) {
+            window['__page'].broadcastListeners[type].forEach((cb: Function) => {
+                cb(data)
+            })
         }
     } else {
         console.warn('Unknown message from main process:', JSON.stringify(payload))

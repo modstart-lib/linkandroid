@@ -9,12 +9,19 @@ const init = () => {
 
 type NameType = 'main' | string
 type EventType = 'APP_READY' | 'CALL_THIRD_PARTY' | 'CALL_PAGE' | 'CHANNEL' | 'BROADCAST'
-type BroadcastType = 'DarkModeChange'
+type BroadcastType = 'DarkModeChange' | 'HotkeyWatch'
 
 const broadcast = (type: BroadcastType, data: any = {}) => {
     send('main', 'BROADCAST', {type, data})
     for (let name in AppRuntime.windows) {
         send(name, 'BROADCAST', {type, data})
+    }
+    for (const view of ManagerWindow.listBrowserViews()) {
+        view.webContents.send('MAIN_PROCESS_MESSAGE', {
+            id: StrUtil.randomString(32),
+            type: 'BROADCAST',
+            data: {type, data}
+        })
     }
 }
 

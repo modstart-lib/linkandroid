@@ -1,8 +1,7 @@
 declare interface Window {
     __page: {
-        broadcasts: {
-            [key: string]: Function
-        },
+        onBroadcast: (type: string, cb: Function) => void,
+        offBroadcast: (type: string, cb: Function) => void
         hooks: {
             [key: string]: Function
         }
