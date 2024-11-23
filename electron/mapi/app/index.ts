@@ -5,9 +5,35 @@ import {isLinux, isMac, isWin} from "../../lib/env";
 import {Log} from "../log/index";
 import iconv from "iconv-lite";
 import {StrUtil} from "../../lib/util";
-import {nativeTheme} from "electron";
 
 const exec = util.promisify(_exec)
+
+const commandSplit = (command: string) => {
+    // split command with space, but ignore space in quotes
+    const args = []
+    let arg = ''
+    let quote = ''
+    for (let i = 0; i < command.length; i++) {
+        const c = command[i]
+        if (c === ' ' && !quote) {
+            if (arg) {
+                args.push(arg)
+                arg = ''
+            }
+            continue
+        }
+        if (c === '"' || c === "'") {
+            if (quote && quote === c) {
+                quote = ''
+                continue
+            }
+            quote = c
+            continue
+        }
+        arg += c
+    }
+    return args
+}
 
 const outputStringConvert = (outputEncoding: 'utf8' | 'cp936', data: any) => {
     if (!data) {
@@ -63,7 +89,7 @@ const spawnShell = async (command: string | string[], option: {
         commandEntry = command[0]
         args = command.slice(1)
     } else {
-        args = command.split(' ')
+        args = commandSplit(command)
         commandEntry = args.shift() as string
     }
     Log.info('App.spawnShell', {
