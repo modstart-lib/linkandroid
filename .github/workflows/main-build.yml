@@ -72,12 +72,25 @@ jobs:
                 dist-release/*.AppImage:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
                 dist-release/*.deb:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
 
-#      - name: Upload Artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#            path: |
-#                dist-release/*.exe
-#                dist-release/*.dmg
-#                dist-release/*.AppImage
-#                dist-release/*.deb
+      - name: Upload Artifact Windows
+        uses: actions/upload-artifact@v4
+        with:
+            name: windows-artifact
+            path: |
+                dist-release/*.exe
+
+      - name: Upload Artifact Macos
+        uses: actions/upload-artifact@v4
+        with:
+            name: macos-artifact
+            path: |
+                dist-release/*.dmg
+
+      - name: Upload Artifact Linux
+        uses: actions/upload-artifact@v4
+        with:
+            name: linux-artifact
+            path: |
+                dist-release/*.AppImage
+                dist-release/*.deb
 
