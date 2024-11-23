@@ -163,3 +163,49 @@ export const ImportUtil = {
         return backend.default
     }
 }
+
+export const MemoryCacheUtil = {
+    pool: {} as {
+        [key: string]: {
+            value: any,
+            expire: number,
+        }
+    },
+    _gc() {
+        const now = TimeUtil.timestamp()
+        for (const key in this.pool) {
+            if (this.pool[key].expire < now) {
+                delete this.pool[key]
+            }
+        }
+    },
+    async remember(key: string, callback: () => Promise<any>, ttl: number = 60) {
+        if (this.pool[key] && this.pool[key].expire > TimeUtil.timestamp()) {
+            return this.pool[key].value
+        }
+        const value = await callback()
+        this.pool[key] = {
+            value,
+            expire: TimeUtil.timestamp() + ttl,
+        }
+        this._gc()
+        return value
+    },
+    get(key: string) {
+        if (this.pool[key] && this.pool[key].expire > TimeUtil.timestamp()) {
+            return this.pool[key].value
+        }
+        this._gc()
+        return null
+    },
+    set(key: string, value: any, ttl: number = 60) {
+        this.pool[key] = {
+            value,
+            expire: TimeUtil.timestamp() + ttl,
+        }
+        this._gc()
+    },
+    forget(key: string) {
+        delete this.pool[key]
+    }
+}
