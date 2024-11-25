@@ -209,3 +209,10 @@ export const MemoryCacheUtil = {
         delete this.pool[key]
     }
 }
+
+
+export const ShellUtil = {
+    quotaPath(p: string) {
+        return `"${p}"`
+    }
+}
