@@ -12,3 +12,7 @@ ipcMain.handle('misc:unzip', async (_, zipPath: string, dest: string) => {
 export default {
     ...index,
 }
+
+export const MiscMain = {
+    ...index
+}
