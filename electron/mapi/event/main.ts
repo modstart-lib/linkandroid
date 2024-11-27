@@ -40,7 +40,9 @@ ipcMain.handle('event:send', async (_, name: NameType, type: EventType, data: an
     send(name, type, data)
 })
 
-ipcMain.handle('event:callThirdParty', async (_, name: string, type: string, data: any, option: any) => {
+const callThirdParty = async (name: string, type: string, data: any, option?: {
+    timeout?: number
+}) => {
     option = Object.assign({timeout: 10}, option)
     return new Promise((resolve, reject) => {
         const id = StrUtil.randomString(32)
@@ -61,9 +63,16 @@ ipcMain.handle('event:callThirdParty', async (_, name: string, type: string, dat
             resolve({code: -1, msg: 'send failed'})
         }
     })
+}
+ipcMain.handle('event:callThirdParty', async (_, name: string, type: string, data: any, option?: {
+    timeout?: number
+}) => {
+    return callThirdParty(name, type, data, option)
 })
 
-ipcMain.handle('event:callPage', async (_, name: string, type: string, data: any, option: any) => {
+const callPage = async (name: string, type: string, data: any, option?: {
+    timeout?: number
+}) => {
     option = Object.assign({timeout: 10}, option)
     return new Promise((resolve, reject) => {
         const id = StrUtil.randomString(32)
@@ -84,6 +93,12 @@ ipcMain.handle('event:callPage', async (_, name: string, type: string, data: any
             resolve({code: -1, msg: 'send failed'})
         }
     })
+}
+
+ipcMain.handle('event:callPage', async (_, name: string, type: string, data: any, option?: {
+    timeout?: number
+}) => {
+    return callPage(name, type, data, option)
 })
 
 const sendChannel = (channel: string, data: any) => {
@@ -130,6 +145,8 @@ export const Events = {
     broadcast,
     send,
     sendChannel,
+    callThirdParty,
+    callPage,
     onChannel,
     offChannel,
 }

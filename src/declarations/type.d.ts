@@ -1,4 +1,12 @@
 declare interface Window {
+    __callPage: {
+        [key: string]: (data: any) => Promise<any>
+    },
+    __thirdParty: {
+        events: {
+            [key: string]: (success: (data: any) => void, error: (msg: string) => void, data: any) => void
+        }
+    },
     __page: {
         onBroadcast: (type: string, cb: Function) => void,
         offBroadcast: (type: string, cb: Function) => void

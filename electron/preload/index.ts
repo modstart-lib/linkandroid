@@ -33,7 +33,6 @@ window['__callPage'] = {}
 ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
     if ('APP_READY' === payload.type) {
         MAPI.init(payload.data.AppEnv)
-        // @ts-ignore
         window['__thirdParty'] = window['__thirdParty'] || {}
         window['__thirdParty'].name = payload.data.name
     } else if ('CALL_THIRD_PARTY' === payload.type) {
