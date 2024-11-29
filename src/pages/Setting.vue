@@ -40,7 +40,7 @@ onBeforeUnmount(() => {
 <template>
     <div class="flex select-none">
         <div ref="tabContainer"
-             class="p-8 w-56 flex-shrink-0 border-r border-solid border-gray-100 dark:border-gray-700">
+             class="p-8 w-56 flex-shrink-0 border-r border-solid border-gray-100 dark:border-gray-800">
             <div data-section="basic" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer menu-active">
                 <div class="text-base">
                     <icon-settings/>
@@ -70,14 +70,14 @@ onBeforeUnmount(() => {
                         <SettingBasic/>
                     </div>
                 </div>
-                <div class="border-b border-solid border-gray-200 dark:border-gray-700 my-6"></div>
+                <div class="border-b border-solid border-gray-200 dark:border-gray-800 my-6"></div>
                 <div data-section="env" class="scroll-mt-4">
                     <div class="text-base font-bold mb-4">{{ t('环境设置') }}</div>
                     <div>
                         <SettingEnv/>
                     </div>
                 </div>
-                <div class="border-b border-solid border-gray-200 dark:border-gray-700 my-6"></div>
+                <div class="border-b border-solid border-gray-200 dark:border-gray-800 my-6"></div>
                 <div data-section="about" class="scroll-mt-4">
                     <div class="text-base font-bold mb-4">
                         {{ t('关于软件') }}

@@ -176,7 +176,7 @@ const shouldDarkMode = async () => {
 
 const defaultDarkModeBackgroundColor = async () => {
     if (await shouldDarkMode()) {
-        return '#1A202C'
+        return '#17171A'
     }
     return '#FFFFFF'
 }

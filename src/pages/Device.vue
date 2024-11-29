@@ -159,7 +159,7 @@ const doHelp = () => {
                 <div v-for="(r,rIndex) in deviceRecords" :key="rIndex"
                      class="w-full lg:w-1/2 2xl:w-1/3 p-3">
                     <div
-                        class="hover:shadow-lg bg-white dark:bg-gray-800 shadow border border-solid h-64 border-gray-100 dark:border-gray-700 rounded-lg flex flex-col">
+                        class="hover:shadow-lg bg-white dark:bg-gray-800 shadow border border-solid h-64 border-gray-100 dark:border-gray-800 rounded-lg flex flex-col">
                         <div class="flex overflow-hidden flex-shrink-0 items-center h-12 px-4 py-2">
                             <div class="overflow-hidden">
                                 <div class="font-bold truncate cursor-pointer">

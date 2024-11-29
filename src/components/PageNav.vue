@@ -35,7 +35,7 @@ const doUser = async () => {
 </script>
 
 <template>
-    <div class="flex flex-col h-full border-r border-gray-200 dark:border-gray-700">
+    <div class="flex flex-col h-full border-r border-gray-200 dark:border-gray-800">
         <div class="py-4 px-3 " :class="setting.basic.userEnable?'cursor-pointer':''" @click="doUser">
             <a-tooltip v-if="setting.basic.userEnable"
                        :content="userTip as string" position="right">

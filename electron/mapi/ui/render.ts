@@ -68,7 +68,7 @@ const initLoaders = () => {
   z-index: 10000;
 }
 [data-theme="dark"] .app-loading-wrap {
-    background: #1A202C;
+    background: #17171A;
 }
 [data-theme="dark"] .${className} > div {
     --_g: no-repeat radial-gradient(circle closest-side,#2D3748 90%,#2D374800);
