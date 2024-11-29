@@ -3,9 +3,13 @@ import {isDev} from "./env";
 import {WindowConfig} from "../config/window";
 
 export const DevToolsManager = {
+    enable: true,
     rowCount: 4,
     colCount: 3,
     windows: new Map<BrowserWindow | BrowserView, BrowserWindow>(),
+    setEnable(enable: boolean) {
+        DevToolsManager.enable = enable
+    },
     getWindow(win: BrowserWindow | BrowserView) {
         return this.windows.get(win);
     },
@@ -68,13 +72,13 @@ export const DevToolsManager = {
         }
     },
     register(name: string, win: BrowserWindow | BrowserView) {
-        if (!isDev) {
+        if (!isDev || !DevToolsManager.enable) {
             return
         }
         this.getOrCreateWindow(name, win);
     },
     autoShow(win: BrowserWindow | BrowserView) {
-        if (!isDev) {
+        if (!isDev || !DevToolsManager.enable) {
             return
         }
         if (WindowConfig.alwaysOpenDevTools) {

@@ -21,8 +21,9 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
+        "dev:pre": "export ELECTRON_ENV_PROD=1 && vite",
         "dev:win": "chcp 65001 && vite",
-        "dev_debug": "vite --debug",
+        "dev:debug": "vite --debug",
         "build": "vite build && electron-builder",
         "build:debug": "export VSCODE_DEBUG=true && vite build && electron-builder",
         "build:win": "vite build && electron-builder --win",

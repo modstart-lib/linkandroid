@@ -23,6 +23,10 @@ import {AppsMain} from "../mapi/app/main";
 
 const isDummyNew = isDummy
 
+if (process.env['ELECTRON_ENV_PROD']) {
+    DevToolsManager.setEnable(false)
+}
+
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
 });
