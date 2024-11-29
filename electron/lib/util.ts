@@ -216,3 +216,56 @@ export const ShellUtil = {
         return `"${p}"`
     }
 }
+
+
+export const VersionUtil = {
+    /**
+     * 检测版本是否匹配
+     * @param v string
+     * @param match string 如 * 或 >=1.0.0 或 >1.0.0 或 <1.0.0 或 <=1.0.0 或 1.0.0
+     */
+    match(v: string, match: string) {
+        if (match === '*') {
+            return true
+        }
+        if (match.startsWith('>=') && this.ge(v, match.substring(2))) {
+            return true
+        }
+        if (match.startsWith('>') && this.gt(v, match.substring(1))) {
+            return true
+        }
+        if (match.startsWith('<=') && this.le(v, match.substring(2))) {
+            return true
+        }
+        if (match.startsWith('<') && this.lt(v, match.substring(1))) {
+            return true
+        }
+        return this.eq(v, match)
+    },
+    compare(v1: string, v2: string) {
+        const v1Arr = v1.split('.')
+        const v2Arr = v2.split('.')
+        for (let i = 0; i < v1Arr.length; i++) {
+            const v1Num = parseInt(v1Arr[i])
+            const v2Num = parseInt(v2Arr[i])
+            if (v1Num > v2Num) {
+                return 1
+            } else if (v1Num < v2Num) {
+                return -1
+            }
+        }
+        return 0
+    },
+    gt(v1: string, v2: string) {
+        return VersionUtil.compare(v1, v2) > 0
+    },
+    ge(v1: string, v2: string) {
+        return VersionUtil.compare(v1, v2) >= 0
+    },
+    lt(v1: string, v2: string) {
+        return VersionUtil.compare(v1, v2) < 0
+    },
+    le: (v1: string, v2: string) => {
+        return VersionUtil.compare(v1, v2) <= 0
+    }
+}

@@ -63,6 +63,29 @@ export const EncodeUtil = {
 }
 
 export const VersionUtil = {
+    /**
+     * 检测版本是否匹配
+     * @param v string
+     * @param match string 如 * 或 >=1.0.0 或 >1.0.0 或 <1.0.0 或 <=1.0.0 或 1.0.0
+     */
+    match(v: string, match: string) {
+        if (match === '*') {
+            return true
+        }
+        if (match.startsWith('>=') && this.ge(v, match.substring(2))) {
+            return true
+        }
+        if (match.startsWith('>') && this.gt(v, match.substring(1))) {
+            return true
+        }
+        if (match.startsWith('<=') && this.le(v, match.substring(2))) {
+            return true
+        }
+        if (match.startsWith('<') && this.lt(v, match.substring(1))) {
+            return true
+        }
+        return this.eq(v, match)
+    },
     compare(v1: string, v2: string) {
         const v1Arr = v1.split('.')
         const v2Arr = v2.split('.')
