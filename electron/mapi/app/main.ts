@@ -12,6 +12,9 @@ const getWindowByName = (name?: string) => {
     if (!name || 'main' === name) {
         return AppRuntime.mainWindow
     }
+    if ('guide' === name) {
+        return AppRuntime.guideWindow
+    }
     return AppRuntime.windows[name]
 }
 
