@@ -16,6 +16,7 @@ declare interface Window {
     },
     $mapi: {
         app: {
+            getPreload: () => Promise<string>,
             resourcePathResolve: (filePath: string) => Promise<string>,
             extraPathResolve: (filePath: string) => Promise<string>,
             platformName: () => 'win' | 'osx' | 'linux' | null,
@@ -28,6 +29,7 @@ declare interface Window {
                 includeMinimumSize: boolean,
                 center: boolean
             }) => Promise<void>,
+            windowOpen: (name: string, option?: any) => Promise<void>,
             windowHide: (name?: string) => Promise<void>,
             windowClose: (name?: string) => Promise<void>,
             openExternalWeb: (url: string) => Promise<void>,

@@ -20,7 +20,6 @@ import {isPackaged} from "../lib/env";
 import {executeHooks} from "../lib/hooks";
 import {DevToolsManager} from "../lib/devtools";
 import {AppsMain} from "../mapi/app/main";
-import {GuideMain} from "./guide";
 
 const isDummyNew = isDummy
 

@@ -20,6 +20,7 @@ export const AppConfig = {
     downloadUrl: `${BASE_URL}/app_manager/download`,
     feedbackUrl: `${BASE_URL}/feedback`,
     statisticsUrl: `${BASE_URL}/app_manager/collect`,
+    guideUrl: `${BASE_URL}/app_manager/guide`,
     helpUrl: `${BASE_URL}/app_manager/help`,
     basic: {
         userEnable: false,

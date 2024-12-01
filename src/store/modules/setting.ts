@@ -11,6 +11,7 @@ export const settingStore = defineStore("setting", {
             basic: cloneDeep(AppConfig.basic),
             isDarkMode: false,
             config: {
+                guideWatched: false as boolean,
                 darkMode: '' as 'light' | 'dark' | 'auto',
             },
         }
@@ -20,6 +21,12 @@ export const settingStore = defineStore("setting", {
             this.isDarkMode = await window.$mapi.app.isDarkMode()
             this.config = await window.$mapi.config.all()
             this.setupDarkMode()
+            // setTimeout(() => {
+            //     if (!this.config.guideWatched) {
+            //         window.$mapi.app.windowOpen('guide').then()
+            //         this.setConfig('guideWatched', true).then()
+            //     }
+            // }, 2000)
         },
         onDarkModeChange(data: any) {
             this.isDarkMode = data.isDarkMode

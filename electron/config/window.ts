@@ -5,5 +5,5 @@ export const WindowConfig = {
     initWidth: 1100,
     initHeight: 680,
     guideWidth:800,
-    guideHeight:500,
+    guideHeight:540,
 }

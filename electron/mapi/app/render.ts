@@ -31,6 +31,10 @@ const windowSetSize = (name: string | null, width: number, height: number, optio
     return ipcRenderer.invoke('window:setSize', name, width, height, option)
 }
 
+const windowOpen = (name: string, option: any) => {
+    return ipcRenderer.invoke('window:open', name, option)
+}
+
 const windowHide = (name: string) => {
     return ipcRenderer.invoke('window:hide', name)
 }
@@ -45,6 +49,10 @@ const windowMove = (name: string | null, data: { mouseX: number, mouseY: number,
 
 const openExternalWeb = (url: string) => {
     return ipcRenderer.invoke('app:openExternalWeb', url)
+}
+
+const getPreload = async () => {
+    return ipcRenderer.invoke('app:getPreload')
 }
 
 const resourcePathResolve = async (filePath: string) => {
@@ -91,10 +99,12 @@ export default {
     windowMin,
     windowMax,
     windowSetSize,
+    windowOpen,
     windowHide,
     windowClose,
     windowMove,
     openExternalWeb,
+    getPreload,
     appEnv,
     getClipboardText,
     setClipboardText,

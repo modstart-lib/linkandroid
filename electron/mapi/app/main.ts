@@ -6,14 +6,13 @@ import {AppPosition} from "./lib/position";
 import {Events} from "../event/main";
 import {ConfigMain} from "../config/main";
 import {CommonConfig} from "../../config/common";
+import {preloadDefault} from "../../lib/env-main";
+import {Page} from "../../page";
 
 
 const getWindowByName = (name?: string) => {
     if (!name || 'main' === name) {
         return AppRuntime.mainWindow
-    }
-    if ('guide' === name) {
-        return AppRuntime.guideWindow
     }
     return AppRuntime.windows[name]
 }
@@ -83,6 +82,14 @@ ipcMain.handle('app:openExternalWeb', (event, url: string) => {
     return shell.openExternal(url)
 })
 
+ipcMain.handle('app:getPreload', (event) => {
+    let preload = preloadDefault
+    if (!preload.startsWith('file://')) {
+        preload = `file://${preload}`
+    }
+    return preload
+})
+
 ipcMain.handle('window:min', (event, name: string) => {
     windowMin(name)
 })
@@ -98,6 +105,16 @@ ipcMain.handle('window:setSize', (event, name: string | null, width: number, hei
 
 ipcMain.handle('window:close', (event, name: string) => {
     getWindowByName(name)?.close()
+})
+
+ipcMain.handle('window:open', (event, name: string, option: any) => {
+    name = name || 'main'
+    const win = getWindowByName(name)
+    if (win) {
+        win.show()
+        return
+    }
+    Page.open(name, option).then()
 })
 
 ipcMain.handle('window:hide', (event, name: string) => {
