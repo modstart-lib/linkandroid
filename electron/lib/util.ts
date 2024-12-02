@@ -273,5 +273,8 @@ export const VersionUtil = {
     },
     le: (v1: string, v2: string) => {
         return VersionUtil.compare(v1, v2) <= 0
+    },
+    eq: (v1: string, v2: string) => {
+        return VersionUtil.compare(v1, v2) === 0
     }
 }

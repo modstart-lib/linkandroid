@@ -1,5 +1,7 @@
 import storage from "../storage";
 import {ipcMain} from "electron";
+import {AppConfig} from "../../../src/config";
+import {ResultType} from "../../lib/api";
 
 const init = () => {
     return null
@@ -44,6 +46,26 @@ export default {
     save
 }
 
+
 export const User = {
     getApiToken
+}
+
+
+const post = async <T>(api: string, data: Record<string, any>): Promise<ResultType<T>> => {
+    const url = `${AppConfig.apiBaseUrl}/${api}`
+    const apiToken = await User.getApiToken()
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Api-Token': apiToken
+        },
+        body: JSON.stringify(data)
+    })
+    return await res.json()
+}
+
+export const UserApi = {
+    post
 }

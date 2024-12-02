@@ -39,7 +39,7 @@ const db = {
             });
         });
     },
-    async first(sql: string, params: any = []) {
+    async first(sql: string, params: any = []): Promise<any> {
         db._check()
         return new Promise((resolve, reject) => {
             dbConn.prepare(sql).get(...params, (err, row) => {
