@@ -51,6 +51,12 @@ export const StrUtil = {
             code = this.uuid().substring(0, length)
         }
         return code
+    },
+    bigIntegerId() {
+        return [
+            Date.now(),
+            (Math.floor(Math.random() * 1000000) + '').padStart(6, '0')
+        ].join('')
     }
 }
 

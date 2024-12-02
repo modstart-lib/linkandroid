@@ -10,87 +10,105 @@ let dbConn: Database | null = null;
 let dbSuccess = false;
 
 const db = {
-    async execute(sql: string, params: any = []) {
+    _check() {
+        if (!dbSuccess) {
+            throw 'DBNotInitialized'
+        }
+    },
+    async execute(sql: string, params: any = []): Promise<void> {
+        db._check()
         return new Promise((resolve, reject) => {
-            if (!dbSuccess) {
-                reject('DB not initialized');
-            } else {
-                dbConn.prepare(sql).run(...params, (err, row) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(row);
-                    }
-                });
-            }
+            dbConn.prepare(sql).run(...params, function (err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(undefined);
+                }
+            });
         });
     },
-    async insert(sql: string, params: any = []) {
+    async insert(sql: string, params: any = []): Promise<string | number> {
+        db._check()
         return new Promise((resolve, reject) => {
-            if (!dbSuccess) {
-                reject('DB not initialized');
-            } else {
-                dbConn.prepare(sql).run(...params, function (err) {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(this.lastID);
-                    }
-                });
-            }
+            dbConn.prepare(sql).run(...params, function (err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(this.lastID);
+                }
+            });
         });
     },
     async first(sql: string, params: any = []) {
+        db._check()
         return new Promise((resolve, reject) => {
-            if (!dbSuccess) {
-                reject('DB not initialized');
-            } else {
-                dbConn.prepare(sql).get(...params, (err, row) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(row);
-                    }
-                });
-            }
+            dbConn.prepare(sql).get(...params, (err, row) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(row);
+                }
+            });
         });
     },
-    async select(sql: string, params: any = []) {
+    async select(sql: string, params: any = []): Promise<any[]> {
+        db._check()
         return new Promise((resolve, reject) => {
-            if (!dbSuccess) {
-                reject('DB not initialized');
-            } else {
-                dbConn.prepare(sql).all(...params, (err, rows) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(rows);
-                    }
-                });
-            }
+            dbConn.prepare(sql).all(...params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
         });
     },
-    async update(sql: string, params: any = []) {
-        return await this.execute(sql, params);
+    async update(sql: string, params: any = []): Promise<number> {
+        db._check()
+        return new Promise((resolve, reject) => {
+            dbConn.prepare(sql).run(...params, function (err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(this.changes);
+                }
+            });
+        });
     },
-    async delete(sql: string, params: any = []) {
-        return await this.execute(sql, params);
-    }
+    async delete(sql: string, params: any = []): Promise<number> {
+        db._check()
+        return new Promise((resolve, reject) => {
+            dbConn.prepare(sql).run(...params, function (err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(this.changes);
+                }
+            });
+        });
+    },
 }
 
 
 const migrate = async () => {
     await db.execute(`CREATE TABLE IF NOT EXISTS migrate
                       (
-                          id INTEGER PRIMARY KEY,
-                          version INTEGER
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          version
+                          INTEGER
                       )`);
     for (const version of migration.versions) {
-        const result = await db.execute(`SELECT * FROM migrate WHERE version = ?`, [version.version]);
+        const result = await db.first(`SELECT *
+                                       FROM migrate
+                                       WHERE version = ?`, [version.version]);
         if (!result) {
             Log.info(`Migrating to version ${version.version}`);
             await version.up(db);
-            await db.execute(`INSERT INTO migrate (version) VALUES (?)`, [version.version]);
+            await db.execute(`INSERT INTO migrate (version)
+                              VALUES (?)`, [version.version]);
         }
     }
 }
@@ -126,7 +144,7 @@ ipcMain.handle('db:delete', (event, sql: string, params: any) => {
     return db.delete(sql, params);
 })
 
-export default {
+export const DBMain = {
     init,
     execute: db.execute,
     insert: db.insert,
@@ -135,3 +153,5 @@ export default {
     update: db.update,
     delete: db.delete
 }
+
+export default DBMain
