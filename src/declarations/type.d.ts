@@ -156,6 +156,9 @@ declare interface Window {
                 },
                 data: any,
             }) => Promise<void>,
+            getApiToken: () => Promise<string>,
+            getWebEnterUrl: (url: string) => Promise<string>,
+            openWebUrl: (url: string) => Promise<void>,
         },
         misc: {
             getZipFileContent: (path: string, pathInZip: string) => Promise<string>,

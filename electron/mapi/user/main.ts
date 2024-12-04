@@ -1,5 +1,5 @@
 import storage from "../storage";
-import {ipcMain} from "electron";
+import {ipcMain, shell} from "electron";
 import {AppConfig} from "../../../src/config";
 import {ResultType} from "../../lib/api";
 
@@ -18,9 +18,9 @@ const get = async (): Promise<{
     return {apiToken, user, data}
 }
 
-const getApiToken = async (): Promise<string> => {
-    return await storage.get('user', 'apiToken', '')
-}
+ipcMain.handle('user:get', async (event) => {
+    return get()
+})
 
 const save = async (data: {
     apiToken: string,
@@ -32,25 +32,47 @@ const save = async (data: {
     await storage.set('user', 'data', data.data)
 }
 
-ipcMain.handle('user:get', async (event) => {
-    return get()
-})
-
 ipcMain.handle('user:save', async (event, data) => {
     return save(data)
 })
 
-export default {
-    init,
-    get,
-    save
+
+const getApiToken = async (): Promise<string> => {
+    return await storage.get('user', 'apiToken', '')
 }
 
+ipcMain.handle('user:getApiToken', async (event) => {
+    return getApiToken()
+})
+
+const getWebEnterUrl = async (url: string) => {
+    const apiToken = await getApiToken()
+    return `${AppConfig.apiBaseUrl}/app_manager/enter?url=${encodeURIComponent(url)}&api_token=${apiToken}`
+}
+
+ipcMain.handle('user:getWebEnterUrl', async (event, url) => {
+    return getWebEnterUrl(url)
+})
+
+const openWebUrl = async (url: string) => {
+    url = await getWebEnterUrl(url)
+    await shell.openExternal(url)
+}
+
+ipcMain.handle('user:openWebUrl', async (event, url) => {
+    return openWebUrl(url)
+})
 
 export const User = {
-    getApiToken
+    init,
+    get,
+    save,
+    getApiToken,
+    getWebEnterUrl,
+    openWebUrl,
 }
 
+export default User
 
 const post = async <T>(api: string, data: Record<string, any>): Promise<ResultType<T>> => {
     const url = `${AppConfig.apiBaseUrl}/${api}`

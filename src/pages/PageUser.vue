@@ -1,57 +1,49 @@
 <script setup lang="ts">
 
-import {nextTick, onMounted, ref} from "vue";
-import {useUserStore} from "../store/modules/user";
+import {onMounted, ref} from "vue";
+import PageWebviewStatus from "../components/common/PageWebviewStatus.vue";
+import {useUserPage} from "./User/hook";
 
-const user = useUserStore()
+const status = ref<InstanceType<typeof PageWebviewStatus> | null>(null)
+const web = ref<any | null>(null)
 
-const webUrl = ref('')
-let webInstance = ref(null as any)
-
-const canGoBack = ref(false)
+const {
+    webPreload,
+    webUrl,
+    user,
+    canGoBack,
+    doBack,
+    onMount,
+} = useUserPage({web, status})
 
 onMounted(async () => {
-    webUrl.value = await user.webUrl()
-    await nextTick(() => {
-        webInstance.value = document.getElementById('userWeb') as any
-        webInstance.value.addEventListener('dom-ready', () => {
-            // webInstance.value.openDevTools()
-            window.$mapi.event.callPage('main', 'doRefreshUserInfo')
-            canGoBack.value = webInstance.value.canGoBack()
-            // add css
-            webInstance.value.insertCSS(`
-                .pb-page-member-vip .top{ padding-left: 5rem; }
-            `)
-        });
-    })
+    await onMount()
 });
 
-const doBack = () => {
-    if (webInstance.value.canGoBack()) {
-        webInstance.value.goBack()
-    }
-}
 
 </script>
 
 <template>
-    <div v-if="!!webUrl" class="pb-user-container relative">
-        <webview id="userWeb" :src="webUrl" class="pb-user"></webview>
-        <div class="absolute left-5 top-8 z-40">
-            <a-button v-if="canGoBack"
-                      @click="doBack"
-                      type="secondary" shape="round">
-                <template #icon>
-                    <icon-left/>
-                </template>
-                {{ $t('返回') }}
-            </a-button>
+    <div class="pb-user-container relative">
+        <div>
+            <webview ref="web" :src="webUrl" nodeintegration :preload="webPreload" class="pb-user-web"></webview>
+            <div class="absolute left-5 top-5 z-40">
+                <a-button v-if="canGoBack"
+                          @click="doBack"
+                          type="secondary" shape="round">
+                    <template #icon>
+                        <icon-left/>
+                    </template>
+                    {{ $t('返回') }}
+                </a-button>
+            </div>
         </div>
+        <PageWebviewStatus ref="status"/>
     </div>
 </template>
 
 <style lang="less" scoped>
-.pb-user {
+.pb-user-container, .pb-user-web {
     width: 100%;
     height: calc(100vh - 2.5rem);
 }

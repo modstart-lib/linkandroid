@@ -12,10 +12,10 @@ export const PageUser = {
         const win = new BrowserWindow({
             title: t('用户中心'),
             parent: AppRuntime.mainWindow,
-            minWidth: 800,
-            minHeight: 600,
-            width: 800,
-            height: 600,
+            minWidth: 700,
+            minHeight: 500,
+            width: 700,
+            height: 500,
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false,
@@ -28,24 +28,6 @@ export const PageUser = {
             center: true,
             transparent: false,
         });
-        win.webContents.on('did-attach-webview', function (e, webContent) {
-            webContent.on('will-navigate', function (e, url) {
-                const urlPath = new URL(url).pathname
-                const whiteList = [
-                    '/member_vip',
-                    '/app_manager/user',
-                    '/login',
-                    '/register',
-                    '/logout',
-                ]
-                if (whiteList.includes(urlPath)) return
-                e.preventDefault()
-                User.getApiToken().then(apiToken => {
-                    url = `${AppConfig.apiBaseUrl}/app_manager/enter?url=` + encodeURIComponent(url) + `&api_token=${apiToken}`
-                    shell.openExternal(url)
-                })
-            })
-        })
         return Page.openWindow(PageUser.NAME, win, "page/user.html");
     }
 }
