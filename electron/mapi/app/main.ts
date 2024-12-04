@@ -209,6 +209,15 @@ ipcMain.handle('app:isDarkMode', () => {
     return isDarkMode()
 })
 
+const getCurrentScreenDisplay = () => {
+    const screenPoint = screen.getCursorScreenPoint();
+    const display = screen.getDisplayNearestPoint(screenPoint);
+    return {
+        bounds: display.bounds,
+        workArea: display.workArea,
+    }
+}
+
 export default {
     quit
 }
@@ -221,4 +230,5 @@ export const AppsMain = {
     setClipboardText,
     getClipboardImage,
     setClipboardImage,
+    getCurrentScreenDisplay,
 }

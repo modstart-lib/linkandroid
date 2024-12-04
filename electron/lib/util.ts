@@ -278,3 +278,20 @@ export const VersionUtil = {
         return VersionUtil.compare(v1, v2) === 0
     }
 }
+
+
+export const UIUtil = {
+    sizeToPx(size: string, sizeFull: number) {
+        if (/^\d+$/.test(size)) {
+            // 纯数字
+            return parseInt(size)
+        } else if (size.endsWith('%')) {
+            // 百分比
+            let result = Math.floor((sizeFull * parseInt(size) / 100))
+            result = Math.min(result, sizeFull)
+            return result
+        } else {
+            throw 'UnsupportSizeString'
+        }
+    }
+}
