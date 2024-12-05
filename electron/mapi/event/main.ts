@@ -18,6 +18,13 @@ const broadcast = (type: BroadcastType, data: any = {}) => {
     }
 }
 
+const sendRaw = (webContents: any, type: EventType, data: any = {}, id?: string): boolean => {
+    id = id || StrUtil.randomString(32)
+    const payload = {id, type, data}
+    webContents.send('MAIN_PROCESS_MESSAGE', payload)
+    return true
+}
+
 const send = (name: NameType, type: EventType, data: any = {}, id?: string): boolean => {
     id = id || StrUtil.randomString(32)
     const payload = {id, type, data}
@@ -144,6 +151,7 @@ export default {
 export const Events = {
     broadcast,
     send,
+    sendRaw,
     sendChannel,
     callThirdParty,
     callPage,

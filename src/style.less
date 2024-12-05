@@ -104,25 +104,40 @@ body {
     }
 }
 
-
 * {
-    //&::-webkit-scrollbar {
-    //    width: 8px;
-    //    height: 8px;
-    //}
-    //
-    //&::-webkit-scrollbar-track {
-    //    background: #FFFFFF;
-    //}
-    //
-    //&::-webkit-scrollbar-thumb {
-    //    background: #999999;
-    //    border-radius: 10px;
-    //}
-    //
-    //&::-webkit-scrollbar-thumb:hover {
-    //    background: #888888;
-    //}
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #FFFFFF;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #999999;
+        border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: #888888;
+    }
+}
+
+body[data-theme="dark"] {
+    * {
+        &::-webkit-scrollbar-track {
+            background: #222222;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #333333;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: #888888;
+        }
+    }
 }
 
 /////////// layout end ///////////
@@ -140,8 +155,16 @@ body {
     }
 }
 
+.bg-default {
+    background-color: var(--color-background);
+}
+
 .bg-primary {
     background-color: var(--color-primary);
+}
+
+.text-default {
+    color: var(--color-text);
 }
 
 .text-primary {
@@ -177,18 +200,3 @@ body {
 }
 
 /////////// arco end ///////////
-
-/////////// module run start ///////////
-.text-module {
-    color: #562986;
-}
-
-.text-extend {
-    color: var(--color-primary);
-}
-
-.text-pip {
-    color: #FB9916;
-}
-
-/////////// module run end ///////////

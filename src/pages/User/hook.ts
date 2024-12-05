@@ -1,6 +1,8 @@
 import {ref} from "vue";
 import {useUserStore} from "../../store/modules/user";
+import {useSettingStore} from "../../store/modules/setting";
 
+const setting = useSettingStore()
 
 export const useUserPage = ({web, status}) => {
 
@@ -37,9 +39,13 @@ export const useUserPage = ({web, status}) => {
         web.value.addEventListener('did-fail-load', (event: any) => {
             status.value?.setStatus('fail')
         });
+        web.value.addEventListener('did-finish-load', (event: any) => {
+            if (setting.shouldDarkMode()) {
+                web.value.executeJavaScript(`document.body.setAttribute('data-theme', 'dark');`)
+            }
+        })
         web.value.addEventListener('dom-ready', (e) => {
             // web.value.openDevTools()
-            status.value?.setStatus('success')
             window.$mapi.event.callPage('main', 'doRefreshUserInfo')
             canGoBack.value = getCanGoBack()
             web.value.insertCSS(`.pb-page-member-vip .top{ padding-left: 5rem; }`)
@@ -55,6 +61,7 @@ document.addEventListener('click', (event) => {
     window.$mapi.user.openWebUrl(url)
 });
 `)
+            status.value?.setStatus('success')
         });
         status.value?.setStatus('loading')
         webPreload.value = await window.$mapi.app.getPreload()
