@@ -16,7 +16,7 @@ defineExpose({
 
 <template>
     <div v-if="'loading'===status"
-         class="absolute inset-0 flex bg-background text-text">
+         class="absolute inset-0 flex bg-default text-default">
         <div class="m-auto text-center text-gray-400">
             <div>
                 <icon-loading class="text-3xl"/>
@@ -27,7 +27,7 @@ defineExpose({
         </div>
     </div>
     <div v-else-if="'fail'===status"
-         class="absolute inset-0 flex bg-background text-text bg-opacity-50">
+         class="absolute inset-0 flex bg-default text-default bg-opacity-50">
         <div class="m-auto text-center text-red-400">
             <div>
                 <icon-info-circle class="text-3xl"/>
