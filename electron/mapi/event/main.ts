@@ -9,7 +9,7 @@ const init = () => {
 
 type NameType = 'main' | string
 type EventType = 'APP_READY' | 'CALL_THIRD_PARTY' | 'CALL_PAGE' | 'CHANNEL' | 'BROADCAST'
-type BroadcastType = 'DarkModeChange' | 'HotkeyWatch'
+type BroadcastType = 'ConfigChange' | 'DarkModeChange' | 'HotkeyWatch'
 
 const broadcast = (type: BroadcastType, data: any = {}) => {
     send('main', 'BROADCAST', {type, data})

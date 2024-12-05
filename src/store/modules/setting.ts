@@ -28,7 +28,13 @@ export const settingStore = defineStore("setting", {
             //     }
             // }, 2000)
         },
-        onDarkModeChange(data: any) {
+        onConfigChangeBroadcast(data: any) {
+            (async () => {
+                this.config = await window.$mapi.config.all()
+                this.setupDarkMode()
+            })()
+        },
+        onDarkModeChangeBroadcast(data: any) {
             this.isDarkMode = data.isDarkMode
             this.setupDarkMode()
         },
@@ -81,7 +87,8 @@ export const settingStore = defineStore("setting", {
 const setting = settingStore(store)
 setting.init().then()
 
-window.__page.onBroadcast('DarkModeChange', setting.onDarkModeChange)
+window.__page.onBroadcast('ConfigChange', setting.onConfigChangeBroadcast)
+window.__page.onBroadcast('DarkModeChange', setting.onDarkModeChangeBroadcast)
 
 export const useSettingStore = () => {
     return setting

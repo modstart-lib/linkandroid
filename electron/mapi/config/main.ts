@@ -2,6 +2,7 @@ import path from "node:path";
 import {AppEnv} from "../env";
 import fs from "node:fs";
 import {dialog, ipcMain} from "electron";
+import {Events} from "../event/main";
 
 let data = null
 
@@ -55,7 +56,9 @@ ipcMain.handle('config:get', async (_, key: string, defaultValue: any = null) =>
     return await get(key, defaultValue)
 })
 ipcMain.handle('config:set', async (_, key: string, value: any) => {
-    return await set(key, value)
+    const res = await set(key, value)
+    Events.broadcast('ConfigChange', {key, value})
+    return res
 })
 
 export default {
