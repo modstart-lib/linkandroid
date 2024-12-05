@@ -30,6 +30,7 @@ export const settingStore = defineStore("setting", {
         },
         onConfigChangeBroadcast(data: any) {
             (async () => {
+                console.log('onConfigChangeBroadcast', data)
                 this.config = await window.$mapi.config.all()
                 this.setupDarkMode()
             })()
@@ -54,9 +55,11 @@ export const settingStore = defineStore("setting", {
             if (this.shouldDarkMode()) {
                 document.body.setAttribute('arco-theme', 'dark')
                 document.body.setAttribute('data-theme', 'dark')
+                document.documentElement.setAttribute('data-theme', 'dark')
             } else {
                 document.body.removeAttribute('arco-theme');
                 document.body.removeAttribute('data-theme');
+                document.documentElement.removeAttribute('data-theme');
             }
         },
         async initBasic(basic: object) {
