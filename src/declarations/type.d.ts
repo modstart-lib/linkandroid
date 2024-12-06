@@ -145,10 +145,8 @@ declare interface Window {
                     name: string,
                     avatar: string,
                 },
-                data: {
-                    basic: {},
-                    [key: string]: any,
-                },
+                data: {},
+                basic: {},
             }>,
             refresh: () => Promise<void>,
             getApiToken: () => Promise<string>,

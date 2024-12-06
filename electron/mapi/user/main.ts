@@ -16,29 +16,30 @@ const userData = {
         name: '',
         avatar: '',
     },
-    data: {
-        basic: {},
-    },
+    data: {},
+    basic: {},
 }
 
 const get = async (): Promise<{
     apiToken: string,
     user: object,
-    data: any,
+    data: {},
+    basic: {},
 }> => {
     if (!userData.isInit) {
         const userStorageData = await storage.get('user', 'data', {})
         userData.apiToken = userStorageData.apiToken || ''
         userData.user = userStorageData.user || {}
         userData.data = userStorageData.data || {}
+        userData.basic = userStorageData.basic || {}
         userData.isInit = true
     }
     userData.user.id = userData.user.id || ''
-    userData.data.basic = userData.data.basic || {}
     return {
         apiToken: userData.apiToken,
         user: userData.user,
         data: userData.data,
+        basic: userData.basic,
     }
 }
 
@@ -49,18 +50,19 @@ ipcMain.handle('user:get', async (event) => {
 const save = async (data: {
     apiToken: string,
     user: any,
-    data: any
+    data: any,
+    basic: {},
 }) => {
-    userData.apiToken = data.apiToken
-    userData.user = data.user
-    userData.data = data.data
+    userData.apiToken = data.apiToken || ''
+    userData.user = data.user || {}
+    userData.data = data.data || {}
     userData.user.id = userData.user.id || ''
-    userData.data.basic = userData.data.basic || {}
     Events.broadcast('UserChange', {})
     await storage.set('user', 'data', {
         apiToken: data.apiToken,
         user: data.user,
-        data: data.data
+        data: data.data,
+        basic: data.basic,
     })
 }
 
@@ -73,7 +75,8 @@ const refresh = async () => {
     await save({
         apiToken: result.data.apiToken,
         user: result.data.user,
-        data: result.data.data
+        data: result.data.data,
+        basic: result.data.basic,
     })
 }
 

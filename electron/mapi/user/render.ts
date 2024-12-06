@@ -5,11 +5,7 @@ const open = async (option: any) => {
     await page.open('user', option)
 }
 
-const get = async (): Promise<{
-    apiToken: string,
-    user: object,
-    data: any,
-}> => {
+const get = async (): Promise<any> => {
     return ipcRenderer.invoke('user:get')
 }
 
