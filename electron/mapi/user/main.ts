@@ -3,6 +3,7 @@ import {ipcMain, shell} from "electron";
 import {AppConfig} from "../../../src/config";
 import {ResultType} from "../../lib/api";
 import {Events} from "../event/main";
+import {platformUUID} from "../../lib/env";
 
 const init = () => {
     return null
@@ -129,7 +130,8 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Api-Token': apiToken
+            'Api-Token': apiToken,
+            'Device-UUID': platformUUID(),
         },
         body: JSON.stringify(data)
     })
