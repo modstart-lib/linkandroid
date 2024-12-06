@@ -84,6 +84,15 @@ export const TimeUtil = {
         date.setHours(0, 0, 0, 0)
         return Math.floor(date.getTime() / 1000)
     },
+    replacePattern(text: string) {
+        // @ts-ignore
+        return text.replaceAll('{year}', dayjs().format('YYYY'))
+            .replaceAll('{month}', dayjs().format('MM'))
+            .replaceAll('{day}', dayjs().format('DD'))
+            .replaceAll('{hour}', dayjs().format('HH'))
+            .replaceAll('{minute}', dayjs().format('mm'))
+            .replaceAll('{second}', dayjs().format('ss'))
+    }
 }
 
 

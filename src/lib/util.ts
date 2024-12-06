@@ -50,6 +50,14 @@ export const TimeUtil = {
         if (m < 10) m = '0' + m
         if (s < 10) s = '0' + s
         return '00' == h ? `${m}:${s}` : `${h}:${m}:${s}`
+    },
+    replacePattern(text: string) {
+        return text.replaceAll('{year}', dayjs().format('YYYY'))
+            .replaceAll('{month}', dayjs().format('MM'))
+            .replaceAll('{day}', dayjs().format('DD'))
+            .replaceAll('{hour}', dayjs().format('HH'))
+            .replaceAll('{minute}', dayjs().format('mm'))
+            .replaceAll('{second}', dayjs().format('ss'))
     }
 }
 
@@ -111,6 +119,9 @@ export const VersionUtil = {
     },
     le: (v1: string, v2: string) => {
         return VersionUtil.compare(v1, v2) <= 0
+    },
+    eq: (v1: string, v2: string) => {
+        return VersionUtil.compare(v1, v2) === 0
     }
 }
 
