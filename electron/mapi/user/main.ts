@@ -6,6 +6,9 @@ import {Events} from "../event/main";
 import {platformUUID} from "../../lib/env";
 
 const init = () => {
+    setTimeout(() => {
+        refresh().then()
+    }, 1000)
     return null
 }
 
@@ -136,6 +139,7 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
         body: JSON.stringify(data)
     })
     const json = await res.json()
+    // console.log('post', JSON.stringify({api, data, json}, null, 2))
     if (json.code) {
         // 未登录或登录过期
         if (json.code === 1001) {

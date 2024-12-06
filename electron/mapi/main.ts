@@ -31,6 +31,7 @@ const $mapi = {
 
 export const MAPI = {
     init() {
+        $mapi.user.init()
         $mapi.db.init()
         $mapi.event.init()
     },
