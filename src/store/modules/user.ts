@@ -56,7 +56,14 @@ export const userStore = defineStore("user", {
         },
         async webUrl() {
             await this.waitInit()
-            return `${AppConfig.apiBaseUrl}/app_manager/user_web?api_token=${this.apiToken}`
+            let param: string[] = []
+            if (this.apiToken) {
+                param.push(`api_token=${this.apiToken}`)
+            }
+            if (setting.shouldDarkMode()) {
+                param.push('is_dark=1')
+            }
+            return `${AppConfig.apiBaseUrl}/app_manager/user_web?${param.join('&')}`
         }
     }
 })
