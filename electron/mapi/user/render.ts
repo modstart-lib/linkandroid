@@ -13,12 +13,8 @@ const get = async (): Promise<{
     return ipcRenderer.invoke('user:get')
 }
 
-const save = async (data: {
-    apiToken: string,
-    user: object,
-    data: any
-}) => {
-    return ipcRenderer.invoke('user:save', data)
+const refresh = async () => {
+    return ipcRenderer.invoke('user:refresh')
 }
 
 const getApiToken = async (): Promise<string> => {
@@ -35,8 +31,8 @@ const openWebUrl = async (url: string) => {
 
 export default {
     open,
-    save,
     get,
+    refresh,
     getApiToken,
     getWebEnterUrl,
     openWebUrl

@@ -18,20 +18,25 @@ export const userStore = defineStore("user", {
                 name: null as string | null,
                 avatar: null as string | null,
             },
-            data: null as any,
+            data: {
+                basic: {},
+            },
         }
     },
     actions: {
         async init() {
             await this.load()
-            await this.refreshUserInfo()
         },
         async load() {
             const {apiToken, user, data} = await window.$mapi.user.get()
             this.apiToken = apiToken
             this.user = Object.assign(this.user, user)
             this.data = data
+            await setting.initBasic(this.data.basic)
             this.isInit = true
+        },
+        onChangeBroadcast() {
+            this.load().then()
         },
         async waitInit() {
             if (this.isInit) {
@@ -46,24 +51,6 @@ export const userStore = defineStore("user", {
                 }, 100)
             })
         },
-        async refreshUserInfo() {
-            const result = await userInfoApi()
-            // console.log('refreshUserInfo', result)
-            this.apiToken = result.data.apiToken
-            this.user = Object.assign(this.user, result.data.user)
-            this.data = result.data.data
-            await setting.initBasic(result.data.basic)
-            const saved = toRaw({
-                apiToken: this.apiToken,
-                user: toRaw(this.user as any),
-                data: toRaw(this.data)
-            })
-            const savedJson = JSON.stringify(saved)
-            if (!this.lastSavedJson || this.lastSavedJson !== savedJson) {
-                this.lastSavedJson = savedJson
-                await window.$mapi.user.save(saved)
-            }
-        },
         async webUrl() {
             await this.waitInit()
             return `${AppConfig.apiBaseUrl}/app_manager/user_web?api_token=${this.apiToken}`
@@ -73,12 +60,9 @@ export const userStore = defineStore("user", {
 
 export const user = userStore(store)
 
-user.init().then(() => {
-})
+user.init().then()
 
-window['__callPage']['doRefreshUserInfo'] = async () => {
-    await user.refreshUserInfo()
-}
+window.__page.onBroadcast('UserChange', user.onChangeBroadcast)
 
 export const useUserStore = () => {
     return user

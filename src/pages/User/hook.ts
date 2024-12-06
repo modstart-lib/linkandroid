@@ -46,7 +46,7 @@ export const useUserPage = ({web, status}) => {
         })
         web.value.addEventListener('dom-ready', (e) => {
             // web.value.openDevTools()
-            window.$mapi.event.callPage('main', 'doRefreshUserInfo')
+            window.$mapi.user.refresh()
             canGoBack.value = getCanGoBack()
             web.value.insertCSS(`.pb-page-member-vip .top{ padding-left: 5rem; }`)
             web.value.executeJavaScript(`
@@ -54,6 +54,7 @@ document.addEventListener('click', (event) => {
     const target = event.target;
     if (target.tagName !== 'A') return;
     const url = target.href
+    if(url.startsWith('javascript:')) return;
     const urlPath = new URL(url).pathname;
     const whiteList = ${JSON.stringify(webUrlList)};
     if (whiteList.includes(urlPath)) return;

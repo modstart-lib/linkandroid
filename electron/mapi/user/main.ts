@@ -2,9 +2,23 @@ import storage from "../storage";
 import {ipcMain, shell} from "electron";
 import {AppConfig} from "../../../src/config";
 import {ResultType} from "../../lib/api";
+import {Events} from "../event/main";
 
 const init = () => {
     return null
+}
+
+const userData = {
+    isInit: false,
+    apiToken: '',
+    user: {
+        id: '',
+        name: '',
+        avatar: '',
+    },
+    data: {
+        basic: {},
+    },
 }
 
 const get = async (): Promise<{
@@ -12,10 +26,20 @@ const get = async (): Promise<{
     user: object,
     data: any,
 }> => {
-    const apiToken = await storage.get('user', 'apiToken', '')
-    const user = await storage.get('user', 'user', {})
-    const data = await storage.get('user', 'data', {})
-    return {apiToken, user, data}
+    if (!userData.isInit) {
+        const userStorageData = await storage.get('user', 'data', {})
+        userData.apiToken = userStorageData.apiToken || ''
+        userData.user = userStorageData.user || {}
+        userData.data = userStorageData.data || {}
+        userData.isInit = true
+    }
+    userData.user.id = userData.user.id || ''
+    userData.data.basic = userData.data.basic || {}
+    return {
+        apiToken: userData.apiToken,
+        user: userData.user,
+        data: userData.data,
+    }
 }
 
 ipcMain.handle('user:get', async (event) => {
@@ -24,21 +48,42 @@ ipcMain.handle('user:get', async (event) => {
 
 const save = async (data: {
     apiToken: string,
-    user: object,
+    user: any,
     data: any
 }) => {
-    await storage.set('user', 'apiToken', data.apiToken)
-    await storage.set('user', 'user', data.user)
-    await storage.set('user', 'data', data.data)
+    userData.apiToken = data.apiToken
+    userData.user = data.user
+    userData.data = data.data
+    userData.user.id = userData.user.id || ''
+    userData.data.basic = userData.data.basic || {}
+    Events.broadcast('UserChange', {})
+    await storage.set('user', 'data', {
+        apiToken: data.apiToken,
+        user: data.user,
+        data: data.data
+    })
 }
 
 ipcMain.handle('user:save', async (event, data) => {
     return save(data)
 })
 
+const refresh = async () => {
+    const result = await userInfoApi()
+    await save({
+        apiToken: result.data.apiToken,
+        user: result.data.user,
+        data: result.data.data
+    })
+}
+
+ipcMain.handle('user:refresh', async (event) => {
+    return refresh()
+})
 
 const getApiToken = async (): Promise<string> => {
-    return await storage.get('user', 'apiToken', '')
+    await get()
+    return userData.apiToken
 }
 
 ipcMain.handle('user:getApiToken', async (event) => {
@@ -85,9 +130,26 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
         },
         body: JSON.stringify(data)
     })
-    return await res.json()
+    const json = await res.json()
+    if (json.code) {
+        // 未登录或登录过期
+        if (json.code === 1001) {
+            await refresh()
+        }
+    }
+    return json
+}
+
+const userInfoApi = async (): Promise<ResultType<{
+    apiToken: string,
+    user: object,
+    data: any,
+    basic: object,
+}>> => {
+    return await post('app_manager/user_info', {})
 }
 
 export const UserApi = {
-    post
+    post,
+    userInfoApi
 }
