@@ -19,8 +19,10 @@ export const userStore = defineStore("user", {
                 avatar: null as string | null,
             },
             data: {
-                basic: {},
+                vip: {},
+                functions: {}
             },
+            basic: {},
         }
     },
     actions: {
@@ -28,11 +30,12 @@ export const userStore = defineStore("user", {
             await this.load()
         },
         async load() {
-            const {apiToken, user, data} = await window.$mapi.user.get()
+            const {apiToken, user, data, basic} = await window.$mapi.user.get()
             this.apiToken = apiToken
             this.user = Object.assign(this.user, user)
-            this.data = data
-            await setting.initBasic(this.data.basic)
+            this.data = data as any
+            this.basic = basic
+            await setting.initBasic(this.basic)
             this.isInit = true
         },
         onChangeBroadcast() {
