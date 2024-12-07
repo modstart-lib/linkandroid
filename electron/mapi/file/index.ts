@@ -2,6 +2,8 @@ import path from "node:path";
 import {AppEnv, waitAppEnvReady} from "../env";
 import fs from "node:fs";
 import {StrUtil, TimeUtil} from "../../lib/util";
+import Apps from "../app";
+import {Readable} from "node:stream";
 
 const nodePath = path
 
@@ -426,6 +428,41 @@ const appendText = async (path: string, data: any, option?: { isFullPath?: boole
     appendTextStreamCached.write(data)
 }
 
+const download = async (url: string, path: string, option?: { isFullPath?: boolean, }) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
+    const fullPathDir = nodePath.dirname(fp)
+    if (!fs.existsSync(fullPathDir)) {
+        fs.mkdirSync(fullPathDir, {recursive: true})
+    }
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'User-Agent': Apps.getUserAgent()
+        },
+    })
+    if (!res.ok) {
+        throw new Error(`DownloadError:${url}`)
+    }
+    // @ts-ignore
+    const readableStream = Readable.fromWeb(res.body);
+    const fileStream = fs.createWriteStream(fp)
+    return new Promise((resolve, reject) => {
+        readableStream.pipe(fileStream)
+            .on('finish', () => {
+                resolve(undefined)
+            })
+            .on('error', (err) => {
+                reject(err)
+            })
+    })
+}
+
 export default {
     fullPath,
     absolutePath,
@@ -445,4 +482,5 @@ export default {
     tempDir,
     watchText,
     appendText,
+    download,
 }

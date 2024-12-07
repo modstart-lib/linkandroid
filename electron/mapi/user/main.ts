@@ -156,6 +156,7 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
         if (json.code === 1001) {
             await refresh()
         }
+        throw json.msg
     }
     return json
 }
