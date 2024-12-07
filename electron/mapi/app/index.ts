@@ -1,10 +1,11 @@
 import util from "node:util";
 import net from "node:net";
 import {exec as _exec, spawn} from "node:child_process";
-import {isLinux, isMac, isWin} from "../../lib/env";
+import {isLinux, isMac, isWin, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
 import {Log} from "../log/index";
 import iconv from "iconv-lite";
 import {StrUtil} from "../../lib/util";
+import {AppConfig} from "../../../src/config";
 
 const exec = util.promisify(_exec)
 
@@ -275,16 +276,20 @@ const fixExecutable = async (executable: string) => {
     }
 }
 
+const getUserAgent = () => {
+    let param = []
+    param.push(`App/${AppConfig.name}/${AppConfig.version}`)
+    param.push(`Platform/${platformName()}/${platformArch()}/${platformVersion()}/${platformUUID()}`)
+    return param.join(' ')
+}
+
 export const Apps = {
     shell,
     spawnShell,
     availablePort,
     isPortAvailable,
+    fixExecutable,
+    getUserAgent,
 }
 
-export default {
-    shell,
-    spawnShell,
-    availablePort,
-    fixExecutable,
-}
+export default Apps

@@ -4,6 +4,8 @@ import {AppConfig} from "../../../src/config";
 import {ResultType} from "../../lib/api";
 import {Events} from "../event/main";
 import {platformUUID} from "../../lib/env";
+import {AppsMain} from "../app/main";
+import Apps from "../app";
 
 const init = () => {
     setTimeout(() => {
@@ -98,8 +100,17 @@ ipcMain.handle('user:getApiToken', async (event) => {
 })
 
 const getWebEnterUrl = async (url: string) => {
+    let param = []
     const apiToken = await getApiToken()
-    return `${AppConfig.apiBaseUrl}/app_manager/enter?url=${encodeURIComponent(url)}&api_token=${apiToken}`
+    if (apiToken) {
+        param.push(`api_token=${apiToken}`)
+    }
+    if (AppsMain.shouldDarkMode()) {
+        param.push(`is_dark=1`)
+    }
+    param.push(`device_uuid=${platformUUID()}`)
+    param.push(`url=${encodeURIComponent(url)}`)
+    return `${AppConfig.apiBaseUrl}/app_manager/enter?${param.join('&')}`
 }
 
 ipcMain.handle('user:getWebEnterUrl', async (event, url) => {
@@ -132,9 +143,9 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
     const res = await fetch(url, {
         method: 'POST',
         headers: {
+            'User-Agent': Apps.getUserAgent(),
             'Content-Type': 'application/json',
             'Api-Token': apiToken,
-            'Device-UUID': platformUUID(),
         },
         body: JSON.stringify(data)
     })

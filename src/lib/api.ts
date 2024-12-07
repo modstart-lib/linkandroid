@@ -45,6 +45,7 @@ function createRequest(service: AxiosInstance) {
     return function <T>(config: AxiosRequestConfig): Promise<T> {
         const defaultConfig = {
             headers: {
+                'User-Agent': window.$mapi.app.getUserAgent(),
                 'Api-Token': user.apiToken ? user.apiToken : undefined,
                 'Content-Type': 'application/json',
             },

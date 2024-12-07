@@ -10,6 +10,7 @@ const web = ref<any | null>(null)
 const {
     webPreload,
     webUrl,
+    webUserAgent,
     user,
     canGoBack,
     doBack,
@@ -26,7 +27,10 @@ onMounted(async () => {
 <template>
     <div class="pb-user-container relative">
         <div>
-            <webview ref="web" :src="webUrl" nodeintegration :preload="webPreload" class="pb-user-web"></webview>
+            <webview ref="web" :src="webUrl"
+                     nodeintegration
+                     :useragent="webUserAgent"
+                     :preload="webPreload" class="pb-user-web"></webview>
             <div class="absolute left-5 top-5 z-40">
                 <a-button v-if="canGoBack"
                           @click="doBack"

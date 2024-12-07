@@ -8,6 +8,7 @@ export const useUserPage = ({web, status}) => {
 
     const webPreload = ref('')
     const webUrl = ref('')
+    const webUserAgent = window.$mapi.app.getUserAgent()
 
     const user = useUserStore()
     const canGoBack = ref(false)
@@ -72,6 +73,7 @@ document.addEventListener('click', (event) => {
     return {
         webPreload,
         webUrl,
+        webUserAgent,
         user,
         canGoBack,
         doBack,

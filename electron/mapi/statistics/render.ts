@@ -20,6 +20,7 @@ const tickSendAsync = () => {
         if (!tickDataList.length) {
             return
         }
+        // console.log('tickSend', JSON.stringify(tickDataList))
         post(AppConfig.statisticsUrl, {
             data: tickDataList,
             version: AppConfig.version,

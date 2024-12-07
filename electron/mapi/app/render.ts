@@ -114,5 +114,6 @@ export default {
     spawnShell: appIndex.spawnShell,
     availablePort: appIndex.availablePort,
     fixExecutable: appIndex.fixExecutable,
+    getUserAgent: appIndex.getUserAgent,
 }
 
