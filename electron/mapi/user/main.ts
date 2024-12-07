@@ -105,7 +105,7 @@ const getWebEnterUrl = async (url: string) => {
     if (apiToken) {
         param.push(`api_token=${apiToken}`)
     }
-    if (AppsMain.shouldDarkMode()) {
+    if (await AppsMain.shouldDarkMode()) {
         param.push(`is_dark=1`)
     }
     param.push(`device_uuid=${platformUUID()}`)
