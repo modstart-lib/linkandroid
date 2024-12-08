@@ -4,7 +4,7 @@ import {AppEnv} from "./env";
 import config from "./config/render";
 import log from "./log/render";
 import app from "./app/render";
-import storage from "./storage";
+import storage from "./storage/render";
 import db from "./db/render";
 import file from "./file/render";
 import event from "./event/render";

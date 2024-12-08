@@ -1,6 +1,7 @@
 import path from "node:path";
 import {AppEnv, waitAppEnvReady} from "../env";
 import fs from "node:fs";
+import {ipcMain} from "electron";
 
 let data = {}
 
@@ -60,8 +61,22 @@ const set = async (group: string, key: string, value: any) => {
     save(group)
 }
 
-export default {
+ipcMain.handle('storage:all', async (event, group: string) => {
+    return await all(group)
+})
+
+ipcMain.handle('storage:get', async (event, group: string, key: string, defaultValue: any) => {
+    return await get(group, key, defaultValue)
+})
+
+ipcMain.handle('storage:set', async (event, group: string, key: string, value: any) => {
+    return await set(group, key, value)
+})
+
+export const StorageMain = {
     all,
     get,
     set
 }
+
+export default StorageMain

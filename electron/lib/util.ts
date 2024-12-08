@@ -12,6 +12,18 @@ export const EncodeUtil = {
     },
     md5(str: string) {
         return crypto.createHash('md5').update(str).digest('hex')
+    },
+    aesEncode(str: string, key: string) {
+        const cipher = crypto.createCipheriv('aes-128-ecb', key, '')
+        let crypted = cipher.update(str, 'utf8', 'base64')
+        crypted += cipher.final('base64')
+        return crypted
+    },
+    aesDecode(str: string, key: string) {
+        const decipher = crypto.createDecipheriv('aes-128-ecb', key, '')
+        let dec = decipher.update(str, 'base64', 'utf8')
+        dec += decipher.final('utf8')
+        return dec
     }
 }
 
@@ -79,8 +91,8 @@ export const TimeUtil = {
     datetimeString() {
         return dayjs().format('YYYYMMDD_HHmmss_SSS')
     },
-    timestampDayStart() {
-        const date = new Date()
+    timestampDayStart(msTimestamp?: number) {
+        let date = msTimestamp ? new Date(msTimestamp) : new Date()
         date.setHours(0, 0, 0, 0)
         return Math.floor(date.getTime() / 1000)
     },

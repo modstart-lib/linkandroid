@@ -1,4 +1,3 @@
-import storage from "../storage";
 import {ipcMain, shell} from "electron";
 import {AppConfig} from "../../../src/config";
 import {ResultType} from "../../lib/api";
@@ -6,6 +5,7 @@ import {Events} from "../event/main";
 import {platformUUID} from "../../lib/env";
 import {AppsMain} from "../app/main";
 import Apps from "../app";
+import StorageMain from "../storage/main";
 
 const init = () => {
     setTimeout(() => {
@@ -33,7 +33,7 @@ const get = async (): Promise<{
     basic: {},
 }> => {
     if (!userData.isInit) {
-        const userStorageData = await storage.get('user', 'data', {})
+        const userStorageData = await StorageMain.get('user', 'data', {})
         userData.apiToken = userStorageData.apiToken || ''
         userData.user = userStorageData.user || {}
         userData.data = userStorageData.data || {}
@@ -64,7 +64,7 @@ const save = async (data: {
     userData.data = data.data || {}
     userData.user.id = userData.user.id || ''
     Events.broadcast('UserChange', {})
-    await storage.set('user', 'data', {
+    await StorageMain.set('user', 'data', {
         apiToken: data.apiToken,
         user: data.user,
         data: data.data,
