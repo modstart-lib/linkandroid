@@ -12,6 +12,10 @@ export type HotkeyKeyItem = {
     times: number
 }
 
+export type HotkeyKeySimpleItem = {
+    type: 'Ctrl' | 'Alt' | 'Meta'
+}
+
 export type HotkeyMouseItem = {
     button: HotkeyMouseButtonEnum
     type: 'click' | 'longPress'
