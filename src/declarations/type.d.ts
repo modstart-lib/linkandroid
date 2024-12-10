@@ -59,6 +59,10 @@ declare interface Window {
             getClipboardImage: () => Promise<string>,
             setClipboardImage: (image: string) => Promise<void>,
             getUserAgent: () => string,
+            toast: (msg: string, option?: {
+                duration?: number,
+                status?: 'success' | 'error'
+            }) => Promise<void>,
         },
         config: {
             get: (key: string, defaultValue: any = null) => Promise<any>,

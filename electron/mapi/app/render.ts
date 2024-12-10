@@ -88,6 +88,10 @@ const setClipboardImage = (image: string) => {
     return ipcRenderer.invoke('app:setClipboardImage', image)
 }
 
+const toast = (msg: string, option?: any) => {
+    return ipcRenderer.invoke('app:toast', msg, option)
+}
+
 export default {
     isDarkMode,
     resourcePathResolve,
@@ -110,6 +114,7 @@ export default {
     setClipboardText,
     getClipboardImage,
     setClipboardImage,
+    toast,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
     availablePort: appIndex.availablePort,

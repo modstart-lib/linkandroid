@@ -8,6 +8,7 @@ import {ConfigMain} from "../config/main";
 import {CommonConfig} from "../../config/common";
 import {preloadDefault} from "../../lib/env-main";
 import {Page} from "../../page";
+import {makeToast} from "./toast";
 
 
 const getWindowByName = (name?: string) => {
@@ -218,6 +219,17 @@ const getCurrentScreenDisplay = () => {
     }
 }
 
+const toast = (msg: string, options?: {
+    duration?: number,
+    status?: 'success' | 'error'
+}) => {
+    return makeToast(msg, options)
+}
+
+ipcMain.handle('app:toast', (event, msg: string, option?: any) => {
+    return toast(msg, option)
+})
+
 export default {
     quit
 }
@@ -231,4 +243,5 @@ export const AppsMain = {
     getClipboardImage,
     setClipboardImage,
     getCurrentScreenDisplay,
+    toast,
 }
