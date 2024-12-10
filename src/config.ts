@@ -24,6 +24,6 @@ export const AppConfig = {
     helpUrl: `${BASE_URL}/app_manager/help`,
     basic: {
         userEnable: false,
-    }
+    },
 }
 

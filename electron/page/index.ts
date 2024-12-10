@@ -5,11 +5,13 @@ import {PageThirdPartyImageBeautifier} from "./thirdPartyImageBeautifier";
 import {BrowserWindow, shell} from "electron";
 import {rendererLoadPath} from "../lib/env-main";
 import {PageGuide} from "./guide";
+import {PageSetup} from "./setup";
 
 const Pages = {
     'thirdPartyImageBeautifier': PageThirdPartyImageBeautifier,
     'user': PageUser,
     'guide': PageGuide,
+    'setup': PageSetup,
 }
 
 export const Page = {
@@ -45,7 +47,7 @@ export const Page = {
         AppRuntime.windows[name] = win
         return promise
     },
-    open: async (name: string, option: any) => {
+    open: async (name: string, option?: any) => {
         return Pages[name].open(option)
     },
     registerWindow(name: string, win: BrowserWindow) {

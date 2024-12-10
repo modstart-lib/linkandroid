@@ -102,6 +102,7 @@ export default defineConfig(({command}) => {
                     about: path.resolve(__dirname, 'page/about.html'),
                     user: path.resolve(__dirname, 'page/user.html'),
                     guide: path.resolve(__dirname, 'page/guide.html'),
+                    setup: path.resolve(__dirname, 'page/setup.html'),
                 }
             }
         },
