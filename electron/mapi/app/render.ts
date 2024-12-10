@@ -12,6 +12,10 @@ const quit = () => {
     return ipcRenderer.invoke('app:quit')
 }
 
+const restart = () => {
+    return ipcRenderer.invoke('app:restart')
+}
+
 const isPlatform = (name: 'win' | 'osx' | 'linux') => {
     return platformName() === name
 }
@@ -92,6 +96,14 @@ const toast = (msg: string, option?: any) => {
     return ipcRenderer.invoke('app:toast', msg, option)
 }
 
+const setupList = () => {
+    return ipcRenderer.invoke('app:setupList')
+}
+
+const setupOpen = (name: string) => {
+    return ipcRenderer.invoke('app:setupOpen', name)
+}
+
 export default {
     isDarkMode,
     resourcePathResolve,
@@ -100,6 +112,7 @@ export default {
     platformArch,
     isPlatform,
     quit,
+    restart,
     windowMin,
     windowMax,
     windowSetSize,
@@ -115,6 +128,8 @@ export default {
     getClipboardImage,
     setClipboardImage,
     toast,
+    setupList,
+    setupOpen,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
     availablePort: appIndex.availablePort,

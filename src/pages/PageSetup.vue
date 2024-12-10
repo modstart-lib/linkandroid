@@ -1,107 +1,43 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {Dialog} from "../lib/dialog";
 
 const recordActiveIndex = ref(0)
 const recordActive = computed(() => {
     return records.value[recordActiveIndex.value] || null
 })
-const records = ref([
-    {
-        title: '无障碍服务',
-        status: 'fail',
-        desc: '系统运行需要依赖无障碍服务，请打开设置，找到无障碍服务，开启本软件的无障碍服务。',
-        steps: [
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            },
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            },
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            },
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            },
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            },
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            }
-        ]
-    },
-    {
-        title: '无障碍服务',
-        status: 'fail',
-        desc: '系统运行需要依赖无障碍服务，请打开设置，找到无障碍服务，开启本软件的无障碍服务。',
-        steps: [
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            },
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            }
-        ]
-    },
-    {
-        title: '无障碍服务',
-        status: 'fail',
-        desc: '系统运行需要依赖无障碍服务，请打开设置，找到无障碍服务，开启本软件的无障碍服务。',
-        steps: [
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            },
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            }
-        ]
-    },
-    {
-        title: '无障碍服务',
-        status: 'fail',
-        desc: '系统运行需要依赖无障碍服务，请打开设置，找到无障碍服务，开启本软件的无障碍服务。',
-        steps: [
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            },
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            }
-        ]
-    },
-    {
-        title: '无障碍服务',
-        status: 'fail',
-        desc: '系统运行需要依赖无障碍服务，请打开设置，找到无障碍服务，开启本软件的无障碍服务。',
-        steps: [
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            },
-            {
-                title: '打开设置，升成打开设置，升成打开设置，升成打开设置，升成打开设置，升成',
-                image: 'https://placehold.co/600x400'
-            }
-        ]
-    }
-])
+const records = ref<{
+    name: string,
+    title: string,
+    status: 'success' | 'fail',
+    desc: string,
+    steps: {
+        title: string,
+        image: string,
+    }[]
+}[]>([])
 
-const doCheck = () => {
-    records.value[recordActiveIndex.value].status = 'success'
+onMounted(() => {
+    doLoad().then()
+    window.$mapi.app.windowHide('main')
+})
+
+const doLoad = async () => {
+    records.value = await window.$mapi.app.setupList()
+}
+
+const doOpen = async () => {
+    if (!recordActive.value) {
+        return
+    }
+    window.$mapi.app.setupOpen(recordActive.value.name).then()
+}
+
+const doCheck = async () => {
+    await doLoad()
+    if (records.value[recordActiveIndex.value].status !== 'success') {
+        return
+    }
     Dialog.tipSuccess(`恭喜完成 ${records.value[recordActiveIndex.value].title} 设置`)
     // 自动跳转到下一个
     let hasMore = false
@@ -113,8 +49,8 @@ const doCheck = () => {
         }
     }
     if (!hasMore) {
-        window.$mapi.app.toast('已完成所有设置')
-        window.$mapi.app.windowClose('setup')
+        await window.$mapi.app.toast('已完成所有设置')
+        await window.$mapi.app.restart()
     }
 }
 
@@ -155,11 +91,19 @@ const doCheck = () => {
                     <div class="fixed bottom-0 right-0 left-48 bg-white p-3 border">
                         <div>
                             <a-button type="primary"
+                                      class="mr-2"
+                                      @click="doOpen">
+                                <template #icon>
+                                    <icon-settings/>
+                                </template>
+                                打开设置
+                            </a-button>
+                            <a-button type="primary"
                                       @click="doCheck">
                                 <template #icon>
                                     <icon-check/>
                                 </template>
-                                已完成
+                                验证完成
                             </a-button>
                         </div>
                     </div>

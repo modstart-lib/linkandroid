@@ -9,6 +9,7 @@ import {CommonConfig} from "../../config/common";
 import {preloadDefault} from "../../lib/env-main";
 import {Page} from "../../page";
 import {makeToast} from "./toast";
+import {SetupMain} from "./setup";
 
 
 const getWindowByName = (name?: string) => {
@@ -28,6 +29,18 @@ const getCurrentWindow = (window, e) => {
 const quit = () => {
     app.quit()
 }
+
+ipcMain.handle('app:quit', () => {
+    quit()
+})
+
+const restart = () => {
+    app.relaunch()
+}
+
+ipcMain.handle('app:restart', () => {
+    restart()
+})
 
 const windowMin = (name?: string) => {
     getWindowByName(name)?.minimize()
@@ -74,10 +87,6 @@ const windowSetSize = (name: string | null, width: number, height: number, optio
         win.center()
     }
 }
-
-ipcMain.handle('app:quit', () => {
-    quit()
-})
 
 ipcMain.handle('app:openExternalWeb', (event, url: string) => {
     return shell.openExternal(url)
@@ -228,6 +237,14 @@ const toast = (msg: string, options?: {
 
 ipcMain.handle('app:toast', (event, msg: string, option?: any) => {
     return toast(msg, option)
+})
+
+ipcMain.handle('app:setupList', async () => {
+    return SetupMain.list()
+})
+
+ipcMain.handle('app:setupOpen', async (event, name: string) => {
+    return SetupMain.open(name)
 })
 
 export default {

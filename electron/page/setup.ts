@@ -34,7 +34,7 @@ export const PageSetup = {
             resizable: false,
             maximizable: false,
             backgroundColor: '#f1f5f9',
-            alwaysOnTop: true,
+            alwaysOnTop: false,
             webPreferences: {
                 preload: preloadDefault,
                 // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production

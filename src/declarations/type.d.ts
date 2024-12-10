@@ -23,6 +23,7 @@ declare interface Window {
             platformArch: () => 'x86' | 'arm64' | null,
             isPlatform: (platform: 'win' | 'osx' | 'linux') => boolean,
             quit: () => Promise<void>,
+            restart: () => Promise<void>,
             windowMin: (name?: string) => Promise<void>,
             windowMax: (name?: string) => Promise<void>,
             windowSetSize: (name: string | null, width: number, height: number, option?: {
@@ -63,6 +64,17 @@ declare interface Window {
                 duration?: number,
                 status?: 'success' | 'error'
             }) => Promise<void>,
+            setupList: () => Promise<{
+                name: string,
+                title: string,
+                status: 'success' | 'fail',
+                desc: string,
+                steps: {
+                    title: string,
+                    image: string,
+                }[]
+            }[]>,
+            setupOpen: (name: string) => Promise<void>,
         },
         config: {
             get: (key: string, defaultValue: any = null) => Promise<any>,
