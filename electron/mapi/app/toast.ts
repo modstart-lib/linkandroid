@@ -1,4 +1,5 @@
 import {BrowserWindow, screen} from "electron";
+import {AppsMain} from "./main";
 
 const icons = {
     success: '<svg t="1733817409678" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1488" width="1024" height="1024"><path d="M512 832c-176.448 0-320-143.552-320-320S335.552 192 512 192s320 143.552 320 320-143.552 320-320 320m0-704C300.256 128 128 300.256 128 512s172.256 384 384 384 384-172.256 384-384S723.744 128 512 128" fill="#FFF" p-id="1489"></path><path d="M619.072 429.088l-151.744 165.888-62.112-69.6a32 32 0 1 0-47.744 42.624l85.696 96a32 32 0 0 0 23.68 10.688h0.192c8.96 0 17.536-3.776 23.616-10.4l175.648-192a32 32 0 0 0-47.232-43.2" fill="#FFF" p-id="1490"></path></svg>',
@@ -28,8 +29,9 @@ export const makeToast = (msg: string, options?: {
         options.duration = Math.max(msg.length * 100, 3000)
     }
 
-    const primaryDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint())
-    const width = primaryDisplay.workArea.width
+    const display = AppsMain.getCurrentScreenDisplay()
+    // console.log('xxxx', primaryDisplay);
+    const width = display.workArea.width
     const height = 60
     const icon = icons[options.status] || icons.success
 
@@ -38,14 +40,16 @@ export const makeToast = (msg: string, options?: {
         width,
         x: 0,
         y: 0,
-        modal: true,
+        modal: false,
         frame: false,
         alwaysOnTop: true,
         // opacity: 0.9,
         center: false,
         transparent: true,
         hasShadow: false,
-        show: false
+        show: false,
+        focusable: false,
+        skipTaskbar: true,
     })
     const htmlContent = `
   <!DOCTYPE html>
@@ -101,8 +105,8 @@ export const makeToast = (msg: string, options?: {
             return width;
         })()`))
         win.setSize(width + 20, height)
-        const x = (primaryDisplay.size.width / 2) - ((width + 20) / 2)
-        const y = (primaryDisplay.size.height / 2) + 200
+        const x = display.workArea.x + (display.workArea.width / 2) - ((width + 20) / 2)
+        const y = display.workArea.y + (display.workArea.height * 2 / 3)
         win.setPosition(Math.floor(x), Math.floor(y))
         win.show()
         // win.webContents.openDevTools({
