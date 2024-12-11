@@ -126,6 +126,14 @@ ipcMain.handle('user:openWebUrl', async (event, url) => {
     return openWebUrl(url)
 })
 
+const apiPost = async (url: string, data: any) => {
+    return post(url, data)
+}
+
+ipcMain.handle('user:apiPost', async (event, url, data) => {
+    return apiPost(url, data)
+})
+
 export const User = {
     init,
     get,
