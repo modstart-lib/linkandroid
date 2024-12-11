@@ -1,10 +1,16 @@
 declare interface Window {
     __page: {
+        onShow: (cb: Function) => void,
+        onHide: (cb: Function) => void,
+        onMaximize: (cb: Function) => void,
+        onUnmaximize: (cb: Function) => void,
+        onEnterFullScreen: (cb: Function) => void,
+        onLeaveFullScreen: (cb: Function) => void,
         onBroadcast: (type: string, cb: Function) => void,
-        offBroadcast: (type: string, cb: Function) => void
-        hooks: {
-            [key: string]: Function
-        }
+        offBroadcast: (type: string, cb: Function) => void,
+        registerCallPage: (name: string, cb: Function) => void,
+        createChannel: (cb: (data: any) => void) => string,
+        destroyChannel: (channel: string) => void,
     },
     $mapi: {
         app: {
