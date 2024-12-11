@@ -26,20 +26,27 @@ window['__page'] = {
         window['__page'].hooks.onLeaveFullScreen = cb
     },
     broadcastListeners: {},
-    onBroadcast: (type: string, cb: Function) => {
+    onBroadcast: (type: string, cb: (data: any) => void) => {
         if (!(type in window['__page'].broadcastListeners)) {
             window['__page'].broadcastListeners[type] = []
         }
         window['__page'].broadcastListeners[type].push(cb)
     },
-    offBroadcast: (type: string, cb: Function) => {
+    offBroadcast: (type: string, cb: (data: any) => void) => {
         if (!(type in window['__page'].broadcastListeners)) {
             return
         }
         window['__page'].broadcastListeners[type] = window['__page'].broadcastListeners[type].filter(c => c !== cb)
     },
     callPage: {},
-    registerCallPage: (name: string, cb: Function) => {
+    registerCallPage: (
+        name: string,
+        cb: (
+            resolve: (data: any) => void,
+            reject: (error: string) => void,
+            data: any
+        ) => void
+    ) => {
         window['__page'].callPage[name] = cb
     },
     channel: {},
@@ -53,6 +60,7 @@ window['__page'] = {
     },
 }
 
+ipcRenderer.removeAllListeners('MAIN_PROCESS_MESSAGE')
 ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
     if ('APP_READY' === payload.type) {
         MAPI.init(payload.data.AppEnv)
