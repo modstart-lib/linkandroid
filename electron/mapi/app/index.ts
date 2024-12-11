@@ -278,7 +278,7 @@ const fixExecutable = async (executable: string) => {
 
 const getUserAgent = () => {
     let param = []
-    param.push(`App/${AppConfig.name}/${AppConfig.version}`)
+    param.push(`AppOpen/${AppConfig.name}/${AppConfig.version}`)
     param.push(`Platform/${platformName()}/${platformArch()}/${platformVersion()}/${platformUUID()}`)
     return param.join(' ')
 }

@@ -428,9 +428,13 @@ const appendText = async (path: string, data: any, option?: { isFullPath?: boole
     appendTextStreamCached.write(data)
 }
 
-const download = async (url: string, path: string, option?: { isFullPath?: boolean, }) => {
+const download = async (url: string, path: string, option?: {
+    isFullPath?: boolean,
+    progress?: (percent: number, total: number) => void,
+}) => {
     option = Object.assign({
         isFullPath: false,
+        progress: null,
     }, option)
     let fp = path
     if (!option.isFullPath) {
@@ -449,15 +453,32 @@ const download = async (url: string, path: string, option?: { isFullPath?: boole
     if (!res.ok) {
         throw new Error(`DownloadError:${url}`)
     }
+
+    const contentLength = res.headers.get('content-length');
+    const totalSize = contentLength ? parseInt(contentLength, 10) : null;
+    let downloaded = 0;
+
     // @ts-ignore
     const readableStream = Readable.fromWeb(res.body);
     const fileStream = fs.createWriteStream(fp)
     return new Promise((resolve, reject) => {
-        readableStream.pipe(fileStream)
-            .on('finish', () => {
+        readableStream
+            .on('data', (chunk) => {
+                // console.log('download.data', chunk.length)
+                downloaded += chunk.length;
+                if (totalSize) {
+                    option.progress && option.progress(downloaded / totalSize, totalSize)
+                }
+                fileStream.write(chunk)
+            })
+            .on('end', () => {
+                // console.log('download.end')
+                fileStream.end();
                 resolve(undefined)
             })
             .on('error', (err) => {
+                // console.log('download.error', err)
+                fileStream.close()
                 reject(err)
             })
     })
