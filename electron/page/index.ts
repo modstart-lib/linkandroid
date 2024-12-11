@@ -47,7 +47,17 @@ export const Page = {
         AppRuntime.windows[name] = win
         return promise
     },
-    open: async (name: string, option?: any) => {
+    open: async (name: string, option?: {
+        singleton?: boolean,
+    }) => {
+        option = Object.assign({
+            singleton: true
+        }, option)
+        if (option.singleton && AppRuntime.windows[name]) {
+            AppRuntime.windows[name].show()
+            AppRuntime.windows[name].focus()
+            return
+        }
         return Pages[name].open(option)
     },
     registerWindow(name: string, win: BrowserWindow) {

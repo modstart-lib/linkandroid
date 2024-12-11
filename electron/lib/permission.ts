@@ -2,7 +2,7 @@ import {isMac} from "./env";
 import nodeMacPermissions from 'node-mac-permissions';
 
 export const Permissions = {
-    async checkAccessibilityPermission(): Promise<boolean> {
+    async checkAccessibilityAccess(): Promise<boolean> {
         return new Promise((resolve, reject) => {
             if (isMac) {
                 const status = nodeMacPermissions.getAuthStatus('accessibility');
@@ -12,7 +12,20 @@ export const Permissions = {
             }
         })
     },
-    async askAccessibilityPermission() {
+    async askAccessibilityAccess() {
         nodeMacPermissions.askForAccessibilityAccess()
-    }
+    },
+    async checkScreenCaptureAccess(): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            if (isMac) {
+                const status = nodeMacPermissions.getAuthStatus('screen');
+                resolve(status === 'authorized')
+            } else {
+                resolve(true);
+            }
+        })
+    },
+    async askScreenCaptureAccess() {
+        nodeMacPermissions.askForScreenCaptureAccess(true)
+    },
 }
