@@ -316,3 +316,18 @@ export const UIUtil = {
         }
     }
 }
+
+export const ReUtil = {
+    match(regex: string, text: string) {
+        if ('' === regex || null === regex) {
+            return false
+        }
+        if (regex.startsWith('/')) {
+            const index = regex.lastIndexOf('/')
+            const source = regex.slice(1, index)
+            const flags = regex.slice(index + 1)
+            return (new RegExp(source, flags)).test(text)
+        }
+        return (new RegExp(regex)).test(text)
+    }
+}
