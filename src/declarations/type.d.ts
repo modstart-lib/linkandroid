@@ -1,12 +1,4 @@
 declare interface Window {
-    __callPage: {
-        [key: string]: (data: any) => Promise<any>
-    },
-    __thirdParty: {
-        events: {
-            [key: string]: (success: (data: any) => void, error: (msg: string) => void, data: any) => void
-        }
-    },
     __page: {
         onBroadcast: (type: string, cb: Function) => void,
         offBroadcast: (type: string, cb: Function) => void
@@ -143,11 +135,7 @@ declare interface Window {
         },
         event: {
             send: (name: string, type: string, data: any) => void,
-            callThirdParty: (name: string, type: string, data: any, option?: any) => Promise<ApiResult<any>>,
             callPage: (name: string, type: string, data?: any, option?: any) => Promise<ApiResult<any>>,
-            // channel main <-> render
-            channelCreate: (callback: (data: any) => void) => Promise<string>,
-            channelDestroy: (channel: string) => Promise<void>,
             channelSend: (channel: string, data: any) => Promise<void>,
         },
         page: {

@@ -13,6 +13,18 @@ window['__page'] = {
     onHide: (cb: Function) => {
         window['__page'].hooks.onHide = cb
     },
+    onMaximize: (cb: Function) => {
+        window['__page'].hooks.onMaximize = cb
+    },
+    onUnmaximize: (cb: Function) => {
+        window['__page'].hooks.onUnmaximize = cb
+    },
+    onEnterFullScreen: (cb: Function) => {
+        window['__page'].hooks.onEnterFullScreen = cb
+    },
+    onLeaveFullScreen: (cb: Function) => {
+        window['__page'].hooks.onLeaveFullScreen = cb
+    },
     broadcastListeners: {},
     onBroadcast: (type: string, cb: Function) => {
         if (!(type in window['__page'].broadcastListeners)) {
@@ -25,64 +37,51 @@ window['__page'] = {
             return
         }
         window['__page'].broadcastListeners[type] = window['__page'].broadcastListeners[type].filter(c => c !== cb)
-    }
+    },
+    callPage: {},
+    registerCallPage: (name: string, cb: Function) => {
+        window['__page'].callPage[name] = cb
+    },
+    channel: {},
+    createChannel: (cb: (data: any) => void) => {
+        const channel = Math.random().toString(36).substring(2)
+        window['__page'].channel[channel] = cb
+        return channel
+    },
+    destroyChannel: (channel: string) => {
+        delete window['__page'].channel[channel]
+    },
 }
-
-window['__callPage'] = {}
 
 ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
     if ('APP_READY' === payload.type) {
         MAPI.init(payload.data.AppEnv)
-        window['__thirdParty'] = window['__thirdParty'] || {}
-        window['__thirdParty'].name = payload.data.name
-    } else if ('CALL_THIRD_PARTY' === payload.type) {
-        const {type, data} = payload.data
-        const resultEventName = `event:callThirdParty:${payload.id}`
-        const send = (code: number, msg: string, data?: any) => {
-            ipcRenderer.send(resultEventName, {code, msg, data})
-        }
-        if (!window['__thirdParty']) {
-            send(-1, 'error')
-            return
-        }
-        if (!window['__thirdParty']['events'] || !window['__thirdParty']['events'][type]) {
-            send(-1, 'event not found')
-            return
-        }
-        window['__thirdParty']['events'][type](
-            (resultData: any) => send(0, 'ok', resultData),
-            (error: string) => send(-1, error),
-            data
-        )
     } else if ('CALL_PAGE' === payload.type) {
         const {type, data} = payload.data
         const resultEventName = `event:callPage:${payload.id}`
         const send = (code: number, msg: string, data?: any) => {
             ipcRenderer.send(resultEventName, {code, msg, data})
         }
-        if (!window['__callPage']) {
+        if (!window['__page'].callPage) {
             send(-1, 'error')
             return
         }
-        if (!window['__callPage'][type]) {
+        if (!window['__page'].callPage[type]) {
             send(-1, 'event not found')
             return
         }
-        window['__callPage'][type](data).then(
+        window['__page'].callPage[type](
             (resultData: any) => send(0, 'ok', resultData),
-            (error: string) => send(-1, error)
+            (error: string) => send(-1, error),
+            data
         )
     } else if ('CHANNEL' === payload.type) {
-        // console.log('CHANNEL', payload)
         const {channel, data} = payload.data
-        if (!window['__channel']) {
+        if (!window['__page'].channel || !window['__page'].channel[channel]) {
             return
         }
-        if (!window['__channel'][channel]) {
-            return
-        }
-        window['__channel'][channel](data)
-    }else if ('BROADCAST'===payload.type){
+        window['__page'].channel[channel](data)
+    } else if ('BROADCAST' === payload.type) {
         const {type, data} = payload.data
         if (window['__page'].broadcastListeners[type]) {
             window['__page'].broadcastListeners[type].forEach((cb: Function) => {
@@ -90,7 +89,8 @@ ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
             })
         }
     } else {
-        console.warn('Unknown message from main process:', JSON.stringify(payload))
+        console.warn('UnknownMainProcessMessage', JSON.stringify(payload))
     }
 })
+
 

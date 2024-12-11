@@ -8,7 +8,7 @@ const init = () => {
 }
 
 type NameType = 'main' | string
-type EventType = 'APP_READY' | 'CALL_THIRD_PARTY' | 'CALL_PAGE' | 'CHANNEL' | 'BROADCAST'
+type EventType = 'APP_READY' | 'CALL_PAGE' | 'CHANNEL' | 'BROADCAST'
 type BroadcastType = 'ConfigChange' | 'UserChange' | 'DarkModeChange' | 'HotkeyWatch'
 
 const broadcast = (type: BroadcastType, data: any = {}) => {
@@ -47,36 +47,6 @@ ipcMain.handle('event:send', async (_, name: NameType, type: EventType, data: an
     send(name, type, data)
 })
 
-const callThirdParty = async (name: string, type: string, data: any, option?: {
-    timeout?: number
-}) => {
-    option = Object.assign({timeout: 10}, option)
-    return new Promise((resolve, reject) => {
-        const id = StrUtil.randomString(32)
-        const timer = setTimeout(() => {
-            ipcMain.removeListener(listenerKey, listener)
-            resolve({code: -1, msg: 'timeout'})
-        }, option.timeout * 1000)
-        const listener = (_, result) => {
-            clearTimeout(timer)
-            resolve(result)
-            return true
-        }
-        const listenerKey = 'event:callThirdParty:' + id
-        ipcMain.once(listenerKey, listener)
-        if (!send(name, 'CALL_THIRD_PARTY', {type, data}, id)) {
-            clearTimeout(timer)
-            ipcMain.removeListener(listenerKey, listener)
-            resolve({code: -1, msg: 'send failed'})
-        }
-    })
-}
-ipcMain.handle('event:callThirdParty', async (_, name: string, type: string, data: any, option?: {
-    timeout?: number
-}) => {
-    return callThirdParty(name, type, data, option)
-})
-
 const callPage = async (name: string, type: string, data: any, option?: {
     timeout?: number
 }) => {
@@ -108,12 +78,12 @@ ipcMain.handle('event:callPage', async (_, name: string, type: string, data: any
     return callPage(name, type, data, option)
 })
 
+let onChannelIsListen = false
+let channelOnCallback = {}
+
 const sendChannel = (channel: string, data: any) => {
     send('main', 'CHANNEL', {channel, data})
 }
-
-let onChannelIsListen = false
-let channelOnCallback = {}
 
 const onChannel = (channel: string, callback: (data: any) => void) => {
     if (!channelOnCallback[channel]) {
@@ -153,7 +123,6 @@ export const Events = {
     send,
     sendRaw,
     sendChannel,
-    callThirdParty,
     callPage,
     onChannel,
     offChannel,
