@@ -2,6 +2,7 @@ import {Base64} from "js-base64";
 import * as crypto from "node:crypto";
 import dayjs from "dayjs";
 import fs from "node:fs";
+import Showdown from "showdown"
 
 export const EncodeUtil = {
     base64Encode(str: string) {
@@ -330,4 +331,11 @@ export const ReUtil = {
         }
         return (new RegExp(regex)).test(text)
     }
+}
+
+const converter = new Showdown.Converter()
+export const MarkdownUtil = {
+    toHtml(markdown: string): string {
+        return converter.makeHtml(markdown)
+    },
 }

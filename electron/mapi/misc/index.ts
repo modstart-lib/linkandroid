@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
 import yauzl from "yauzl";
+import archiver from "archiver";
 
 const getZipFileContent = async (path: string, pathInZip: string) => {
     return new Promise((resolve, reject) => {
@@ -46,10 +47,16 @@ const getZipFileContent = async (path: string, pathInZip: string) => {
     })
 }
 
-const unzip = async (zipPath: string, dest: string, option: { process: Function } = null) => {
-    option = option || {
-        process: null
+const unzip = async (
+    zipPath: string,
+    dest: string,
+    option?: {
+        process: (type: 'start' | 'end', entry: any) => void
     }
+) => {
+    option = Object.assign({
+        process: null
+    }, option)
     if (!fs.existsSync(dest)) {
         fs.mkdirSync(dest, {recursive: true})
     }
@@ -104,7 +111,33 @@ const unzip = async (zipPath: string, dest: string, option: { process: Function 
     })
 }
 
-export default {
+const zip = async (
+    zipPath: string,
+    sourceDir: string,
+    option?: {}
+) => {
+    option = Object.assign({}, option)
+    return new Promise((resolve, reject) => {
+        const output = fs.createWriteStream(zipPath)
+        const archive = archiver('zip', {
+            zlib: {level: 9}
+        })
+        output.on('close', function () {
+            resolve(true)
+        })
+        archive.on('error', function (err: any) {
+            reject(err)
+        })
+        archive.pipe(output)
+        archive.directory(sourceDir, false)
+        archive.finalize()
+    })
+}
+
+export const Misc = {
     getZipFileContent,
     unzip,
+    zip,
 }
+
+export default Misc
