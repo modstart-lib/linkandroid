@@ -1,4 +1,5 @@
-import {BrowserWindow, globalShortcut, app} from "electron";
+import {app, BrowserWindow, globalShortcut} from "electron";
+import {AppsMain} from "../app/main";
 
 const eventListeners = {}
 
@@ -36,6 +37,16 @@ const keyMap = {
 }
 
 const ready = () => {
+    register()
+}
+
+const destroy = () => {
+    globalShortcut.unregisterAll();
+}
+
+const register = () => {
+
+    globalShortcut.unregisterAll();
 
     app.on('browser-window-focus', () => {
         for (let key in keyMap) {
@@ -59,18 +70,20 @@ const ready = () => {
             } else {
                 focusedWindow.webContents.openDevTools({
                     mode: 'detach',
+                    activate: false,
+                    title: 'FocusedWindow',
                 });
             }
         }
     });
-
 }
 
-const destroy = () => {
-    globalShortcut.unregisterAll();
+export const KeysMain = {
+    register
 }
 
 export default {
     ready,
     destroy,
 }
+

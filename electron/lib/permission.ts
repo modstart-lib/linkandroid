@@ -5,6 +5,8 @@ if (isMac) {
     (async () => {
         try {
             nodeMacPermissions = await import('node-mac-permissions');
+            nodeMacPermissions = nodeMacPermissions.default;
+            // console.log('nodeMacPermissions',nodeMacPermissions);
         } catch (e) {
         }
     })()
