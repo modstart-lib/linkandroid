@@ -1,5 +1,14 @@
 import {isMac} from "./env";
-import nodeMacPermissions from 'node-mac-permissions';
+
+let nodeMacPermissions = null
+if (isMac) {
+    (async () => {
+        try {
+            nodeMacPermissions = await import('node-mac-permissions');
+        } catch (e) {
+        }
+    })()
+}
 
 export const Permissions = {
     async checkAccessibilityAccess(): Promise<boolean> {

@@ -16,6 +16,12 @@ export default defineConfig(({command}) => {
     const sourcemap = isServe || !!process.env.VSCODE_DEBUG
     const minify = isBuild && !process.env.VSCODE_DEBUG
 
+    const externalPackages = [
+        ...Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+        ...Object.keys('devDependencies' in pkg ? pkg.devDependencies : {}),
+        ...Object.keys('optionalDependencies' in pkg ? pkg.optionalDependencies : {}),
+    ]
+
     return {
         plugins: [
             vue({
@@ -68,7 +74,7 @@ export default defineConfig(({command}) => {
                                 // we can use `external` to exclude them to ensure they work correctly.
                                 // Others need to put them in `dependencies` to ensure they are collected into `app.asar` after the app is built.
                                 // Of course, this is not absolute, just this way is relatively simple. :)
-                                external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+                                external: externalPackages,
                             },
                         },
                     },
@@ -83,7 +89,7 @@ export default defineConfig(({command}) => {
                             minify: minify,
                             outDir: 'dist-electron/preload',
                             rollupOptions: {
-                                external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+                                external: externalPackages,
                             },
                         },
                     },
