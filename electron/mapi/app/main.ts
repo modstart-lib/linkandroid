@@ -230,7 +230,7 @@ const getCurrentScreenDisplay = () => {
 
 const toast = (msg: string, options?: {
     duration?: number,
-    status?: 'success' | 'error'
+    status?: 'success' | 'error' | 'info'
 }) => {
     return makeToast(msg, options)
 }

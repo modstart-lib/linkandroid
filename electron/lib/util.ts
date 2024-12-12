@@ -3,6 +3,7 @@ import * as crypto from "node:crypto";
 import dayjs from "dayjs";
 import fs from "node:fs";
 import Showdown from "showdown"
+import iconv from "iconv-lite";
 
 export const EncodeUtil = {
     base64Encode(str: string) {
@@ -25,6 +26,15 @@ export const EncodeUtil = {
         let dec = decipher.update(str, 'base64', 'utf8')
         dec += decipher.final('utf8')
         return dec
+    },
+}
+
+export const IconvUtil = {
+    gbkToUtf8(str: string) {
+        return iconv.decode(Buffer.from(str, 'binary'), 'gbk').toString()
+    },
+    utf8ToGbk(str: string) {
+        return iconv.encode(str, 'gbk').toString()
     }
 }
 
