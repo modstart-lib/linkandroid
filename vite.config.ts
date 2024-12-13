@@ -1,7 +1,8 @@
 import fs from 'node:fs'
 import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
-import electron from 'vite-plugin-electron/simple'
+import electron from 'vite-plugin-electron'
+import renderer from 'vite-plugin-electron-renderer'
 import pkg from './package.json'
 import path from "node:path";
 import {AppConfig} from "./src/config";
@@ -53,8 +54,8 @@ export default defineConfig(({command}) => {
 
                 },
             },
-            electron({
-                main: {
+            electron([
+                {
                     // Shortcut of `build.lib.entry`
                     entry: 'electron/main/index.ts',
                     onstart({startup}) {
@@ -79,26 +80,37 @@ export default defineConfig(({command}) => {
                         },
                     },
                 },
-                preload: {
+                {
                     // Shortcut of `build.rollupOptions.input`.
                     // Preload scripts may contain Web assets, so use the `build.rollupOptions.input` instead `build.lib.entry`.
-                    input: 'electron/preload/index.ts',
+                    entry: 'electron/preload/index.ts',
+                    onstart({reload}) {
+                        // Notify the Renderer process to reload the page when the Preload scripts build is complete,
+                        // instead of restarting the entire Electron App.
+                        reload()
+                    },
                     vite: {
                         build: {
-                            sourcemap: sourcemap ? 'inline' : undefined, // #332
+                            target: 'es2015',
+                            sourcemap: undefined, // #332
                             minify: minify,
                             outDir: 'dist-electron/preload',
+                            lib: {
+                                formats: ['cjs'],
+                            },
                             rollupOptions: {
                                 external: externalPackages,
+                                output: {
+                                    format: 'cjs',
+                                    entryFileNames: '[name].cjs',
+                                    compact: false,
+                                },
                             },
                         },
                     },
                 },
-                // Ployfill the Electron and Node.js API for Renderer process.
-                // If you want use Node.js in Renderer process, the `nodeIntegration` needs to be enabled in the Main process.
-                // See 👉 https://github.com/electron-vite/vite-plugin-electron-renderer
-                renderer: {},
-            }),
+            ]),
+            renderer(),
         ],
         build: {
             sourcemap: sourcemap,

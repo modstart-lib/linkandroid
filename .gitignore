@@ -32,3 +32,4 @@ database.db
 
 src/lang/source-use.json
 /data
+/build/

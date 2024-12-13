@@ -70,7 +70,7 @@ const register = () => {
             } else {
                 focusedWindow.webContents.openDevTools({
                     mode: 'detach',
-                    activate: false,
+                    activate: true,
                     title: 'FocusedWindow',
                 });
             }

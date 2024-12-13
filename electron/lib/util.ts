@@ -5,7 +5,7 @@ import fs from "node:fs";
 import Showdown from "showdown"
 import iconvLite from "iconv-lite";
 import chardet from "chardet";
-import {Iconv} from "iconv"
+// import {Iconv} from "iconv"
 
 export const EncodeUtil = {
     base64Encode(str: string) {
@@ -39,10 +39,10 @@ export const IconvUtil = {
     },
     bufferToUtf8(buffer: Buffer) {
         const encoding = chardet.detect(buffer)
-        if ('ISO-2022-CN' === encoding) {
-            const iconvInstance = new Iconv('ISO-2022-CN', 'UTF-8//TRANSLIT//IGNORE');
-            return iconvInstance.convert(buffer).toString()
-        }
+        // if ('ISO-2022-CN' === encoding) {
+        //     const iconvInstance = new Iconv('ISO-2022-CN', 'UTF-8//TRANSLIT//IGNORE');
+        //     return iconvInstance.convert(buffer).toString()
+        // }
         return iconvLite.decode(buffer, encoding).toString()
     },
     detect(buffer: Uint8Array) {
