@@ -31,7 +31,15 @@ const exists = async (path: string, option?: { isFullPath?: boolean, }) => {
     if (!option.isFullPath) {
         fp = await fullPath(path)
     }
-    return fs.existsSync(fp)
+    return new Promise((resolve, reject) => {
+        fs.stat(fp, (err, stat) => {
+            if (err) {
+                resolve(false)
+            } else {
+                resolve(true)
+            }
+        })
+    })
 }
 
 const isDirectory = async (path: string, option?: { isFullPath?: boolean, }) => {
@@ -161,9 +169,13 @@ const writeBuffer = async (path: string, data: any, option?: { isFullPath?: bool
     fs.closeSync(f)
 }
 
-const read = async (path: string, option?: { isFullPath?: boolean, }) => {
+const read = async (path: string, option?: {
+    isFullPath?: boolean,
+    encoding?: string,
+}) => {
     option = Object.assign({
         isFullPath: false,
+        encoding: 'utf8'
     }, option)
     let fp = path
     if (!option.isFullPath) {
@@ -173,12 +185,14 @@ const read = async (path: string, option?: { isFullPath?: boolean, }) => {
         return null
     }
     const f = fs.openSync(fp, 'r')
-    const content = fs.readFileSync(f, 'utf8')
+    const content = fs.readFileSync(f, {
+        encoding: option.encoding as BufferEncoding
+    })
     fs.closeSync(f)
     return content
 }
 
-const readBuffer = async (path: string, option?: { isFullPath?: boolean, }) => {
+const readBuffer = async (path: string, option?: { isFullPath?: boolean, }): Promise<Buffer> => {
     option = Object.assign({
         isFullPath: false,
     }, option)
@@ -189,10 +203,15 @@ const readBuffer = async (path: string, option?: { isFullPath?: boolean, }) => {
     if (!fs.existsSync(fp)) {
         return null
     }
-    const f = fs.openSync(fp, 'r')
-    const content = fs.readFileSync(f)
-    fs.closeSync(f)
-    return content
+    return new Promise((resolve, reject) => {
+        fs.readFile(fp, (err, data) => {
+            if (err) {
+                reject(err)
+                return
+            }
+            resolve(data)
+        })
+    })
 }
 
 const deletes = async (path: string, option?: { isFullPath?: boolean, }) => {
@@ -203,23 +222,36 @@ const deletes = async (path: string, option?: { isFullPath?: boolean, }) => {
     if (!option.isFullPath) {
         fp = await fullPath(path)
     }
-    if (!fs.existsSync(fp)) {
+    if (!await exists(fp, {
+        isFullPath: true
+    })) {
         return
     }
-    const stat = fs.statSync(fp)
-    if (stat.isDirectory()) {
-        try {
-            fs.rmdirSync(fp, {recursive: true})
-        } catch (e) {
-            console.log('mapi.file.deletes.error', e)
-        }
-    } else {
-        try {
-            fs.unlinkSync(fp)
-        } catch (e) {
-            console.log('mapi.file.deletes.error', e)
-        }
-    }
+    return new Promise((resolve, reject) => {
+        fs.stat(fp, (err, stat) => {
+            if (err) {
+                reject(err)
+                return
+            }
+            if (stat.isDirectory()) {
+                fs.rmdir(fp, {recursive: true}, (err) => {
+                    if (err) {
+                        reject(err)
+                        return
+                    }
+                    resolve(undefined)
+                })
+            } else {
+                fs.unlink(fp, (err) => {
+                    if (err) {
+                        reject(err)
+                        return
+                    }
+                    resolve(undefined)
+                })
+            }
+        })
+    })
 }
 const rename = async (pathOld: string, pathNew: string, option?: {
     isFullPath?: boolean,

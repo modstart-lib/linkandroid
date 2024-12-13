@@ -3,7 +3,9 @@ import * as crypto from "node:crypto";
 import dayjs from "dayjs";
 import fs from "node:fs";
 import Showdown from "showdown"
-import iconv from "iconv-lite";
+import iconvLite from "iconv-lite";
+import chardet from "chardet";
+import {Iconv} from "iconv"
 
 export const EncodeUtil = {
     base64Encode(str: string) {
@@ -30,11 +32,22 @@ export const EncodeUtil = {
 }
 
 export const IconvUtil = {
-    gbkToUtf8(str: string) {
-        return iconv.decode(Buffer.from(str, 'binary'), 'gbk').toString()
+    convert(str: string, from: string, to: string) {
+        to = to || 'utf8'
+        const fromEncoding = chardet.detect(Buffer.from(str))
+        return iconvLite.decode(Buffer.from(str), fromEncoding).toString()
     },
-    utf8ToGbk(str: string) {
-        return iconv.encode(str, 'gbk').toString()
+    bufferToUtf8(buffer: Buffer) {
+        const encoding = chardet.detect(buffer)
+        if ('ISO-2022-CN' === encoding) {
+            const iconvInstance = new Iconv('ISO-2022-CN', 'UTF-8//TRANSLIT//IGNORE');
+            return iconvInstance.convert(buffer).toString()
+        }
+        return iconvLite.decode(buffer, encoding).toString()
+    },
+    detect(buffer: Uint8Array) {
+        // detect str encoding
+        return chardet.detect(buffer)
     }
 }
 
