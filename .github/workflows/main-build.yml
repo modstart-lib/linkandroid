@@ -33,6 +33,35 @@ jobs:
         run: |
             brew install python-setuptools
 
+      - name: Cert Prepare (macOS)
+        if: runner.os == 'macOS'
+        env:
+            MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+            MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+            echo "find-identity"
+            security find-identity -p codesigning
+            echo "$MACOS_CERTIFICATE" | base64 --decode > certificate.p12
+            security create-keychain -p "" build.keychain
+            security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+            security list-keychains -s build.keychain
+            security set-keychain-settings -t 3600 -u build.keychain
+            security unlock-keychain -p "" build.keychain
+            echo "find-identity"
+            security find-identity -v -p codesigning build.keychain
+            echo "find-identity"
+            security find-identity -p codesigning
+            echo "set-key-partition-list"
+            security set-key-partition-list -S apple-tool:,apple: -s -k "" -l "LinkAndroidKey" -t private build.keychain
+            echo "find-certificate"
+            security find-certificate -a -c "LinkAndroidKey" -p
+            echo "export"
+            security export -k build.keychain -t certs -f x509 -p -o certificate.cer
+            echo "add-trusted-cert"
+            sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain certificate.cer
+            echo "find-identity"
+            security find-identity -p codesigning
+
       - name: Install Dependencies
         run: npm install
 

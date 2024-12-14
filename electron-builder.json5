@@ -97,7 +97,8 @@
         "type": "development",
         "notarize": false,
         "darkModeSupport": false,
-        "hardenedRuntime": false
+        "hardenedRuntime": false,
+        "identity": "LinkAndroidKey"
     },
     "linux": {
         "icon": "logo.icns",
