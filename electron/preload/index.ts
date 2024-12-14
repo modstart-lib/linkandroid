@@ -65,7 +65,11 @@ ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
     if ('APP_READY' === payload.type) {
         MAPI.init(payload.data.AppEnv)
     } else if ('CALL_PAGE' === payload.type) {
-        const {type, data} = payload.data
+        let {type, data, option} = payload.data
+        option = Object.assign({
+            waitReadyTimeout: 10 * 1000,
+        }, option)
+        // console.log('CALL_PAGE', type, {type, data, option})
         const resultEventName = `event:callPage:${payload.id}`
         const send = (code: number, msg: string, data?: any) => {
             ipcRenderer.send(resultEventName, {code, msg, data})
@@ -74,16 +78,38 @@ ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
             send(-1, 'error')
             return
         }
-        console.log('CALL_PAGE', type, JSON.stringify(window['__page'].callPage))
+        const callPageExecute = () => {
+            window['__page'].callPage[type](
+                (resultData: any) => send(0, 'ok', resultData),
+                (error: string) => send(-1, error),
+                data
+            )
+        }
         if (!window['__page'].callPage[type]) {
+            if (option.waitReadyTimeout > 0) {
+                const start = Date.now()
+                const monitor = () => {
+                    setTimeout(() => {
+                        if (!window['__page'].callPage[type]) {
+                            if (Date.now() - start > option.waitReadyTimeout) {
+                                send(-1, 'timeout')
+                                return
+                            } else {
+                                monitor()
+                                return
+                            }
+                        } else {
+                            callPageExecute()
+                        }
+                    }, 10)
+                }
+                monitor()
+                return
+            }
             send(-1, 'event not found')
             return
         }
-        window['__page'].callPage[type](
-            (resultData: any) => send(0, 'ok', resultData),
-            (error: string) => send(-1, error),
-            data
-        )
+        callPageExecute()
     } else if ('CHANNEL' === payload.type) {
         const {channel, data} = payload.data
         if (!window['__page'].channel || !window['__page'].channel[channel]) {

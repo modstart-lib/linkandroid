@@ -60,15 +60,19 @@ ipcMain.handle('event:send', async (_, name: NameType, type: EventType, data: an
 })
 
 const callPage = async (name: string, type: string, data: any, option?: {
+    waitReadyTimeout?: number,
     timeout?: number
 }) => {
-    option = Object.assign({timeout: 10}, option)
+    option = Object.assign({
+        waitReadyTimeout: 10 * 1000,
+        timeout: 10 * 1000
+    }, option)
     return new Promise((resolve, reject) => {
         const id = StrUtil.randomString(32)
         const timer = setTimeout(() => {
             ipcMain.removeListener(listenerKey, listener)
             resolve({code: -1, msg: 'timeout'})
-        }, option.timeout * 1000)
+        }, option.timeout)
         const listener = (_, result) => {
             clearTimeout(timer)
             resolve(result)
@@ -76,7 +80,14 @@ const callPage = async (name: string, type: string, data: any, option?: {
         }
         const listenerKey = 'event:callPage:' + id
         ipcMain.once(listenerKey, listener)
-        if (!send(name, 'CALL_PAGE', {type, data}, id)) {
+        const payload = {
+            type,
+            data,
+            option: {
+                waitReadyTimeout: option.waitReadyTimeout
+            }
+        }
+        if (!send(name, 'CALL_PAGE', payload, id)) {
             clearTimeout(timer)
             ipcMain.removeListener(listenerKey, listener)
             resolve({code: -1, msg: 'send failed'})
