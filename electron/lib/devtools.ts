@@ -59,6 +59,11 @@ export const DevToolsManager = {
     } {
         const display = this.getLargestDisplay()
         const {x, y, width, height} = display.workArea;
+        // console.log('DevToolsManager', 'getDisplayPosition', {x, y, width, height})
+        if (width < 1300) {
+            this.rowCount = 3
+            this.colCount = 2
+        }
         const itemWidth = Math.floor(width / this.rowCount);
         const itemHeight = Math.floor(height / this.colCount);
         const maxRow = Math.floor(width / itemWidth);

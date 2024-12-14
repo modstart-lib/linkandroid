@@ -78,6 +78,29 @@ npm run dev
 npm run build
 ```
 
+## 加入交流群
+
+<table width="100%">
+    <thead>
+        <tr>
+            <th width="50%">微信群</th>
+            <th>QQ群</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <img style="width:300px;height:450px;"
+                     src="https://linkandroid.com/app_manager/image/wechat" />
+            </td>
+            <td>
+                <img style="width:300px;height:450px;" 
+                     src="https://linkandroid.com/app_manager/image/qq" />
+            </td>
+        </tr>
+    </tbody>
+</table>
+
 ## Thanks
 
 - [image-beautifier](https://github.com/CH563/image-beautifier)
