@@ -104,7 +104,7 @@ const setupOpen = (name: string) => {
     return ipcRenderer.invoke('app:setupOpen', name)
 }
 
-export default {
+export const AppsRender = {
     isDarkMode,
     resourcePathResolve,
     extraPathResolve,
@@ -136,4 +136,6 @@ export default {
     fixExecutable: appIndex.fixExecutable,
     getUserAgent: appIndex.getUserAgent,
 }
+
+export default AppsRender
 

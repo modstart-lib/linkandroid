@@ -1,8 +1,9 @@
 import page from "../page/render";
 import {ipcRenderer} from "electron";
+import AppsRender from "../app/render";
 
 const open = async (option: any) => {
-    await page.open('user', option)
+    await AppsRender.windowOpen('user', option)
 }
 
 const get = async (): Promise<any> => {

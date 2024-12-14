@@ -12,14 +12,12 @@ import ui from "./ui/render";
 import updater from "./updater/render";
 import statistics from "./statistics/render";
 import lang from "./lang/render";
-import page from "./page/render";
 import user from "./user/render";
 import misc from "./misc/render";
 
 import adb from "./adb/render";
 import scrcpy from "./scrcpy/render";
 import ffmpeg from "./ffmpeg/render";
-// import server from "./server/render";
 
 export const MAPI = {
     init(env: typeof AppEnv = null) {
@@ -36,7 +34,6 @@ export const MAPI = {
                 ui,
                 updater,
                 statistics,
-                page,
                 lang,
                 user,
                 misc,
@@ -44,7 +41,6 @@ export const MAPI = {
                 adb,
                 scrcpy,
                 ffmpeg,
-                // server,
             })
             db.init()
             event.init()

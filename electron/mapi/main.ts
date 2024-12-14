@@ -7,7 +7,6 @@ import file from "./file/main";
 import event from "./event/main";
 import ui from "./ui";
 import keys from "./keys/main";
-import page from "./page/main";
 import user from "./user/main";
 import misc from "./misc/main";
 
@@ -23,7 +22,6 @@ const $mapi = {
     event,
     ui,
     keys,
-    page,
     user,
     misc,
     // server
