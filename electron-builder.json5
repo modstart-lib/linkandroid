@@ -97,8 +97,8 @@
         },
         "type": "development",
         "notarize": false,
-        "darkModeSupport": false,
-        "hardenedRuntime": false,
+        "darkModeSupport": true,
+        "hardenedRuntime": true,
         "identity": "LinkAndroidKey"
     },
     "linux": {
