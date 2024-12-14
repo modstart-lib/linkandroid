@@ -74,6 +74,7 @@ ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
             send(-1, 'error')
             return
         }
+        console.log('CALL_PAGE', type, JSON.stringify(window['__page'].callPage))
         if (!window['__page'].callPage[type]) {
             send(-1, 'event not found')
             return

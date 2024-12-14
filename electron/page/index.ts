@@ -6,6 +6,7 @@ import {BrowserWindow, shell} from "electron";
 import {rendererLoadPath} from "../lib/env-main";
 import {PageGuide} from "./guide";
 import {PageSetup} from "./setup";
+import {DevToolsManager} from "../lib/devtools";
 
 const Pages = {
     'thirdPartyImageBeautifier': PageThirdPartyImageBeautifier,
@@ -40,10 +41,12 @@ export const Page = {
         const promise = new Promise((resolve, reject) => {
             win.webContents.on("did-finish-load", () => {
                 Page.ready(name);
+                DevToolsManager.autoShow(win)
                 resolve(undefined);
             });
         });
         rendererLoadPath(win, fileName);
+        DevToolsManager.register(`Page.${name}`, win)
         AppRuntime.windows[name] = win
         return promise
     },
