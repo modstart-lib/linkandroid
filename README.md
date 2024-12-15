@@ -90,11 +90,11 @@ npm run build
     <tbody>
         <tr>
             <td>
-                <img style="width:300px;height:450px;"
+                <img style="width:100%;"
                      src="https://linkandroid.com/app_manager/image/wechat" />
             </td>
             <td>
-                <img style="width:300px;height:450px;" 
+                <img style="width:100%;" 
                      src="https://linkandroid.com/app_manager/image/qq" />
             </td>
         </tr>
