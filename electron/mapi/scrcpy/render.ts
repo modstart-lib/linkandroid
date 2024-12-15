@@ -5,6 +5,7 @@ import Config from "../config/render";
 import {extraResolve} from "../../lib/env";
 import {Apps} from "../app";
 import fs from "node:fs";
+import {ADB} from "../adb/render";
 
 const exec = util.promisify(_exec)
 
@@ -40,10 +41,13 @@ const shell = async (command: string) => {
 }
 
 const spawnShell = async (command: string, option: {
-    stdout?: Function,
-    stderr?: Function,
-    success?: Function,
-    error?: Function,
+    stdout?: (data: string, process: any) => void,
+    stderr?: (data: string, process: any) => void,
+    success?: (process: any) => void,
+    error?: (msg: string, exitCode: number, process: any) => void,
+    cwd?: string,
+    outputEncoding?: string,
+    env?: Record<string, any>,
 } | null = null) => {
     const scrcpyPath = await getBinPath()
     // console.log('spawnShell', `"${scrcpyPath}" ${command}`)
@@ -55,19 +59,24 @@ const mirror = async (
     option: {
         title?: string,
         args?: string,
-        stdout?: Function,
-        stderr?: Function,
-        success?: Function,
-        error?: Function,
+        stdout?: (data: string, process: any) => void,
+        stderr?: (data: string, process: any) => void,
+        success?: (process: any) => void,
+        error?: (msg: string, exitCode: number, process: any) => void,
+        env?: Record<string, any>,
     },
 ) => {
-    option = option || {}
+    option = Object.assign({
+        env: {},
+    }, option)
+    option.env['ADB'] = await ADB.getBinPath()
     // console.log('mirror', serial, option.args)
     return spawnShell(`--serial="${serial}" --window-title="${option.title}" ${option.args}`, {
         stdout: option.stdout,
         stderr: option.stderr,
         success: option.success,
         error: option.error,
+        env: option.env,
     })
 }
 

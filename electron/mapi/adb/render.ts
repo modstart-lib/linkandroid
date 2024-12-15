@@ -72,10 +72,10 @@ const adbShell = async (command: string, deviceId?: string) => {
 }
 
 const adbSpawnShell = async (command: string, option?: {
-    stdout?: Function,
-    stderr?: Function,
-    success?: Function,
-    error?: Function,
+    stdout?: (data: string, process: any) => void,
+    stderr?: (data: string, process: any) => void,
+    success?: (process: any) => void,
+    error?: (msg: string, exitCode: number, process: any) => void,
 } | null, deviceId?: string) => {
     const adbPath = await getBinPath()
     if (deviceId) {
