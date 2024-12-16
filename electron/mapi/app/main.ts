@@ -117,14 +117,20 @@ ipcMain.handle('window:close', (event, name: string) => {
     getWindowByName(name)?.close()
 })
 
-ipcMain.handle('window:open', (event, name: string, option: any) => {
+const windowOpen = async (name: string, option?: {
+    singleton?: boolean,
+}) => {
     name = name || 'main'
     const win = getWindowByName(name)
     if (win) {
         win.show()
         return
     }
-    Page.open(name, option).then()
+    return Page.open(name, option)
+}
+
+ipcMain.handle('window:open', (event, name: string, option: any) => {
+    return windowOpen(name, option)
 })
 
 ipcMain.handle('window:hide', (event, name: string) => {
@@ -271,4 +277,5 @@ export const AppsMain = {
     getCurrentScreenDisplay,
     toast,
     setupIsOk,
+    windowOpen,
 }
