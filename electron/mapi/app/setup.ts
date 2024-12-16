@@ -1,6 +1,9 @@
 import {Permissions} from "../../lib/permission";
 
 export const SetupMain = {
+    async isOk() {
+        return true
+    },
     async list() {
         return [
             {

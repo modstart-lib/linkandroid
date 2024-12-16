@@ -104,6 +104,10 @@ const setupOpen = (name: string) => {
     return ipcRenderer.invoke('app:setupOpen', name)
 }
 
+const setupIsOk = async () => {
+    return ipcRenderer.invoke('app:setupIsOk')
+}
+
 export const AppsRender = {
     isDarkMode,
     resourcePathResolve,

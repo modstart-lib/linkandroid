@@ -80,6 +80,7 @@ declare interface Window {
                 }[]
             }[]>,
             setupOpen: (name: string) => Promise<void>,
+            setupIsOk: () => Promise<boolean>,
         },
         config: {
             get: (key: string, defaultValue: any = null) => Promise<any>,

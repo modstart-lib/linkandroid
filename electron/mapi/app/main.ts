@@ -247,6 +247,10 @@ ipcMain.handle('app:setupOpen', async (event, name: string) => {
     return SetupMain.open(name)
 })
 
+ipcMain.handle('app:setupIsOk', async () => {
+    return SetupMain.isOk()
+})
+
 export default {
     quit
 }
