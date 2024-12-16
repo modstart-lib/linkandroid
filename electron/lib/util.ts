@@ -265,6 +265,52 @@ export const MemoryCacheUtil = {
 export const ShellUtil = {
     quotaPath(p: string) {
         return `"${p}"`
+    },
+    parseCommandArgs(command: string) {
+        let args = []
+        let arg = ''
+        let quote = ''
+        let escape = false
+        for (let i = 0; i < command.length; i++) {
+            const c = command[i]
+            if (escape) {
+                arg += c
+                escape = false
+                continue
+            }
+            if ('\\' === c) {
+                escape = true
+                arg += c
+                continue
+            }
+            if ('' === quote && (' ' === c || '\t' === c)) {
+                if (arg) {
+                    args.push(arg)
+                    arg = ''
+                }
+                continue
+            }
+            if ('' === quote && ('"' === c || "'" === c)) {
+                quote = c
+                arg += c
+                continue
+            }
+            if ('"' === quote && '"' === c) {
+                quote = ''
+                arg += c
+                continue
+            }
+            if ("'" === quote && "'" === c) {
+                quote = ''
+                arg += c
+                continue
+            }
+            arg += c
+        }
+        if (arg) {
+            args.push(arg)
+        }
+        return args
     }
 }
 
