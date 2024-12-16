@@ -247,8 +247,13 @@ ipcMain.handle('app:setupOpen', async (event, name: string) => {
     return SetupMain.open(name)
 })
 
-ipcMain.handle('app:setupIsOk', async () => {
+
+const setupIsOk = async () => {
     return SetupMain.isOk()
+}
+
+ipcMain.handle('app:setupIsOk', async () => {
+    return setupIsOk()
 })
 
 export default {
@@ -265,4 +270,5 @@ export const AppsMain = {
     setClipboardImage,
     getCurrentScreenDisplay,
     toast,
+    setupIsOk,
 }

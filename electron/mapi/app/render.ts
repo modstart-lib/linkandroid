@@ -134,6 +134,7 @@ export const AppsRender = {
     toast,
     setupList,
     setupOpen,
+    setupIsOk,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
     availablePort: appIndex.availablePort,
