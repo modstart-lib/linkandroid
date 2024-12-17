@@ -97,13 +97,14 @@ export default defineConfig(({command}) => {
                             outDir: 'dist-electron/preload',
                             lib: {
                                 formats: ['cjs'],
+                                fileName: 'index',
                             },
                             rollupOptions: {
                                 external: externalPackages,
                                 output: {
                                     format: 'cjs',
-                                    entryFileNames: '[name].cjs',
-                                    compact: false,
+                                    // entryFileNames: '[name].cjs',
+                                    strict: true,
                                 },
                             },
                         },
