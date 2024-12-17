@@ -402,7 +402,9 @@ export const ReUtil = {
     }
 }
 
-const converter = new Showdown.Converter()
+const converter = new Showdown.Converter({
+    tables: true,
+})
 export const MarkdownUtil = {
     toHtml(markdown: string): string {
         return converter.makeHtml(markdown)

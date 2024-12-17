@@ -14,7 +14,14 @@ export function mapError(msg: any) {
     }
     for (let key in map) {
         if (msg.includes(key)) {
-            return map[key]
+            let error = map[key]
+            // regex PluginReleaseDocFormatError:-11
+            const regex = new RegExp(`${key}:(-?\\d+)`)
+            const match = msg.match(regex)
+            if (match) {
+                error += `(${match[1]})`
+            }
+            return error
         }
     }
     return msg
