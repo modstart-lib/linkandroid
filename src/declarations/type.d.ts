@@ -81,6 +81,9 @@ declare interface Window {
             }[]>,
             setupOpen: (name: string) => Promise<void>,
             setupIsOk: () => Promise<boolean>,
+            getBuildInfo: () => Promise<{
+                buildTime: string,
+            }>,
         },
         config: {
             get: (key: string, defaultValue: any = null) => Promise<any>,

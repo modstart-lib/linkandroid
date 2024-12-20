@@ -6,6 +6,7 @@ import renderer from 'vite-plugin-electron-renderer'
 import pkg from './package.json'
 import path from "node:path";
 import {AppConfig} from "./src/config";
+import dayjs from "dayjs";
 
 // https://vitejs.dev/config/
 export default defineConfig(({command}) => {
@@ -37,6 +38,19 @@ export default defineConfig(({command}) => {
                     },
                 },
             }),
+            {
+                name: 'add-build-time',
+                generateBundle() {
+                    const buildId = dayjs().format('YYYYMMDDHHmmss');
+                    this.emitFile({
+                        type: 'asset',
+                        fileName: 'build.json',
+                        source: JSON.stringify({
+                            buildId
+                        }, null, 2),
+                    });
+                },
+            },
             {
                 name: 'process-variables',
                 closeBundle() {

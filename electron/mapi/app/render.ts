@@ -108,6 +108,10 @@ const setupIsOk = async () => {
     return ipcRenderer.invoke('app:setupIsOk')
 }
 
+const getBuildInfo = async () => {
+    return ipcRenderer.invoke('app:getBuildInfo')
+}
+
 export const AppsRender = {
     isDarkMode,
     resourcePathResolve,
@@ -135,6 +139,7 @@ export const AppsRender = {
     setupList,
     setupOpen,
     setupIsOk,
+    getBuildInfo,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
     availablePort: appIndex.availablePort,

@@ -1,15 +1,16 @@
 import {app, BrowserWindow, ipcMain, screen, shell, clipboard, nativeImage, nativeTheme} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
-import {isMac} from "../../lib/env";
+import {isDev, isMac} from "../../lib/env";
 import {AppPosition} from "./lib/position";
 import {Events} from "../event/main";
 import {ConfigMain} from "../config/main";
 import {CommonConfig} from "../../config/common";
-import {preloadDefault} from "../../lib/env-main";
+import {preloadDefault, rendererDistPath} from "../../lib/env-main";
 import {Page} from "../../page";
 import {makeToast} from "./toast";
 import {SetupMain} from "./setup";
+import {Files} from "../file/main";
 
 
 const getWindowByName = (name?: string) => {
@@ -260,6 +261,22 @@ const setupIsOk = async () => {
 
 ipcMain.handle('app:setupIsOk', async () => {
     return setupIsOk()
+})
+
+const getBuildInfo = async () => {
+    if (isDev) {
+        return {
+            buildId: 'Development'
+        }
+    }
+    const json = await Files.read(rendererDistPath('build.json'), {
+        isFullPath: true
+    })
+    return JSON.parse(json)
+}
+
+ipcMain.handle('app:getBuildInfo', async () => {
+    return getBuildInfo()
 })
 
 export default {

@@ -10,6 +10,9 @@ export const settingStore = defineStore("setting", {
             version: AppConfig.version,
             basic: cloneDeep(AppConfig.basic),
             isDarkMode: false,
+            buildInfo: {
+                buildId: '',
+            },
             config: {
                 guideWatched: false as boolean,
                 darkMode: '' as 'light' | 'dark' | 'auto',
@@ -22,6 +25,9 @@ export const settingStore = defineStore("setting", {
             this.config = await window.$mapi.config.all()
             this.setupDarkMode()
             // this.showGuideWhenReady().then()
+            window.$mapi.app.getBuildInfo().then((info: any) => {
+                this.buildInfo = info
+            })
         },
         async showGuideWhenReady() {
             if (!await window.$mapi.app.setupIsOk()) {

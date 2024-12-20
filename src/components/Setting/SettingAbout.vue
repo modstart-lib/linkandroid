@@ -3,7 +3,9 @@
 import {AppConfig} from "../../config";
 import {t} from "../../lang";
 import UpdaterButton from "../common/UpdaterButton.vue";
+import {useSettingStore} from "../../store/modules/setting";
 
+const setting = useSettingStore()
 const licenseYear = new Date().getFullYear()
 
 const doOpenLog = async () => {
@@ -18,6 +20,7 @@ const doOpenLog = async () => {
         <div class="flex-grow">
             <div class="inline-block">
                 v{{ AppConfig.version }}
+                Build {{ setting.buildInfo.buildId }}
             </div>
             <div class="inline-block ml-3">
                 <UpdaterButton/>
