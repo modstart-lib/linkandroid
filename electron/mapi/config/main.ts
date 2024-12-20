@@ -5,6 +5,7 @@ import {dialog, ipcMain} from "electron";
 import {Events} from "../event/main";
 
 let data = null
+let dataEnv = {}
 
 const configPath = () => {
     return path.join(AppEnv.userData, 'config.json')
@@ -49,6 +50,22 @@ const set = async (key: string, value: any) => {
     data[key] = value
     save()
 }
+
+const allEnv = async () => {
+    return dataEnv
+}
+
+const getEnv = async (key: string, defaultValue: any = null) => {
+    if (!(key in dataEnv)) {
+        dataEnv[key] = defaultValue
+    }
+    return dataEnv[key]
+}
+
+const setEnv = async (key: string, value: any) => {
+    dataEnv[key] = value
+}
+
 ipcMain.handle('config:all', async (_) => {
     return await all()
 })
@@ -61,14 +78,27 @@ ipcMain.handle('config:set', async (_, key: string, value: any) => {
     return res
 })
 
-export default {
-    all,
-    get,
-    set,
-}
+ipcMain.handle('config:allEnv', async (_) => {
+    return await allEnv()
+})
+
+ipcMain.handle('config:getEnv', async (_, key: string, defaultValue: any = null) => {
+    return await getEnv(key, defaultValue)
+})
+
+ipcMain.handle('config:setEnv', async (_, key: string, value: any) => {
+    const res = await setEnv(key, value)
+    Events.broadcast('ConfigEnvChange', {key, value})
+    return res
+})
 
 export const ConfigMain = {
     all,
     get,
-    set
+    set,
+    allEnv,
+    getEnv,
+    setEnv,
 }
+
+export default ConfigMain

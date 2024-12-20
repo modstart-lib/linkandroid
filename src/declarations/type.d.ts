@@ -89,6 +89,9 @@ declare interface Window {
             get: (key: string, defaultValue: any = null) => Promise<any>,
             set: (key: string, value: any) => Promise<void>,
             all: () => Promise<any>,
+            getEnv: (key: string, defaultValue: any = null) => Promise<any>,
+            setEnv: (key: string, value: any) => Promise<void>,
+            allEnv: () => Promise<any>,
         },
         log: {
             root: () => string,

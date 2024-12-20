@@ -17,12 +17,14 @@ export const settingStore = defineStore("setting", {
                 guideWatched: false as boolean,
                 darkMode: '' as 'light' | 'dark' | 'auto',
             },
+            configEnv: {}
         }
     },
     actions: {
         async init() {
             this.isDarkMode = await window.$mapi.app.isDarkMode()
             this.config = await window.$mapi.config.all()
+            this.configEnv = await window.$mapi.config.allEnv()
             this.setupDarkMode()
             // this.showGuideWhenReady().then()
             window.$mapi.app.getBuildInfo().then((info: any) => {
@@ -48,6 +50,11 @@ export const settingStore = defineStore("setting", {
                 console.log('onConfigChangeBroadcast', data)
                 this.config = await window.$mapi.config.all()
                 this.setupDarkMode()
+            })()
+        },
+        onConfigEnvChangeBroadcast(data: any) {
+            (async () => {
+                this.configEnv = await window.$mapi.config.allEnv()
             })()
         },
         onDarkModeChangeBroadcast(data: any) {
@@ -88,8 +95,15 @@ export const settingStore = defineStore("setting", {
                 setTimeout(() => this.setupDarkMode(), 100)
             }
         },
+        async setConfigEnv(key: string, value: any) {
+            this.configEnv[key] = value
+            await window.$mapi.config.setEnv(key, value)
+        },
         async onConfigChange(key: string, value: any) {
             return await this.setConfig(key, value)
+        },
+        async onConfigEnvChange(key: string, value: any) {
+            return await this.setConfigEnv(key, value)
         },
         configGet(key: string, defaultValue: any = null) {
             return computed(() => {
@@ -99,6 +113,14 @@ export const settingStore = defineStore("setting", {
                 return defaultValue
             })
         },
+        configEnvGet(key: string, defaultValue: any = null) {
+            return computed(() => {
+                if (key in this.configEnv) {
+                    return this.configEnv[key]
+                }
+                return defaultValue
+            })
+        }
     }
 })
 
@@ -106,6 +128,7 @@ const setting = settingStore(store)
 setting.init().then()
 
 window.__page.onBroadcast('ConfigChange', setting.onConfigChangeBroadcast)
+window.__page.onBroadcast('ConfigEnvChange', setting.onConfigEnvChangeBroadcast)
 window.__page.onBroadcast('DarkModeChange', setting.onDarkModeChangeBroadcast)
 
 export const useSettingStore = () => {

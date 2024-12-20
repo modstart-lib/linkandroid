@@ -32,6 +32,7 @@ const doVersionCheck = () => {
 
 <template>
     <a-button v-if="!!AppConfig.updaterUrl"
+              size="mini"
               :loading="updaterCheckLoading"
               @click="doVersionCheck()">
         {{ $t('检测更新') }}

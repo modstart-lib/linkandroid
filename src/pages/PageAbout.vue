@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+import {ref} from 'vue'
 import {AppConfig} from "../config";
 import {t} from "../lang";
 import UpdaterButton from "../components/common/UpdaterButton.vue";
@@ -7,15 +7,44 @@ import {useSettingStore} from "../store/modules/setting";
 
 const setting = useSettingStore()
 const licenseYear = new Date().getFullYear()
+const devSettingVisible = ref(false)
 
 const doOpenLog = async () => {
     await window.$mapi.file.openPath(window.$mapi.log.root())
 }
+let clickTimes = 0
+let clickLastTime = 0
+const doDevSettingTriggerClick = () => {
+    // click more than 5 times in 3 seconds
+    const now = new Date().getTime()
+    if (0 === clickLastTime) {
+        clickLastTime = now
+    }
+    if (now - clickLastTime < 3000) {
+        clickTimes++
+        if (clickTimes >= 5) {
+            devSettingVisible.value = true
+            clickTimes = 0
+        }
+    } else {
+        clickTimes = 0
+    }
+}
 </script>
 
 <template>
-    <div class="flex" style="height:calc(100vh - 2.5rem);">
+    <div class="flex overflow-auto" style="height:calc(100vh - 2.5rem);">
         <div class="p-4 m-auto">
+            <div class="flex pb-6">
+                <div class="m-auto">
+                    <div>
+                        <img class="w-14 h-14 mx-auto" src="./../assets/image/logo.svg"/>
+                    </div>
+                    <div class="text-xl pt-2 font-bold">
+                        {{ AppConfig.name }}
+                    </div>
+                </div>
+            </div>
             <div class="flex mb-3 items-center">
                 <div class="w-20">{{ t('版本') }}</div>
                 <div class="flex-grow">
@@ -39,11 +68,12 @@ const doOpenLog = async () => {
                 <div>
                     <a :href="AppConfig.feedbackUrl"
                        target="_blank"
-                       class="align-top arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-medium arco-btn-status-normal ml-3">
+                       class="align-top arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-mini arco-btn-status-normal ml-3">
                         <icon-customer-service class="mr-1"/>
                         {{ t('使用反馈') }}
                     </a>
                     <a-button class="ml-3"
+                              size="mini"
                               @click="doOpenLog">
                         <template #icon>
                             <icon-file/>
@@ -58,21 +88,40 @@ const doOpenLog = async () => {
                     {{ t('本产品为开源软件，遵循 AGPL-3.0 license 协议。') }}
                 </div>
             </div>
-            <div class="mb-3 flex items-center">
+            <div class="mb-3 mt-6 flex items-center">
                 <a :href="AppConfig.websiteGithub"
                    target="_blank"
                    class="bg-gray-100 dark:bg-gray-700 w-0 flex-grow mr-1 rounded-lg py-2 px-8 inline-flex items-center hover:shadow-lg">
-                    <img src="./../assets/image/github.svg" class="w-12 h-12 mr-2 object-contain"/>
+                    <img src="./../assets/image/github.svg" class="w-6 h-6 mr-2 object-contain"/>
                     <div class="flex-grow">Github</div>
                 </a>
                 <a :href="AppConfig.websiteGitee"
                    target="_blank"
                    class="bg-gray-100 dark:bg-gray-700 w-0 flex-grow mr-1 rounded-lg py-2 px-8 inline-flex items-center hover:shadow-lg">
-                    <img src="./../assets/image/gitee.svg" class="w-12 h-12 mr-2 object-contain"/>
+                    <img src="./../assets/image/gitee.svg" class="w-6 h-6 mr-2 object-contain"/>
                     <div class="flex-grow">Gitee</div>
                 </a>
             </div>
-            <div class="text-gray-400 text-center">
+            <div v-if="devSettingVisible" class="bg-gray-100 p-3 rounded-lg">
+                <div class="flex mb-4 items-center">
+                    <icon-code class="mr-2"/>
+                    开发模式设置
+                </div>
+                <div class="flex mb-4">
+                    <div class="flex-grow">
+                        Test
+                    </div>
+                    <div>
+                        <a-radio-group :model-value="setting.configEnvGet('test','auto').value"
+                                       @change="setting.onConfigEnvChange('test',$event)">
+                            <a-radio value="light">ON</a-radio>
+                            <a-radio value="dark">OFF</a-radio>
+                        </a-radio-group>
+                    </div>
+                </div>
+            </div>
+            <div class="text-gray-400 text-center select-none"
+                 @click="doDevSettingTriggerClick">
                 &copy; {{ licenseYear }} {{ AppConfig.name }}
             </div>
         </div>
