@@ -114,9 +114,13 @@ const unzip = async (
 const zip = async (
     zipPath: string,
     sourceDir: string,
-    option?: {}
+    option?: {
+        end?: (archive: any) => void,
+    }
 ) => {
-    option = Object.assign({}, option)
+    option = Object.assign({
+        end: null,
+    }, option)
     return new Promise((resolve, reject) => {
         const output = fs.createWriteStream(zipPath)
         const archive = archiver('zip', {
@@ -130,6 +134,9 @@ const zip = async (
         })
         archive.pipe(output)
         archive.directory(sourceDir, false)
+        if (option.end) {
+            option.end(archive)
+        }
         archive.finalize()
     })
 }
