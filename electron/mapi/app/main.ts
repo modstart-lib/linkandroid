@@ -235,6 +235,42 @@ const getCurrentScreenDisplay = () => {
     }
 }
 
+const calcPositionInCurrentDisplay = (
+    position: 'center' | 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom',
+    width: number,
+    height: number
+) => {
+    const {bounds, workArea} = getCurrentScreenDisplay()
+    let x = 0
+    let y = 0
+    switch (position) {
+        case 'center':
+            x = workArea.x + (workArea.width - width) / 2
+            y = workArea.y + (workArea.height - height) / 2
+            break
+        case 'left-top':
+            x = workArea.x
+            y = workArea.y
+            break
+        case 'right-top':
+            x = workArea.x + workArea.width - width
+            y = workArea.y
+            break
+        case 'left-bottom':
+            x = workArea.x
+            y = workArea.y + workArea.height - height
+            break
+        case 'right-bottom':
+            x = workArea.x + workArea.width - width
+            y = workArea.y + workArea.height - height
+            break
+    }
+    return {
+        x: Math.round(x),
+        y: Math.round(y),
+    }
+}
+
 const toast = (msg: string, options?: {
     duration?: number,
     status?: 'success' | 'error' | 'info'
@@ -292,6 +328,7 @@ export const AppsMain = {
     getClipboardImage,
     setClipboardImage,
     getCurrentScreenDisplay,
+    calcPositionInCurrentDisplay,
     toast,
     setupIsOk,
     windowOpen,
