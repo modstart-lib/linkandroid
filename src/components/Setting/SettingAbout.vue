@@ -29,18 +29,19 @@ const doOpenLog = async () => {
     </div>
     <div class="flex mb-3 items-center">
         <div class="w-20">{{ t('官网') }}</div>
-        <div class="flex-grow">
+        <div class="flex-grow flex items-center">
             <a :href="AppConfig.website" target="_blank"
                class="text-link">
                 {{ AppConfig.website }}
             </a>
             <a :href="AppConfig.feedbackUrl"
                target="_blank"
-               class="align-top arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-medium arco-btn-status-normal ml-3">
+               class="align-top arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-mini arco-btn-status-normal ml-3">
                 <icon-customer-service class="mr-1"/>
                 {{ t('使用反馈') }}
             </a>
             <a-button class="ml-3"
+                      size="mini"
                       @click="doOpenLog">
                 <template #icon>
                     <icon-file/>

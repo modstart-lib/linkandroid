@@ -10,6 +10,17 @@ import {sleep} from "../../lib/util";
 import {mapError} from "../../lib/error";
 import {useSettingStore} from "./setting";
 
+const getEmptySetting = () => {
+    return JSON.parse(JSON.stringify({
+        dimWhenMirror: '',
+        alwaysTop: '',
+        mirrorSound: '',
+        previewImage: '',
+        videoBitRate: '',
+        maxFps: '',
+    }))
+}
+
 const deviceRuntime = ref<Map<string, DeviceRuntime>>(new Map())
 const setting = useSettingStore()
 const previewImageDefault = setting.configGet('Device.previewImage', 'yes')
@@ -77,12 +88,7 @@ export const deviceStore = defineStore("device", {
                         record.status = createDeviceStatus(record)
                         record.runtime = getDeviceRuntime(record)
                         record.screenshot = record.screenshot || null
-                        record.setting = record.setting || {
-                            dimWhenMirror: '',
-                            alwaysTop: '',
-                            mirrorSound: '',
-                            previewImage: '',
-                        }
+                        record.setting = record.setting || getEmptySetting()
                     })
                     this.records = records
                 })
@@ -132,12 +138,7 @@ export const deviceStore = defineStore("device", {
                     status: createDeviceStatus(d),
                     runtime: getDeviceRuntime(d),
                     screenshot: d.screenshot || null,
-                    setting: {
-                        dimWhenMirror: '',
-                        alwaysTop: '',
-                        mirrorSound: '',
-                        previewImage: '',
-                    },
+                    setting: getEmptySetting(),
                 })
             }
             return data
@@ -157,12 +158,7 @@ export const deviceStore = defineStore("device", {
                         status: createDeviceStatus(device),
                         runtime: getDeviceRuntime(device),
                         screenshot: null,
-                        setting: {
-                            dimWhenMirror: '',
-                            alwaysTop: '',
-                            mirrorSound: '',
-                            previewImage: '',
-                        },
+                        setting: getEmptySetting(),
                     }
                     this.records.unshift(record)
                     changed = true
@@ -215,7 +211,7 @@ export const deviceStore = defineStore("device", {
             if (!record) {
                 return
             }
-            record.setting = Object.assign(record.setting || {}, setting)
+            record.setting = Object.assign({}, record.setting, setting)
             updateDeviceRuntime(record)
             await this.sync()
         },
@@ -250,8 +246,10 @@ export const deviceStore = defineStore("device", {
                 dimWhenMirror: await this.settingGet(device, 'dimWhenMirror', 'no'),
                 alwaysTop: await this.settingGet(device, 'alwaysTop', 'no'),
                 mirrorSound: await this.settingGet(device, 'mirrorSound', 'no'),
+                videoBitRate: await this.settingGet(device, 'videoBitRate', '8M'),
+                maxFps: await this.settingGet(device, 'maxFps', '60'),
             }
-            console.log('setting', setting)
+            // console.log('setting', setting)
             const args: string[] = []
             args.push('--stay-awake')
             if ('yes' === setting.alwaysTop) {
@@ -260,6 +258,13 @@ export const deviceStore = defineStore("device", {
             if ('no' === setting.mirrorSound) {
                 args.push('--no-audio')
             }
+            if (setting.videoBitRate) {
+                args.push(`--video-bit-rate="${setting.videoBitRate}"`)
+            }
+            if (setting.maxFps) {
+                args.push(`--max-fps="${setting.maxFps}"`)
+            }
+
             const mirrorStart = async () => {
                 if ('yes' === setting.dimWhenMirror) {
                     try {
@@ -275,7 +280,7 @@ export const deviceStore = defineStore("device", {
             }
             const mirrorEnd = async () => {
                 if ('yes' === setting.dimWhenMirror) {
-                    console.log('screenBrightness.restore', device.runtime.screenBrightness)
+                    // console.log('screenBrightness.restore', device.runtime.screenBrightness)
                     if (device.runtime.screenBrightness) {
                         await window.$mapi.adb.adbShell(`shell settings put system screen_brightness ${device.runtime.screenBrightness}`, device.id)
                     }
@@ -312,8 +317,8 @@ export const deviceStore = defineStore("device", {
             }
         },
         async settingGet(device: DeviceRecord, name: string, defaultValue: any) {
-            if (device.setting && name in device.setting) {
-                if ('' !== device.setting[name]) {
+            if (device.setting && (name in device.setting)) {
+                if ('' !== device.setting[name] && undefined !== device.setting[name]) {
                     return device.setting[name]
                 }
             }

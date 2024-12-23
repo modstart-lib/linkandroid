@@ -47,7 +47,7 @@ export const settingStore = defineStore("setting", {
         },
         onConfigChangeBroadcast(data: any) {
             (async () => {
-                console.log('onConfigChangeBroadcast', data)
+                // console.log('onConfigChangeBroadcast', data)
                 this.config = await window.$mapi.config.all()
                 this.setupDarkMode()
             })()

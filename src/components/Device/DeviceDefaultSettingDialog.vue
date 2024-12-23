@@ -2,6 +2,7 @@
 import {ref} from "vue";
 import SettingItemYesNo from "../common/SettingItemYesNo.vue";
 import {useSettingStore} from "../../store/modules/setting";
+import SettingItemInput from "../common/SettingItemInput.vue";
 
 const setting = useSettingStore()
 const visible = ref(false)
@@ -10,6 +11,8 @@ const formData = ref({
     alwaysTop: '',
     mirrorSound: '',
     previewImage: '',
+    videoBitRate: '',
+    maxFps: ''
 })
 const show = async () => {
     formData.value.dimWhenMirror = setting.configGet('Device.dimWhenMirror', 'no').value
@@ -51,12 +54,12 @@ defineExpose({
                     <div class="font-bold text-xl mb-3">
                         {{ $t('投屏') }}
                     </div>
-<!--                    <div class="flex mb-3">-->
-<!--                        <div class="flex-grow">{{ $t('投屏时调暗屏幕') }}</div>-->
-<!--                        <div class="">-->
-<!--                            <SettingItemYesNo v-model="formData.dimWhenMirror"/>-->
-<!--                        </div>-->
-<!--                    </div>-->
+                    <!--                    <div class="flex mb-3">-->
+                    <!--                        <div class="flex-grow">{{ $t('投屏时调暗屏幕') }}</div>-->
+                    <!--                        <div class="">-->
+                    <!--                            <SettingItemYesNo v-model="formData.dimWhenMirror"/>-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
                     <div class="flex mb-3">
                         <div class="flex-grow">{{ $t('投屏总在最上层') }}</div>
                         <div class="">
@@ -73,6 +76,31 @@ defineExpose({
                         <div class="flex-grow">{{ $t('显示预览图') }}</div>
                         <div class="">
                             <SettingItemYesNo v-model="formData.previewImage"/>
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">
+                            <div>{{ $t('视频比特率') }}</div>
+                            <div class="text-gray-400 text-xs">{{ $t('默认 8000000(8M)，支持支持单位 K、M') }}</div>
+                        </div>
+                        <div class="">
+                            <a-input :model-value="setting.configGet('Device.videoBitRate', '8M').value"
+                                     style="width:10rem;"
+                                     size="small"
+                                     @input="setting.onConfigChange('Device.videoBitRate',$event)">
+                                <template #append>BPS</template>
+                            </a-input>
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('刷新率') }}</div>
+                        <div class="">
+                            <a-input :model-value="setting.configGet('Device.maxFps', '60').value"
+                                     style="width:10rem;"
+                                     size="small"
+                                     @input="setting.onConfigChange('Device.maxFps',$event)">
+                                <template #append>FPS</template>
+                            </a-input>
                         </div>
                     </div>
                 </div>

@@ -12,6 +12,8 @@ const formData = ref({
     alwaysTop: '',
     mirrorSound: '',
     previewImage: '',
+    videoBitRate: '',
+    maxFps: '',
 })
 const device = ref<DeviceRecord | null>(null)
 const infoColumns = [
@@ -37,6 +39,8 @@ const show = (record: DeviceRecord) => {
     formData.value.alwaysTop = record.setting?.alwaysTop || ''
     formData.value.mirrorSound = record.setting?.mirrorSound || ''
     formData.value.previewImage = record.setting?.previewImage || ''
+    formData.value.videoBitRate = record.setting?.videoBitRate || ''
+    formData.value.maxFps = record.setting?.maxFps || ''
     visible.value = true
 }
 
@@ -46,6 +50,8 @@ const doSubmit = async () => {
         alwaysTop: formData.value.alwaysTop,
         mirrorSound: formData.value.mirrorSound,
         previewImage: formData.value.previewImage,
+        videoBitRate: formData.value.videoBitRate,
+        maxFps: formData.value.maxFps,
     })
     visible.value = false
 }
@@ -74,12 +80,12 @@ defineExpose({
                     <div class="font-bold text-xl mb-3">
                         {{ $t('投屏') }}
                     </div>
-<!--                    <div class="flex mb-3">-->
-<!--                        <div class="flex-grow">{{ $t('投屏时调暗屏幕') }}</div>-->
-<!--                        <div class="">-->
-<!--                            <SettingItemYesNoDefault v-model="formData.dimWhenMirror"/>-->
-<!--                        </div>-->
-<!--                    </div>-->
+                    <!--                    <div class="flex mb-3">-->
+                    <!--                        <div class="flex-grow">{{ $t('投屏时调暗屏幕') }}</div>-->
+                    <!--                        <div class="">-->
+                    <!--                            <SettingItemYesNoDefault v-model="formData.dimWhenMirror"/>-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
                     <div class="flex mb-3">
                         <div class="flex-grow">{{ $t('投屏总在最上层') }}</div>
                         <div class="">
@@ -96,6 +102,18 @@ defineExpose({
                         <div class="flex-grow">{{ $t('显示预览图') }}</div>
                         <div class="">
                             <SettingItemYesNoDefault v-model="formData.previewImage"/>
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('视频比特率') }}</div>
+                        <div class="">
+                            <a-input v-model="formData.videoBitRate" size="small" :placeholder="$t('留空使用默认配置')"/>
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('刷新率') }}</div>
+                        <div class="">
+                            <a-input v-model="formData.maxFps" size="small" :placeholder="$t('留空使用默认配置')"/>
                         </div>
                     </div>
                     <div class="font-bold text-xl mb-3">
