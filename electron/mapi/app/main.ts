@@ -1,7 +1,7 @@
-import {app, BrowserWindow, ipcMain, screen, shell, clipboard, nativeImage, nativeTheme} from "electron";
+import {app, BrowserWindow, clipboard, ipcMain, nativeImage, nativeTheme, screen, shell} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
-import {isDev, isMac} from "../../lib/env";
+import {isDev, isMac, platformArch, platformName} from "../../lib/env";
 import {AppPosition} from "./lib/position";
 import {Events} from "../event/main";
 import {ConfigMain} from "../config/main";
@@ -313,6 +313,17 @@ const getBuildInfo = async () => {
 
 ipcMain.handle('app:getBuildInfo', async () => {
     return getBuildInfo()
+})
+
+const collect = async (options?: {}) => {
+    return {
+        platformName: platformName(),
+        platformArch: platformArch(),
+    }
+}
+
+ipcMain.handle('app:collect', async (event, options?: {}) => {
+    return collect(options)
 })
 
 export default {

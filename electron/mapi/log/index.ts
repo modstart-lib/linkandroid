@@ -3,6 +3,8 @@ import date from "date-and-time";
 import path from "node:path";
 import {AppEnv} from "../env";
 import fs from "node:fs";
+import dayjs from "dayjs";
+import FileIndex from "../file";
 
 let fileName = null
 let fileStream = null
@@ -43,7 +45,7 @@ const cleanOldLogs = (keepDays: number) => {
         for (let file of files) {
             const filePath = path.join(logDir, file)
             let date = null
-            for (let s of file.split('_')) {
+            for (let s of file.split(/[_\\.]/)) {
                 // 匹配 YYYYMMDD
                 if (s.match(/^\d{8}$/)) {
                     date = s
@@ -117,6 +119,72 @@ const errorRenderOrMain = (label: string, data: any = null) => {
     }
 }
 
+const collectRenderOrMain = async (option?: {
+    startTime?: string,
+    endTime?: string,
+    limit?: number,
+}) => {
+    option = Object.assign({
+        startTime: dayjs().subtract(1, 'day').format('YYYY-MM-DD HH:mm:ss'),
+        endTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        limit: 10 * 10000,
+    }, option)
+    let startMs = dayjs(option.startTime).valueOf()
+    let endMs = dayjs(option.endTime).valueOf()
+    let startDayMs = dayjs(option.startTime).startOf('day').valueOf()
+    let endDayMs = dayjs(option.endTime).endOf('day').valueOf()
+    let resultLines = []
+    let logFiles = []
+    logFiles = logFiles.concat(await FileIndex.list(logsDir(), {isFullPath: true}))
+    logFiles = logFiles.concat(await FileIndex.list(appLogsDir(), {isFullPath: true}))
+    // console.log('logFiles', logFiles)
+    logFiles = logFiles.filter((logFile) => {
+        if (logFile.isDirectory) {
+            return false
+        }
+        let date = null
+        for (let s of logFile.name.split(/[_\\.]/)) {
+            // 匹配 YYYYMMDD
+            if (s.match(/^\d{8}$/)) {
+                date = s
+                break
+            }
+        }
+        if (!date) {
+            return false
+        }
+        const fileDate = new Date(
+            parseInt(date.substring(0, 4)),
+            parseInt(date.substring(4, 6)) - 1,
+            parseInt(date.substring(6, 8))
+        )
+        if (fileDate.getTime() < startDayMs || fileDate.getTime() > endDayMs) {
+            return false
+        }
+        return true
+    })
+    // console.log('collectRenderOrMain', {
+    //     ...option,
+    //     logFiles, startMs, endMs, startDayMs, endDayMs
+    // })
+    for (const logFile of logFiles) {
+        await FileIndex.readLine(logFile.pathname, (line) => {
+            const lineParts = line.split(' - ')
+            const lineTime = dayjs(lineParts[0])
+            // console.log('lineTime', lineParts[0], lineTime.isBefore(startMs) || lineTime.isAfter(endMs))
+            if (lineTime.isBefore(startMs) || lineTime.isAfter(endMs)) {
+                return
+            }
+            resultLines.push(line)
+        }, {isFullPath: true})
+    }
+    return {
+        startTime: option.startTime,
+        endTime: option.endTime,
+        logs: resultLines.join("\n"),
+    }
+}
+
 
 export default {
     root,
@@ -124,6 +192,7 @@ export default {
     error,
     infoRenderOrMain,
     errorRenderOrMain,
+    collectRenderOrMain,
 }
 
 export const Log = {

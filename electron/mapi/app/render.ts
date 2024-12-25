@@ -76,6 +76,13 @@ const appEnv = async () => {
     return AppEnv
 }
 
+const setRenderAppEnv = (env: any) => {
+    AppEnv.isInit = true
+    AppEnv.appRoot = env.appRoot
+    AppEnv.appData = env.appData
+    AppEnv.userData = env.userData
+}
+
 const getClipboardText = () => {
     return ipcRenderer.invoke('app:getClipboardText')
 }
@@ -112,6 +119,10 @@ const getBuildInfo = async () => {
     return ipcRenderer.invoke('app:getBuildInfo')
 }
 
+const collect = async (options?: {}) => {
+    return ipcRenderer.invoke('app:collect', options)
+}
+
 export const AppsRender = {
     isDarkMode,
     resourcePathResolve,
@@ -131,6 +142,7 @@ export const AppsRender = {
     openExternalWeb,
     getPreload,
     appEnv,
+    setRenderAppEnv,
     getClipboardText,
     setClipboardText,
     getClipboardImage,
@@ -140,6 +152,7 @@ export const AppsRender = {
     setupOpen,
     setupIsOk,
     getBuildInfo,
+    collect,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
     availablePort: appIndex.availablePort,
