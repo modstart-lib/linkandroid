@@ -26,7 +26,7 @@ onMounted(async () => {
         web.value.addEventListener('dom-ready', async (e) => {
             const appEnv = await window.$mapi.app.appEnv()
             web.value.executeJavaScript(`window.$mapi.app.setRenderAppEnv(${JSON.stringify(appEnv)})`)
-            web.value.openDevTools()
+            // web.value.openDevTools()
             window.$mapi.user.refresh()
             web.value.executeJavaScript(`
 document.addEventListener('click', (event) => {
