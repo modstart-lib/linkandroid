@@ -157,6 +157,12 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
         },
         body: JSON.stringify(data)
     })
+    if (res.status !== 200) {
+        return {
+            code: -1,
+            msg: `RequestError(code:${res.status},text:${res.statusText})`
+        } as ResultType
+    }
     const json = await res.json()
     // console.log('post', JSON.stringify({api, data, json}, null, 2))
     if (json.code) {

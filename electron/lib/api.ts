@@ -2,9 +2,9 @@ import {AppConfig} from "../../src/config";
 import Apps from "../mapi/app";
 
 export type ResultType<T> = {
-    code: boolean,
+    code: number,
     msg: string,
-    data: T
+    data?: T
 }
 
 export const post = async (url: string, data: any) => {
