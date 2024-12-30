@@ -50,9 +50,6 @@ const spawnShell = async (command: string, option: {
     env?: Record<string, any>,
 } | null = null) => {
     let scrcpyPath = await getBinPath()
-    if (isWin) {
-        scrcpyPath = IconvUtil.convert(scrcpyPath, 'cp936')
-    }
     // console.log('spawnShell', `"${scrcpyPath}" ${command}`)
     return await Apps.spawnShell(`"${scrcpyPath}" ${command}`, option)
 }
@@ -73,6 +70,9 @@ const mirror = async (
         env: {},
     }, option)
     option.env['ADB'] = await ADB.getBinPath()
+    if (isWin) {
+        option.env['ADB'] = IconvUtil.convert(option.env['ADB'], 'cp936')
+    }
     // console.log('mirror', serial, option.args)
     return spawnShell(`--serial="${serial}" --window-title="${option.title}" ${option.args}`, {
         stdout: option.stdout,
