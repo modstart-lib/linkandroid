@@ -51,7 +51,7 @@ const spawnShell = async (command: string, option: {
 } | null = null) => {
     let scrcpyPath = await getBinPath()
     if (isWin) {
-        scrcpyPath = IconvUtil.convert(scrcpyPath, 'utf8', 'cp936')
+        scrcpyPath = IconvUtil.convert(scrcpyPath, 'cp936')
     }
     // console.log('spawnShell', `"${scrcpyPath}" ${command}`)
     return await Apps.spawnShell(`"${scrcpyPath}" ${command}`, option)

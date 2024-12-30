@@ -32,10 +32,13 @@ export const EncodeUtil = {
 }
 
 export const IconvUtil = {
-    convert(str: string, from: string, to: string) {
+    convert(str: string, to?: string, from?: string) {
+        if (!from) {
+            from = chardet.detect(Buffer.from(str))
+        }
         to = to || 'utf8'
-        const fromEncoding = chardet.detect(Buffer.from(str))
-        return iconvLite.decode(Buffer.from(str), fromEncoding).toString()
+        const buffer = iconvLite.encode(str, from);
+        return iconvLite.decode(buffer, to)
     },
     bufferToUtf8(buffer: Buffer) {
         const encoding = chardet.detect(buffer)
