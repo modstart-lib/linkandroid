@@ -31,7 +31,7 @@ watch(() => visible.value, async (v) => {
         term.loadAddon(fitAddon);
         term.open(terminal.value as HTMLElement)
         term.clear()
-        term.writeln(t('进入设备 {name} 的命令行', {name: device.value?.name}))
+        term.writeln(t('进入设备 {id} 的命令行', {id: device.value?.id}))
         term.writeln('==========================================')
         nextTick(() => {
             fitAddon.fit()
@@ -83,7 +83,7 @@ defineExpose({
              :footer="false"
              title-align="start">
         <template #title>
-            {{ $t('设备 {name} 命令行', {name: device?.name}) }}
+            {{ $t('设备 {id} 命令行', {id: device?.id}) }}
         </template>
         <div style="margin:-0.8rem;border-radius:0.5rem;overflow:hidden;background:#000;">
             <div class="h-full p-2 overflow-hidden">

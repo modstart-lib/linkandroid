@@ -67,7 +67,7 @@ defineExpose({
              title-align="start">
         <template #title>
             <icon-mobile/>
-            {{ $t('设备') }} {{ device?.name }}
+            {{ $t('设备') }} {{ device?.id }}
         </template>
         <template #footer>
             <a-button type="primary" @click="doSubmit">
