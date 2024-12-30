@@ -11,6 +11,11 @@ const device = ref({} as DeviceRecord)
 const filePath = ref('')
 const filePathEditing = ref('')
 const fileRecords = ref([] as any[])
+const isListView = ref(true) // 默认显示列表视图
+const sortOrderName = ref('asc'); // 默认按文件名升序
+const sortOrderModifiedTime = ref('asc'); // 默认按修改时间升序
+const currentSortField = ref('name'); // 当前排序字段
+
 const show = (d: DeviceRecord) => {
     if (d.status !== EnumDeviceStatus.CONNECTED) {
         Dialog.tipError(t('设备未连接'))
@@ -34,6 +39,22 @@ const checkedFileOnlyRecords = computed(() => {
     return fileRecords.value.filter(f => f.checked && !f.isDirectory)
 })
 
+const sortedFileRecords = computed(() => {
+    // 根据当前的排序条件选择排序字段和方向
+    const sortField = currentSortField.value;
+    const sortOrder = sortField === 'updateTime' ? sortOrderModifiedTime.value : sortOrderName.value
+
+    return [...fileRecords.value].sort((a, b) => {
+        if (sortField === 'updateTime') {
+            const timeA = new Date(a.updateTime).getTime()
+            const timeB = new Date(b.updateTime).getTime()
+            return sortOrder === 'asc' ? timeA - timeB : timeB - timeA
+        } else {
+            return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+        }
+    })
+})
+
 const doRefresh = async () => {
     Dialog.loadingOn()
     const files = await window.$mapi.adb.fileList(device.value.id, filePath.value || '/')
@@ -43,7 +64,8 @@ const doRefresh = async () => {
             checked: false,
             name: f.name,
             size: f.size,
-            isDirectory: f.type === 'directory'
+            isDirectory: f.type === 'directory',
+            updateTime: f.updateTime
         }
     })
 }
@@ -120,6 +142,21 @@ const doDownload = async () => {
 defineExpose({
     show
 })
+
+const toggleView = () => {
+    isListView.value = !isListView.value
+}
+
+const toggleSortByName = () => {
+    currentSortField.value = 'name';
+    sortOrderName.value = sortOrderName.value === 'asc' ? 'desc' : 'asc';
+};
+
+const toggleSortByModifiedTime = () => {
+    currentSortField.value = 'updateTime';
+    sortOrderModifiedTime.value = sortOrderModifiedTime.value === 'asc' ? 'desc' : 'asc';
+};
+
 </script>
 
 <template>
@@ -144,7 +181,7 @@ defineExpose({
                         <a-breadcrumb :max-count="4"
                                       class="flex-grow min-h-10"
                                       @click="doEditPath">
-                            <a-breadcrumb-item v-for="s in filePathSeg">
+                            <a-breadcrumb-item v-for="s in filePathSeg" :key="s">
                                 {{ s }}
                             </a-breadcrumb-item>
                         </a-breadcrumb>
@@ -195,16 +232,50 @@ defineExpose({
                         </template>
                         {{ $t('删除') }}
                     </a-button>
+                    <a-button class="mr-1" @click="toggleView">
+                        <template #icon>
+                            <icon-swap/>
+                            <icon-view :type="isListView ? 'list' : 'grid'"/>
+                        </template>
+                        {{ isListView ? $t('网格视图') : $t('列表视图') }}
+                    </a-button>
+                    <a-button class="mr-1" @click="toggleSortByName">
+                        <template #icon>
+                            <component :is="sortOrderName === 'asc' ? 'icon-down' : 'icon-up'" />
+                        </template>
+                        {{ $t('按文件名排序') }} ({{ sortOrderName === 'asc' ? $t('降序') : $t('升序') }})
+                    </a-button>
+                    <a-button class="mr-1" @click="toggleSortByModifiedTime">
+                        <template #icon>
+                            <component :is="sortOrderModifiedTime === 'asc' ? 'icon-down' : 'icon-up'" />
+                        </template>
+                        {{ $t('按修改时间排序') }} ({{ sortOrderModifiedTime === 'asc' ? $t('降序') : $t('升序') }})
+                    </a-button>
                 </div>
                 <div class="flex-grow overflow-auto border border-solid border-gray-200 rounded p-2">
-                    <div class="flex flex-wrap">
-                        <div v-for="f in fileRecords" class="w-1/6 p-2">
+                    <div v-if="isListView" class="flex flex-col">
+                        <div v-for="f in sortedFileRecords" class="flex items-center border-b border-gray-200 p-2" :key="f.name">
+                            <div class="flex items-center flex-grow" @click="doOpen(f)" style="cursor: pointer;">
+                                <FileExt :is-folder="f.isDirectory" :name="f.name" size="30px" class="mr-2"/>
+                                <div class="flex-grow">
+                                    <span class="font-medium">{{ f.name }}</span>
+                                    <span class="text-gray-500 text-sm ml-2">({{ f.size }} bytes)</span>
+                                    <span class="text-gray-400 text-sm ml-2">| {{ f.updateTime }}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <a-checkbox v-model="f.checked" class="mr-2"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="flex flex-wrap">
+                        <div v-for="f in sortedFileRecords" class="w-1/6 p-2" :key="f.name">
                             <div class="border border-solid border-gray-200 rounded-lg mb-2 p-2 relative">
                                 <div class="text-center p-3 cursor-pointer"
                                      @click="doOpen(f)">
                                     <FileExt :is-folder="f.isDirectory" :name="f.name" size="60%"/>
                                 </div>
-                                <div class="text-center text-sm truncate">
+                                <div class="text-center text-sm" style="overflow:scroll;">
                                     {{ f.name }}
                                 </div>
                                 <div class="absolute right-2 top-2">
@@ -218,4 +289,3 @@ defineExpose({
         </div>
     </a-modal>
 </template>
-
