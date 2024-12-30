@@ -165,7 +165,7 @@ const doHelp = () => {
                                 <div class="font-bold truncate cursor-pointer">
                                     <DeviceType :type="r.type"/>
                                     <span>
-                                        {{ r.name }}
+                                        {{ r.id }}
                                     </span>
                                 </div>
                             </div>
