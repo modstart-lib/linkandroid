@@ -214,7 +214,7 @@ const fileList = async (id: string, filePath: string) => {
         type: item.isFile() ? 'file' : 'directory',
         name: item.name,
         size: FileUtil.formatSize(item.size),
-        updateTime: dayjs(item.mtime).format('YYYY-MM-DD HH:mm:ss'),
+        updateTime: dayjs(item.mtimeMs).format('YYYY-MM-DD HH:mm:ss'),
     }))
 }
 
