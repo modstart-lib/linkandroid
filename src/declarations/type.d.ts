@@ -40,6 +40,7 @@ declare interface Window {
             windowClose: (name?: string) => Promise<void>,
             openExternalWeb: (url: string) => Promise<void>,
             appEnv: () => Promise<any>,
+            setRenderAppEnv: (env: any) => Promise<void>,
             isDarkMode: () => Promise<boolean>,
             shell: (command: string, option?: {
                 cwd?: string,
@@ -84,6 +85,7 @@ declare interface Window {
             getBuildInfo: () => Promise<{
                 buildTime: string,
             }>,
+            collect: (options?: {}) => Promise<any>,
         },
         config: {
             get: (key: string, defaultValue: any = null) => Promise<any>,
@@ -97,6 +99,11 @@ declare interface Window {
             root: () => string,
             info: (msg: string, data: any = null) => Promise<void>,
             error: (msg: string, data: any = null) => Promise<void>,
+            collect: (option?: {
+                startTime?: string,
+                endTime?: string,
+                limit?: number,
+            }) => Promise<string>,
         },
         storage: {
             all: () => Promise<any>,

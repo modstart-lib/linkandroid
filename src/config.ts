@@ -13,7 +13,7 @@ export const AppConfig = {
     apiBaseUrl: `${BASE_URL}/api`,
     updaterUrl: `${BASE_URL}/app_manager/updater`,
     downloadUrl: `${BASE_URL}/app_manager/download`,
-    feedbackUrl: `${BASE_URL}/feedback`,
+    feedbackUrl: `${BASE_URL}/feedback_ticket`,
     statisticsUrl: `${BASE_URL}/app_manager/collect`,
     guideUrl: `${BASE_URL}/app_manager/guide`,
     helpUrl: `${BASE_URL}/app_manager/help`,

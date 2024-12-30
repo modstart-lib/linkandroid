@@ -1,7 +1,7 @@
-import {app, BrowserWindow, ipcMain, screen, shell, clipboard, nativeImage, nativeTheme} from "electron";
+import {app, BrowserWindow, clipboard, ipcMain, nativeImage, nativeTheme, screen, shell} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
-import {isDev, isMac} from "../../lib/env";
+import {isDev, isMac, platformArch, platformName} from "../../lib/env";
 import {AppPosition} from "./lib/position";
 import {Events} from "../event/main";
 import {ConfigMain} from "../config/main";
@@ -11,6 +11,7 @@ import {Page} from "../../page";
 import {makeToast} from "./toast";
 import {SetupMain} from "./setup";
 import {Files} from "../file/main";
+import {makeLoading} from "./loading";
 
 
 const getWindowByName = (name?: string) => {
@@ -282,6 +283,21 @@ ipcMain.handle('app:toast', (event, msg: string, option?: any) => {
     return toast(msg, option)
 })
 
+const loading = (msg: string, options?: {
+    timeout?: number,
+    percentAuto?: boolean,
+    percentTotalSeconds?: number,
+}): {
+    close: () => void,
+    percent: (value: number) => void
+} => {
+    return makeLoading(msg, options)
+}
+
+ipcMain.handle('app:loading', (event, msg: string, option?: any) => {
+    return loading(msg, option)
+})
+
 ipcMain.handle('app:setupList', async () => {
     return SetupMain.list()
 })
@@ -315,6 +331,17 @@ ipcMain.handle('app:getBuildInfo', async () => {
     return getBuildInfo()
 })
 
+const collect = async (options?: {}) => {
+    return {
+        platformName: platformName(),
+        platformArch: platformArch(),
+    }
+}
+
+ipcMain.handle('app:collect', async (event, options?: {}) => {
+    return collect(options)
+})
+
 export default {
     quit
 }
@@ -330,6 +357,7 @@ export const AppsMain = {
     getCurrentScreenDisplay,
     calcPositionInCurrentDisplay,
     toast,
+    loading,
     setupIsOk,
     windowOpen,
 }

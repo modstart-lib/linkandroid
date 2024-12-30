@@ -7,12 +7,14 @@ import {rendererLoadPath} from "../lib/env-main";
 import {PageGuide} from "./guide";
 import {PageSetup} from "./setup";
 import {DevToolsManager} from "../lib/devtools";
+import {PageFeedback} from "./feedback";
 
 const Pages = {
     'thirdPartyImageBeautifier': PageThirdPartyImageBeautifier,
     'user': PageUser,
     'guide': PageGuide,
     'setup': PageSetup,
+    'feedback': PageFeedback,
 }
 
 export const Page = {

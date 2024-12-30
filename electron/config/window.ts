@@ -8,6 +8,8 @@ export const WindowConfig = {
     guideHeight:540,
     aboutWidth: 500,
     aboutHeight: 400,
+    feedbackWidth: 600,
+    feedbackHeight: 600,
     setupWidth: 800,
     setupHeight: 540,
 }

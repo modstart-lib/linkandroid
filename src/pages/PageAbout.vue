@@ -4,6 +4,7 @@ import {AppConfig} from "../config";
 import {t} from "../lang";
 import UpdaterButton from "../components/common/UpdaterButton.vue";
 import {useSettingStore} from "../store/modules/setting";
+import FeedbackTicketButton from "../components/common/FeedbackTicketButton.vue";
 
 const setting = useSettingStore()
 const licenseYear = new Date().getFullYear()
@@ -66,12 +67,9 @@ const doDevSettingTriggerClick = () => {
                     </a>
                 </div>
                 <div>
-                    <a :href="AppConfig.feedbackUrl"
-                       target="_blank"
-                       class="align-top arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-mini arco-btn-status-normal ml-3">
-                        <icon-customer-service class="mr-1"/>
-                        {{ t('使用反馈') }}
-                    </a>
+                    <div class="inline-block ml-3">
+                        <FeedbackTicketButton/>
+                    </div>
                     <a-button class="ml-3"
                               size="mini"
                               @click="doOpenLog">

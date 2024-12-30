@@ -214,6 +214,43 @@ const readBuffer = async (path: string, option?: { isFullPath?: boolean, }): Pro
     })
 }
 
+const readLine = async (path: string, callback: (line: string) => void, option?: {
+    isFullPath?: boolean,
+}) => {
+    option = Object.assign({
+        isFullPath: false,
+    }, option)
+    let fp = path
+    if (!option.isFullPath) {
+        fp = await fullPath(path)
+    }
+    if (!fs.existsSync(fp)) {
+        return
+    }
+    return new Promise((resolve, reject) => {
+        const f = fs.createReadStream(fp)
+        let remaining = ''
+        f.on('data', (chunk) => {
+            remaining += chunk
+            let index = remaining.indexOf('\n')
+            let last = 0
+            while (index > -1) {
+                let line = remaining.substring(last, index)
+                last = index + 1
+                callback(line)
+                index = remaining.indexOf('\n', last)
+            }
+            remaining = remaining.substring(last)
+        })
+        f.on('end', () => {
+            if (remaining.length > 0) {
+                callback(remaining)
+            }
+            resolve(undefined)
+        })
+    })
+}
+
 const deletes = async (path: string, option?: { isFullPath?: boolean, }) => {
     option = Object.assign({
         isFullPath: false,
@@ -516,7 +553,7 @@ const download = async (url: string, path: string, option?: {
     })
 }
 
-export default {
+export const FileIndex = {
     fullPath,
     absolutePath,
     exists,
@@ -528,6 +565,7 @@ export default {
     writeBuffer,
     read,
     readBuffer,
+    readLine,
     deletes,
     rename,
     copy,
@@ -537,3 +575,5 @@ export default {
     appendText,
     download,
 }
+
+export default FileIndex

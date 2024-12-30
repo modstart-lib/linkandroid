@@ -38,7 +38,7 @@ const doOpenLog = async () => {
                target="_blank"
                class="align-top arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-mini arco-btn-status-normal ml-3">
                 <icon-customer-service class="mr-1"/>
-                {{ t('使用反馈') }}
+                {{ t('工单反馈') }}
             </a>
             <a-button class="ml-3"
                       size="mini"
