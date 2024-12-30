@@ -2,10 +2,10 @@ import {exec as _exec} from 'node:child_process'
 import util from 'node:util'
 import which from 'which'
 import Config from "../config/render";
-import {extraResolve} from "../../lib/env";
+import {extraResolve, isWin} from "../../lib/env";
 import {Apps} from "../app";
-import fs from "node:fs";
 import {ADB} from "../adb/render";
+import {IconvUtil} from "../../lib/util";
 
 const exec = util.promisify(_exec)
 
@@ -49,7 +49,10 @@ const spawnShell = async (command: string, option: {
     outputEncoding?: string,
     env?: Record<string, any>,
 } | null = null) => {
-    const scrcpyPath = await getBinPath()
+    let scrcpyPath = await getBinPath()
+    if (isWin) {
+        scrcpyPath = IconvUtil.convert(scrcpyPath, 'utf8', 'cp936')
+    }
     // console.log('spawnShell', `"${scrcpyPath}" ${command}`)
     return await Apps.spawnShell(`"${scrcpyPath}" ${command}`, option)
 }
