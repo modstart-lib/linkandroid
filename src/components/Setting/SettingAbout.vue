@@ -4,6 +4,7 @@ import {AppConfig} from "../../config";
 import {t} from "../../lang";
 import UpdaterButton from "../common/UpdaterButton.vue";
 import {useSettingStore} from "../../store/modules/setting";
+import FeedbackTicketButton from "../common/FeedbackTicketButton.vue";
 
 const setting = useSettingStore()
 const licenseYear = new Date().getFullYear()
@@ -34,12 +35,9 @@ const doOpenLog = async () => {
                class="text-link">
                 {{ AppConfig.website }}
             </a>
-            <a :href="AppConfig.feedbackUrl"
-               target="_blank"
-               class="align-top arco-btn arco-btn-secondary arco-btn-shape-square arco-btn-size-mini arco-btn-status-normal ml-3">
-                <icon-customer-service class="mr-1"/>
-                {{ t('工单反馈') }}
-            </a>
+            <div class="ml-3">
+                <FeedbackTicketButton/>
+            </div>
             <a-button class="ml-3"
                       size="mini"
                       @click="doOpenLog">
