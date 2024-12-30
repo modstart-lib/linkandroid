@@ -2,28 +2,23 @@ import {BrowserWindow} from "electron";
 import {AppsMain} from "./main";
 import {icons} from "./icons";
 
-let win = null
-let winCloseTimer = null
-
-export const makeToast = (msg: string, options?: {
-    duration?: number,
-    status?: 'success' | 'error' | 'info'
-}) => {
-
-    if (win) {
-        win.close()
-        clearTimeout(winCloseTimer)
-        win = null
-        winCloseTimer = null
-    }
+export const makeLoading = (msg: string, options?: {
+    timeout?: number,
+    percentAuto?: boolean,
+    percentTotalSeconds?: number,
+}): {
+    close: () => void,
+    percent: (value: number) => void
+} => {
 
     options = Object.assign({
-        status: 'info',
-        duration: 0
+        percentAuto: false,
+        percentTotalSeconds: 30,
+        timeout: 0
     }, options)
 
-    if (options.duration === 0) {
-        options.duration = Math.max(msg.length * 400, 3000)
+    if (options.timeout === 0) {
+        options.timeout = 60 * 10 * 1000
     }
     // console.log('options', options)
 
@@ -31,9 +26,9 @@ export const makeToast = (msg: string, options?: {
     // console.log('xxxx', primaryDisplay);
     const width = display.workArea.width
     const height = 60
-    const icon = icons[options.status] || icons.success
+    const icon = icons.loading
 
-    win = new BrowserWindow({
+    const win = new BrowserWindow({
         height,
         width,
         x: 0,
@@ -41,7 +36,6 @@ export const makeToast = (msg: string, options?: {
         modal: false,
         frame: false,
         alwaysOnTop: true,
-        // opacity: 0.9,
         center: false,
         transparent: true,
         hasShadow: false,
@@ -66,20 +60,38 @@ export const makeToast = (msg: string, options?: {
             display:flex;
             text-align:center;
             padding:0 10px;
+            position:relative;
         }
-        .message-view div{
+        .message-view #message{
             margin: auto;
             font-size: 16px;
             display: inline-block;
             line-height: 30px;
             white-space: nowrap;
         }
-        .message-view div .icon{
+        .message-view #message .icon{
             width: 30px;
             height: 30px;
             display:inline-block;
             margin-right: 5px;
             vertical-align: top;
+        }
+        .message-view #percent{
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            height: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.4);
+            overflow: hidden;
+            display:none;
+        }
+        .message-view #percent .value{
+            border-radius: 5px;
+            height: 100%;
+            width: 0%;
+            background: #FFFFFF;
         }
         ::-webkit-scrollbar {
           width: 0;
@@ -87,14 +99,18 @@ export const makeToast = (msg: string, options?: {
       </style>
     </head>
     <body>
-      <div class="message-view" onclick="window.close()">
+      <div class="message-view">
         <div id="message">${icon}${msg}</div>
+        <div id="percent">
+            <div class="value"></div>
+        </div>
       </div>
     </body>
   </html>
 `;
 
     const encodedHTML = encodeURIComponent(htmlContent);
+    let percentAutoTimer = null
     win.loadURL(`data:text/html;charset=UTF-8,${encodedHTML}`);
     win.on('ready-to-show', async () => {
         const width = Math.ceil(await win.webContents.executeJavaScript(`(()=>{
@@ -107,14 +123,42 @@ export const makeToast = (msg: string, options?: {
         const y = display.workArea.y + (display.workArea.height * 2 / 3)
         win.setPosition(Math.floor(x), Math.floor(y))
         win.show()
+        if (options.percentAuto) {
+            let percent = 0
+            percentAutoTimer = setInterval(() => {
+                percent += 0.01
+                if (percent >= 1) {
+                    clearInterval(percentAutoTimer)
+                    return
+                }
+                controller.percent(percent)
+            }, options.percentTotalSeconds * 1000 / 100)
+        }
         // win.webContents.openDevTools({
         //     mode: 'detach'
         // })
     })
-    winCloseTimer = setTimeout(() => {
+    const winCloseTimer = setTimeout(() => {
         win.close()
         clearTimeout(winCloseTimer)
-        win = null
-        winCloseTimer = null
-    }, options.duration)
+    }, options.timeout)
+    const controller = {
+        close: () => {
+            win.close()
+            clearTimeout(winCloseTimer)
+            if (percentAutoTimer) {
+                clearInterval(percentAutoTimer)
+            }
+        },
+        percent: (value: number) => {
+            const percent = 100 * value
+            win.webContents.executeJavaScript(`(()=>{
+                const percent = document.querySelector('#percent');
+                const percentValue = document.querySelector('#percent .value');
+                percent.style.display = 'block';
+                percentValue.style.width = '${percent}%';
+            })()`)
+        }
+    }
+    return controller
 }

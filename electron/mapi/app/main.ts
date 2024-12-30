@@ -11,6 +11,7 @@ import {Page} from "../../page";
 import {makeToast} from "./toast";
 import {SetupMain} from "./setup";
 import {Files} from "../file/main";
+import {makeLoading} from "./loading";
 
 
 const getWindowByName = (name?: string) => {
@@ -282,6 +283,21 @@ ipcMain.handle('app:toast', (event, msg: string, option?: any) => {
     return toast(msg, option)
 })
 
+const loading = (msg: string, options?: {
+    timeout?: number,
+    percentAuto?: boolean,
+    percentTotalSeconds?: number,
+}): {
+    close: () => void,
+    percent: (value: number) => void
+} => {
+    return makeLoading(msg, options)
+}
+
+ipcMain.handle('app:loading', (event, msg: string, option?: any) => {
+    return loading(msg, option)
+})
+
 ipcMain.handle('app:setupList', async () => {
     return SetupMain.list()
 })
@@ -341,6 +357,7 @@ export const AppsMain = {
     getCurrentScreenDisplay,
     calcPositionInCurrentDisplay,
     toast,
+    loading,
     setupIsOk,
     windowOpen,
 }
