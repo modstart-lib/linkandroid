@@ -71,7 +71,7 @@ const mirror = async (
     }, option)
     option.env['ADB'] = await ADB.getBinPath()
     if (isWin) {
-        option.env['ADB'] = IconvUtil.convert(option.env['ADB'], 'cp936')
+        option.env['ADB'] = IconvUtil.convert(option.env['ADB'], 'gbk')
     }
     // console.log('mirror', serial, option.args)
     return spawnShell(`--serial="${serial}" --window-title="${option.title}" ${option.args}`, {
