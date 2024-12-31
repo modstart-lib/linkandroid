@@ -25,7 +25,12 @@ watch(() => visible.value, async (v) => {
             convertEol: true,
         })
         term.onData((data) => {
-            shellController.send(data);
+            if (data === '\r') {
+                // 发送回车
+                shellController.send('\r\n');
+            } else {
+                shellController.send(data);
+            }
         })
         const fitAddon = new FitAddon();
         term.loadAddon(fitAddon);
