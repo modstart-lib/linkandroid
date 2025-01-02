@@ -123,6 +123,14 @@ const collect = async (options?: {}) => {
     return ipcRenderer.invoke('app:collect', options)
 }
 
+const setAutoLaunch = async (enable: boolean, options?: {}) => {
+    return ipcRenderer.invoke('app:setAutoLaunch', enable, options)
+}
+
+const getAutoLaunch = async (options?: {}) => {
+    return ipcRenderer.invoke('app:getAutoLaunch', options)
+}
+
 export const AppsRender = {
     isDarkMode,
     resourcePathResolve,
@@ -153,6 +161,8 @@ export const AppsRender = {
     setupIsOk,
     getBuildInfo,
     collect,
+    setAutoLaunch,
+    getAutoLaunch,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
     availablePort: appIndex.availablePort,

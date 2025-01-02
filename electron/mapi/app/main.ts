@@ -342,6 +342,24 @@ ipcMain.handle('app:collect', async (event, options?: {}) => {
     return collect(options)
 })
 
+const setAutoLaunch = async (enable: boolean, options?: {}) => {
+    return app.setLoginItemSettings({
+        openAtLogin: enable,
+    })
+}
+
+ipcMain.handle('app:setAutoLaunch', async (event, enable: boolean, options?: {}) => {
+    return setAutoLaunch(enable, options)
+})
+
+const getAutoLaunch = async (options?: {}) => {
+    return app.getLoginItemSettings().openAtLogin
+}
+
+ipcMain.handle('app:getAutoLaunch', async (event, options?: {}) => {
+    return getAutoLaunch(options)
+})
+
 export default {
     quit
 }
