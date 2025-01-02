@@ -1,4 +1,3 @@
-import page from "../page/render";
 import {ipcRenderer} from "electron";
 import AppsRender from "../app/render";
 

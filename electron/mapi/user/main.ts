@@ -21,6 +21,7 @@ const userData = {
         id: '',
         name: '',
         avatar: '',
+        deviceCode: '',
     },
     data: {},
     basic: {},
@@ -28,9 +29,18 @@ const userData = {
 
 const get = async (): Promise<{
     apiToken: string,
-    user: object,
-    data: {},
-    basic: {},
+    user: {
+        id: string,
+        name: string,
+        avatar: string,
+        deviceCode: string,
+    },
+    data: {
+        [key: string]: any,
+    },
+    basic: {
+        [key: string]: any,
+    },
 }> => {
     if (!userData.isInit) {
         const userStorageData = await StorageMain.get('user', 'data', {})
@@ -161,7 +171,7 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
         return {
             code: -1,
             msg: `RequestError(code:${res.status},text:${res.statusText})`
-        } as ResultType
+        } as ResultType<T>
     }
     const json = await res.json()
     // console.log('post', JSON.stringify({api, data, json}, null, 2))
