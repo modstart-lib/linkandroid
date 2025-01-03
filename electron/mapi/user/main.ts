@@ -6,6 +6,7 @@ import {platformUUID} from "../../lib/env";
 import {AppsMain} from "../app/main";
 import Apps from "../app";
 import StorageMain from "../storage/main";
+import {Log} from "../log/main";
 
 const init = () => {
     setTimeout(() => {
@@ -156,7 +157,10 @@ export const User = {
 export default User
 
 const post = async <T>(api: string, data: Record<string, any>): Promise<ResultType<T>> => {
-    const url = `${AppConfig.apiBaseUrl}/${api}`
+    let url = api
+    if (!api.startsWith('http:') && !api.startsWith('https:')) {
+        url = `${AppConfig.apiBaseUrl}/${api}`
+    }
     const apiToken = await User.getApiToken()
     const res = await fetch(url, {
         method: 'POST',
@@ -168,6 +172,7 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
         body: JSON.stringify(data)
     })
     if (res.status !== 200) {
+        Log.error('user.post.error', {api, data, res})
         return {
             code: -1,
             msg: `RequestError(code:${res.status},text:${res.statusText})`
@@ -175,6 +180,10 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
     }
     const json = await res.json()
     // console.log('post', JSON.stringify({api, data, json}, null, 2))
+    if (!('code' in json)) {
+        Log.error('user.post.error', {api, data, res})
+        throw 'ResponseError'
+    }
     if (json.code) {
         // 未登录或登录过期
         if (json.code === 1001) {

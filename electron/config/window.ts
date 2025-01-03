@@ -6,6 +6,8 @@ export const WindowConfig = {
     initHeight: 680,
     guideWidth:800,
     guideHeight:540,
+    paymentWidth: 500,
+    paymentHeight: 400,
     aboutWidth: 500,
     aboutHeight: 400,
     feedbackWidth: 600,

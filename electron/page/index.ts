@@ -8,12 +8,14 @@ import {PageGuide} from "./guide";
 import {PageSetup} from "./setup";
 import {DevToolsManager} from "../lib/devtools";
 import {PageFeedback} from "./feedback";
+import {PagePayment} from "./payment";
 
 const Pages = {
     'thirdPartyImageBeautifier': PageThirdPartyImageBeautifier,
     'user': PageUser,
     'guide': PageGuide,
     'setup': PageSetup,
+    'payment': PagePayment,
     'feedback': PageFeedback,
 }
 
