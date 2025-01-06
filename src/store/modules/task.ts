@@ -124,9 +124,12 @@ export const taskStore = defineStore("task", {
                         })
                         .catch((e) => {
                             runCallFinish = true
-                            console.error('task.runFunc.error', e)
                             record.status = 'fail'
                             record.msg = mapError(e)
+                            console.error('Task.RunFunc.Error', e)
+                            window.$mapi.log.error('Task.RunFunc.Error', e.toString()).catch(e => {
+                                console.error('Task.RunFunc.Error.Log', e)
+                            })
                         })
                         .finally(() => {
                             record.runCalling = false
@@ -157,10 +160,13 @@ export const taskStore = defineStore("task", {
                             }
                         })
                         .catch((e) => {
-                            console.error('task.queryFunc.error', e)
                             record.status = 'fail'
                             record.msg = mapError(e)
                             changed = true
+                            console.error('Task.QueryFunc.Error', e)
+                            window.$mapi.log.error('Task.QueryFunc.Error', e.toString()).catch(e => {
+                                console.error('Task.QueryFunc.Error.Log', e)
+                            })
                         })
                         .finally(() => {
                             record.queryCalling = false
@@ -188,7 +194,10 @@ export const taskStore = defineStore("task", {
                             record.status = 'delete'
                         })
                         .catch((e) => {
-                            console.error('task.successFunc.error', e)
+                            console.error('Task.SuccessFunc.Error', e)
+                            window.$mapi.log.error('Task.SuccessFunc.Error', e.toString()).catch(e => {
+                                console.error('Task.SuccessFunc.Error.Log', e)
+                            })
                             record.status = 'fail'
                             record.msg = mapError(e)
                         })
@@ -213,8 +222,10 @@ export const taskStore = defineStore("task", {
                         .then(() => {
                         })
                         .catch((e) => {
-                            console.error('task.failFunc.error', e)
-                            window.$mapi.log.error(`task.failFunc:${e}`)
+                            console.error('Task.FailFunc.Error', e)
+                            window.$mapi.log.error('Task.FailFunc.Error', e.toString()).catch(e => {
+                                console.error('Task.FailFunc.Error.Log', e)
+                            })
                         })
                         .finally(() => {
                             this.fireChange(record, 'fail')

@@ -34,12 +34,23 @@ const statusText = computed(() => {
 <template>
     <div class="text-white px-2 py-1 rounded-full text-sm inline-flex items-center" :class="statusColor">
         <div class="w-2 h-2 rounded-full bg-white mr-2"></div>
-        <a-tooltip v-if="!!statusMsg" :content="statusMsg">
+        <a-tooltip v-if="!!statusMsg&&statusMsg.length<20" :content="statusMsg" position="left">
             <div>
                 {{ statusText }}
                 <icon-info-circle/>
             </div>
         </a-tooltip>
+        <a-popover v-else-if="!!statusMsg" position="left">
+            <div>
+                {{ statusText }}
+                <icon-info-circle/>
+            </div>
+            <template #content>
+                <div class="w-96 h-32 overflow-auto -m-3">
+                    <pre class="text-xs">{{statusMsg}}</pre>
+                </div>
+            </template>
+        </a-popover>
         <div v-else>{{ statusText }}</div>
     </div>
 </template>
