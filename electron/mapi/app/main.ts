@@ -1,7 +1,7 @@
 import {app, BrowserWindow, clipboard, ipcMain, nativeImage, nativeTheme, screen, shell} from "electron";
 import {WindowConfig} from "../../config/window";
 import {AppRuntime} from "../env";
-import {isDev, isMac, platformArch, platformName} from "../../lib/env";
+import {isDev, isMac, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
 import {AppPosition} from "./lib/position";
 import {Events} from "../event/main";
 import {ConfigMain} from "../config/main";
@@ -12,6 +12,8 @@ import {makeToast} from "./toast";
 import {SetupMain} from "./setup";
 import {Files} from "../file/main";
 import {makeLoading} from "./loading";
+import {AppConfig} from "../../../src/config";
+import Apps from "./index";
 
 
 const getWindowByName = (name?: string) => {
@@ -333,6 +335,11 @@ ipcMain.handle('app:getBuildInfo', async () => {
 
 const collect = async (options?: {}) => {
     return {
+        userAgent: Apps.getUserAgent(),
+        name: AppConfig.name,
+        version: AppConfig.version,
+        uuid: platformUUID(),
+        platformVersion: platformVersion(),
         platformName: platformName(),
         platformArch: platformArch(),
     }
