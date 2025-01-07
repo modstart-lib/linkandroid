@@ -328,19 +328,26 @@ export const VersionUtil = {
         if (match === '*') {
             return true
         }
-        if (match.startsWith('>=') && this.ge(v, match.substring(2))) {
-            return true
+        if (match.startsWith('>=')) {
+            if (this.ge(v, match.substring(2))) {
+                return true
+            }
+        } else if (match.startsWith('<=')) {
+            if (this.le(v, match.substring(2))) {
+                return true
+            }
+        } else if (match.startsWith('>')) {
+            if (this.gt(v, match.substring(1))) {
+                return true
+            }
+        } else if (match.startsWith('<')) {
+            if (this.lt(v, match.substring(1))) {
+                return true
+            }
+        } else {
+            return this.eq(v, match)
         }
-        if (match.startsWith('>') && this.gt(v, match.substring(1))) {
-            return true
-        }
-        if (match.startsWith('<=') && this.le(v, match.substring(2))) {
-            return true
-        }
-        if (match.startsWith('<') && this.lt(v, match.substring(1))) {
-            return true
-        }
-        return this.eq(v, match)
+        return false
     },
     compare(v1: string, v2: string) {
         const v1Arr = v1.split('.')
