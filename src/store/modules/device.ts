@@ -180,6 +180,20 @@ export const deviceStore = defineStore("device", {
                     }
                 }
             }
+            // 将已连接的设备排在前面
+            this.records.sort((a, b) => {
+                if (a.status === EnumDeviceStatus.CONNECTED) {
+                    return -1
+                }
+                if (b.status === EnumDeviceStatus.CONNECTED) {
+                    return 1
+                }
+                // 剩下的按照id排序
+                if (a.id && b.id && a.id < b.id) {
+                    return -1
+                }
+                return 0
+            })
             // 更新并保存
             if (changed) {
                 await this.sync()
