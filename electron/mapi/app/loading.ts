@@ -120,7 +120,7 @@ export const makeLoading = (msg: string, options?: {
         })()`))
         win.setSize(width + 20, height)
         const x = display.workArea.x + (display.workArea.width / 2) - ((width + 20) / 2)
-        const y = display.workArea.y + (display.workArea.height * 2 / 3)
+        const y = display.workArea.y + (display.workArea.height * 1 / 4)
         win.setPosition(Math.floor(x), Math.floor(y))
         win.show()
         if (options.percentAuto) {
