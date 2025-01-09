@@ -17,7 +17,8 @@ export type HotkeyKeyItem = {
 }
 
 export type HotkeyKeySimpleItem = {
-    type: 'Ctrl' | 'Alt' | 'Meta'
+    type: 'Ctrl' | 'Alt' | 'Meta',
+    times: number
 }
 
 export type HotkeyMouseItem = {
