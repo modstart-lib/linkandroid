@@ -5,9 +5,13 @@ export enum HotkeyMouseButtonEnum {
 
 export type HotkeyKeyItem = {
     key: string
+    // Alt Option
     altKey: boolean
+    // Ctrl Control
     ctrlKey: boolean
+    // Command Win
     metaKey: boolean
+    // Shift
     shiftKey: boolean
     times: number
 }
