@@ -129,13 +129,37 @@ const doUpload = async () => {
 const doDownload = async () => {
     const path = await window.$mapi.file.openDirectory()
     if (path) {
-        const files = checkedFileOnlyRecords.value
+        const files = checkedFileRecords.value
         Dialog.loadingOn(t('正在下载'))
         for (let f of files) {
-            await window.$mapi.adb.filePull(device.value.id, filePath.value + '/' + f.name, path + '/' + f.name)
+            const sourcePath = filePath.value + '/' + f.name
+            const targetPath = path + '/' + f.name
+            if (f.isDirectory) {
+                await downloadDirectory(device.value.id, sourcePath, targetPath)
+            } else {
+                await window.$mapi.adb.filePull(device.value.id, sourcePath, targetPath)
+            }
         }
         Dialog.loadingOff()
         Dialog.tipSuccess(t('下载成功'))
+    }
+}
+
+const downloadDirectory = async (deviceId: string, sourcePath: string, targetPath: string) => {
+    // 创建目标文件夹
+    await window.$mapi.file.mkdir(targetPath, { isFullPath: true });
+    // 获取源文件夹内容
+    const files = await window.$mapi.adb.fileList(deviceId, sourcePath);
+    for (let f of files) {
+        const newSourcePath = sourcePath + '/' + f.name;
+        const newTargetPath = targetPath + '/' + f.name;
+        if (f.type === 'directory') {
+            console.log('download directory:', sourcePath, targetPath);
+            await downloadDirectory(deviceId, newSourcePath, newTargetPath);
+        } else {
+            console.log('download file:', sourcePath, targetPath);
+            await window.$mapi.adb.filePull(deviceId, newSourcePath, newTargetPath);
+        }
     }
 }
 
@@ -217,8 +241,7 @@ const toggleSortByModifiedTime = () => {
                         {{ $t('上传') }}
                     </a-button>
                     <a-button class="mr-1"
-                              @click="doDownload"
-                              :disabled="checkedFileOnlyRecords.length===0">
+                              @click="doDownload">
                         <template #icon>
                             <icon-download/>
                         </template>
