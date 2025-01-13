@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
+import {computed, ref, nextTick} from "vue";
 import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
 import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
@@ -15,6 +15,7 @@ const isListView = ref(true) // 默认显示列表视图
 const sortOrderName = ref('asc'); // 默认按文件名升序
 const sortOrderModifiedTime = ref('asc'); // 默认按修改时间升序
 const currentSortField = ref('name'); // 当前排序字段
+const inputRef = ref<HTMLInputElement | null>(null); // 输入框引用
 
 const show = (d: DeviceRecord) => {
     if (d.status !== EnumDeviceStatus.CONNECTED) {
@@ -86,9 +87,12 @@ const doUp = () => {
     }
 }
 
-const doEditPath = () => {
+const doEditPath = async () => {
     isEditPath.value = true
     filePathEditing.value = filePath.value
+    // 下一次tick后，输入框自动获取焦点
+    await nextTick();
+    inputRef.value?.focus();
 }
 
 const doEditPathConfirm = () => {
@@ -211,8 +215,10 @@ const toggleSortByModifiedTime = () => {
                         </a-breadcrumb>
                     </div>
                     <div v-else class="h-10 w-full flex items-center">
-                        <a-input v-model="filePathEditing"
-                                 @pressEnter="doEditPathConfirm">
+                        <!-- 点击确认按钮、失去焦点都触发确认 -->
+                        <a-input ref="inputRef" v-model="filePathEditing"
+                                 @pressEnter="doEditPathConfirm"
+                                 @blur="doEditPathConfirm">
                             <template #prepend>
                                 <div class="cursor-pointer" @click="isEditPath=false">
                                     <icon-close/>
