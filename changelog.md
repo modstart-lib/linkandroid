@@ -1,5 +1,6 @@
 ## v0.4.0
 
+- 新增：投屏时关闭屏幕
 - 新增：工单反馈功能，便于解决问题
 - 新增：应用 loading 窗口
 - 新增：添加文件夹下载功能 [#pr-43](https://github.com/modstart-lib/linkandroid/pull/43)
@@ -8,6 +9,7 @@
 - 优化：工单提交日志收集完善更多信息，方便排查问题
 - 优化：将已连接的设备排在最前面，剩下的按照id排序 [#pr-42](https://github.com/modstart-lib/linkandroid/pull/42/files)
 - 优化：toast 和 loading 显示位置优化
+- 优化：修复文件管理页面的输入窗口焦点问题 [#pr-44](https://github.com/modstart-lib/linkandroid/pull/44)
 - 修复：windows下路径编码问题
 - 修复：版本号对比检测异常问题修复
 

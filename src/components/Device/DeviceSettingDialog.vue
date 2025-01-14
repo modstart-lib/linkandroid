@@ -80,12 +80,12 @@ defineExpose({
                     <div class="font-bold text-xl mb-3">
                         {{ $t('投屏') }}
                     </div>
-                    <!--                    <div class="flex mb-3">-->
-                    <!--                        <div class="flex-grow">{{ $t('投屏时调暗屏幕') }}</div>-->
-                    <!--                        <div class="">-->
-                    <!--                            <SettingItemYesNoDefault v-model="formData.dimWhenMirror"/>-->
-                    <!--                        </div>-->
-                    <!--                    </div>-->
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('投屏时关闭屏幕') }}</div>
+                        <div class="">
+                            <SettingItemYesNoDefault v-model="formData.dimWhenMirror"/>
+                        </div>
+                    </div>
                     <div class="flex mb-3">
                         <div class="flex-grow">{{ $t('投屏总在最上层') }}</div>
                         <div class="">
@@ -107,7 +107,8 @@ defineExpose({
                     <div class="flex mb-3">
                         <div class="flex-grow">{{ $t('视频比特率') }}</div>
                         <div class="">
-                            <a-input v-model="formData.videoBitRate" size="small" :placeholder="$t('留空使用默认配置')"/>
+                            <a-input v-model="formData.videoBitRate" size="small"
+                                     :placeholder="$t('留空使用默认配置')"/>
                         </div>
                     </div>
                     <div class="flex mb-3">

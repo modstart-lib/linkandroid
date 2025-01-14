@@ -278,27 +278,13 @@ export const deviceStore = defineStore("device", {
             if (setting.maxFps) {
                 args.push(`--max-fps="${setting.maxFps}"`)
             }
+            if (setting.dimWhenMirror === 'yes') {
+                args.push('--turn-screen-off')
+            }
 
             const mirrorStart = async () => {
-                if ('yes' === setting.dimWhenMirror) {
-                    try {
-                        const result = await window.$mapi.adb.adbShell('shell settings get system screen_brightness', device.id)
-                        // @ts-ignore
-                        device.runtime.screenBrightness = parseInt(result?.stdout)
-                        console.log('screenBrightness.backup', device.runtime.screenBrightness)
-                        await window.$mapi.adb.adbShell('shell settings put system screen_brightness 1', device.id)
-                    } catch (e) {
-                        console.error('dimWhenMirror.error', e)
-                    }
-                }
             }
             const mirrorEnd = async () => {
-                if ('yes' === setting.dimWhenMirror) {
-                    // console.log('screenBrightness.restore', device.runtime.screenBrightness)
-                    if (device.runtime.screenBrightness) {
-                        await window.$mapi.adb.adbShell(`shell settings put system screen_brightness ${device.runtime.screenBrightness}`, device.id)
-                    }
-                }
             }
             try {
                 runtime.value.mirrorController = await window.$mapi.scrcpy.mirror(device.id, {
