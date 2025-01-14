@@ -26,8 +26,11 @@ export const StringUtil = {
 }
 
 export const TimeUtil = {
+    timestamp() {
+        return Math.floor(Date.now() / 1000)
+    },
     timestampMS() {
-        return new Date().getTime()
+        return Date.now()
     },
     format(time: number, format: string = 'YYYY-MM-DD HH:mm:ss') {
         return dayjs(time).format(format)
