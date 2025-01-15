@@ -103,6 +103,21 @@ defineExpose({
                             </a-input>
                         </div>
                     </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">
+                            {{ $t('自定义参数') }}
+                            <a-tooltip :content="$t('该参数在投屏时会追加到scrcpy命令')">
+                                <icon-info-circle/>
+                            </a-tooltip>
+                        </div>
+                        <div class="">
+                            <a-input :model-value="setting.configGet('Device.scrcpyArgs', '').value"
+                                     style="width:10rem;"
+                                     size="small"
+                                     @input="setting.onConfigChange('Device.scrcpyArgs',$event)">
+                            </a-input>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

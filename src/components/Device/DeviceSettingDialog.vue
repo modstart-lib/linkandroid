@@ -14,6 +14,7 @@ const formData = ref({
     previewImage: '',
     videoBitRate: '',
     maxFps: '',
+    scrcpyArgs:'',
 })
 const device = ref<DeviceRecord | null>(null)
 const infoColumns = [
@@ -41,6 +42,7 @@ const show = (record: DeviceRecord) => {
     formData.value.previewImage = record.setting?.previewImage || ''
     formData.value.videoBitRate = record.setting?.videoBitRate || ''
     formData.value.maxFps = record.setting?.maxFps || ''
+    formData.value.scrcpyArgs = record.setting?.scrcpyArgs || ''
     visible.value = true
 }
 
@@ -52,6 +54,7 @@ const doSubmit = async () => {
         previewImage: formData.value.previewImage,
         videoBitRate: formData.value.videoBitRate,
         maxFps: formData.value.maxFps,
+        scrcpyArgs: formData.value.scrcpyArgs,
     })
     visible.value = false
 }
@@ -115,6 +118,17 @@ defineExpose({
                         <div class="flex-grow">{{ $t('刷新率') }}</div>
                         <div class="">
                             <a-input v-model="formData.maxFps" size="small" :placeholder="$t('留空使用默认配置')"/>
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">
+                            {{ $t('自定义参数') }}
+                            <a-tooltip :content="$t('该参数在投屏时会追加到scrcpy命令')">
+                                <icon-info-circle/>
+                            </a-tooltip>
+                        </div>
+                        <div class="">
+                            <a-input v-model="formData.scrcpyArgs" size="small" :placeholder="$t('留空使用默认配置')"/>
                         </div>
                     </div>
                     <div class="font-bold text-xl mb-3">

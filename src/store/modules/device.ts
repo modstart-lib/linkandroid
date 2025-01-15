@@ -18,6 +18,7 @@ const getEmptySetting = () => {
         previewImage: '',
         videoBitRate: '',
         maxFps: '',
+        scrcpyArgs: '',
     }))
 }
 
@@ -262,6 +263,7 @@ export const deviceStore = defineStore("device", {
                 mirrorSound: await this.settingGet(device, 'mirrorSound', 'no'),
                 videoBitRate: await this.settingGet(device, 'videoBitRate', '8M'),
                 maxFps: await this.settingGet(device, 'maxFps', '60'),
+                scrcpyArgs: await this.settingGet(device, 'scrcpyArgs', ''),
             }
             // console.log('setting', setting)
             const args: string[] = []
@@ -281,34 +283,49 @@ export const deviceStore = defineStore("device", {
             if (setting.dimWhenMirror === 'yes') {
                 args.push('--turn-screen-off')
             }
+            if (setting.scrcpyArgs) {
+                args.push(setting.scrcpyArgs)
+            }
 
             const mirrorStart = async () => {
             }
             const mirrorEnd = async () => {
             }
+            let successTimer: any = null
             try {
                 runtime.value.mirrorController = await window.$mapi.scrcpy.mirror(device.id, {
                     title: device.name as string,
                     args: args.join(' '),
-                    stdout: (data: string) => {
-                        console.log('mirror.stdout', data)
+                    stdout: (data: string, process: any) => {
+                        console.log('mirror.stdout', {data})
+                        window.$mapi.log.info('Mirror.stdout', {data})
+                        if (!successTimer) {
+                            successTimer = setTimeout(() => {
+                                if (runtime.value.mirrorController) {
+                                    Dialog.tipSuccess(t('投屏成功'))
+                                }
+                            }, 2000)
+                        }
                     },
-                    stderr: (data: string) => {
-                        console.error('mirror.stderr', data)
+                    stderr: (data: string, process: any) => {
+                        console.log('mirror.stderr', {data})
+                        window.$mapi.log.error('Mirror.stderr', {data})
                     },
-                    success: (code: number) => {
-                        console.log('mirror.success', code)
+                    success: (process: any) => {
+                        console.log('mirror.success')
+                        window.$mapi.log.info('Mirror.success')
                         runtime.value.mirrorController = null
                         mirrorEnd().then()
                     },
-                    error: (code: number) => {
-                        console.error('mirror.error', code)
+                    error: (msg: string, exitCode: number, process: any) => {
+                        console.log('mirror.error', {msg, exitCode})
+                        window.$mapi.log.error('Mirror.error', {msg, exitCode})
                         runtime.value.mirrorController = null
+                        Dialog.alertError(t('投屏失败') + ` : <code>${msg}</code>`)
                         mirrorEnd().then()
                     }
                 })
                 await sleep(1000)
-                Dialog.tipSuccess(t('投屏成功'))
                 await mirrorStart()
             } catch (error) {
                 Dialog.tipError(mapError(error))

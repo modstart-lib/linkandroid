@@ -245,10 +245,11 @@ declare interface Window {
             mirror: (serial: string, option: {
                 title?: string,
                 args?: string,
-                stdout?: Function,
-                stderr?: Function,
-                success?: Function,
-                error?: Function,
+                stdout?: (data: string, process: any) => void,
+                stderr?: (data: string, process: any) => void,
+                success?: (process: any) => void,
+                error?: (msg: string, exitCode: number, process: any) => void,
+                env?: Record<string, any>,
             }) => Promise<any>,
         },
         ffmpeg: {

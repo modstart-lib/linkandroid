@@ -27,6 +27,7 @@ export type DeviceRecord = {
         previewImage?: any,
         videoBitRate?: any,
         maxFps?: any,
+        scrcpyArgs?: any,
     },
 }
 

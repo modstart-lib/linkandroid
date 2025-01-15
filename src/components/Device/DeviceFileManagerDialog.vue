@@ -151,7 +151,7 @@ const doDownload = async () => {
 
 const downloadDirectory = async (deviceId: string, sourcePath: string, targetPath: string) => {
     // 创建目标文件夹
-    await window.$mapi.file.mkdir(targetPath, { isFullPath: true });
+    await window.$mapi.file.mkdir(targetPath, {isFullPath: true});
     // 获取源文件夹内容
     const files = await window.$mapi.adb.fileList(deviceId, sourcePath);
     for (let f of files) {
@@ -263,27 +263,28 @@ const toggleSortByModifiedTime = () => {
                     </a-button>
                     <a-button class="mr-1" @click="toggleView">
                         <template #icon>
-                            <icon-swap/>
-                            <icon-view :type="isListView ? 'list' : 'grid'"/>
+                            <icon-list v-if="isListView"/>
+                            <icon-apps v-else/>
                         </template>
                         {{ isListView ? $t('网格视图') : $t('列表视图') }}
                     </a-button>
                     <a-button class="mr-1" @click="toggleSortByName">
                         <template #icon>
-                            <component :is="sortOrderName === 'asc' ? 'icon-down' : 'icon-up'" />
+                            <component :is="sortOrderName === 'asc' ? 'icon-down' : 'icon-up'"/>
                         </template>
                         {{ $t('按文件名排序') }} ({{ sortOrderName === 'asc' ? $t('降序') : $t('升序') }})
                     </a-button>
                     <a-button class="mr-1" @click="toggleSortByModifiedTime">
                         <template #icon>
-                            <component :is="sortOrderModifiedTime === 'asc' ? 'icon-down' : 'icon-up'" />
+                            <component :is="sortOrderModifiedTime === 'asc' ? 'icon-down' : 'icon-up'"/>
                         </template>
                         {{ $t('按修改时间排序') }} ({{ sortOrderModifiedTime === 'asc' ? $t('降序') : $t('升序') }})
                     </a-button>
                 </div>
                 <div class="flex-grow overflow-auto border border-solid border-gray-200 rounded p-2">
                     <div v-if="isListView" class="flex flex-col">
-                        <div v-for="f in sortedFileRecords" class="flex items-center border-b border-gray-200 p-2" :key="f.name">
+                        <div v-for="f in sortedFileRecords" class="flex items-center border-b border-gray-200 p-2"
+                             :key="f.name">
                             <div class="flex items-center flex-grow" @click="doOpen(f)" style="cursor: pointer;">
                                 <FileExt :is-folder="f.isDirectory" :name="f.name" size="30px" class="mr-2"/>
                                 <div class="flex-grow">
