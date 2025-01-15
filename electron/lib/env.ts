@@ -1,6 +1,7 @@
 import {resolve} from "node:path";
 import os from "os";
 import {execSync} from "child_process";
+import {Log} from "../mapi/log";
 
 export const isPackaged = ['true'].includes(process.env.IS_PACKAGED)
 
@@ -52,14 +53,17 @@ export const platformArch = (): 'x86' | 'arm64' | null => {
 let platformUUIDCache: string | null = null
 export const platformUUID = () => {
     if (null === platformUUIDCache) {
-        if (isWin) {
-            platformUUIDCache = execSync('wmic csproduct get UUID').toString().split('\n')[1].trim()
-        } else if (isMac) {
-            platformUUIDCache = execSync('system_profiler SPHardwareDataType | grep UUID').toString().split(': ')[1].trim()
-        } else if (isLinux) {
-            platformUUIDCache = execSync('cat /sys/class/dmi/id/product_uuid').toString().trim()
-        } else {
-            platformUUIDCache = ''
+        try {
+            if (isWin) {
+                platformUUIDCache = execSync('wmic csproduct get UUID').toString().split('\n')[1].trim()
+            } else if (isMac) {
+                platformUUIDCache = execSync('system_profiler SPHardwareDataType | grep UUID').toString().split(': ')[1].trim()
+            } else if (isLinux) {
+                platformUUIDCache = execSync('cat /var/lib/dbus/machine-id').toString().trim().toUpperCase()
+            }
+        } catch (e) {
+            Log.error('Env.platformUUID', e.message)
+            platformUUIDCache = '000000'
         }
     }
     return platformUUIDCache
