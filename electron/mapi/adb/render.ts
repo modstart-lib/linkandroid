@@ -36,7 +36,7 @@ const getBinPath = async () => {
             return extraResolve('mac/android-platform-tools/adb')
         case 'linux':
             if ('arm64' == arch) {
-                return extraResolve('linux/android-platform-tools/adb')
+                return extraResolve('linux/android-platform-tools-arm64/adb')
             }
             return extraResolve('linux/android-platform-tools/adb')
     }
