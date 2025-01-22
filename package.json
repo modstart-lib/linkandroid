@@ -51,7 +51,8 @@
         "vite-plugin-electron-renderer": "^0.14.5",
         "vite-plugin-html": "^3.2.2",
         "vue": "^3.4.21",
-        "vue-tsc": "^2.0.6"
+        "vue-tsc": "^2.0.6",
+        "@electron/notarize": "^2.5.0"
     },
     "dependencies": {
         "@babel/runtime": "^7.24.8",

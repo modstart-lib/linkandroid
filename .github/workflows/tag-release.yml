@@ -52,9 +52,7 @@ jobs:
             echo "find-identity"
             security find-identity -p codesigning
             echo "set-key-partition-list"
-            security set-key-partition-list -S apple-tool:,apple: -s -k "" -l "LinkAndroidKey" -t private build.keychain
-            echo "find-certificate"
-            security find-certificate -a -c "LinkAndroidKey" -p
+            security set-key-partition-list -S apple-tool:,apple: -s -k "" -l "Mac Developer ID Application: Xi'an Yanyi Information Technology Co., Ltd" -t private build.keychain
             echo "export"
             security export -k build.keychain -t certs -f x509 -p -o certificate.cer
             echo "add-trusted-cert"
@@ -68,7 +66,12 @@ jobs:
       - name: Build Release Files
         run: npm run build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            DEBUG: "electron-notarize:*"
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            APPLE_ID: ${{ secrets.APPLE_ID }}
+            APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+            APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+            APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Release Assets
         uses: softprops/action-gh-release@v2
