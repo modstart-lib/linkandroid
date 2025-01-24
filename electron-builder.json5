@@ -99,7 +99,7 @@
         "notarize": false,
         "darkModeSupport": true,
         "hardenedRuntime": true,
-        "identity": "LinkAndroidKey"
+        "identity": "Xi'an Yanyi Information Technology Co., Ltd (Q96H3H33RK)"
     },
     "linux": {
         "icon": "logo.icns",

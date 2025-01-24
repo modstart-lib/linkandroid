@@ -4,7 +4,7 @@ import {exec as _exec, spawn} from "node:child_process";
 import {isLinux, isMac, isWin, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
 import {Log} from "../log/index";
 import iconv from "iconv-lite";
-import {ShellUtil, StrUtil} from "../../lib/util";
+import {IconvUtil, ShellUtil, StrUtil} from "../../lib/util";
 import {AppConfig} from "../../../src/config";
 
 const exec = util.promisify(_exec)
@@ -16,8 +16,17 @@ const outputStringConvert = (outputEncoding: 'utf8' | 'cp936', data: any) => {
     if (outputEncoding === 'utf8') {
         return data.toString()
     }
-    // convert outputEncoding(cp936) to utf8
-    return iconv.decode(Buffer.from(data, 'binary'), outputEncoding)
+    let dataEncoding = 'binary'
+    if (Buffer.isBuffer(data)) {
+        dataEncoding = IconvUtil.detect(data)
+        if ('UTF-8' === dataEncoding) {
+            return data.toString('utf8')
+        }
+    }
+    // dataEncoding UTF-8 cp936
+    // dataEncoding ISO-8859-1 cp936
+    // console.log('dataEncoding', dataEncoding, outputEncoding)
+    return iconv.decode(Buffer.from(data, dataEncoding as any), outputEncoding)
 }
 
 const shell = async (command: string, option?: {
@@ -83,23 +92,16 @@ const spawnShell = async (command: string | string[], option: {
     let exitCode = -1
     const stdoutList: string[] = []
     const stderrList: string[] = []
-    const outputStringConvert = (data: any) => {
-        if (option.outputEncoding === 'utf8') {
-            return data.toString()
-        }
-        // convert outputEncoding(cp936) to utf8
-        return iconv.decode(Buffer.from(data, 'binary'), option.outputEncoding)
-    }
     spawnProcess.stdout?.on('data', (data) => {
         // console.log('App.spawnShell.stdout', data)
-        let dataString = outputStringConvert(data)
+        let dataString = outputStringConvert(option.outputEncoding as any, data)
         Log.info('App.spawnShell.stdout', dataString)
         stdoutList.push(dataString)
         option.stdout?.(dataString, spawnProcess)
     })
     spawnProcess.stderr?.on('data', (data) => {
         // console.log('App.spawnShell.stderr', data)
-        let dataString = outputStringConvert(data)
+        let dataString = outputStringConvert(option.outputEncoding as any, data)
         Log.info('App.spawnShell.stderr', dataString)
         stderrList.push(dataString)
         option.stderr?.(dataString, spawnProcess)
@@ -138,10 +140,10 @@ const spawnShell = async (command: string | string[], option: {
                     encoding: 'binary'
                 }, (err, stdout, stderr) => {
                     if (stdout) {
-                        stdout = outputStringConvert(stdout)
+                        stdout = outputStringConvert(option.outputEncoding as any, stdout)
                     }
                     if (stderr) {
-                        stderr = outputStringConvert(stderr)
+                        stderr = outputStringConvert(option.outputEncoding as any, stderr)
                     }
                     Log.info('App.spawnShell.stop.taskkill', JSON.parse(JSON.stringify({err, stdout, stderr})))
                 })
