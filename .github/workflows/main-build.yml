@@ -90,19 +90,20 @@ jobs:
             echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
 
       - name: Upload
-        uses: modstart/github-oss-action@master
+        uses: modstart/github-kodo-action@master
         with:
             title: ${{ github.event.head_commit.message }}
-            key-id: ${{ secrets.OSS_KEY_ID }}
-            key-secret: ${{ secrets.OSS_KEY_SECRET }}
-            region: ${{ secrets.OSS_REGION }}
-            bucket: ${{ secrets.OSS_BUCKET }}
+            accessKey: ${{ secrets.KODO_ACCESS_KEY }}
+            secretKey: ${{ secrets.KODO_SECRET_KEY }}
+            bucket: ${{ secrets.KODO_BUCKET }}
+            domain: ${{ secrets.KODO_DOMAIN }}
+            zone: ${{ secrets.KODO_ZONE }}
             callback: ${{ secrets.OSS_CALLBACK }}
             assets: |
-                dist-release/*.exe:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
-                dist-release/*.dmg:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
-                dist-release/*.AppImage:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
-                dist-release/*.deb:linkandroid/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.exe:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.dmg:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.AppImage:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.deb:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
 
       - name: Upload Artifact Windows
         if: runner.os == 'Windows'
