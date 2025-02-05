@@ -90,15 +90,14 @@ jobs:
             echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
 
       - name: Upload
-        uses: modstart/github-kodo-action@master
+        uses: modstart/github-oss-action@master
         with:
             title: ${{ github.event.head_commit.message }}
-            accessKey: ${{ secrets.KODO_ACCESS_KEY }}
-            secretKey: ${{ secrets.KODO_SECRET_KEY }}
-            bucket: ${{ secrets.KODO_BUCKET }}
-            domain: ${{ secrets.KODO_DOMAIN }}
-            zone: ${{ secrets.KODO_ZONE }}
-            callback: ${{ secrets.OSS_CALLBACK }}
+            key-id: ${{ secrets.OSS_2_KEY_ID }}
+            key-secret: ${{ secrets.OSS_2_KEY_SECRET }}
+            region: ${{ secrets.OSS_2_REGION }}
+            bucket: ${{ secrets.OSS_2_BUCKET }}
+            callback: ${{ secrets.OSS_2_CALLBACK }}
             assets: |
                 dist-release/*.exe:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
                 dist-release/*.dmg:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
