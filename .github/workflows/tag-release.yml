@@ -36,8 +36,8 @@ jobs:
       - name: Cert Prepare (macOS)
         if: runner.os == 'macOS'
         env:
-            MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-            MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+            MACOS_CERTIFICATE: ${{ secrets.CORP_MACOS_CERTIFICATE }}
+            MACOS_CERTIFICATE_PASSWORD: ${{ secrets.CORP_MACOS_CERTIFICATE_PASSWORD }}
         run: |
             echo "find-identity"
             security find-identity -p codesigning
