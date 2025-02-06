@@ -482,8 +482,8 @@ const appendText = async (path: string, data: any, option?: { isFullPath?: boole
     if (!option.isFullPath) {
         fp = await fullPath(path)
     }
-    if (path !== appendTextPathCached) {
-        appendTextPathCached = path
+    if (fp !== appendTextPathCached) {
+        appendTextPathCached = fp
         if (appendTextStreamCached) {
             appendTextStreamCached.end()
             appendTextStreamCached = null
