@@ -156,7 +156,16 @@ export const User = {
 
 export default User
 
-const post = async <T>(api: string, data: Record<string, any>): Promise<ResultType<T>> => {
+const post = async <T>(
+    api: string,
+    data: Record<string, any>,
+    option?: {
+        catchException?: boolean,
+    }
+): Promise<ResultType<T>> => {
+    option = Object.assign({
+        catchException: true,
+    }, option)
     let url = api
     if (!api.startsWith('http:') && !api.startsWith('https:')) {
         url = `${AppConfig.apiBaseUrl}/${api}`
@@ -189,7 +198,9 @@ const post = async <T>(api: string, data: Record<string, any>): Promise<ResultTy
         if (json.code === 1001) {
             await refresh()
         }
-        throw json.msg
+        if (option.catchException) {
+            throw json.msg
+        }
     }
     return json
 }
