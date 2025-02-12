@@ -13,13 +13,16 @@ export const useUserPage = ({web, status}) => {
     const user = useUserStore()
     const canGoBack = ref(false)
 
-    const webUrlList = [
+    const whiteUrl = [
         '/app_manager/user',
         '/member_vip',
         '/login',
         '/register',
         '/logout'
     ]
+    const urlMap = {
+        '/app_manager/user': '/member',
+    }
 
     const getUrl = () => {
         const url = web.value.getURL()
@@ -27,7 +30,7 @@ export const useUserPage = ({web, status}) => {
     }
 
     const getCanGoBack = () => {
-        if (webUrlList[0] === getUrl()) {
+        if (whiteUrl[0] === getUrl()) {
             return false
         }
         return true
@@ -45,19 +48,30 @@ export const useUserPage = ({web, status}) => {
                 web.value.executeJavaScript(`document.body.setAttribute('data-theme', 'dark');`)
             }
         })
+        web.value.addEventListener('close', (event: any) => {
+            if (web.value.isDevToolsOpened()) {
+                web.value.closeDevTools()
+            }
+        })
         web.value.addEventListener('dom-ready', (e) => {
             // web.value.openDevTools()
             window.$mapi.user.refresh()
             canGoBack.value = getCanGoBack()
-            web.value.insertCSS(`.pb-page-member-vip .top{ padding-left: 5rem; }`)
             web.value.executeJavaScript(`
 document.addEventListener('click', (event) => {
     const target = event.target;
     if (target.tagName !== 'A') return;
-    const url = target.href
+    let url = target.href
     if(url.startsWith('javascript:')) return;
-    const urlPath = new URL(url).pathname;
-    const whiteList = ${JSON.stringify(webUrlList)};
+    let urlPath = new URL(url).pathname;
+    const urlMap = ${JSON.stringify(urlMap)};
+    if(urlMap[urlPath]) {
+        urlPath = urlMap[urlPath];
+        const urlNew = new URL(url);
+        urlNew.pathname = urlPath;
+        url = urlNew.toString();
+    }
+    const whiteList = ${JSON.stringify(whiteUrl)};
     if (whiteList.includes(urlPath)) return;
     event.preventDefault();
     window.$mapi.user.openWebUrl(url)

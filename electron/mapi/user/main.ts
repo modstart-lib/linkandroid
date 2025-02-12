@@ -89,6 +89,7 @@ ipcMain.handle('user:save', async (event, data) => {
 
 const refresh = async () => {
     const result = await userInfoApi()
+    // console.log('user.refresh', result)
     await save({
         apiToken: result.data.apiToken,
         user: result.data.user,
@@ -196,7 +197,9 @@ const post = async <T>(
     if (json.code) {
         // 未登录或登录过期
         if (json.code === 1001) {
-            await refresh()
+            if (userData.user && userData.user.id) {
+                await refresh()
+            }
         }
         if (option.catchException) {
             throw json.msg
