@@ -26,6 +26,7 @@ export const PagePayment = {
             status: 'WaitPay' | 'Scanned' | 'Payed' | 'Expired' | 'Error',
         }>,
         onClose: () => void,
+        parent?: BrowserWindow,
     }): Promise<{
         close: () => void,
     }> => {
@@ -38,6 +39,8 @@ export const PagePayment = {
         } else if (process.platform === 'darwin') {
             icon = icnsLogoPath
         }
+        let parent = option.parent || null
+        let alwaysOnTop = !parent
         const win = new BrowserWindow({
             show: true,
             title: AppConfig.name,
@@ -55,7 +58,9 @@ export const PagePayment = {
             resizable: false,
             maximizable: false,
             backgroundColor: '#f1f5f9',
-            alwaysOnTop: true,
+            focusable: true,
+            parent,
+            alwaysOnTop,
             webPreferences: {
                 preload: preloadDefault,
                 // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
@@ -81,6 +86,7 @@ export const PagePayment = {
         win.webContents.on('did-finish-load', () => {
             Page.ready('payment')
             DevToolsManager.autoShow(win)
+            win.focus()
         })
         DevToolsManager.register('Payment', win)
         // win.webContents.setWindowOpenHandler(({url}) => {
