@@ -9,6 +9,7 @@ import ui from "./ui";
 import keys from "./keys/main";
 import user from "./user/main";
 import misc from "./misc/main";
+import {UpdaterMain} from "./updater/main";
 
 // import server from "./server/main";
 
@@ -35,6 +36,9 @@ export const MAPI = {
     },
     ready() {
         $mapi.keys.ready()
+        setTimeout(() => {
+            UpdaterMain.checkAndNoticeIfNeed().then()
+        }, 3000)
     },
     destroy() {
         $mapi.keys.destroy()

@@ -1,31 +1,16 @@
-import {AppConfig} from "../../../src/config";
-import {platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
+import updaterIndex from './index'
+import {ipcRenderer} from "electron";
 
-const checkForUpdate = async () => {
-    try {
-        const res = await fetch(AppConfig.updaterUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                version: AppConfig.version,
-                uuid: platformUUID(),
-                platform: {
-                    name: platformName(),
-                    version: platformVersion(),
-                    arch: platformArch(),
-                }
-            })
-        })
-        return await res.json()
-    } catch (e) {
-        return {
-            code: -1,
-            msg: `Failed to check update : ${e.message}`
-        }
-    }
+const getCheckAtLaunch = async (): Promise<'yes' | 'no'> => {
+    return ipcRenderer.invoke('updater:getCheckAtLaunch')
 }
+
+const setCheckAtLaunch = async (value: 'yes' | 'no'): Promise<void> => {
+    return ipcRenderer.invoke('updater:setCheckAtLaunch', value)
+}
+
 export default {
-    checkForUpdate,
+    ...updaterIndex,
+    getCheckAtLaunch,
+    setCheckAtLaunch,
 }
