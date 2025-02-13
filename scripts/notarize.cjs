@@ -21,6 +21,10 @@ exports.default = async function notarizing(context) {
 
     let appPath = `${appOutDir}/${appName}.app`;
     let {APPLE_ID, APPLE_ID_PASSWORD, APPLE_TEAM_ID} = process.env;
+    if (!APPLE_ID) {
+        console.info("  • Notarization ignore: APPLE_ID is empty");
+        return;
+    }
     const notarizeOption = {
         tool: "notarytool",
         appBundleId: appId,

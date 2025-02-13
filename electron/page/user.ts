@@ -8,10 +8,14 @@ import {User} from "../mapi/user/main";
 
 export const PageUser = {
     NAME: 'user',
-    open: async (option: any) => {
+    open: async (option: {
+        parent?: BrowserWindow,
+    }) => {
+        option = option || {}
+        let parent = option.parent || AppRuntime.mainWindow
+        let alwaysOnTop = !parent
         const win = new BrowserWindow({
             title: t('用户中心'),
-            parent: AppRuntime.mainWindow,
             minWidth: 700,
             minHeight: 500,
             width: 700,
@@ -27,6 +31,9 @@ export const PageUser = {
             frame: false,
             center: true,
             transparent: false,
+            focusable: true,
+            parent,
+            alwaysOnTop,
         });
         return Page.openWindow(PageUser.NAME, win, "page/user.html");
     }

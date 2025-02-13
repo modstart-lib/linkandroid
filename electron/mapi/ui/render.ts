@@ -1,5 +1,5 @@
 const init = () => {
-    initLoaders()
+    // initLoaders()
 }
 
 const initLoaders = () => {

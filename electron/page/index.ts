@@ -44,6 +44,7 @@ export const Page = {
         })
         const promise = new Promise((resolve, reject) => {
             win.webContents.on("did-finish-load", () => {
+                win.focus()
                 Page.ready(name);
                 DevToolsManager.autoShow(win)
                 resolve(undefined);
@@ -56,13 +57,19 @@ export const Page = {
     },
     open: async (name: string, option?: {
         singleton?: boolean,
+        parent?: BrowserWindow,
     }) => {
         option = Object.assign({
-            singleton: true
+            singleton: true,
+            parent: null
         }, option)
+        if (!option.parent) {
+            option.parent = AppRuntime.mainWindow
+        }
         if (option.singleton && AppRuntime.windows[name]) {
             AppRuntime.windows[name].show()
             AppRuntime.windows[name].focus()
+            AppRuntime.windows[name].setParentWindow(option.parent)
             return
         }
         return Pages[name].open(option)
