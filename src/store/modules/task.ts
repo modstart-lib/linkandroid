@@ -45,6 +45,9 @@ export type TaskBiz = {
     // 请确保 failFunc 不会抛出异常
     failFunc: (bizId: string, msg: string, bizParam: any) => Promise<void>,
     restore?: () => Promise<void>,
+    update?: (bizId: string, update: {
+        [key: string]: any
+    }) => Promise<void>,
 }
 
 const taskChangeListeners = [] as {

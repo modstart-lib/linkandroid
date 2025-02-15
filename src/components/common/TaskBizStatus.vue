@@ -12,6 +12,7 @@ const props = defineProps<Props>()
 const statusColor = computed(() => {
     const colorMap = {
         'queue': 'bg-gray-400',
+        'wait': 'bg-gray-400',
         'running': 'bg-yellow-500',
         'success': 'bg-green-500',
         'fail': 'bg-red-500',
@@ -22,6 +23,7 @@ const statusColor = computed(() => {
 const statusText = computed(() => {
     const textMap = {
         'queue': t('排队中'),
+        'wait': t('等待中'),
         'running': t('运行中'),
         'success': t('成功'),
         'fail': t('失败'),
@@ -47,7 +49,7 @@ const statusText = computed(() => {
             </div>
             <template #content>
                 <div class="w-96 h-32 overflow-auto -m-3">
-                    <pre class="text-xs">{{statusMsg}}</pre>
+                    <pre class="text-xs">{{ statusMsg }}</pre>
                 </div>
             </template>
         </a-popover>
