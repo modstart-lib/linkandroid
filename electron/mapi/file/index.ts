@@ -553,6 +553,10 @@ const download = async (url: string, path: string, option?: {
     })
 }
 
+const ext = (path: string) => {
+    return nodePath.extname(path).replace(/^\./, '')
+}
+
 export const FileIndex = {
     fullPath,
     absolutePath,
@@ -574,6 +578,7 @@ export const FileIndex = {
     watchText,
     appendText,
     download,
+    ext,
 }
 
 export default FileIndex
