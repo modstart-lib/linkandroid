@@ -25,8 +25,14 @@ const openWebUrl = async (url: string) => {
     return ipcRenderer.invoke('user:openWebUrl', url)
 }
 
-const apiPost = async (url: string, data: any) => {
-    return ipcRenderer.invoke('user:apiPost', url, data)
+const apiPost = async (
+    url: string,
+    data: Record<string, any>,
+    option?: {
+        catchException?: boolean,
+    }
+) => {
+    return ipcRenderer.invoke('user:apiPost', url, data, option)
 }
 
 export default {

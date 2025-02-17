@@ -138,12 +138,18 @@ ipcMain.handle('user:openWebUrl', async (event, url) => {
     return openWebUrl(url)
 })
 
-const apiPost = async (url: string, data: any) => {
-    return post(url, data)
+const apiPost = async (
+    url: string,
+    data: Record<string, any>,
+    option?: {
+        catchException?: boolean,
+    }
+) => {
+    return post(url, data, option)
 }
 
-ipcMain.handle('user:apiPost', async (event, url, data) => {
-    return apiPost(url, data)
+ipcMain.handle('user:apiPost', async (event, url, data, option) => {
+    return apiPost(url, data, option)
 })
 
 export const User = {
@@ -192,6 +198,7 @@ const post = async <T>(
     // console.log('post', JSON.stringify({api, data, json}, null, 2))
     if (!('code' in json)) {
         Log.error('user.post.error', {api, data, res})
+        console.log('user.post.error', res)
         throw 'ResponseError'
     }
     if (json.code) {

@@ -188,7 +188,13 @@ declare interface Window {
             getApiToken: () => Promise<string>,
             getWebEnterUrl: (url: string) => Promise<string>,
             openWebUrl: (url: string) => Promise<void>,
-            apiPost: (url: string, data?: any) => Promise<any>,
+            apiPost: (
+                url: string,
+                data: Record<string, any>,
+                option?: {
+                    catchException?: boolean,
+                }
+            ) => Promise<any>,
         },
         misc: {
             getZipFileContent: (path: string, pathInZip: string) => Promise<string>,
