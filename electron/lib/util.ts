@@ -264,6 +264,48 @@ export const MemoryCacheUtil = {
     }
 }
 
+export const MemoryMapCacheUtil = {
+    pool: {} as {
+        [group: string]: {
+            [key: string]: {
+                value: any,
+                expire: number,
+            }
+        }
+    },
+    _gc() {
+        const now = TimeUtil.timestamp()
+        for (const group in this.pool) {
+            for (const key in this.pool[group]) {
+                if (this.pool[group][key].expire < now) {
+                    delete this.pool[group][key]
+                }
+            }
+        }
+    },
+    get(group: string, key: string) {
+        if (this.pool[group] && this.pool[group][key] && this.pool[group][key].expire > TimeUtil.timestamp()) {
+            return this.pool[group][key].value
+        }
+        this._gc()
+        return null
+    },
+    set(group: string, key: string, value: any, ttl: number = 60) {
+        if (!this.pool[group]) {
+            this.pool[group] = {}
+        }
+        this.pool[group][key] = {
+            value,
+            expire: TimeUtil.timestamp() + ttl,
+        }
+        this._gc()
+    },
+    forget(group: string, key: string) {
+        if (this.pool[group]) {
+            delete this.pool[group][key]
+        }
+    }
+}
 
 export const ShellUtil = {
     quotaPath(p: string) {

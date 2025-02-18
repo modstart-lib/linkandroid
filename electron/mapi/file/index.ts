@@ -4,6 +4,7 @@ import fs from "node:fs";
 import {StrUtil, TimeUtil} from "../../lib/util";
 import Apps from "../app";
 import {Readable} from "node:stream";
+import {isWin} from "../../lib/env";
 
 const nodePath = path
 
@@ -313,7 +314,13 @@ const rename = async (pathOld: string, pathNew: string, option?: {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, {recursive: true})
     }
-    fs.renameSync(fullPathOld, fullPathNew)
+    if (isWin) {
+        // cross-device link not permitted, rename
+        fs.copyFileSync(fullPathOld, fullPathNew)
+        fs.unlinkSync(fullPathOld)
+    } else {
+        fs.renameSync(fullPathOld, fullPathNew)
+    }
 }
 
 const copy = async (pathOld: string, pathNew: string, option?: { isFullPath?: boolean, }) => {
