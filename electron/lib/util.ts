@@ -252,7 +252,7 @@ export const MemoryCacheUtil = {
         this._gc()
         return null
     },
-    set(key: string, value: any, ttl: number = 60) {
+    set(key: string, value: any, ttl: number = 86400) {
         this.pool[key] = {
             value,
             expire: TimeUtil.timestamp() + ttl,
@@ -290,7 +290,7 @@ export const MemoryMapCacheUtil = {
         this._gc()
         return null
     },
-    set(group: string, key: string, value: any, ttl: number = 60) {
+    set(group: string, key: string, value: any, ttl: number = 86400) {
         if (!this.pool[group]) {
             this.pool[group] = {}
         }
