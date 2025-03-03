@@ -24,6 +24,14 @@ export const platformName = (): 'win' | 'osx' | 'linux' | null => {
     return null
 }
 
+export const memoryInfo = () => {
+    return {
+        total: os.totalmem(),
+        free: os.freemem(),
+    }
+}
+
+
 let platformVersionCache: string | null = null
 export const platformVersion = () => {
     if (null === platformVersionCache) {

@@ -314,12 +314,16 @@ const rename = async (pathOld: string, pathNew: string, option?: {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, {recursive: true})
     }
-    if (isWin) {
+    let success = false
+    try {
+        fs.renameSync(fullPathOld, fullPathNew)
+        success = true
+    } catch (e) {
+    }
+    if (!success) {
         // cross-device link not permitted, rename
         fs.copyFileSync(fullPathOld, fullPathNew)
         fs.unlinkSync(fullPathOld)
-    } else {
-        fs.renameSync(fullPathOld, fullPathNew)
     }
 }
 

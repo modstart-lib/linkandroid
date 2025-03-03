@@ -1,5 +1,5 @@
 import {AppConfig} from "../../../src/config";
-import {platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
+import {memoryInfo, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
 import {post} from "../../lib/api";
 
 let tickDataList = []
@@ -29,6 +29,7 @@ const tickSendAsync = () => {
                 name: platformName(),
                 version: platformVersion(),
                 arch: platformArch(),
+                mem: memoryInfo(),
             }
         }).then(res => {
             // console.log('tickSend', tickDataList, res)
