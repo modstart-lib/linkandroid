@@ -4,7 +4,6 @@ import fs from "node:fs";
 import {StrUtil, TimeUtil} from "../../lib/util";
 import Apps from "../app";
 import {Readable} from "node:stream";
-import {isWin} from "../../lib/env";
 
 const nodePath = path
 
@@ -351,6 +350,47 @@ const copy = async (pathOld: string, pathNew: string, option?: { isFullPath?: bo
     fs.copyFileSync(fullPathOld, fullPathNew)
 }
 
+const hubCreate = async (ext: string = 'bin') => {
+    return path.join(
+        'hub',
+        TimeUtil.replacePattern('{year}'),
+        TimeUtil.replacePattern('{month}'),
+        TimeUtil.replacePattern('{day}'),
+        TimeUtil.replacePattern('{hour}'),
+        [
+            TimeUtil.replacePattern('{minute}'),
+            TimeUtil.replacePattern('{second}'),
+            StrUtil.randomString(10),
+        ].join('_') + `.${ext}`
+    )
+}
+
+const hubSave = async (file: string, option?: {
+    isFullPath?: boolean,
+    returnFullPath?: boolean,
+}) => {
+    option = Object.assign({
+        isFullPath: false,
+        returnFullPath: false,
+    }, option)
+    let fp = file
+    if (!option.isFullPath) {
+        fp = await fullPath(file)
+    }
+    if (!fs.existsSync(fp)) {
+        throw `FileNotFound ${fp}`
+    }
+    const fileExt = ext(fp)
+    const hubFile = await hubCreate(fileExt)
+    await copy(fp, path.join(root(), hubFile), {
+        isFullPath: true,
+    })
+    if (option.returnFullPath) {
+        return path.join(root(), hubFile)
+    }
+    return hubFile
+}
+
 const tempRoot = async () => {
     await waitAppEnvReady()
     const tempDir = path.join(AppEnv.userData, 'temp')
@@ -590,6 +630,7 @@ export const FileIndex = {
     appendText,
     download,
     ext,
+    hubSave,
 }
 
 export default FileIndex
