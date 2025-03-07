@@ -1,6 +1,11 @@
 # LinkAndroid
 
 ![](./screenshots/en/home.png)
+![star](https://img.shields.io/badge/Framework-TS+Vue3+Electron-blue)
+[![star](https://img.shields.io/badge/WEB-linkandroid.com-blue)](https://linkandroid.com)
+[![star](https://img.shields.io/github/stars/modstart-lib/linkandroid.svg)](https://github.com/modstart-lib/linkandroid)
+[![star](https://gitee.com/modstart-lib/linkandroid/badge/star.svg)](https://gitee.com/modstart-lib/linkandroid)
+[![star](https://gitcode.com/modstart-lib/linkandroid/star/badge.svg)](https://gitcode.com/modstart-lib/linkandroid)
 
 ## Guide
 
