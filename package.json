@@ -41,7 +41,6 @@
         "autoprefixer": "^10.4.19",
         "electron": "^29.1.1",
         "electron-builder": "^24.13.3",
-        "electron-rebuild": "^3.2.9",
         "less": "^4.2.0",
         "postcss": "^8.4.39",
         "tailwindcss": "^3.4.4",

@@ -31,18 +31,33 @@ export const memoryInfo = () => {
     }
 }
 
+const tryFirst = (functionList: (() => any)[]) => {
+    for (const fun of functionList) {
+        try {
+            return fun()
+        } catch (e) {
+        }
+    }
+    return null
+}
+
 
 let platformVersionCache: string | null = null
 export const platformVersion = () => {
     if (null === platformVersionCache) {
+        const functionList: any[] = []
         if (isWin) {
-            platformVersionCache = execSync('wmic os get Version').toString().split('\n')[1].trim()
+            functionList.push(() => execSync('wmic os get Version').toString().split('\n')[1].trim())
+            functionList.push(() => execSync('powershell -command "(Get-ItemProperty \'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\').ReleaseId"').toString().trim())
         } else if (isMac) {
-            platformVersionCache = execSync('sw_vers -productVersion').toString().trim()
+            functionList.push(() => execSync('sw_vers -productVersion').toString().trim())
         } else if (isLinux) {
-            platformVersionCache = execSync('cat /etc/os-release | grep VERSION_ID').toString().split('=')[1].trim().replace(/"/g, '')
-        } else {
-            platformVersionCache = ''
+            functionList.push(() => execSync('cat /etc/os-release | grep VERSION_ID').toString().split('=')[1].trim().replace(/"/g, ''))
+        }
+        platformVersionCache = tryFirst(functionList)
+        if (!platformVersionCache) {
+            Log.error('env.platformVersion.error')
+            platformVersionCache = '0.0.0'
         }
     }
     return platformVersionCache
@@ -61,16 +76,18 @@ export const platformArch = (): 'x86' | 'arm64' | null => {
 let platformUUIDCache: string | null = null
 export const platformUUID = () => {
     if (null === platformUUIDCache) {
-        try {
-            if (isWin) {
-                platformUUIDCache = execSync('wmic csproduct get UUID').toString().split('\n')[1].trim()
-            } else if (isMac) {
-                platformUUIDCache = execSync('system_profiler SPHardwareDataType | grep UUID').toString().split(': ')[1].trim()
-            } else if (isLinux) {
-                platformUUIDCache = execSync('cat /var/lib/dbus/machine-id').toString().trim().toUpperCase()
-            }
-        } catch (e) {
-            Log.error('Env.platformUUID', e.message)
+        const functionList: any[] = []
+        if (isWin) {
+            functionList.push(() => execSync('wmic csproduct get UUID').toString().split('\n')[1].trim())
+            functionList.push(() => execSync('powershell -command "(Get-WmiObject Win32_ComputerSystemProduct).UUID"').toString().trim())
+        } else if (isMac) {
+            functionList.push(() => execSync('system_profiler SPHardwareDataType | grep UUID').toString().split(': ')[1].trim())
+        } else if (isLinux) {
+            functionList.push(() => execSync('cat /var/lib/dbus/machine-id').toString().trim().toUpperCase())
+        }
+        platformUUIDCache = tryFirst(functionList)
+        if (!platformUUIDCache) {
+            Log.error('env.platformUUID.error')
             platformUUIDCache = '000000'
         }
     }
