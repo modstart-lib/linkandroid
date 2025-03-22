@@ -29,6 +29,9 @@ export const TimeUtil = {
     timestamp() {
         return Math.floor(Date.now() / 1000)
     },
+    datetimeToTimestamp(datetime: string) {
+        return dayjs(datetime).unix()
+    },
     timestampMS() {
         return Date.now()
     },
