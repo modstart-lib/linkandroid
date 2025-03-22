@@ -168,10 +168,16 @@ const post = async <T>(
     data: Record<string, any>,
     option?: {
         catchException?: boolean,
+        retry?: number,
+        retryTimes?: number,
+        retryInterval?: number,
     }
 ): Promise<ResultType<T>> => {
     option = Object.assign({
         catchException: true,
+        retry: 0,
+        retryTimes: 0,
+        retryInterval: 5,
     }, option)
     let url = api
     if (!api.startsWith('http:') && !api.startsWith('https:')) {
@@ -188,6 +194,12 @@ const post = async <T>(
         body: JSON.stringify(data)
     })
     if (res.status !== 200) {
+        if (option.retry > 0 && option.retryTimes < option.retry) {
+            option.retryTimes++
+            Log.info('user.post.retry', {api, data, res, retryTimes: option.retryTimes})
+            await new Promise(resolve => setTimeout(resolve, option.retryInterval * 1000))
+            return await post(api, data, option)
+        }
         Log.error('user.post.error', {api, data, res})
         return {
             code: -1,
@@ -197,6 +209,12 @@ const post = async <T>(
     const json = await res.json()
     // console.log('post', JSON.stringify({api, data, json}, null, 2))
     if (!('code' in json)) {
+        if (option.retry > 0 && option.retryTimes < option.retry) {
+            option.retryTimes++
+            Log.info('user.post.retry', {api, data, res, retryTimes: option.retryTimes})
+            await new Promise(resolve => setTimeout(resolve, option.retryInterval * 1000))
+            return await post(api, data, option)
+        }
         Log.error('user.post.error', {api, data, res})
         console.log('user.post.error', res)
         throw 'ResponseError'
