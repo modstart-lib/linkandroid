@@ -5,20 +5,32 @@ import {AppConfig} from "../config";
 import AppQuitConfirm from "../components/AppQuitConfirm.vue";
 
 const appQuitConfirm = ref<InstanceType<typeof AppQuitConfirm> | null>(null);
-const platformName = ref('')
+
+const isOsx = ref(false)
+const isFullscreen = ref(false)
+window.__page.onEnterFullScreen(() => {
+    isFullscreen.value = true
+})
+window.__page.onLeaveFullScreen(() => {
+    isFullscreen.value = false
+})
+window.__page.onShowQuitConfirmDialog(() => {
+    appQuitConfirm.value?.show()
+})
+
+onBeforeMount(async () => {
+    isOsx.value = window.$mapi.app.isPlatform('osx')
+})
 
 const doQuit = async () => {
     await appQuitConfirm.value?.show()
 }
 
-onBeforeMount(() => {
-    platformName.value = window.$mapi?.app?.platformName() as any
-})
-
 </script>
 <template>
     <div class="window-container">
-        <div class="window-header flex h-10 items-center border-b border-solid border-gray-200 dark:border-gray-800">
+        <div class="window-header flex h-10 items-center border-b border-solid border-gray-200 dark:border-gray-800"
+             :class="{osx:isOsx,fullscreen:isFullscreen}">
             <div class="window-header-title flex-grow flex items-center">
                 <div class="pl-2 py-2">
                     <img src="/logo.svg" class="w-4 t-4"/>
@@ -27,7 +39,7 @@ onBeforeMount(() => {
                     {{ AppConfig.name }}
                 </div>
             </div>
-            <div class="p-1 leading-4">
+            <div v-if="!isOsx" class="p-1 leading-4">
                 <div class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-primary mr-1"
                      @click="$mapi.app.windowMin()">
                     <i class="iconfont text-sm icon-min"></i>

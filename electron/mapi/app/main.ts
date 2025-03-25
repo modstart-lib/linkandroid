@@ -31,6 +31,8 @@ const getCurrentWindow = (window, e) => {
 
 
 const quit = () => {
+    // @ts-ignore
+    app.quitForce = true;
     app.quit()
 }
 

@@ -25,6 +25,9 @@ window['__page'] = {
     onLeaveFullScreen: (cb: Function) => {
         window['__page'].hooks.onLeaveFullScreen = cb
     },
+    onShowQuitConfirmDialog: (cb: Function) => {
+        window['__page'].hooks.onShowQuitConfirmDialog = cb
+    },
     broadcastListeners: {},
     onBroadcast: (type: string, cb: (data: any) => void) => {
         if (!(type in window['__page'].broadcastListeners)) {

@@ -16,7 +16,7 @@ import {preloadDefault, rendererLoadPath} from "../lib/env-main";
 import {Page} from "../page";
 import {ConfigTray} from "../config/tray";
 import {icnsLogoPath, icoLogoPath, logoPath} from "../config/icon";
-import {isPackaged} from "../lib/env";
+import {isMac, isPackaged} from "../lib/env";
 import {executeHooks} from "../lib/hooks";
 import {DevToolsManager} from "../lib/devtools";
 import {AppsMain} from "../mapi/app/main";
@@ -111,6 +111,8 @@ async function createWindow() {
         width: WindowConfig.initWidth,
         height: WindowConfig.initHeight,
         backgroundColor: await AppsMain.defaultDarkModeBackgroundColor(),
+        titleBarStyle: 'hidden',
+        trafficLightPosition: {x: 10, y: 11},
         webPreferences: {
             preload: preloadDefault,
             // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
@@ -133,6 +135,22 @@ async function createWindow() {
     AppRuntime.mainWindow.on('hide', async () => {
         await executeHooks(AppRuntime.mainWindow, 'Hide')
     });
+
+    if (isMac) {
+        AppRuntime.mainWindow.on('close', (event) => {
+            // @ts-ignore
+            if (!app.quitForce) {
+                executeHooks(AppRuntime.mainWindow, 'ShowQuitConfirmDialog')
+                event.preventDefault();
+            }
+        })
+    }
+    AppRuntime.mainWindow.on('enter-full-screen', () => {
+        executeHooks(AppRuntime.mainWindow, 'EnterFullScreen')
+    })
+    AppRuntime.mainWindow.on('leave-full-screen', () => {
+        executeHooks(AppRuntime.mainWindow, 'LeaveFullScreen')
+    })
 
     rendererLoadPath(AppRuntime.mainWindow, 'index.html')
     DevToolsManager.register('Main', AppRuntime.mainWindow)

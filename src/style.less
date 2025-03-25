@@ -100,6 +100,16 @@ body {
 
 .window-header {
     -webkit-user-select: none;
+    transition: all 0.3s;
+    padding-left: 0;
+
+    &.osx {
+        padding-left: 70px;
+    }
+
+    &.fullscreen {
+        padding-left: 0;
+    }
 
     .window-header-title {
         -webkit-app-region: drag;

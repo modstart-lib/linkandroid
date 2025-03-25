@@ -4,6 +4,9 @@ import {AppsMain} from "../mapi/app/main";
 type HookType = never
     | 'Show'
     | 'Hide'
+    | 'EnterFullScreen'
+    | 'LeaveFullScreen'
+    | 'ShowQuitConfirmDialog'
 
 export const executeHooks = async (win: BrowserWindow, hook: HookType, data?: any) => {
     const evalJs = `

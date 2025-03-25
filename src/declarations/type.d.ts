@@ -6,6 +6,7 @@ declare interface Window {
         onUnmaximize: (cb: Function) => void,
         onEnterFullScreen: (cb: Function) => void,
         onLeaveFullScreen: (cb: Function) => void,
+        onShowQuitConfirmDialog: (cb: Function) => void,
         onBroadcast: (type: string, cb: (data: any) => void) => void,
         offBroadcast: (type: string, cb: (data: any) => void) => void,
         registerCallPage: (
