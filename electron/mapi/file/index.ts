@@ -366,10 +366,12 @@ const hubCreate = async (ext: string = 'bin') => {
 }
 
 const hubSave = async (file: string, option?: {
+    ext?: string,
     isFullPath?: boolean,
     returnFullPath?: boolean,
 }) => {
     option = Object.assign({
+        ext: null,
         isFullPath: false,
         returnFullPath: false,
     }, option)
@@ -380,8 +382,10 @@ const hubSave = async (file: string, option?: {
     if (!fs.existsSync(fp)) {
         throw `FileNotFound ${fp}`
     }
-    const fileExt = ext(fp)
-    const hubFile = await hubCreate(fileExt)
+    if (!option.ext) {
+        option.ext = ext(fp)
+    }
+    const hubFile = await hubCreate(option.ext)
     await copy(fp, path.join(root(), hubFile), {
         isFullPath: true,
     })
