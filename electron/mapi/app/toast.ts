@@ -60,6 +60,7 @@ export const makeToast = (msg: string, options?: {
             padding: 0;
             background: rgba(0, 0, 0, 0.4);
             color: #FFFFFF;
+            font-family: "PingFang SC", "Helvetica Neue", Helvetica, STHeiTi, "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
         }
         .message-view {
             height: 100vh;
