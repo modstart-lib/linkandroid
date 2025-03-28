@@ -76,15 +76,15 @@ const listFiles = (dir, recursive, regex) => {
 async function calcSha256() {
     console.log('calcSha256.start')
     const results = []
-    const files = common.listFiles(common.distReleaseDir(), false, /\.(exe|dmg|AppImage|deb)$/)
+    const files = listFiles(distReleaseDir(), false, /\.(exe|dmg|AppImage|deb)$/)
     for (const p of files) {
-        const sha256 = await common.sha256(p.path);
+        const sha256 = await sha256(p.path);
         results.push({
             name: p.name,
             sha256: sha256
         })
     }
-    const target = common.distReleaseDir(`sha256-${common.platformName()}-${common.platformArch()}.yml`)
+    const target = distReleaseDir(`sha256-${platformName()}-${platformArch()}.yml`)
     const content = results.map((r) => {
         return `${r.name}: ${r.sha256}`
     }).join("\n")
