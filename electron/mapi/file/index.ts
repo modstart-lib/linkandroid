@@ -612,6 +612,23 @@ const ext = (path: string) => {
     return nodePath.extname(path).replace(/^\./, '')
 }
 
+const textToName = (text: string, ext: string = '', maxLimit: number = 100) => {
+    if (text) {
+        // 转换为合法的文件名
+        text = text.replace(/[\\\/\:\*\?\"\<\>\|]/g, '')
+        text = text.replace(/[\r\n]/g, '')
+        text = text.replace(/\s+/g, '')
+        text = text.substring(0, maxLimit)
+    }
+    if (!text) {
+        text = 'EMPTY'
+    }
+    if (!ext) {
+        return text
+    }
+    return `${text}.${ext}`
+}
+
 export const FileIndex = {
     fullPath,
     absolutePath,
@@ -635,6 +652,7 @@ export const FileIndex = {
     download,
     ext,
     hubSave,
+    textToName,
 }
 
 export default FileIndex

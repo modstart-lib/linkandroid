@@ -152,6 +152,8 @@ declare interface Window {
             openDirectory: (options: {} = {}) => Promise<any>,
             openSave: (options: {} = {}) => Promise<any>,
             openPath: (path: string, options: {} = {}) => Promise<void>,
+            ext: (path: string) => Promise<string>,
+            textToName: (text: string, ext: string = '', maxLimit: number = 100) => Promise<string>,
         },
         updater: {
             checkForUpdate: () => Promise<ApiResult<any>>,

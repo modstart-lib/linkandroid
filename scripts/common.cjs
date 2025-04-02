@@ -15,7 +15,7 @@ const distReleaseDir = (p) => {
     }
 }
 
-function sha256(filePath) {
+function calcSha256File(filePath) {
     return new Promise((resolve, reject) => {
         const hash = crypto.createHash("sha256");
         const stream = fs.createReadStream(filePath);
@@ -78,7 +78,7 @@ async function calcSha256() {
     const results = []
     const files = listFiles(distReleaseDir(), false, /\.(exe|dmg|AppImage|deb)$/)
     for (const p of files) {
-        const sha256 = await sha256(p.path);
+        const sha256 = await calcSha256File(p.path);
         results.push({
             name: p.name,
             sha256: sha256
