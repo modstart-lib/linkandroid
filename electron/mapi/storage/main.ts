@@ -61,6 +61,23 @@ const set = async (group: string, key: string, value: any) => {
     save(group)
 }
 
+const read = async (group: string, defaultValue: any) => {
+    await waitAppEnvReady()
+    loadIfNeed(group)
+    if (!(group in data)) {
+        data[group] = defaultValue
+        save(group)
+    }
+    return data[group]
+}
+
+const write = async (group: string, value: any) => {
+    await waitAppEnvReady()
+    loadIfNeed(group)
+    data[group] = value
+    save(group)
+}
+
 ipcMain.handle('storage:all', async (event, group: string) => {
     return await all(group)
 })
@@ -73,10 +90,20 @@ ipcMain.handle('storage:set', async (event, group: string, key: string, value: a
     return await set(group, key, value)
 })
 
+ipcMain.handle('storage:read', async (event, group: string, defaultValue: any) => {
+    return await read(group, defaultValue)
+})
+
+ipcMain.handle('storage:write', async (event, group: string, value: any) => {
+    return await write(group, value)
+})
+
 export const StorageMain = {
     all,
     get,
-    set
+    set,
+    read,
+    write,
 }
 
 export default StorageMain

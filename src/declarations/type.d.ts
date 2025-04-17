@@ -112,6 +112,8 @@ declare interface Window {
             all: () => Promise<any>,
             get: (group: string, key: string, defaultValue: any) => Promise<any>,
             set: (group: string, key: string, value: any) => Promise<void>,
+            write: (group: string, value: any) => Promise<void>,
+            read: (group: string, defaultValue: any = null) => Promise<any>,
         },
         db: {
             execute: (sql: string, params: any = []) => Promise<any>,
@@ -154,6 +156,12 @@ declare interface Window {
             openPath: (path: string, options: {} = {}) => Promise<void>,
             ext: (path: string) => Promise<string>,
             textToName: (text: string, ext: string = '', maxLimit: number = 100) => Promise<string>,
+            hubSave: (file: string, option?: {
+                ext?: string,
+                isFullPath?: boolean,
+                returnFullPath?: boolean,
+                ignoreWhenInHub?: boolean,
+            }) => Promise<string>,
         },
         updater: {
             checkForUpdate: () => Promise<ApiResult<any>>,

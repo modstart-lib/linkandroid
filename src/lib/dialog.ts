@@ -69,6 +69,14 @@ export const Dialog = {
         });
         loadingLayers.push(loading)
     },
+    loadingUpdate: (content: string) => {
+        if (loadingLayers.length > 0) {
+            const contentContainer = document.querySelector('.arco-message-list .arco-message-loading .arco-message-content')
+            if (contentContainer) {
+                contentContainer.innerHTML = content
+            }
+        }
+    },
     loadingOff: () => {
         const loading = loadingLayers.pop()
         if (loading) {

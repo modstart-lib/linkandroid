@@ -4,6 +4,7 @@ import fs from "node:fs";
 import {StrUtil, TimeUtil} from "../../lib/util";
 import Apps from "../app";
 import {Readable} from "node:stream";
+import {isWin} from "../../lib/env";
 
 const nodePath = path
 
@@ -350,6 +351,15 @@ const copy = async (pathOld: string, pathNew: string, option?: { isFullPath?: bo
     fs.copyFileSync(fullPathOld, fullPathNew)
 }
 
+const hubRoot = async () => {
+    await waitAppEnvReady()
+    const hubDir = path.join(root(), 'hub')
+    if (!fs.existsSync(hubDir)) {
+        fs.mkdirSync(hubDir, {recursive: true})
+    }
+    return hubDir
+}
+
 const hubCreate = async (ext: string = 'bin') => {
     return path.join(
         'hub',
@@ -369,11 +379,13 @@ const hubSave = async (file: string, option?: {
     ext?: string,
     isFullPath?: boolean,
     returnFullPath?: boolean,
+    ignoreWhenInHub?: boolean,
 }) => {
     option = Object.assign({
         ext: null,
         isFullPath: false,
         returnFullPath: false,
+        ignoreWhenInHub: false,
     }, option)
     let fp = file
     if (!option.isFullPath) {
@@ -384,6 +396,12 @@ const hubSave = async (file: string, option?: {
     }
     if (!option.ext) {
         option.ext = ext(fp)
+    }
+    if (option.ignoreWhenInHub) {
+        const hubRoot_ = await hubRoot()
+        if (inDir(fp, hubRoot_)) {
+            return fp
+        }
     }
     const hubFile = await hubCreate(option.ext)
     await copy(fp, path.join(root(), hubFile), {
@@ -627,6 +645,18 @@ const textToName = (text: string, ext: string = '', maxLimit: number = 100) => {
         return text
     }
     return `${text}.${ext}`
+}
+
+const inDir = (path: string, dir: string) => {
+    if (!path || !dir) {
+        return false
+    }
+    path = path.replace(/\\/g, '/')
+    dir = dir.replace(/\\/g, '/')
+    if (path === dir) {
+        return true
+    }
+    return path.startsWith(dir)
 }
 
 export const FileIndex = {
