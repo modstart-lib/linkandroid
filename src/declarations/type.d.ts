@@ -19,6 +19,8 @@ declare interface Window {
         ) => void,
         createChannel: (cb: (data: any) => void) => string,
         destroyChannel: (channel: string) => void,
+        ipcSendToHost: (channel: string, type: string, data?: any) => void,
+        ipcSend: (channel: string, type: string, data?: any) => void,
     },
     $mapi: {
         app: {

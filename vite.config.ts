@@ -138,6 +138,7 @@ export default defineConfig(({command}) => {
                     guide: path.resolve(__dirname, 'page/guide.html'),
                     setup: path.resolve(__dirname, 'page/setup.html'),
                     payment: path.resolve(__dirname, 'page/payment.html'),
+                    monitor: path.resolve(__dirname, 'page/monitor.html'),
                 }
             }
         },

@@ -126,18 +126,9 @@ ipcMain.handle('window:close', (event, name: string) => {
 const windowOpen = async (name: string, option?: {
     singleton?: boolean,
     parent?: BrowserWindow,
+    [key: string]: any
 }) => {
     name = name || 'main'
-    option = option || {}
-    if (!option.parent) {
-        option.parent = AppRuntime.mainWindow
-    }
-    const win = getWindowByName(name)
-    if (win) {
-        win.setParentWindow(option.parent)
-        win.show()
-        return
-    }
     return Page.open(name, option)
 }
 

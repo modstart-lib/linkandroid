@@ -61,6 +61,18 @@ window['__page'] = {
     destroyChannel: (channel: string) => {
         delete window['__page'].channel[channel]
     },
+    ipcSendToHost: (channel: string, type: string, data?: any) => {
+        ipcRenderer.sendToHost(channel, {
+            type,
+            data,
+        });
+    },
+    ipcSend: (channel: string, type: string, data?: any) => {
+        ipcRenderer.send(channel, {
+            type,
+            data,
+        });
+    }
 }
 
 ipcRenderer.removeAllListeners('MAIN_PROCESS_MESSAGE')

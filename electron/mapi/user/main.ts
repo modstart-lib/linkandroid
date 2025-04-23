@@ -184,31 +184,39 @@ const post = async <T>(
         url = `${AppConfig.apiBaseUrl}/${api}`
     }
     const apiToken = await User.getApiToken()
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'User-Agent': Apps.getUserAgent(),
-            'Content-Type': 'application/json',
-            'Api-Token': apiToken,
-        },
-        body: JSON.stringify(data)
-    })
-    if (res.status !== 200) {
-        if (option.retry > 0 && option.retryTimes < option.retry) {
-            option.retryTimes++
-            Log.info('user.post.retry', {api, data, res, retryTimes: option.retryTimes})
-            await new Promise(resolve => setTimeout(resolve, option.retryInterval * 1000))
-            return await post(api, data, option)
+    let json = null, res = null
+    try {
+        res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'User-Agent': Apps.getUserAgent(),
+                'Content-Type': 'application/json',
+                'Api-Token': apiToken,
+            },
+            body: JSON.stringify(data)
+        })
+        if (res.status !== 200) {
+            if (option.retry > 0 && option.retryTimes < option.retry) {
+                option.retryTimes++
+                Log.info('user.post.retry', {api, data, res, retryTimes: option.retryTimes})
+                await new Promise(resolve => setTimeout(resolve, option.retryInterval * 1000))
+                return await post(api, data, option)
+            }
+            Log.error('user.post.error', {api, data, res})
+            if (option.catchException) {
+                throw `RequestError(code:${res.status},text:${res.statusText})`
+            }
+            return {
+                code: -1,
+                msg: `RequestError(code:${res.status},text:${res.statusText})`
+            } as ResultType<T>
         }
-        Log.error('user.post.error', {api, data, res})
-        return {
-            code: -1,
-            msg: `RequestError(code:${res.status},text:${res.statusText})`
-        } as ResultType<T>
+        json = await res.json()
+    } catch (e) {
+        res = `RequestError(${e})`
     }
-    const json = await res.json()
     // console.log('post', JSON.stringify({api, data, json}, null, 2))
-    if (!('code' in json)) {
+    if (!json || !('code' in json)) {
         if (option.retry > 0 && option.retryTimes < option.retry) {
             option.retryTimes++
             Log.info('user.post.retry', {api, data, res, retryTimes: option.retryTimes})
@@ -216,8 +224,10 @@ const post = async <T>(
             return await post(api, data, option)
         }
         Log.error('user.post.error', {api, data, res})
-        console.log('user.post.error', res)
-        throw 'ResponseError'
+        if (option.catchException) {
+            throw 'ResponseError'
+        }
+        return {code: -1, msg: 'ResponseError'}
     }
     if (json.code) {
         // 未登录或登录过期

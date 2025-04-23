@@ -9,6 +9,7 @@ import {PageSetup} from "./setup";
 import {DevToolsManager} from "../lib/devtools";
 import {PageFeedback} from "./feedback";
 import {PagePayment} from "./payment";
+import {PageMonitor} from "./monitor";
 
 const Pages = {
     'thirdPartyImageBeautifier': PageThirdPartyImageBeautifier,
@@ -17,6 +18,7 @@ const Pages = {
     'setup': PageSetup,
     'payment': PagePayment,
     'feedback': PageFeedback,
+    'monitor': PageMonitor,
 }
 
 export const Page = {
@@ -58,6 +60,7 @@ export const Page = {
     open: async (name: string, option?: {
         singleton?: boolean,
         parent?: BrowserWindow,
+        [key: string]: any
     }) => {
         option = Object.assign({
             singleton: true,

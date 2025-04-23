@@ -1,7 +1,5 @@
 import {defineStore} from "pinia"
 import store from "../index";
-import {userInfoApi} from "../../api/user";
-import {toRaw} from "vue";
 import {AppConfig} from "../../config";
 import {useSettingStore} from "./setting";
 
@@ -20,9 +18,19 @@ export const userStore = defineStore("user", {
             },
             data: {
                 vip: {},
-                functions: {}
+                functions: {},
+            } as {
+                vip: {
+                    [key: string]: any,
+                },
+                functions: {
+                    [key: string]: any,
+                },
+                [key: string]: any,
             },
-            basic: {},
+            basic: {} as {
+                [key: string]: any,
+            },
         }
     },
     actions: {

@@ -9,23 +9,38 @@ const init = () => {
 
 type NameType = 'main' | string
 type EventType = 'APP_READY' | 'CALL_PAGE' | 'CHANNEL' | 'BROADCAST'
-type BroadcastType = 'ConfigChange' | 'ConfigEnvChange' | 'UserChange' | 'DarkModeChange' | 'HotkeyWatch' | 'Notice'
+type BroadcastType =
+    'ConfigChange'
+    | 'ConfigEnvChange'
+    | 'UserChange'
+    | 'DarkModeChange'
+    | 'HotkeyWatch'
+    | 'Notice'
+    | 'MonitorEvent'
 
 const broadcast = (type: BroadcastType, data: any, option?: {
     limit?: boolean,
-    scopes?: string[]
+    scopes?: string[],
+    pages?: string[]
 }) => {
     data = data || {}
     option = Object.assign({
         limit: false,
-        scopes: []
+        scopes: [],
+        pages: [],
     }, option)
-    if (!option.limit || option.scopes.includes('main')) {
-        send('main', 'BROADCAST', {type, data})
-    }
-    if (!option.limit || option.scopes.includes('pages')) {
-        for (let name in AppRuntime.windows) {
-            send(name, 'BROADCAST', {type, data})
+    if (option.pages.length > 0) {
+        for (const p of option.pages) {
+            send(p, 'BROADCAST', {type, data})
+        }
+    } else {
+        if (!option.limit || option.scopes.includes('main')) {
+            send('main', 'BROADCAST', {type, data})
+        }
+        if (!option.limit || option.scopes.includes('pages')) {
+            for (let name in AppRuntime.windows) {
+                send(name, 'BROADCAST', {type, data})
+            }
         }
     }
 }

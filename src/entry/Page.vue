@@ -7,7 +7,7 @@
                         <img src="/logo.svg" class="w-4 t-4"/>
                     </div>
                     <div class="p-2 flex-grow">
-                        {{ props.title }}
+                        {{ pageTitle }}
                     </div>
                 </div>
                 <div class="p-1 leading-4">
@@ -18,14 +18,14 @@
                 </div>
             </div>
             <div class="window-body">
-                <component :is="props.page"/>
+                <component :is="props.page" @event="onEvent"/>
             </div>
         </div>
     </a-config-provider>
 </template>
 
 <script setup lang="ts">
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {onLocaleChange} from "../lang"
 
 import zhCN from '@arco-design/web-vue/es/locale/lang/zh-cn';
@@ -41,6 +41,21 @@ const props = defineProps<{
     title: string,
     page: any
 }>();
+
+const pageTitleCustom = ref<string>('');
+const pageTitle = computed(() => {
+    if (pageTitleCustom.value) {
+        return pageTitleCustom.value
+    }
+    return props.title
+})
+
+const onEvent = (type: string, data: any) => {
+    // console.log('Page.onEvent', type, data)
+    if (type === 'SetTitle') {
+        pageTitleCustom.value = data.title
+    }
+}
 
 const doClose = async () => {
     await window.$mapi.app.windowClose(props.name)
