@@ -36,7 +36,8 @@ const statusText = computed(() => {
 <template>
     <div class="text-white px-2 py-1 rounded-full text-sm inline-flex items-center" :class="statusColor">
         <div class="w-2 h-2 rounded-full bg-white mr-2"></div>
-        <a-tooltip v-if="!!statusMsg&&statusMsg.length<20" :content="statusMsg" position="left">
+        <a-tooltip v-if="!!statusMsg&&statusMsg.length<20" :content="statusMsg" position="left"
+            mini>
             <div>
                 {{ statusText }}
                 <icon-info-circle/>

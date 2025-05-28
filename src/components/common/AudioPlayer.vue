@@ -323,6 +323,7 @@ defineExpose({
             </div>
             <div class="ml-3">
                 <a-tooltip :content="$t('收起')"
+                           mini
                            v-if="showWave&&waveVisible&&!isTrimming&&!isRecording">
                     <div @click="waveVisible=false"
                          class="cursor-pointer w-8 h-8 inline-flex">
@@ -330,12 +331,14 @@ defineExpose({
                     </div>
                 </a-tooltip>
                 <a-tooltip :content="$t('重新录制')"
+                           mini
                            v-if="recordUrl&&!isTrimming">
                     <div @click="doRecordClean" class="cursor-pointer w-8 h-8 inline-flex">
                         <i class="iconfont icon-refresh-circle m-auto text-gray-700 hover:text-primary text-2xl"></i>
                     </div>
                 </a-tooltip>
                 <a-tooltip :content="$t('裁剪音频')"
+                           mini
                            v-if="!isTrimming && props.trimEnable">
                     <div @click="doTrim"
                          class="cursor-pointer w-8 h-8 inline-flex">
@@ -343,6 +346,7 @@ defineExpose({
                     </div>
                 </a-tooltip>
                 <a-tooltip :content="$t('确定裁剪')"
+                           mini
                            v-if="isTrimming && props.trimEnable">
                     <div @click="doTrimSave"
                          class="cursor-pointer w-8 h-8 inline-flex">
@@ -350,6 +354,7 @@ defineExpose({
                     </div>
                 </a-tooltip>
                 <a-tooltip :content="$t('下载音频')"
+                           mini
                            v-if="!isTrimming && props.downloadEnable">
                     <div @click="doDownload"
                          class="cursor-pointer w-8 h-8 inline-flex">
@@ -357,6 +362,7 @@ defineExpose({
                     </div>
                 </a-tooltip>
                 <a-tooltip :content="$t('录制音频')"
+                           mini
                            v-if="props.recordEnable && !isTrimming && !recordUrl">
                     <div @click="doRecord"
                          class="cursor-pointer w-8 h-8 inline-flex">
