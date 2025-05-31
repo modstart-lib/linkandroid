@@ -6,7 +6,7 @@
                     <div class="pl-2 py-2">
                         <img src="/logo.svg" class="w-4 t-4"/>
                     </div>
-                    <div class="p-2 flex-grow">
+                    <div class="p-2 flex-grow truncate overflow-hidden text-ellipsis max-w-96">
                         {{ pageTitle }}
                     </div>
                 </div>

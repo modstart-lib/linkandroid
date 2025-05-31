@@ -14,6 +14,7 @@ const webPreload = ref('')
 const webUrl = ref('')
 const webUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
 const pageTitle = ref('')
+const pageDebugToolsShow = ref(false)
 const pageOpenDevTools = ref(false)
 const pageScript = ref('')
 const pageStatusType = ref<'info' | 'success' | 'error'>('info')
@@ -44,7 +45,21 @@ window.__page.registerCallPage('MonitorData', (resolve, reject, payload) => {
     return resolve(undefined)
 })
 
-const doRefresh = () => {
+const doOpenWebDevTools = () => {
+    if (web.value) {
+        if (web.value.isDevToolsOpened()) {
+            web.value.closeDevTools()
+        } else {
+            web.value.openDevTools()
+        }
+    }
+}
+
+const doRefresh = (e) => {
+    if(e.shiftKey){
+        pageDebugToolsShow.value = !pageDebugToolsShow.value
+        return
+    }
     if (web.value) {
         web.value.reload()
     }
@@ -110,6 +125,12 @@ onMounted(async () => {
 <template>
     <div class="pb-monitor-container relative">
         <div class="p-2 flex h-12 items-center overflow-hidden">
+            <a-button shape="round" type="primary" status="danger"
+                      class="mr-1"
+                      v-if="pageDebugToolsShow"
+                      @click="doOpenWebDevTools">
+                调试
+            </a-button>
             <a-button shape="round" type="primary" @click="doRefresh">
                 刷新
             </a-button>

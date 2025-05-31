@@ -106,9 +106,9 @@ const spawnShell = async (command: string | string[], option: {
         stderrList.push(dataString)
         option.stderr?.(dataString, spawnProcess)
     })
-    spawnProcess.on('exit', (code) => {
+    spawnProcess.on('exit', (code, signal) => {
         // console.log('App.spawnShell.exit', code)
-        Log.info('App.spawnShell.exit', JSON.stringify(code))
+        Log.info('App.spawnShell.exit', {code, signal})
         exitCode = code
         if (isWin) {
             if (0 === code || 1 === code) {

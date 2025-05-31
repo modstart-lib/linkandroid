@@ -1,5 +1,4 @@
 import {net} from 'electron'
-import {Client, handle_file} from "@gradio/client";
 import {platformArch, platformName} from "../../lib/env";
 import {Events} from "../event/main";
 import {Apps} from "../app";
@@ -92,9 +91,42 @@ const requestUrlFileToLocal = async (url, path) => {
     })
 }
 
+const availablePort = async (port: number, setting: {
+    port?: number
+}) => {
+    setting = setting || {}
+    if (port) {
+        return port
+    }
+    if (setting['port']) {
+        port = parseInt(setting['port'] as any)
+    } else if (!port || !await Apps.isPortAvailable(port)) {
+        port = await Apps.availablePort(50617)
+    }
+    return port
+}
+
+const pathSep = () => {
+    return process.platform === 'win32' ? ';' : ':'
+}
+
+const getPathEnv = (addition: string | string[] = null) => {
+    let p = process.env['PATH'] || ''
+    if (addition) {
+        const sep = pathSep()
+        if (typeof addition === 'string') {
+            addition = [addition]
+        }
+        for (let path of addition) {
+            if (p.indexOf(path) === -1) {
+                p = `${path}${sep}${p}`
+            }
+        }
+    }
+    return p;
+}
+
 export default {
-    GradioClient: Client,
-    GradioHandleFile: handle_file,
     event: Events,
     file: Files,
     app: Apps,
@@ -103,6 +135,8 @@ export default {
     requestGet,
     requestPostSuccess,
     requestUrlFileToLocal,
+    availablePort,
+    getPathEnv,
     platformName: platformName(),
     platformArch: platformArch(),
 }

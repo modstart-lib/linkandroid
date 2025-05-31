@@ -55,7 +55,15 @@ export default defineConfig(({command}) => {
                 name: 'process-variables',
                 closeBundle() {
                     const files = [
-                        'splash.html', 'index.html'
+                        'splash.html',
+                        'index.html',
+                        'page/about.html',
+                        'page/feedback.html',
+                        'page/guide.html',
+                        'page/monitor.html',
+                        'page/payment.html',
+                        'page/setup.html',
+                        'page/user.html',
                     ];
                     files.forEach(f => {
                         const p = path.resolve(__dirname, 'dist', f);
