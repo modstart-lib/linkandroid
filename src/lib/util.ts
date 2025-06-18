@@ -7,6 +7,17 @@ export const sleep = (time = 1000) => {
     })
 }
 
+export const wait = (callback: () => boolean, interval = 10) => {
+    return new Promise((resolve) => {
+        const timer = setInterval(() => {
+            if (callback()) {
+                clearInterval(timer)
+                resolve(true)
+            }
+        }, interval)
+    })
+}
+
 export const StringUtil = {
     random(length: number = 16) {
         const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

@@ -86,7 +86,7 @@ watch(web, (newVal) => {
             web.value.openDevTools()
         }
         if (pageScript.value) {
-            window.$mapi.user.apiPost(pageScript.value, {}, {catchException: false}).then(res => {
+            window.$mapi.user.apiPost(pageScript.value, {}, {throwException: false}).then(res => {
                 if (res.code) {
                     pageStatusMsg.value = `ERROR: ${res.msg}`
                 } else {

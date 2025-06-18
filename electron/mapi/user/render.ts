@@ -29,7 +29,7 @@ const apiPost = async (
     url: string,
     data: Record<string, any>,
     option?: {
-        catchException?: boolean,
+        throwException?: boolean,
     }
 ) => {
     return ipcRenderer.invoke('user:apiPost', url, data, option)

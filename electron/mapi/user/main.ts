@@ -142,7 +142,7 @@ const apiPost = async (
     url: string,
     data: Record<string, any>,
     option?: {
-        catchException?: boolean,
+        throwException?: boolean,
     }
 ) => {
     return post(url, data, option)
@@ -167,14 +167,14 @@ const post = async <T>(
     api: string,
     data: Record<string, any>,
     option?: {
-        catchException?: boolean,
+        throwException?: boolean,
         retry?: number,
         retryTimes?: number,
         retryInterval?: number,
     }
 ): Promise<ResultType<T>> => {
     option = Object.assign({
-        catchException: true,
+        throwException: true,
         retry: 0,
         retryTimes: 0,
         retryInterval: 5,
@@ -203,11 +203,11 @@ const post = async <T>(
                 return await post(api, data, option)
             }
             Log.error('user.post.error', {api, data, res})
-            if (option.catchException) {
+            if (option.throwException) {
                 throw `RequestError(code:${res.status},text:${res.statusText})`
             }
             return {
-                code: -1,
+                code: 10000,
                 msg: `RequestError(code:${res.status},text:${res.statusText})`
             } as ResultType<T>
         }
@@ -224,19 +224,19 @@ const post = async <T>(
             return await post(api, data, option)
         }
         Log.error('user.post.error', {api, data, res})
-        if (option.catchException) {
+        if (option.throwException) {
             throw 'ResponseError'
         }
-        return {code: -1, msg: 'ResponseError'}
+        return {code: 10000, msg: 'ResponseError'}
     }
     if (json.code) {
-        // 未登录或登录过期
+        // login required
         if (json.code === 1001) {
             if (userData.user && userData.user.id) {
                 await refresh()
             }
         }
-        if (option.catchException) {
+        if (option.throwException) {
             throw json.msg
         }
     }
