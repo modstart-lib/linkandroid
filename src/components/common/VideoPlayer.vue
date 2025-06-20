@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Player from 'xgplayer';
 import 'xgplayer/dist/index.min.css';
-import {onBeforeUnmount, onMounted, ref} from "vue";
+import {onBeforeUnmount, onMounted, ref, watch} from "vue";
 
 const videoContainer = ref<HTMLDivElement | undefined>(undefined);
 
@@ -25,17 +25,31 @@ const props = withDefaults(defineProps<{
 
 let player: Player | null = null;
 
+const initPlayer = () => {
+    if (player) {
+        player.destroy();
+        player = null;
+    }
+    if (videoContainer.value && props.url) {
+        player = new Player({
+            el: videoContainer.value,
+            url: props.url,
+            width: props.width,
+            height: props.height,
+            autoplay: props.autoplay,
+            muted: props.autoplayMuted,
+            loop: props.loop,
+            controls: props.controls,
+        });
+    }
+}
+
+watch(() => props.url, (newUrl) => {
+    initPlayer()
+})
+
 onMounted(() => {
-    player = new Player({
-        el: videoContainer.value,
-        url: props.url,
-        width: props.width,
-        height: props.height,
-        autoplay: props.autoplay,
-        muted: props.autoplayMuted,
-        loop: props.loop,
-        controls: props.controls,
-    });
+    initPlayer();
 })
 
 onBeforeUnmount(() => {
