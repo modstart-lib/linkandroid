@@ -9,9 +9,16 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT=$(realpath "${DIR}/..")
 echo "PROJECT_ROOT: ${PROJECT_ROOT}"
 
+path_svg="${PROJECT_ROOT}/public/logo.svg"
+path_white_svg="${PROJECT_ROOT}/public/logo-white.svg"
 path_build="${PROJECT_ROOT}/electron/resources/build"
 path_extra="${PROJECT_ROOT}/electron/resources/extra"
 path_source_png="${path_build}/logo_1024x1024.png"
+
+cp -a "${path_svg}" "${PROJECT_ROOT}/src/assets/image/logo.svg"
+cp -a "${path_white_svg}" "${PROJECT_ROOT}/src/assets/image/logo-white.svg"
+
+inkscape "${path_svg}" --export-type=png --export-filename="${path_source_png}" -w 1024 -h 1024
 
 size=(16 32 44 48 64 128 150 256 512)
 for i in "${size[@]}"; do
