@@ -45,7 +45,7 @@ export const t = (text: string, param: object | null = null) => {
         if (messages[locale][text]) {
             if (param) {
                 return messages[locale][text].replace(/\{(\w+)\}/g, function (match, key) {
-                    return param[key] ? param[key] : match;
+                    return (key in param) ? param[key] : match;
                 });
             }
             return messages[locale][text]

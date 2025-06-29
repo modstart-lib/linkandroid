@@ -4,6 +4,7 @@
     "appId": "LinkAndroid",
     "asar": true,
     "npmRebuild": true,
+    "publish": [],
     "productName": "LinkAndroid",
     "directories": {
         "output": "dist-release",
