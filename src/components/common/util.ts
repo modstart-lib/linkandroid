@@ -10,7 +10,7 @@ export const doCopy = async (text: string, successTip: string = ''): Promise<voi
     Dialog.tipSuccess(successTip);
 }
 
-export const doCheckForUpdate = async () => {
+export const doCheckForUpdate = async (noticeLatest?: boolean) => {
     const res = await window.$mapi.updater.checkForUpdate()
     defaultResponseProcessor(res, (res: ApiResult<any>) => {
         if (!res.data.version) {
@@ -18,7 +18,9 @@ export const doCheckForUpdate = async () => {
             return
         }
         if (VersionUtil.le(res.data.version, AppConfig.version)) {
-            Dialog.tipSuccess(t('已经是最新版本'))
+            if (noticeLatest) {
+                Dialog.tipSuccess(t('已经是最新版本'))
+            }
             return
         }
         Dialog.confirm(t('发现新版本{version}，是否立即下载更新？', {version: res.data.version}))

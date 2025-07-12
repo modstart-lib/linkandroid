@@ -21,7 +21,7 @@ const onCheckAtLaunchChange = async (value: boolean) => {
 
 const doVersionCheck = async () => {
     updaterCheckLoading.value = true
-    await doCheckForUpdate()
+    await doCheckForUpdate(true)
     updaterCheckLoading.value = false
 }
 </script>
