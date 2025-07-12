@@ -97,6 +97,7 @@ jobs:
             key-secret: ${{ secrets.OSS_2_KEY_SECRET }}
             region: ${{ secrets.OSS_2_REGION }}
             bucket: ${{ secrets.OSS_2_BUCKET }}
+            callbackUrlSign: ${{ secrets.OSS_2_CALLBACK_URL_SIGN }}
             callback: ${{ secrets.OSS_2_CALLBACK }}
             assets: |
                 dist-release/*.exe:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
