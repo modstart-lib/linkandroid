@@ -6,6 +6,7 @@ import Showdown from "showdown"
 import iconvLite from "iconv-lite";
 import chardet from "chardet";
 // import {Iconv} from "iconv"
+import {isMac, isWin} from "./env";
 
 export const EncodeUtil = {
     base64Encode(str: string) {
@@ -96,7 +97,11 @@ export const StrUtil = {
             Date.now(),
             (Math.floor(Math.random() * 1000000) + '').padStart(6, '0')
         ].join('')
-    }
+    },
+    ucFirst(str: string) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    },
 }
 
 export const TimeUtil = {
@@ -461,4 +466,108 @@ export const MarkdownUtil = {
     toHtml(markdown: string): string {
         return converter.makeHtml(markdown)
     },
+}
+
+
+type HotkeyModifierType = 'Control' | 'Option' | 'Command' | 'Ctrl' | 'Alt' | 'Win' | 'Meta' | 'Shift';
+type HotkeyType = { key: string, modifiers: HotkeyModifierType[] }
+
+export const HotKeyUtil = {
+    orderModifiers(modifiers: HotkeyModifierType[]) {
+        const order = ['Control', 'Ctrl', 'Command', 'Meta', 'Win', 'Option', 'Alt', 'Shift'];
+        return modifiers.sort((a, b) => {
+            return order.indexOf(a) - order.indexOf(b);
+        });
+    },
+    unifyObject(hotkey: HotkeyType) {
+        return {
+            key: hotkey.key.toUpperCase(),
+            modifiers: this.orderModifiers(hotkey.modifiers.map(modifier => StrUtil.ucFirst(modifier)))
+        };
+    },
+    unifyString(hotkey: string): HotkeyType {
+        const parts = hotkey.split('+');
+        const key = (parts.pop() || '');
+        const modifiers: any[] = [];
+        parts.forEach(part => {
+            modifiers.push(StrUtil.ucFirst(part.trim()));
+        });
+        return this.unifyObject({key, modifiers});
+    },
+    unify(hotkeys: string | string[] | HotkeyType | HotkeyType[]): HotkeyType[] {
+        if (typeof hotkeys === 'string') {
+            return [this.unifyString(hotkeys)];
+        } else if (Array.isArray(hotkeys)) {
+            return hotkeys.map(hotkey => {
+                if (typeof hotkey === 'string') {
+                    return this.unifyString(hotkey);
+                } else {
+                    return this.unifyObject(hotkey);
+                }
+            });
+        } else {
+            return [this.unifyObject(hotkeys)];
+        }
+    },
+    getFromEvent(event: any): HotkeyType | null {
+        const valid = [
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+            '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+            'Space',
+        ]
+        const key = (event.key || '').toUpperCase();
+        if (!event || !event.key || !valid.includes(key)) {
+            return null
+        }
+        const modifiers: HotkeyModifierType[] = [];
+        if (isWin) {
+            if (event.ctrlKey || event.control) {
+                modifiers.push('Ctrl');
+            }
+            if (event.altKey || event.alt) {
+                modifiers.push('Alt');
+            }
+            if (event.metaKey || event.meta) {
+                modifiers.push('Win');
+            }
+        } else if (isMac) {
+            if (event.ctrlKey || event.control) {
+                modifiers.push('Control');
+            }
+            if (event.altKey || event.alt) {
+                modifiers.push('Option');
+            }
+            if (event.metaKey || event.meta) {
+                modifiers.push('Command');
+            }
+        } else {
+            if (event.ctrlKey || event.control) {
+                modifiers.push('Ctrl');
+            }
+            if (event.altKey || event.alt) {
+                modifiers.push('Alt');
+            }
+            if (event.metaKey || event.meta) {
+                modifiers.push('Meta');
+            }
+        }
+        if (event.shiftKey || event.shift) {
+            modifiers.push('Shift');
+        }
+        return this.unifyObject({key, modifiers});
+    },
+    match(hotkeysForMatch: HotkeyType[], hotkey: HotkeyType): boolean {
+        if (!hotkeysForMatch || !hotkey) {
+            return false
+        }
+        const hotKeyStr = hotkey.modifiers.join('+') + '+' + hotkey.key;
+        for (const key of hotkeysForMatch) {
+            const keyStr = key.modifiers.join('+') + '+' + key.key;
+            if (keyStr === hotKeyStr) {
+                return true
+            }
+        }
+        return false
+    }
 }
