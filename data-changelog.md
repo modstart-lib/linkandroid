@@ -1,1 +1,0 @@
-/Users/mz/data/project/linkandroid/linkandroid/changelog.md

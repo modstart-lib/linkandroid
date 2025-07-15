@@ -11,7 +11,7 @@ exports.default = async function (context) {
         root: context.appOutDir
     })
     common.listFiles(context.appOutDir, true).forEach((p) => {
-        console.log('BuildOptimize.path', (p.isDir ? 'D:' : 'F:') + p.path);
+        // console.log('BuildOptimize.path', (p.isDir ? 'D:' : 'F:') + p.path);
     })
     // const localeDir = context.appOutDir + "/LinkAndroid.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Resources/";
     // console.log(`localeDir: ${localeDir}`);
