@@ -1,0 +1,139 @@
+name: ProBuild
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: [ arm64, amd64 ]
+          - os: macos-latest
+            arch: [ arm64, amd64 ]
+          - os: windows-latest
+            arch: [ arm64, amd64 ]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Git clone repo
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        env:
+          GIT_USER: ${{ secrets.GIT_USER }}
+          GIT_PASS: ${{ secrets.GIT_PASS }}
+          GIT_REPO_BASE: ${{ secrets.GIT_REPO_BASE }}
+          GIT_HOST: ${{ secrets.GIT_HOST }}
+        run: |
+          git clone -b main "https://${GIT_USER}:${GIT_PASS}@${GIT_HOST}/${GIT_REPO_BASE}/linkandroid-pro.git" code
+
+      - name: Git clone repo
+        if: runner.os == 'Windows'
+        env:
+          GIT_USER: ${{ secrets.GIT_USER }}
+          GIT_PASS: ${{ secrets.GIT_PASS }}
+          GIT_REPO_BASE: ${{ secrets.GIT_REPO_BASE }}
+          GIT_HOST: ${{ secrets.GIT_HOST }}
+        shell: pwsh
+        run: |
+          git clone -b main "https://${env:GIT_USER}:${env:GIT_PASS}@${env:GIT_HOST}/${env:GIT_REPO_BASE}/linkandroid-pro.git" code
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Prepare (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install python-setuptools
+
+      - name: Cert Prepare (macOS)
+        if: runner.os == 'macOS'
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.CORP_MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.CORP_MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          echo "find-identity"
+          security find-identity -p codesigning
+          echo "$MACOS_CERTIFICATE" | base64 --decode > certificate.p12
+          security create-keychain -p "" build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -s build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          security unlock-keychain -p "" build.keychain
+          echo "find-identity"
+          security find-identity -v -p codesigning build.keychain
+          echo "find-identity"
+          security find-identity -p codesigning
+          echo "set-key-partition-list"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" -l "Mac Developer ID Application: Xi'an Yanyi Information Technology Co., Ltd" -t private build.keychain
+          echo "export"
+          security export -k build.keychain -t certs -f x509 -p -o certificate.cer
+          echo "add-trusted-cert"
+          sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain certificate.cer
+          echo "find-identity"
+          security find-identity -p codesigning
+
+      - name: Install Dependencies
+        working-directory: code
+        run: npm install
+
+      - name: Build Release Files
+        working-directory: code
+        run: |
+            npm run build
+        env:
+          DEBUG: "electron-notarize:*"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Set Build Name ( Linux / macOS )
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: |
+          DIST_FILE_NAME=${{ runner.os }}-${{ runner.arch }}-v$(date +%Y%m%d_%H%M%S)-${RANDOM}
+          echo ::add-mask::$DIST_FILE_NAME
+          echo DIST_FILE_NAME=$DIST_FILE_NAME >> $GITHUB_ENV
+
+      - name: Set Build Name ( Windows )
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $randomNumber = Get-Random -Minimum 10000 -Maximum 99999
+          $DIST_FILE_NAME = "Windows-X64-v$(Get-Date -Format 'yyyyMMdd_HHmmss')-$randomNumber"
+          Write-Host "::add-mask::$DIST_FILE_NAME"
+          echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
+
+      - name: Rename output files (Linux/macOS)
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: |
+          find code/dist-release/ -type f -name 'LinkAndroidPro-*' -exec bash -c 'f="{}"; mv "$f" "${f/LinkAndroidPro-/LinkAndroid-}"' \;
+
+      - name: Rename output files (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-ChildItem code\dist-release\LinkAndroidPro-* | Rename-Item -NewName { $_.Name -replace 'LinkAndroidPro-','LinkAndroid-' }
+
+      - name: Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: false
+          files: |
+            code/dist-release/*.exe
+            code/dist-release/*.dmg
+            code/dist-release/*.AppImage
+            code/dist-release/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

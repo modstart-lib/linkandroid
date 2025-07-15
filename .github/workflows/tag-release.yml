@@ -1,4 +1,4 @@
-name: Build
+name: TagRelease
 
 on:
     push:
@@ -73,17 +73,70 @@ jobs:
             APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
             APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      - name: Release Assets
-        uses: softprops/action-gh-release@v2
+      - name: Set Build Name ( Linux / macOS )
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: |
+            DIST_FILE_NAME=${{ runner.os }}-${{ runner.arch }}-v$(date +%Y%m%d_%H%M%S)-${RANDOM}
+            echo ::add-mask::$DIST_FILE_NAME
+            echo DIST_FILE_NAME=$DIST_FILE_NAME >> $GITHUB_ENV
+
+      - name: Set Build Name ( Windows )
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+            $randomNumber = Get-Random -Minimum 10000 -Maximum 99999
+            $DIST_FILE_NAME = "Windows-X64-v$(Get-Date -Format 'yyyyMMdd_HHmmss')-$randomNumber"
+            Write-Host "::add-mask::$DIST_FILE_NAME"
+            echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
+
+      - name: Upload
+        uses: modstart/github-oss-action@master
         with:
-            draft: false
-            prerelease: false
-            fail_on_unmatched_files: false
-            files: |
-                dist-release/*.exe
-                dist-release/*.dmg
-                dist-release/*.AppImage
-                dist-release/*.deb
-        env:
-            GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+            title: ${{ github.event.head_commit.message }}
+            key-id: ${{ secrets.OSS_2_KEY_ID }}
+            key-secret: ${{ secrets.OSS_2_KEY_SECRET }}
+            region: ${{ secrets.OSS_2_REGION }}
+            bucket: ${{ secrets.OSS_2_BUCKET }}
+            callback: ${{ secrets.OSS_2_CALLBACK }}
+            assets: |
+                dist-release/*.exe:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.dmg:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.AppImage:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.deb:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
+
+#      - name: Upload Artifact Windows
+#        if: runner.os == 'Windows'
+#        uses: actions/upload-artifact@v4
+#        with:
+#            name: windows-artifact
+#            path: |
+#                dist-release/*.exe
+#
+#      - name: Upload Artifact Macos
+#        if: runner.os == 'macOS'
+#        uses: actions/upload-artifact@v4
+#        with:
+#            name: macos-artifact
+#            path: |
+#                dist-release/*.dmg
+#
+#      - name: Upload Artifact Linux
+#        if: runner.os == 'Linux'
+#        uses: actions/upload-artifact@v4
+#        with:
+#            name: linux-artifact
+#            path: |
+#                dist-release/*.AppImage
+#                dist-release/*.deb
+#
+#      - name: Release Assets
+#        uses: softprops/action-gh-release@v2
+#        with:
+#            draft: false
+#            prerelease: false
+#            fail_on_unmatched_files: false
+#            files: |
+#                dist-release/*.yml
+#        env:
+#            GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
