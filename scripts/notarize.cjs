@@ -6,7 +6,7 @@ exports.default = async function notarizing(context) {
     const {electronPlatformName, appOutDir} = context;
     console.log(`  • Notarization Start`);
     // We skip notarization if the process is not running on MacOS and
-    // if the enviroment variable SKIP_NOTARIZE is set to `true`
+    // if the environment variable SKIP_NOTARIZE is set to `true`
     // This is useful for local testing where notarization is useless
     if (
         electronPlatformName !== "darwin" ||
