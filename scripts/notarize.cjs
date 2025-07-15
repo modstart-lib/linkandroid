@@ -46,6 +46,7 @@ exports.default = async function notarizing(context) {
         console.error("  • Notarization failed:", error.message);
         console.error("  • Stack trace:", error.stack);
         await common.calcSha256()
+        throw new Error(`Notarization failed: ${error.message}`);
     }
 
 };
