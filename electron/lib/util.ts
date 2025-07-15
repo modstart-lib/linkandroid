@@ -9,6 +9,45 @@ import chardet from "chardet";
 import {isMac, isWin} from "./env";
 
 export const EncodeUtil = {
+    base32Alphabet: 'abcdefghijklmnopqrstuvwxyz234567',
+    base32Encode(str: string) {
+        const buffer = Buffer.from(str, 'utf8');
+        let bits = '';
+        let output = '';
+        // 将每个字节转为8位二进制
+        for (let i = 0; i < buffer.length; i++) {
+            const byte = buffer[i];
+            bits += byte.toString(2).padStart(8, '0');
+        }
+        // 每5位一组，转为 Base32 字符
+        for (let i = 0; i < bits.length; i += 5) {
+            const chunk = bits.slice(i, i + 5);
+            const paddedChunk = chunk.padEnd(5, '0'); // 不足5位补0
+            const index = parseInt(paddedChunk, 2);
+            output += EncodeUtil.base32Alphabet[index];
+        }
+        return output;
+    },
+    base32Decode(str: string) {
+        const base32Alphabet = 'abcdefghijklmnopqrstuvwxyz234567';
+        let bits = '';
+        for (let i = 0; i < str.length; i++) {
+            const char = str[i];
+            const index = base32Alphabet.indexOf(char);
+            if (index === -1) {
+                throw new Error('Invalid Base32 character: ' + char);
+            }
+            bits += index.toString(2).padStart(5, '0');
+        }
+
+        const bytes: number[] = [];
+        for (let i = 0; i + 8 <= bits.length; i += 8) {
+            const byte = bits.slice(i, i + 8);
+            bytes.push(parseInt(byte, 2));
+        }
+
+        return Buffer.from(bytes).toString('utf8');
+    },
     base64Encode(str: string) {
         return Base64.encode(str)
     },
