@@ -3,9 +3,9 @@ import {onBeforeMount, onMounted, ref} from "vue";
 import PageNav from "./../components/PageNav.vue";
 import {AppConfig} from "../config";
 import AppQuitConfirm from "../components/AppQuitConfirm.vue";
+import {useDragWindow} from "../components/common/dragWindow";
 
 const appQuitConfirm = ref<InstanceType<typeof AppQuitConfirm> | null>(null);
-
 const isOsx = ref(false)
 const isFullscreen = ref(false)
 window.__page.onEnterFullScreen(() => {
@@ -17,6 +17,16 @@ window.__page.onLeaveFullScreen(() => {
 window.__page.onShowQuitConfirmDialog(() => {
     appQuitConfirm.value?.show()
 })
+
+const {onDragWindowMouseDown} = useDragWindow({
+    name: 'main',
+    ignore: (e) => {
+        return !!(e.target && ((e.target as any).tagName === 'INPUT'))
+    },
+});
+const onDbClick = async () => {
+    await window.$mapi.app.windowMax()
+}
 
 onBeforeMount(async () => {
     isOsx.value = window.$mapi.app.isPlatform('osx')
@@ -31,7 +41,9 @@ const doQuit = async () => {
     <div class="window-container">
         <div class="window-header flex h-10 items-center border-b border-solid border-gray-200 dark:border-gray-800"
              :class="{osx:isOsx,fullscreen:isFullscreen}">
-            <div class="window-header-title flex-grow flex items-center">
+            <div class="window-header-title no-drag flex-grow flex items-center"
+                 @dblclick="onDbClick"
+                 @mousedown="onDragWindowMouseDown">
                 <div class="pl-2 py-2">
                     <img src="/logo.svg" class="w-4 t-4"/>
                 </div>

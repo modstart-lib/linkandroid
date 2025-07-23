@@ -41,6 +41,12 @@ declare interface Window {
             windowOpen: (name: string, option?: any) => Promise<void>,
             windowHide: (name?: string) => Promise<void>,
             windowClose: (name?: string) => Promise<void>,
+            windowMove: (name: string | null, data: {
+                mouseX: number,
+                mouseY: number,
+                width: number,
+                height: number
+            }) => Promise<void>,
             openExternalWeb: (url: string) => Promise<void>,
             appEnv: () => Promise<any>,
             setRenderAppEnv: (env: any) => Promise<void>,
