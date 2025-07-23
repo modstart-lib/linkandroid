@@ -277,13 +277,6 @@ declare interface Window {
             version: () => Promise<string>,
             run: (args: string[]) => Promise<string>,
         },
-        server: {
-            start: (serverInfo: ServerInfo) => Promise<void>,
-            ping: (serverInfo: ServerInfo) => Promise<boolean>,
-            stop: (serverInfo: ServerInfo) => Promise<void>,
-            config: (serverInfo: ServerInfo) => Promise<any>,
-            callFunction: (serverInfo: ServerInfo, method: string, data: any) => Promise<any>,
-        },
     }
 }
 
