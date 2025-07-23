@@ -305,7 +305,7 @@ const rename = async (pathOld: string, pathNew: string, option?: {
         fullPathNew = await fullPath(pathNew)
     }
     if (!fs.existsSync(fullPathOld)) {
-        return
+        throw `Rename.FileNotFound - ${fullPathOld}`
     }
     if (fs.existsSync(fullPathNew)) {
         throw new Error(`File already exists: ${fullPathNew}`)
@@ -338,10 +338,10 @@ const copy = async (pathOld: string, pathNew: string, option?: { isFullPath?: bo
         fullPathNew = await fullPath(pathNew)
     }
     if (!fs.existsSync(fullPathOld)) {
-        throw new Error(`FileNotFound:${fullPathOld}`)
+        throw `Copy.FileNotFound - ${fullPathOld}`
     }
     if (fs.existsSync(fullPathNew)) {
-        throw new Error(`FileAlreadyExists:${fullPathNew}`)
+        throw `FileAlreadyExists:${fullPathNew}`
     }
     // console.log('copy', fullPathOld, fullPathNew)
     const dir = nodePath.dirname(fullPathNew)
@@ -387,12 +387,15 @@ const hubSave = async (file: string, option?: {
         returnFullPath: false,
         ignoreWhenInHub: false,
     }, option)
+    if (!file) {
+        throw 'HubSave.FilePathEmpty'
+    }
     let fp = file
     if (!option.isFullPath) {
         fp = await fullPath(file)
     }
     if (!fs.existsSync(fp)) {
-        throw `FileNotFound ${fp}`
+        throw `HubSave.FileNotFound - ${fp}`
     }
     if (!option.ext) {
         option.ext = ext(fp)
@@ -626,7 +629,19 @@ const download = async (url: string, path: string, option?: {
     })
 }
 
+/**
+ * get file extension from file path or url
+ * @param path
+ */
 const ext = (path: string) => {
+    if (!path) {
+        return ''
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        // 处理 URL
+        const url = new URL(path)
+        path = url.pathname
+    }
     return nodePath.extname(path).replace(/^\./, '')
 }
 

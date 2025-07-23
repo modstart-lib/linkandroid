@@ -1,3 +1,19 @@
+// ------------------------------------------------------------------------------
+// ----------------------------- Task Schedule Store ----------------------------
+// ------------------------------------------------------------------------------
+// Register TaskBiz
+//   taskStore.register('TestSync', TestSync)
+//   taskStore.register('TestAsync', TestAsync)
+// Dispatch Task
+//   await taskStore.dispatch('TestSync', StringUtil.random())
+//   await taskStore.dispatch('TestAsync', StringUtil.random(), {'a':1}, {timeout: 3 * 1000})
+// Schedule call order
+//   Sync Task runFunc -> successFunc | failFunc
+//   Async Task runFunc -> queryFunc -> successFunc | failFunc
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+
 import {defineStore} from "pinia"
 import store from "../index";
 import {toRaw} from "vue";
@@ -39,15 +55,20 @@ export type TaskRecord = {
 }
 
 export type TaskBiz = {
+    // sync task run,  return success | retry
+    // async task run, return querying | success | retry
     runFunc: (bizId: string, bizParam: any) => Promise<TaskRecordRunStatus>,
+    // async task query status, return running | success | fail
     queryFunc?: (bizId: string, bizParam: any) => Promise<TaskRecordQueryStatus>,
+    // sync task success callback
+    // async task success callback
     successFunc: (bizId: string, bizParam: any) => Promise<void>,
-    // 请确保 failFunc 不会抛出异常
+    // Make sure the "failFunc" function always not throw an error
     failFunc: (bizId: string, msg: string, bizParam: any) => Promise<void>,
-    restore?: () => Promise<void>,
-    update?: (bizId: string, update: {
-        [key: string]: any
-    }) => Promise<void>,
+    // ----------------------------------------------------
+    // the following not use in schedule, only for biz
+    [key: string]: any,
+    // ----------------------------------------------------
 }
 
 const taskChangeListeners = [] as {
@@ -55,6 +76,39 @@ const taskChangeListeners = [] as {
     callback: (bizId: string, status: TaskChangeType) => void
 }[]
 let runNextTimer = null as any
+
+export const TestSync: TaskBiz = {
+    runFunc: async (bizId, bizParam) => {
+        console.log('Task.TestSync.runFunc', {bizId, bizParam})
+        return 'success'
+    },
+    successFunc: async (bizId, bizParam) => {
+        console.log('Task.TestSync.successFunc', {bizId, bizParam})
+    },
+    failFunc: async (bizId, msg, bizParam) => {
+        console.log('Task.TestSync.failFunc', {bizId, bizParam, msg})
+    }
+}
+export const TestAsync: TaskBiz = {
+    runFunc: async (bizId, bizParam) => {
+        console.log('Task.TestAsync.runFunc', {bizId, bizParam})
+        return 'querying'
+    },
+    queryFunc(bizId, bizParam) {
+        return new Promise((resolve) => {
+            console.log('Task.TestAsync.queryFunc', {bizId, bizParam})
+            setTimeout(() => {
+                resolve(Math.random() > 0.7 ? 'success' : 'running')
+            }, 1000)
+        })
+    },
+    successFunc: async (bizId, bizParam) => {
+        console.log('Task.TestAsync.successFunc', {bizId, bizParam})
+    },
+    failFunc: async (bizId, msg, bizParam) => {
+        console.log('Task.TestAsync.failFunc', {bizId, bizParam, msg})
+    }
+}
 
 export const taskStore = defineStore("task", {
     state() {
