@@ -386,6 +386,10 @@ const getHubSavePath = async (
     for (const key in saveParam) {
         // only allow alphanumeric, Chinese characters, and hyphens
         saveParam[key] = saveParam[key].toString().replace(/[^\w\u4e00-\u9fa5\-]/g, '');
+        // length limit
+        if (saveParam[key].length > 100) {
+            saveParam[key] = saveParam[key].substring(0, 100);
+        }
     }
     const param = {
         year: TimeUtil.replacePattern('{year}'),
