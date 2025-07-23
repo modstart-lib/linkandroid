@@ -164,11 +164,16 @@ declare interface Window {
             openPath: (path: string, options: {} = {}) => Promise<void>,
             ext: (path: string) => Promise<string>,
             textToName: (text: string, ext: string = '', maxLimit: number = 100) => Promise<string>,
+            hubRootDefault: () => Promise<string>,
             hubSave: (file: string, option?: {
                 ext?: string,
                 isFullPath?: boolean,
                 returnFullPath?: boolean,
                 ignoreWhenInHub?: boolean,
+                savePath?: string,
+                savePathParam?: {
+                    [key: string]: any
+                },
             }) => Promise<string>,
         },
         updater: {

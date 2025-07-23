@@ -1,7 +1,7 @@
 import path from "node:path";
 import {AppEnv} from "../env";
 import fs from "node:fs";
-import {dialog, ipcMain} from "electron";
+import {ipcMain} from "electron";
 import {Events} from "../event/main";
 
 let data = null

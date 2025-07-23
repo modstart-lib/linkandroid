@@ -4,7 +4,7 @@ import fs from "node:fs";
 import {StrUtil, TimeUtil} from "../../lib/util";
 import Apps from "../app";
 import {Readable} from "node:stream";
-import {isWin} from "../../lib/env";
+import {ConfigIndex} from "../config";
 
 const nodePath = path
 
@@ -351,28 +351,62 @@ const copy = async (pathOld: string, pathNew: string, option?: { isFullPath?: bo
     fs.copyFileSync(fullPathOld, fullPathNew)
 }
 
-const hubRoot = async () => {
+const hubRootDefault = async () => {
     await waitAppEnvReady()
-    const hubDir = path.join(root(), 'hub')
+    return path.join(root(), 'hub')
+}
+
+const hubRoot = async () => {
+    const hubDirDefault = await hubRootDefault()
+    let hubDir = await ConfigIndex.get('hubRoot', "")
+    if (!hubDir) {
+        hubDir = hubDirDefault
+    }
     if (!fs.existsSync(hubDir)) {
         fs.mkdirSync(hubDir, {recursive: true})
     }
     return hubDir
 }
 
-const hubCreate = async (ext: string = 'bin') => {
-    return path.join(
-        'hub',
-        TimeUtil.replacePattern('{year}'),
-        TimeUtil.replacePattern('{month}'),
-        TimeUtil.replacePattern('{day}'),
-        TimeUtil.replacePattern('{hour}'),
-        [
-            TimeUtil.replacePattern('{minute}'),
-            TimeUtil.replacePattern('{second}'),
-            StrUtil.randomString(10),
-        ].join('_') + `.${ext}`
-    )
+const getHubSavePath = async (
+    hubRoot: string,
+    savePath: string,
+    saveParam: {
+        [key: string]: any
+    },
+    ext: string = 'bin'
+) => {
+    if (!savePath) {
+        savePath = path.join('file', '{year}_{month}', '{day}', '{hour}', '{minute}_{second}_{random}')
+    }
+    savePath = savePath.replace(/\\/g, '/')
+    if (savePath.endsWith(`.${ext}`)) {
+        savePath = savePath.substring(0, savePath.length - ext.length - 1)
+    }
+    for (const key in saveParam) {
+        // only allow alphanumeric, Chinese characters, and hyphens
+        saveParam[key] = saveParam[key].toString().replace(/[^\w\u4e00-\u9fa5\-]/g, '');
+    }
+    const param = {
+        year: TimeUtil.replacePattern('{year}'),
+        month: TimeUtil.replacePattern('{month}'),
+        day: TimeUtil.replacePattern('{day}'),
+        hour: TimeUtil.replacePattern('{hour}'),
+        minute: TimeUtil.replacePattern('{minute}'),
+        second: TimeUtil.replacePattern('{second}'),
+        random: StrUtil.randomString(10),
+        ...saveParam,
+    }
+    savePath = savePath.replace(/\{(\w+)\}/g, (match, key) => {
+        console.log(`HubSave.getHubSavePath: ${key} = ${param[key]}`, param)
+        return param[key] || key
+    })
+    while (await exists(path.join(hubRoot, savePath + `.${ext}`), {
+        isFullPath: true
+    })) {
+        savePath = savePath + `-${StrUtil.randomString(3)}`
+    }
+    return `${savePath}.${ext}`
 }
 
 const hubSave = async (file: string, option?: {
@@ -380,12 +414,18 @@ const hubSave = async (file: string, option?: {
     isFullPath?: boolean,
     returnFullPath?: boolean,
     ignoreWhenInHub?: boolean,
+    savePath?: string,
+    savePathParam?: {
+        [key: string]: any
+    },
 }) => {
     option = Object.assign({
         ext: null,
         isFullPath: false,
         returnFullPath: false,
         ignoreWhenInHub: false,
+        savePath: null,
+        savePathParam: {},
     }, option)
     if (!file) {
         throw 'HubSave.FilePathEmpty'
@@ -400,20 +440,21 @@ const hubSave = async (file: string, option?: {
     if (!option.ext) {
         option.ext = ext(fp)
     }
+    const hubRoot_ = await hubRoot()
     if (option.ignoreWhenInHub) {
-        const hubRoot_ = await hubRoot()
         if (inDir(fp, hubRoot_)) {
             return fp
         }
     }
-    const hubFile = await hubCreate(option.ext)
-    await copy(fp, path.join(root(), hubFile), {
+    const savePath = await getHubSavePath(hubRoot_, option.savePath, option.savePathParam, option.ext)
+    const savePathFull = path.join(hubRoot_, savePath)
+    await copy(fp, savePathFull, {
         isFullPath: true,
     })
     if (option.returnFullPath) {
-        return path.join(root(), hubFile)
+        return savePathFull
     }
-    return hubFile
+    return savePath
 }
 
 const tempRoot = async () => {
@@ -696,6 +737,7 @@ export const FileIndex = {
     appendText,
     download,
     ext,
+    hubRootDefault,
     hubSave,
     textToName,
 }
