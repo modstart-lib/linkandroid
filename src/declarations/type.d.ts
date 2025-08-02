@@ -240,9 +240,9 @@ declare interface Window {
                 data: any,
                 option?: { isFullPath?: boolean }
             ) => Promise<void>;
-            openFile: (options: {} = {}) => Promise<any>;
-            openDirectory: (options: {} = {}) => Promise<any>;
-            openSave: (options: {} = {}) => Promise<any>;
+            openFile: (options: {} = {}) => Promise<string | null>;
+            openDirectory: (options: {} = {}) => Promise<string | null>;
+            openSave: (options: {} = {}) => Promise<string | null>;
             openPath: (path: string, options: {} = {}) => Promise<void>;
             ext: (path: string) => Promise<string>;
             textToName: (
