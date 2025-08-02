@@ -3,10 +3,10 @@ import {DeviceRecord} from "../../types/Device";
 import DeviceRecordDialog from "./DeviceRecordDialog.vue";
 import {ref} from "vue";
 
-const recordDialog = ref<InstanceType<typeof DeviceRecordDialog>>()
+const recordDialog = ref<InstanceType<typeof DeviceRecordDialog>>();
 const props = defineProps<{
-    device: DeviceRecord
-}>()
+    device: DeviceRecord;
+}>();
 </script>
 
 <template>
@@ -17,9 +17,7 @@ const props = defineProps<{
             </template>
         </a-button>
     </a-tooltip>
-    <DeviceRecordDialog ref="recordDialog"/>
+    <DeviceRecordDialog ref="recordDialog" />
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

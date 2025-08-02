@@ -1,5 +1,4 @@
-import contextMenu from 'electron-context-menu';
-
+import contextMenu from "electron-context-menu";
 
 const init = () => {
     contextMenu({
@@ -11,9 +10,8 @@ const init = () => {
         showSearchWithGoogle: false,
         showLookUpSelection: false,
     });
-}
-
+};
 
 export const ConfigContextMenu = {
-    init
-}
+    init,
+};

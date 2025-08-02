@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
-    value: string | undefined
-}>()
+    value: string | undefined;
+}>();
 </script>
 
 <template>
@@ -10,6 +10,5 @@ const props = defineProps<{
 
 <style lang="less" scoped>
 .pb-html-viewer {
-
 }
 </style>

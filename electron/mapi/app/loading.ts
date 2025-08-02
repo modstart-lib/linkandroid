@@ -2,31 +2,36 @@ import {BrowserWindow} from "electron";
 import {AppsMain} from "./main";
 import {icons} from "./icons";
 
-export const makeLoading = (msg: string, options?: {
-    timeout?: number,
-    percentAuto?: boolean,
-    percentTotalSeconds?: number,
-}): {
-    close: () => void,
-    percent: (value: number) => void
+export const makeLoading = (
+    msg: string,
+    options?: {
+        timeout?: number;
+        percentAuto?: boolean;
+        percentTotalSeconds?: number;
+    }
+): {
+    close: () => void;
+    percent: (value: number) => void;
 } => {
-
-    options = Object.assign({
-        percentAuto: false,
-        percentTotalSeconds: 30,
-        timeout: 0
-    }, options)
+    options = Object.assign(
+        {
+            percentAuto: false,
+            percentTotalSeconds: 30,
+            timeout: 0,
+        },
+        options
+    );
 
     if (options.timeout === 0) {
-        options.timeout = 60 * 10 * 1000
+        options.timeout = 60 * 10 * 1000;
     }
     // console.log('options', options)
 
-    const display = AppsMain.getCurrentScreenDisplay()
+    const display = AppsMain.getCurrentScreenDisplay();
     // console.log('xxxx', primaryDisplay);
-    const width = display.workArea.width
-    const height = 60
-    const icon = icons.loading
+    const width = display.workArea.width;
+    const height = 60;
+    const icon = icons.loading;
 
     const win = new BrowserWindow({
         height,
@@ -42,7 +47,7 @@ export const makeLoading = (msg: string, options?: {
         show: false,
         focusable: false,
         skipTaskbar: true,
-    })
+    });
     const htmlContent = `
   <!DOCTYPE html>
   <html>
@@ -110,55 +115,57 @@ export const makeLoading = (msg: string, options?: {
 `;
 
     const encodedHTML = encodeURIComponent(htmlContent);
-    let percentAutoTimer = null
+    let percentAutoTimer = null;
     win.loadURL(`data:text/html;charset=UTF-8,${encodedHTML}`);
-    win.on('ready-to-show', async () => {
-        const width = Math.ceil(await win.webContents.executeJavaScript(`(()=>{
+    win.on("ready-to-show", async () => {
+        const width = Math.ceil(
+            await win.webContents.executeJavaScript(`(()=>{
             const message = document.getElementById('message');
             const width = message.scrollWidth;
             return width;
-        })()`))
-        win.setSize(width + 20, height)
-        const x = display.workArea.x + (display.workArea.width / 2) - ((width + 20) / 2)
-        const y = display.workArea.y + (display.workArea.height * 1 / 4)
-        win.setPosition(Math.floor(x), Math.floor(y))
-        win.show()
+        })()`)
+        );
+        win.setSize(width + 20, height);
+        const x = display.workArea.x + display.workArea.width / 2 - (width + 20) / 2;
+        const y = display.workArea.y + (display.workArea.height * 1) / 4;
+        win.setPosition(Math.floor(x), Math.floor(y));
+        win.show();
         if (options.percentAuto) {
-            let percent = 0
+            let percent = 0;
             percentAutoTimer = setInterval(() => {
-                percent += 0.01
+                percent += 0.01;
                 if (percent >= 1) {
-                    clearInterval(percentAutoTimer)
-                    return
+                    clearInterval(percentAutoTimer);
+                    return;
                 }
-                controller.percent(percent)
-            }, options.percentTotalSeconds * 1000 / 100)
+                controller.percent(percent);
+            }, (options.percentTotalSeconds * 1000) / 100);
         }
         // win.webContents.openDevTools({
         //     mode: 'detach'
         // })
-    })
+    });
     const winCloseTimer = setTimeout(() => {
-        win.close()
-        clearTimeout(winCloseTimer)
-    }, options.timeout)
+        win.close();
+        clearTimeout(winCloseTimer);
+    }, options.timeout);
     const controller = {
         close: () => {
-            win.close()
-            clearTimeout(winCloseTimer)
+            win.close();
+            clearTimeout(winCloseTimer);
             if (percentAutoTimer) {
-                clearInterval(percentAutoTimer)
+                clearInterval(percentAutoTimer);
             }
         },
         percent: (value: number) => {
-            const percent = 100 * value
+            const percent = 100 * value;
             win.webContents.executeJavaScript(`(()=>{
                 const percent = document.querySelector('#percent');
                 const percentValue = document.querySelector('#percent .value');
                 percent.style.display = 'block';
                 percentValue.style.width = '${percent}%';
-            })()`)
-        }
-    }
-    return controller
-}
+            })()`);
+        },
+    };
+    return controller;
+};

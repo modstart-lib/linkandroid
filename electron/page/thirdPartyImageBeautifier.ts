@@ -5,10 +5,10 @@ import {Page} from "./index";
 import {t} from "../config/lang";
 
 export const PageThirdPartyImageBeautifier = {
-    NAME: 'thirdPartyImageBeautifier',
+    NAME: "thirdPartyImageBeautifier",
     open: (option: any) => {
         const win = new BrowserWindow({
-            title: t('截图编辑'),
+            title: t("截图编辑"),
             parent: AppRuntime.mainWindow,
             minWidth: 900,
             minHeight: 700,
@@ -22,12 +22,12 @@ export const PageThirdPartyImageBeautifier = {
                 nodeIntegration: true,
                 contextIsolation: false,
                 webSecurity: false,
-                preload: preloadDefault
+                preload: preloadDefault,
             },
             show: true,
             frame: true,
         });
         // win.maximize();
         return Page.openWindow(PageThirdPartyImageBeautifier.NAME, win, "third-party/image-beautifier/index.html");
-    }
-}
+    },
+};

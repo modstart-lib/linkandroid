@@ -6,10 +6,10 @@ import {Page} from "./index";
 import {WindowConfig} from "../config/window";
 
 export const PageAbout = {
-    NAME: 'about',
+    NAME: "about",
     open: async (option: any) => {
         const win = new BrowserWindow({
-            title: t('关于'),
+            title: t("关于"),
             parent: AppRuntime.mainWindow,
             minWidth: WindowConfig.aboutWidth,
             minHeight: WindowConfig.aboutHeight,
@@ -30,5 +30,5 @@ export const PageAbout = {
             transparent: false,
         });
         return Page.openWindow(PageAbout.NAME, win, "page/about.html");
-    }
-}
+    },
+};

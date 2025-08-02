@@ -1,7 +1,7 @@
 export enum EnumLogType {
-    INFO = 'info',
-    ERROR = 'error',
-    WARN = 'warn',
+    INFO = "info",
+    ERROR = "error",
+    WARN = "warn",
 }
 
 export type LogRecord = {
@@ -10,4 +10,4 @@ export type LogRecord = {
     time: number;
     msg: string;
     data: any | null;
-}
+};

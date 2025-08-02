@@ -9,13 +9,13 @@ import * as remoteMain from "@electron/remote/main";
 import {DevToolsManager} from "../lib/devtools";
 
 export const PageSetup = {
-    NAME: 'setup',
+    NAME: "setup",
     open: async (option: any) => {
-        let icon = logoPath
-        if (process.platform === 'win32') {
-            icon = icoLogoPath
-        } else if (process.platform === 'darwin') {
-            icon = icnsLogoPath
+        let icon = logoPath;
+        if (process.platform === "win32") {
+            icon = icoLogoPath;
+        } else if (process.platform === "darwin") {
+            icon = icnsLogoPath;
         }
         const win = new BrowserWindow({
             show: true,
@@ -33,7 +33,7 @@ export const PageSetup = {
             skipTaskbar: true,
             resizable: false,
             maximizable: false,
-            backgroundColor: '#f1f5f9',
+            backgroundColor: "#f1f5f9",
             alwaysOnTop: false,
             webPreferences: {
                 preload: preloadDefault,
@@ -46,25 +46,25 @@ export const PageSetup = {
                 contextIsolation: false,
                 // sandbox: false,
             },
-        })
+        });
 
-        win.on('closed', () => {
-            Page.unregisterWindow(PageSetup.NAME)
-        })
+        win.on("closed", () => {
+            Page.unregisterWindow(PageSetup.NAME);
+        });
 
-        rendererLoadPath(win, 'page/setup.html');
+        rendererLoadPath(win, "page/setup.html");
 
-        remoteMain.enable(win.webContents)
+        remoteMain.enable(win.webContents);
 
-        win.webContents.on('did-finish-load', () => {
-            Page.ready('setup')
-            DevToolsManager.autoShow(win)
-        })
-        DevToolsManager.register('Setup', win)
+        win.webContents.on("did-finish-load", () => {
+            Page.ready("setup");
+            DevToolsManager.autoShow(win);
+        });
+        DevToolsManager.register("Setup", win);
         // win.webContents.setWindowOpenHandler(({url}) => {
         //     if (url.startsWith('https:')) shell.openExternal(url)
         //     return {action: 'deny'}
         // })
-        Page.registerWindow(PageSetup.NAME, win)
-    }
-}
+        Page.registerWindow(PageSetup.NAME, win);
+    },
+};

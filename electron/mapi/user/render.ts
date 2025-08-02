@@ -2,38 +2,38 @@ import {ipcRenderer} from "electron";
 import AppsRender from "../app/render";
 
 const open = async (option: any) => {
-    await AppsRender.windowOpen('user', option)
-}
+    await AppsRender.windowOpen("user", option);
+};
 
 const get = async (): Promise<any> => {
-    return ipcRenderer.invoke('user:get')
-}
+    return ipcRenderer.invoke("user:get");
+};
 
 const refresh = async () => {
-    return ipcRenderer.invoke('user:refresh')
-}
+    return ipcRenderer.invoke("user:refresh");
+};
 
 const getApiToken = async (): Promise<string> => {
-    return ipcRenderer.invoke('user:getApiToken')
-}
+    return ipcRenderer.invoke("user:getApiToken");
+};
 
 const getWebEnterUrl = async (url: string) => {
-    return ipcRenderer.invoke('user:getWebEnterUrl', url)
-}
+    return ipcRenderer.invoke("user:getWebEnterUrl", url);
+};
 
 const openWebUrl = async (url: string) => {
-    return ipcRenderer.invoke('user:openWebUrl', url)
-}
+    return ipcRenderer.invoke("user:openWebUrl", url);
+};
 
 const apiPost = async (
     url: string,
     data: Record<string, any>,
     option?: {
-        throwException?: boolean,
+        throwException?: boolean;
     }
 ) => {
-    return ipcRenderer.invoke('user:apiPost', url, data, option)
-}
+    return ipcRenderer.invoke("user:apiPost", url, data, option);
+};
 
 export default {
     open,
@@ -43,4 +43,4 @@ export default {
     getWebEnterUrl,
     openWebUrl,
     apiPost,
-}
+};

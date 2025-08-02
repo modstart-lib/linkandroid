@@ -1,75 +1,73 @@
-import {app, Menu, Tray} from 'electron'
+import {app, Menu, Tray} from "electron";
 import {trayPath} from "./icon";
 import {AppRuntime} from "../mapi/env";
 import {AppConfig} from "../../src/config";
 import {t} from "./lang";
 import {isMac, isWin} from "../lib/env";
 
-let tray = null
+let tray = null;
 
 const showApp = () => {
     if (isMac) {
-        app.dock.show()
+        app.dock.show();
     }
-    AppRuntime.mainWindow.show()
-}
+    AppRuntime.mainWindow.show();
+};
 
 const hideApp = () => {
     if (isMac) {
-        app.dock.hide()
+        app.dock.hide();
     }
-    AppRuntime.mainWindow.hide()
-}
+    AppRuntime.mainWindow.hide();
+};
 
 const quitApp = () => {
-    app.quit()
-}
+    app.quit();
+};
 
 const ready = () => {
-    tray = new Tray(trayPath)
+    tray = new Tray(trayPath);
 
-    tray.setToolTip(AppConfig.name)
+    tray.setToolTip(AppConfig.name);
 
     if (isWin) {
-        tray.on('click', () => {
-            showApp()
-        })
+        tray.on("click", () => {
+            showApp();
+        });
     }
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: t('显示主界面'),
+            label: t("显示主界面"),
             click: () => {
-                showApp()
+                showApp();
             },
         },
         {
-            label: t('重启'),
+            label: t("重启"),
             click: () => {
-                app.relaunch()
-                quitApp()
+                app.relaunch();
+                quitApp();
             },
         },
         {
-            label: t('退出'),
+            label: t("退出"),
             click: () => {
-                quitApp()
+                quitApp();
             },
         },
-    ])
+    ]);
 
-    tray.setContextMenu(contextMenu)
-}
+    tray.setContextMenu(contextMenu);
+};
 
 const show = () => {
-
     if (tray) {
-        tray.destroy()
-        tray = null
+        tray.destroy();
+        tray = null;
     }
-}
-
+};
 
 export const ConfigTray = {
-    ready
-}
+    ready,
+};

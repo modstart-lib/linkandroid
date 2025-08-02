@@ -6,12 +6,10 @@ const versions = [
             // console.log('db.insert', await db.insert(`INSERT INTO users (name, email) VALUES (?, ?)`,['Alice', 'alice@example.com']));
             // console.log('db.select', await db.select(`SELECT * FROM users`));
             // console.log('db.first', await db.first(`SELECT * FROM users`));
-        }
-    }
-]
+        },
+    },
+];
 
 export default {
     versions,
-}
-
-
+};

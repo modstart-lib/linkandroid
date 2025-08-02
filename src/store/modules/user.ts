@@ -1,15 +1,15 @@
-import {defineStore} from "pinia"
+import {defineStore} from "pinia";
 import store from "../index";
 import {AppConfig} from "../../config";
 import {useSettingStore} from "./setting";
 
-const setting = useSettingStore()
+const setting = useSettingStore();
 
 export const userStore = defineStore("user", {
     state() {
         return {
             isInit: false,
-            lastSavedJson: '',
+            lastSavedJson: "",
             apiToken: null as string | null,
             user: {
                 id: null as string | null,
@@ -21,67 +21,67 @@ export const userStore = defineStore("user", {
                 functions: {},
             } as {
                 vip: {
-                    [key: string]: any,
-                },
+                    [key: string]: any;
+                };
                 functions: {
-                    [key: string]: any,
-                },
-                [key: string]: any,
+                    [key: string]: any;
+                };
+                [key: string]: any;
             },
             basic: {} as {
-                [key: string]: any,
+                [key: string]: any;
             },
-        }
+        };
     },
     actions: {
         async init() {
-            await this.load()
+            await this.load();
         },
         async load() {
-            const {apiToken, user, data, basic} = await window.$mapi.user.get()
-            this.apiToken = apiToken
-            this.user = Object.assign(this.user, user)
-            this.data = data as any
-            this.basic = basic
-            await setting.initBasic(this.basic)
-            this.isInit = true
+            const {apiToken, user, data, basic} = await window.$mapi.user.get();
+            this.apiToken = apiToken;
+            this.user = Object.assign(this.user, user);
+            this.data = data as any;
+            this.basic = basic;
+            await setting.initBasic(this.basic);
+            this.isInit = true;
         },
         onChangeBroadcast() {
-            this.load().then()
+            this.load().then();
         },
         async waitInit() {
             if (this.isInit) {
-                return
+                return;
             }
-            await new Promise((resolve) => {
+            await new Promise(resolve => {
                 const timer = setInterval(() => {
                     if (this.isInit) {
-                        clearInterval(timer)
-                        resolve(undefined)
+                        clearInterval(timer);
+                        resolve(undefined);
                     }
-                }, 100)
-            })
+                }, 100);
+            });
         },
         async webUrl() {
-            await this.waitInit()
-            let param: string[] = []
+            await this.waitInit();
+            let param: string[] = [];
             if (this.apiToken) {
-                param.push(`api_token=${this.apiToken}`)
+                param.push(`api_token=${this.apiToken}`);
             }
             if (setting.shouldDarkMode()) {
-                param.push('is_dark=1')
+                param.push("is_dark=1");
             }
-            return `${AppConfig.apiBaseUrl}/app_manager/user_web?${param.join('&')}`
-        }
-    }
-})
+            return `${AppConfig.apiBaseUrl}/app_manager/user_web?${param.join("&")}`;
+        },
+    },
+});
 
-export const user = userStore(store)
+export const user = userStore(store);
 
-user.init().then()
+user.init().then();
 
-window.__page.onBroadcast('UserChange', user.onChangeBroadcast)
+window.__page.onBroadcast("UserChange", user.onChangeBroadcast);
 
 export const useUserStore = () => {
-    return user
-}
+    return user;
+};

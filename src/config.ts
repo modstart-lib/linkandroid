@@ -1,15 +1,15 @@
-import packageJson from '../package.json';
+import packageJson from "../package.json";
 import {TimeUtil} from "../electron/lib/util";
 
-const BASE_URL = 'https://linkandroid.com';
+const BASE_URL = "https://linkandroid.com";
 
 export const AppConfig = {
-    name: 'LinkAndroid',
-    slogan: 'Link android to PC easily',
+    name: "LinkAndroid",
+    slogan: "Link android to PC easily",
     version: packageJson.version,
     website: `${BASE_URL}`,
-    websiteGithub: 'https://github.com/modstart-lib/linkandroid',
-    websiteGitee: 'https://gitee.com/modstart-lib/linkandroid',
+    websiteGithub: "https://github.com/modstart-lib/linkandroid",
+    websiteGitee: "https://gitee.com/modstart-lib/linkandroid",
     apiBaseUrl: `${BASE_URL}/api`,
     updaterUrl: `${BASE_URL}/app_manager/updater`,
     downloadUrl: `${BASE_URL}/app_manager/download`,
@@ -20,5 +20,4 @@ export const AppConfig = {
     basic: {
         userEnable: false,
     },
-}
-
+};

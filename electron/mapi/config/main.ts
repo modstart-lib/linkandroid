@@ -4,93 +4,93 @@ import fs from "node:fs";
 import {ipcMain} from "electron";
 import {Events} from "../event/main";
 
-let data = null
-let dataEnv = {}
+let data = null;
+let dataEnv = {};
 
 const configPath = () => {
-    return path.join(AppEnv.userData, 'config.json')
-}
+    return path.join(AppEnv.userData, "config.json");
+};
 
 const load = () => {
     try {
-        let json = fs.readFileSync(configPath()).toString()
-        json = JSON.parse(json)
-        data = json || {}
+        let json = fs.readFileSync(configPath()).toString();
+        json = JSON.parse(json);
+        data = json || {};
     } catch (e) {
-        data = {}
+        data = {};
     }
-}
+};
 
 const loadIfNeed = () => {
     if (data === null) {
-        load()
+        load();
     }
-}
+};
 
 const save = () => {
-    fs.writeFileSync(configPath(), JSON.stringify(data, null, 4))
-}
+    fs.writeFileSync(configPath(), JSON.stringify(data, null, 4));
+};
 
 const all = async () => {
-    loadIfNeed()
-    return data
-}
+    loadIfNeed();
+    return data;
+};
 
 const get = async (key: string, defaultValue: any = null) => {
-    loadIfNeed()
+    loadIfNeed();
     if (!(key in data)) {
-        data[key] = defaultValue
-        save()
+        data[key] = defaultValue;
+        save();
     }
-    return data[key]
-}
+    return data[key];
+};
 
 const set = async (key: string, value: any) => {
-    loadIfNeed()
-    data[key] = value
-    save()
-}
+    loadIfNeed();
+    data[key] = value;
+    save();
+};
 
 const allEnv = async () => {
-    return dataEnv
-}
+    return dataEnv;
+};
 
 const getEnv = async (key: string, defaultValue: any = null) => {
     if (!(key in dataEnv)) {
-        dataEnv[key] = defaultValue
+        dataEnv[key] = defaultValue;
     }
-    return dataEnv[key]
-}
+    return dataEnv[key];
+};
 
 const setEnv = async (key: string, value: any) => {
-    dataEnv[key] = value
-}
+    dataEnv[key] = value;
+};
 
-ipcMain.handle('config:all', async (_) => {
-    return await all()
-})
-ipcMain.handle('config:get', async (_, key: string, defaultValue: any = null) => {
-    return await get(key, defaultValue)
-})
-ipcMain.handle('config:set', async (_, key: string, value: any) => {
-    const res = await set(key, value)
-    Events.broadcast('ConfigChange', {key, value})
-    return res
-})
+ipcMain.handle("config:all", async _ => {
+    return await all();
+});
+ipcMain.handle("config:get", async (_, key: string, defaultValue: any = null) => {
+    return await get(key, defaultValue);
+});
+ipcMain.handle("config:set", async (_, key: string, value: any) => {
+    const res = await set(key, value);
+    Events.broadcast("ConfigChange", {key, value});
+    return res;
+});
 
-ipcMain.handle('config:allEnv', async (_) => {
-    return await allEnv()
-})
+ipcMain.handle("config:allEnv", async _ => {
+    return await allEnv();
+});
 
-ipcMain.handle('config:getEnv', async (_, key: string, defaultValue: any = null) => {
-    return await getEnv(key, defaultValue)
-})
+ipcMain.handle("config:getEnv", async (_, key: string, defaultValue: any = null) => {
+    return await getEnv(key, defaultValue);
+});
 
-ipcMain.handle('config:setEnv', async (_, key: string, value: any) => {
-    const res = await setEnv(key, value)
-    Events.broadcast('ConfigEnvChange', {key, value})
-    return res
-})
+ipcMain.handle("config:setEnv", async (_, key: string, value: any) => {
+    const res = await setEnv(key, value);
+    Events.broadcast("ConfigEnvChange", {key, value});
+    return res;
+});
 
 export const ConfigMain = {
     all,
@@ -99,6 +99,6 @@ export const ConfigMain = {
     allEnv,
     getEnv,
     setEnv,
-}
+};
 
-export default ConfigMain
+export default ConfigMain;

@@ -1,11 +1,7 @@
-<script setup lang="ts">
-
-</script>
+<script setup lang="ts"></script>
 
 <template>
-    <a-input size="small"/>
+    <a-input size="small" />
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

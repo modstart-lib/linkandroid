@@ -5,32 +5,30 @@ import {t} from "../../lang";
 import {parseIPPort} from "../../lib/linkandroid";
 
 const props = defineProps<{
-    device: DeviceRecord
-}>()
+    device: DeviceRecord;
+}>();
 const doDisconnect = async () => {
     if (props.device.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t('设备未连接'))
-        return
+        Dialog.tipError(t("设备未连接"));
+        return;
     }
-    Dialog.loadingOn(t('正在断开连接'))
+    Dialog.loadingOn(t("正在断开连接"));
     try {
-        const {ip, port} = parseIPPort(props.device.id)
-        await window.$mapi.adb.disconnect(ip, port)
-        Dialog.tipSuccess(t('断开设备成功'))
+        const {ip, port} = parseIPPort(props.device.id);
+        await window.$mapi.adb.disconnect(ip, port);
+        Dialog.tipSuccess(t("断开设备成功"));
     } catch (e) {
-        Dialog.tipError(t('断开设备失败'))
+        Dialog.tipError(t("断开设备失败"));
     } finally {
-        Dialog.loadingOff()
+        Dialog.loadingOff();
     }
-}
+};
 </script>
 
 <template>
     <a-doption @click="doDisconnect">
-        {{ $t('断开连接') }}
+        {{ $t("断开连接") }}
     </a-doption>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

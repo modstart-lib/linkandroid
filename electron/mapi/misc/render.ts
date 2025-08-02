@@ -1,5 +1,5 @@
-import index from './index'
+import index from "./index";
 
 export default {
-    ...index
-}
+    ...index,
+};

@@ -2,42 +2,42 @@ import {Base64} from "js-base64";
 import * as crypto from "node:crypto";
 import dayjs from "dayjs";
 import fs from "node:fs";
-import Showdown from "showdown"
+import Showdown from "showdown";
 import iconvLite from "iconv-lite";
 import chardet from "chardet";
 // import {Iconv} from "iconv"
 import {isMac, isWin} from "./env";
 
 export const EncodeUtil = {
-    base32Alphabet: 'abcdefghijklmnopqrstuvwxyz234567',
+    base32Alphabet: "abcdefghijklmnopqrstuvwxyz234567",
     base32Encode(str: string) {
-        const buffer = Buffer.from(str, 'utf8');
-        let bits = '';
-        let output = '';
+        const buffer = Buffer.from(str, "utf8");
+        let bits = "";
+        let output = "";
         // 将每个字节转为8位二进制
         for (let i = 0; i < buffer.length; i++) {
             const byte = buffer[i];
-            bits += byte.toString(2).padStart(8, '0');
+            bits += byte.toString(2).padStart(8, "0");
         }
         // 每5位一组，转为 Base32 字符
         for (let i = 0; i < bits.length; i += 5) {
             const chunk = bits.slice(i, i + 5);
-            const paddedChunk = chunk.padEnd(5, '0'); // 不足5位补0
+            const paddedChunk = chunk.padEnd(5, "0"); // 不足5位补0
             const index = parseInt(paddedChunk, 2);
             output += EncodeUtil.base32Alphabet[index];
         }
         return output;
     },
     base32Decode(str: string) {
-        const base32Alphabet = 'abcdefghijklmnopqrstuvwxyz234567';
-        let bits = '';
+        const base32Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
+        let bits = "";
         for (let i = 0; i < str.length; i++) {
             const char = str[i];
             const index = base32Alphabet.indexOf(char);
             if (index === -1) {
-                throw new Error('Invalid Base32 character: ' + char);
+                throw new Error("Invalid Base32 character: " + char);
             }
-            bits += index.toString(2).padStart(5, '0');
+            bits += index.toString(2).padStart(5, "0");
         }
 
         const bytes: number[] = [];
@@ -46,396 +46,392 @@ export const EncodeUtil = {
             bytes.push(parseInt(byte, 2));
         }
 
-        return Buffer.from(bytes).toString('utf8');
+        return Buffer.from(bytes).toString("utf8");
     },
     base64Encode(str: string) {
-        return Base64.encode(str)
+        return Base64.encode(str);
     },
     base64Decode(str: string) {
-        return Base64.decode(str)
+        return Base64.decode(str);
     },
     md5(str: string) {
-        return crypto.createHash('md5').update(str).digest('hex')
+        return crypto.createHash("md5").update(str).digest("hex");
     },
     aesEncode(str: string, key: string) {
-        const cipher = crypto.createCipheriv('aes-128-ecb', key, '')
-        let crypted = cipher.update(str, 'utf8', 'base64')
-        crypted += cipher.final('base64')
-        return crypted
+        const cipher = crypto.createCipheriv("aes-128-ecb", key, "");
+        let crypted = cipher.update(str, "utf8", "base64");
+        crypted += cipher.final("base64");
+        return crypted;
     },
     aesDecode(str: string, key: string) {
-        const decipher = crypto.createDecipheriv('aes-128-ecb', key, '')
-        let dec = decipher.update(str, 'base64', 'utf8')
-        dec += decipher.final('utf8')
-        return dec
+        const decipher = crypto.createDecipheriv("aes-128-ecb", key, "");
+        let dec = decipher.update(str, "base64", "utf8");
+        dec += decipher.final("utf8");
+        return dec;
     },
-}
+};
 
 export const IconvUtil = {
     convert(str: string, to?: string, from?: string) {
         if (!from) {
-            from = chardet.detect(Buffer.from(str))
+            from = chardet.detect(Buffer.from(str));
         }
-        to = to || 'utf8'
+        to = to || "utf8";
         const buffer = iconvLite.encode(str, from);
-        return iconvLite.decode(buffer, to)
+        return iconvLite.decode(buffer, to);
     },
     bufferToUtf8(buffer: Buffer) {
-        const encoding = chardet.detect(buffer)
+        const encoding = chardet.detect(buffer);
         // if ('ISO-2022-CN' === encoding) {
         //     const iconvInstance = new Iconv('ISO-2022-CN', 'UTF-8//TRANSLIT//IGNORE');
         //     return iconvInstance.convert(buffer).toString()
         // }
-        return iconvLite.decode(buffer, encoding).toString()
+        return iconvLite.decode(buffer, encoding).toString();
     },
     detect(buffer: Uint8Array) {
         // detect str encoding
-        return chardet.detect(buffer)
-    }
-}
+        return chardet.detect(buffer);
+    },
+};
 
 export const StrUtil = {
     randomString(len: number = 32) {
-        const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        let result = ''
+        const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let result = "";
         for (let i = len; i > 0; --i) {
-            result += chars[Math.floor(Math.random() * chars.length)]
+            result += chars[Math.floor(Math.random() * chars.length)];
         }
-        return result
+        return result;
     },
     uuid() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            const r = Math.random() * 16 | 0
-            const v = c === 'x' ? r : (r & 0x3 | 0x8)
-            return v.toString(16)
-        })
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+            const r = (Math.random() * 16) | 0;
+            const v = c === "x" ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
     },
     hashCode(str: string, length: number = 8) {
-        let hash = 0
-        if (str.length === 0) return hash + ''
+        let hash = 0;
+        if (str.length === 0) return hash + "";
         for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i)
-            hash = ((hash << 5) - hash) + char
-            hash = hash & hash
+            const char = str.charCodeAt(i);
+            hash = (hash << 5) - hash + char;
+            hash = hash & hash;
         }
-        let result = Math.abs(hash).toString(16)
+        let result = Math.abs(hash).toString(16);
         if (result.length < length) {
-            result = '0'.repeat(length - result.length) + result
+            result = "0".repeat(length - result.length) + result;
         }
-        return result
+        return result;
     },
     hashCodeWithDuplicateCheck(str: string, check: string[], length: number = 8) {
-        let code = this.hashCode(str, length)
+        let code = this.hashCode(str, length);
         while (check.includes(code)) {
-            code = this.uuid().substring(0, length)
+            code = this.uuid().substring(0, length);
         }
-        return code
+        return code;
     },
     bigIntegerId() {
-        return [
-            Date.now(),
-            (Math.floor(Math.random() * 1000000) + '').padStart(6, '0')
-        ].join('')
+        return [Date.now(), (Math.floor(Math.random() * 1000000) + "").padStart(6, "0")].join("");
     },
     ucFirst(str: string) {
-        if (!str) return '';
+        if (!str) return "";
         return str.charAt(0).toUpperCase() + str.slice(1);
     },
-}
+};
 
 export const TimeUtil = {
     timestampInMs() {
-        return Date.now()
+        return Date.now();
     },
     timestamp() {
-        return Math.floor(Date.now() / 1000)
+        return Math.floor(Date.now() / 1000);
     },
-    format(time: number, format: string = 'YYYY-MM-DD HH:mm:ss') {
-        return dayjs(time).format(format)
+    format(time: number, format: string = "YYYY-MM-DD HH:mm:ss") {
+        return dayjs(time).format(format);
     },
     formatDate(time: number) {
-        return dayjs(time).format('YYYY-MM-DD')
+        return dayjs(time).format("YYYY-MM-DD");
     },
     dateString() {
-        return dayjs().format('YYYYMMDD')
+        return dayjs().format("YYYYMMDD");
     },
     datetimeString() {
-        return dayjs().format('YYYYMMDD_HHmmss_SSS')
+        return dayjs().format("YYYYMMDD_HHmmss_SSS");
     },
     timestampDayStart(msTimestamp?: number) {
-        let date = msTimestamp ? new Date(msTimestamp) : new Date()
-        date.setHours(0, 0, 0, 0)
-        return Math.floor(date.getTime() / 1000)
+        let date = msTimestamp ? new Date(msTimestamp) : new Date();
+        date.setHours(0, 0, 0, 0);
+        return Math.floor(date.getTime() / 1000);
     },
     replacePattern(text: string) {
         // @ts-ignore
-        return text.replaceAll('{year}', dayjs().format('YYYY'))
-            .replaceAll('{month}', dayjs().format('MM'))
-            .replaceAll('{day}', dayjs().format('DD'))
-            .replaceAll('{hour}', dayjs().format('HH'))
-            .replaceAll('{minute}', dayjs().format('mm'))
-            .replaceAll('{second}', dayjs().format('ss'))
-    }
-}
-
+        return text
+            .replaceAll("{year}", dayjs().format("YYYY"))
+            .replaceAll("{month}", dayjs().format("MM"))
+            .replaceAll("{day}", dayjs().format("DD"))
+            .replaceAll("{hour}", dayjs().format("HH"))
+            .replaceAll("{minute}", dayjs().format("mm"))
+            .replaceAll("{second}", dayjs().format("ss"));
+    },
+};
 
 export const FileUtil = {
     MIME_TYPES: {
-        'html': 'text/html',
-        'htm': 'text/html',
-        'js': 'application/javascript',
-        'css': 'text/css',
-        'json': 'application/json',
-        'png': 'image/png',
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'gif': 'image/gif',
-        'svg': 'image/svg+xml',
-        'webp': 'image/webp',
-        'woff': 'font/woff',
-        'woff2': 'font/woff2',
-        'ttf': 'font/ttf',
-        'otf': 'font/otf',
-        'mp3': 'audio/mpeg',
-        'mp4': 'video/mp4',
-        'wav': 'audio/wav',
-        'wasm': 'application/wasm',
-        'eot': 'application/vnd.ms-fontobject'
+        html: "text/html",
+        htm: "text/html",
+        js: "application/javascript",
+        css: "text/css",
+        json: "application/json",
+        png: "image/png",
+        jpg: "image/jpeg",
+        jpeg: "image/jpeg",
+        gif: "image/gif",
+        svg: "image/svg+xml",
+        webp: "image/webp",
+        woff: "font/woff",
+        woff2: "font/woff2",
+        ttf: "font/ttf",
+        otf: "font/otf",
+        mp3: "audio/mpeg",
+        mp4: "video/mp4",
+        wav: "audio/wav",
+        wasm: "application/wasm",
+        eot: "application/vnd.ms-fontobject",
     },
-    getMimeByExt(ext: string, defaultMime: string = ''): string {
-        ext = ext.toLowerCase()
-        if (ext.startsWith('.')) {
-            ext = ext.substring(1)
+    getMimeByExt(ext: string, defaultMime: string = ""): string {
+        ext = ext.toLowerCase();
+        if (ext.startsWith(".")) {
+            ext = ext.substring(1);
         }
-        return FileUtil.MIME_TYPES[ext] || defaultMime
+        return FileUtil.MIME_TYPES[ext] || defaultMime;
     },
-    getMimeByPath(p: string, defaultMime: string = ''): string {
-        const extension = p.split('.').pop().toLowerCase()
-        return FileUtil.getMimeByExt(extension, defaultMime)
+    getMimeByPath(p: string, defaultMime: string = ""): string {
+        const extension = p.split(".").pop().toLowerCase();
+        return FileUtil.getMimeByExt(extension, defaultMime);
     },
     streamToBase64(stream: NodeJS.ReadableStream): Promise<string> {
         return new Promise((resolve, reject) => {
-            const chunks = []
-            stream.on('data', (chunk) => {
-                chunks.push(chunk)
-            })
-            stream.on('end', () => {
-                const buffer = Buffer.concat(chunks)
-                resolve(buffer.toString('base64'))
-            })
-            stream.on('error', (error) => {
-                reject(error)
-            })
-        })
+            const chunks = [];
+            stream.on("data", chunk => {
+                chunks.push(chunk);
+            });
+            stream.on("end", () => {
+                const buffer = Buffer.concat(chunks);
+                resolve(buffer.toString("base64"));
+            });
+            stream.on("error", error => {
+                reject(error);
+            });
+        });
     },
     bufferToBase64(buffer: Buffer) {
-        let binary = '';
+        let binary = "";
         let bytes = new Uint8Array(buffer);
         let len = bytes.byteLength;
         for (let i = 0; i < len; i++) {
             binary += String.fromCharCode(bytes[i]);
         }
-        return EncodeUtil.base64Encode(binary)
+        return EncodeUtil.base64Encode(binary);
     },
     base64ToBuffer(base64: string): Buffer {
-        if (base64.startsWith('data:')) {
-            base64 = base64.split('base64,')[1]
+        if (base64.startsWith("data:")) {
+            base64 = base64.split("base64,")[1];
         }
-        return Buffer.from(base64, 'base64')
+        return Buffer.from(base64, "base64");
     },
     formatSize(size: number) {
         if (size < 1024) {
-            return size + 'B'
+            return size + "B";
         } else if (size < 1024 * 1024) {
-            return (size / 1024).toFixed(2) + 'KB'
+            return (size / 1024).toFixed(2) + "KB";
         } else if (size < 1024 * 1024 * 1024) {
-            return (size / 1024 / 1024).toFixed(2) + 'MB'
+            return (size / 1024 / 1024).toFixed(2) + "MB";
         } else {
-            return (size / 1024 / 1024 / 1024).toFixed(2) + 'GB'
+            return (size / 1024 / 1024 / 1024).toFixed(2) + "GB";
         }
     },
     async md5(filePath: string) {
         return new Promise((resolve, reject) => {
-            const hash = crypto.createHash('md5')
-            const stream = fs.createReadStream(filePath)
-            stream.on('data', (data) => {
-                hash.update(data)
-            })
-            stream.on('end', () => {
-                resolve(hash.digest('hex'))
-            })
-            stream.on('error', (error) => {
-                reject(error)
-            })
-        })
-    }
-}
+            const hash = crypto.createHash("md5");
+            const stream = fs.createReadStream(filePath);
+            stream.on("data", data => {
+                hash.update(data);
+            });
+            stream.on("end", () => {
+                resolve(hash.digest("hex"));
+            });
+            stream.on("error", error => {
+                reject(error);
+            });
+        });
+    },
+};
 
 export const JsonUtil = {
     stringifyOrdered(obj: any) {
-        return JSON.stringify(obj, Object.keys(obj).sort(), 4)
+        return JSON.stringify(obj, Object.keys(obj).sort(), 4);
     },
     stringifyValueOrdered(obj: any) {
         const sortedData = Object.fromEntries(
             Object.entries(obj).sort(([, a], [, b]) => {
                 // @ts-ignore
-                return a as any - b as any
+                return ((a as any) - b) as any;
             })
         );
-        return JSON.stringify(sortedData, null, 4)
-    }
-}
+        return JSON.stringify(sortedData, null, 4);
+    },
+};
 
 export const ImportUtil = {
     async loadCommonJs(cjsPath: string) {
-        const md5 = await FileUtil.md5(cjsPath)
-        const backend = await import(/* @vite-ignore */ `file://${cjsPath}?t=${md5}`)
+        const md5 = await FileUtil.md5(cjsPath);
+        const backend = await import(/* @vite-ignore */ `file://${cjsPath}?t=${md5}`);
         // console.log('loadCommonJs', `${cjsPath}?t=${md5}`)
-        return backend.default
-    }
-}
+        return backend.default;
+    },
+};
 
 export const MemoryCacheUtil = {
     pool: {} as {
         [key: string]: {
-            value: any,
-            expire: number,
-        }
+            value: any;
+            expire: number;
+        };
     },
     _gc() {
-        const now = TimeUtil.timestamp()
+        const now = TimeUtil.timestamp();
         for (const key in this.pool) {
             if (this.pool[key].expire < now) {
-                delete this.pool[key]
+                delete this.pool[key];
             }
         }
     },
     async remember(key: string, callback: () => Promise<any>, ttl: number = 60) {
         if (this.pool[key] && this.pool[key].expire > TimeUtil.timestamp()) {
-            return this.pool[key].value
+            return this.pool[key].value;
         }
-        const value = await callback()
+        const value = await callback();
         this.pool[key] = {
             value,
             expire: TimeUtil.timestamp() + ttl,
-        }
-        this._gc()
-        return value
+        };
+        this._gc();
+        return value;
     },
     get(key: string) {
         if (this.pool[key] && this.pool[key].expire > TimeUtil.timestamp()) {
-            return this.pool[key].value
+            return this.pool[key].value;
         }
-        this._gc()
-        return null
+        this._gc();
+        return null;
     },
     set(key: string, value: any, ttl: number = 86400) {
         this.pool[key] = {
             value,
             expire: TimeUtil.timestamp() + ttl,
-        }
-        this._gc()
+        };
+        this._gc();
     },
     forget(key: string) {
-        delete this.pool[key]
-    }
-}
+        delete this.pool[key];
+    },
+};
 
 export const MemoryMapCacheUtil = {
     pool: {} as {
         [group: string]: {
             [key: string]: {
-                value: any,
-                expire: number,
-            }
-        }
+                value: any;
+                expire: number;
+            };
+        };
     },
     _gc() {
-        const now = TimeUtil.timestamp()
+        const now = TimeUtil.timestamp();
         for (const group in this.pool) {
             for (const key in this.pool[group]) {
                 if (this.pool[group][key].expire < now) {
-                    delete this.pool[group][key]
+                    delete this.pool[group][key];
                 }
             }
         }
     },
     get(group: string, key: string) {
         if (this.pool[group] && this.pool[group][key] && this.pool[group][key].expire > TimeUtil.timestamp()) {
-            return this.pool[group][key].value
+            return this.pool[group][key].value;
         }
-        this._gc()
-        return null
+        this._gc();
+        return null;
     },
     set(group: string, key: string, value: any, ttl: number = 86400) {
         if (!this.pool[group]) {
-            this.pool[group] = {}
+            this.pool[group] = {};
         }
         this.pool[group][key] = {
             value,
             expire: TimeUtil.timestamp() + ttl,
-        }
-        this._gc()
+        };
+        this._gc();
     },
     forget(group: string, key: string) {
         if (this.pool[group]) {
-            delete this.pool[group][key]
+            delete this.pool[group][key];
         }
-    }
-}
+    },
+};
 
 export const ShellUtil = {
     quotaPath(p: string) {
-        return `"${p}"`
+        return `"${p}"`;
     },
     parseCommandArgs(command: string) {
-        let args = []
-        let arg = ''
-        let quote = ''
-        let escape = false
+        let args = [];
+        let arg = "";
+        let quote = "";
+        let escape = false;
         for (let i = 0; i < command.length; i++) {
-            const c = command[i]
+            const c = command[i];
             if (escape) {
-                arg += c
-                escape = false
-                continue
+                arg += c;
+                escape = false;
+                continue;
             }
-            if ('\\' === c) {
-                escape = true
-                arg += c
-                continue
+            if ("\\" === c) {
+                escape = true;
+                arg += c;
+                continue;
             }
-            if ('' === quote && (' ' === c || '\t' === c)) {
+            if ("" === quote && (" " === c || "\t" === c)) {
                 if (arg) {
-                    args.push(arg)
-                    arg = ''
+                    args.push(arg);
+                    arg = "";
                 }
-                continue
+                continue;
             }
-            if ('' === quote && ('"' === c || "'" === c)) {
-                quote = c
-                arg += c
-                continue
+            if ("" === quote && ('"' === c || "'" === c)) {
+                quote = c;
+                arg += c;
+                continue;
             }
             if ('"' === quote && '"' === c) {
-                quote = ''
-                arg += c
-                continue
+                quote = "";
+                arg += c;
+                continue;
             }
             if ("'" === quote && "'" === c) {
-                quote = ''
-                arg += c
-                continue
+                quote = "";
+                arg += c;
+                continue;
             }
-            arg += c
+            arg += c;
         }
         if (arg) {
-            args.push(arg)
+            args.push(arg);
         }
-        return args
-    }
-}
-
+        return args;
+    },
+};
 
 export const VersionUtil = {
     /**
@@ -444,109 +440,107 @@ export const VersionUtil = {
      * @param match string 如 * 或 >=1.0.0 或 >1.0.0 或 <1.0.0 或 <=1.0.0 或 1.0.0
      */
     match(v: string, match: string) {
-        if (match === '*') {
-            return true
+        if (match === "*") {
+            return true;
         }
-        if (match.startsWith('>=')) {
+        if (match.startsWith(">=")) {
             if (this.ge(v, match.substring(2))) {
-                return true
+                return true;
             }
-        } else if (match.startsWith('<=')) {
+        } else if (match.startsWith("<=")) {
             if (this.le(v, match.substring(2))) {
-                return true
+                return true;
             }
-        } else if (match.startsWith('>')) {
+        } else if (match.startsWith(">")) {
             if (this.gt(v, match.substring(1))) {
-                return true
+                return true;
             }
-        } else if (match.startsWith('<')) {
+        } else if (match.startsWith("<")) {
             if (this.lt(v, match.substring(1))) {
-                return true
+                return true;
             }
         } else {
-            return this.eq(v, match)
+            return this.eq(v, match);
         }
-        return false
+        return false;
     },
     compare(v1: string, v2: string) {
-        const v1Arr = v1.split('.')
-        const v2Arr = v2.split('.')
+        const v1Arr = v1.split(".");
+        const v2Arr = v2.split(".");
         for (let i = 0; i < v1Arr.length; i++) {
-            const v1Num = parseInt(v1Arr[i])
-            const v2Num = parseInt(v2Arr[i])
+            const v1Num = parseInt(v1Arr[i]);
+            const v2Num = parseInt(v2Arr[i]);
             if (v1Num > v2Num) {
-                return 1
+                return 1;
             } else if (v1Num < v2Num) {
-                return -1
+                return -1;
             }
         }
-        return 0
+        return 0;
     },
     gt(v1: string, v2: string) {
-        return VersionUtil.compare(v1, v2) > 0
+        return VersionUtil.compare(v1, v2) > 0;
     },
     ge(v1: string, v2: string) {
-        return VersionUtil.compare(v1, v2) >= 0
+        return VersionUtil.compare(v1, v2) >= 0;
     },
     lt(v1: string, v2: string) {
-        return VersionUtil.compare(v1, v2) < 0
+        return VersionUtil.compare(v1, v2) < 0;
     },
     le: (v1: string, v2: string) => {
-        return VersionUtil.compare(v1, v2) <= 0
+        return VersionUtil.compare(v1, v2) <= 0;
     },
     eq: (v1: string, v2: string) => {
-        return VersionUtil.compare(v1, v2) === 0
-    }
-}
-
+        return VersionUtil.compare(v1, v2) === 0;
+    },
+};
 
 export const UIUtil = {
     sizeToPx(size: string, sizeFull: number) {
         if (/^\d+$/.test(size)) {
             // 纯数字
-            return parseInt(size)
-        } else if (size.endsWith('%')) {
+            return parseInt(size);
+        } else if (size.endsWith("%")) {
             // 百分比
-            let result = Math.floor((sizeFull * parseInt(size) / 100))
-            result = Math.min(result, sizeFull)
-            return result
+            let result = Math.floor((sizeFull * parseInt(size)) / 100);
+            result = Math.min(result, sizeFull);
+            return result;
         } else {
-            throw 'UnsupportSizeString'
+            throw "UnsupportSizeString";
         }
-    }
-}
+    },
+};
 
 export const ReUtil = {
     match(regex: string, text: string) {
-        if ('' === regex || null === regex) {
-            return false
+        if ("" === regex || null === regex) {
+            return false;
         }
-        if (regex.startsWith('/')) {
-            const index = regex.lastIndexOf('/')
-            const source = regex.slice(1, index)
-            const flags = regex.slice(index + 1)
-            return (new RegExp(source, flags)).test(text)
+        if (regex.startsWith("/")) {
+            const index = regex.lastIndexOf("/");
+            const source = regex.slice(1, index);
+            const flags = regex.slice(index + 1);
+            return new RegExp(source, flags).test(text);
         }
-        return (new RegExp(regex)).test(text)
-    }
-}
+        return new RegExp(regex).test(text);
+    },
+};
 
 const converter = new Showdown.Converter({
     tables: true,
-})
+});
 export const MarkdownUtil = {
     toHtml(markdown: string): string {
-        return converter.makeHtml(markdown)
+        return converter.makeHtml(markdown);
     },
-}
+};
 
-
-type HotkeyModifierType = 'Control' | 'Option' | 'Command' | 'Ctrl' | 'Alt' | 'Win' | 'Meta' | 'Shift';
-type HotkeyType = { key: string, modifiers: HotkeyModifierType[] }
+type HotkeyModifierType = "Control" | "Option" | "Command" | "Ctrl" | "Alt" | "Win" | "Meta" | "Shift";
+type HotkeyType = {key: string; modifiers: HotkeyModifierType[]};
 
 export const HotKeyUtil = {
     orderModifiers(modifiers: HotkeyModifierType[]) {
-        const order = ['Control', 'Ctrl', 'Command', 'Meta', 'Win', 'Option', 'Alt', 'Shift'];
+        const order = ["Control", "Ctrl", "Command", "Meta", "Win", "Option", "Alt", "Shift"];
         return modifiers.sort((a, b) => {
             return order.indexOf(a) - order.indexOf(b);
         });
@@ -554,12 +548,12 @@ export const HotKeyUtil = {
     unifyObject(hotkey: HotkeyType) {
         return {
             key: hotkey.key.toUpperCase(),
-            modifiers: this.orderModifiers(hotkey.modifiers.map(modifier => StrUtil.ucFirst(modifier)))
+            modifiers: this.orderModifiers(hotkey.modifiers.map(modifier => StrUtil.ucFirst(modifier))),
         };
     },
     unifyString(hotkey: string): HotkeyType {
-        const parts = hotkey.split('+');
-        const key = (parts.pop() || '');
+        const parts = hotkey.split("+");
+        const key = parts.pop() || "";
         const modifiers: any[] = [];
         parts.forEach(part => {
             modifiers.push(StrUtil.ucFirst(part.trim()));
@@ -567,11 +561,11 @@ export const HotKeyUtil = {
         return this.unifyObject({key, modifiers});
     },
     unify(hotkeys: string | string[] | HotkeyType | HotkeyType[]): HotkeyType[] {
-        if (typeof hotkeys === 'string') {
+        if (typeof hotkeys === "string") {
             return [this.unifyString(hotkeys)];
         } else if (Array.isArray(hotkeys)) {
             return hotkeys.map(hotkey => {
-                if (typeof hotkey === 'string') {
+                if (typeof hotkey === "string") {
                     return this.unifyString(hotkey);
                 } else {
                     return this.unifyObject(hotkey);
@@ -583,63 +577,96 @@ export const HotKeyUtil = {
     },
     getFromEvent(event: any): HotkeyType | null {
         const valid = [
-            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-            '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-            'Space',
-        ]
-        const key = (event.key || '').toUpperCase();
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H",
+            "I",
+            "J",
+            "K",
+            "L",
+            "M",
+            "N",
+            "O",
+            "P",
+            "Q",
+            "R",
+            "S",
+            "T",
+            "U",
+            "V",
+            "W",
+            "X",
+            "Y",
+            "Z",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "0",
+            "Space",
+        ];
+        const key = (event.key || "").toUpperCase();
         if (!event || !event.key || !valid.includes(key)) {
-            return null
+            return null;
         }
         const modifiers: HotkeyModifierType[] = [];
         if (isWin) {
             if (event.ctrlKey || event.control) {
-                modifiers.push('Ctrl');
+                modifiers.push("Ctrl");
             }
             if (event.altKey || event.alt) {
-                modifiers.push('Alt');
+                modifiers.push("Alt");
             }
             if (event.metaKey || event.meta) {
-                modifiers.push('Win');
+                modifiers.push("Win");
             }
         } else if (isMac) {
             if (event.ctrlKey || event.control) {
-                modifiers.push('Control');
+                modifiers.push("Control");
             }
             if (event.altKey || event.alt) {
-                modifiers.push('Option');
+                modifiers.push("Option");
             }
             if (event.metaKey || event.meta) {
-                modifiers.push('Command');
+                modifiers.push("Command");
             }
         } else {
             if (event.ctrlKey || event.control) {
-                modifiers.push('Ctrl');
+                modifiers.push("Ctrl");
             }
             if (event.altKey || event.alt) {
-                modifiers.push('Alt');
+                modifiers.push("Alt");
             }
             if (event.metaKey || event.meta) {
-                modifiers.push('Meta');
+                modifiers.push("Meta");
             }
         }
         if (event.shiftKey || event.shift) {
-            modifiers.push('Shift');
+            modifiers.push("Shift");
         }
         return this.unifyObject({key, modifiers});
     },
     match(hotkeysForMatch: HotkeyType[], hotkey: HotkeyType): boolean {
         if (!hotkeysForMatch || !hotkey) {
-            return false
+            return false;
         }
-        const hotKeyStr = hotkey.modifiers.join('+') + '+' + hotkey.key;
+        const hotKeyStr = hotkey.modifiers.join("+") + "+" + hotkey.key;
         for (const key of hotkeysForMatch) {
-            const keyStr = key.modifiers.join('+') + '+' + key.key;
+            const keyStr = key.modifiers.join("+") + "+" + key.key;
             if (keyStr === hotKeyStr) {
-                return true
+                return true;
             }
         }
-        return false
-    }
-}
+        return false;
+    },
+};

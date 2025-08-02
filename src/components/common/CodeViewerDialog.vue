@@ -7,22 +7,22 @@ import {python} from "@codemirror/lang-python";
 import {defaultKeymap} from "@codemirror/commands";
 import {EditorState} from "@codemirror/state";
 
-const visible = ref(false)
-const codeEditorDom = ref<HTMLElement>()
-let editor = null as EditorView | null
-const useDark = false
+const visible = ref(false);
+const codeEditorDom = ref<HTMLElement>();
+let editor = null as EditorView | null;
+const useDark = false;
 
 const show = (code: string) => {
-    visible.value = true
+    visible.value = true;
     nextTick(() => {
-        initEditor()
-        setEditorContent(code)
-    })
-}
+        initEditor();
+        setEditorContent(code);
+    });
+};
 
 const initEditor = () => {
     if (editor) {
-        return
+        return;
     }
     editor = new EditorView({
         extensions: [
@@ -33,40 +33,37 @@ const initEditor = () => {
             EditorState.readOnly.of(true),
         ],
         parent: codeEditorDom.value,
-    })
-}
+    });
+};
 
 const setEditorContent = (code: string) => {
     if (!editor) {
         setTimeout(() => {
-            setEditorContent(code)
-        }, 100)
-        return
+            setEditorContent(code);
+        }, 100);
+        return;
     }
     const transaction = editor.state.update({
-        changes: {from: 0, to: editor.state.doc.length, insert: code}
-    })
-    editor.dispatch(transaction)
-}
+        changes: {from: 0, to: editor.state.doc.length, insert: code},
+    });
+    editor.dispatch(transaction);
+};
 
-onMounted(() => {
-
-})
+onMounted(() => {});
 
 defineExpose({
-    show
-})
+    show,
+});
 </script>
 
 <template>
     <a-modal v-model:visible="visible" :footer="false" width="80vw">
         <template #title>
-            {{ $t('代码查看') }}
+            {{ $t("代码查看") }}
         </template>
         <div>
             <div class="w-full h-96">
-                <div ref="codeEditorDom"
-                     class=""></div>
+                <div ref="codeEditorDom" class=""></div>
             </div>
         </div>
     </a-modal>
@@ -78,4 +75,3 @@ defineExpose({
     font-size: 1.2rem;
 }
 </style>
-

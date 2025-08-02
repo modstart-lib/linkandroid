@@ -1,12 +1,7 @@
 import {BrowserView, BrowserWindow} from "electron";
 import {AppsMain} from "../mapi/app/main";
 
-type HookType = never
-    | 'Show'
-    | 'Hide'
-    | 'EnterFullScreen'
-    | 'LeaveFullScreen'
-    | 'ShowQuitConfirmDialog'
+type HookType = never | "Show" | "Hide" | "EnterFullScreen" | "LeaveFullScreen" | "ShowQuitConfirmDialog";
 
 export const executeHooks = async (win: BrowserWindow, hook: HookType, data?: any) => {
     const evalJs = `
@@ -18,14 +13,20 @@ export const executeHooks = async (win: BrowserWindow, hook: HookType, data?: an
         }
     }`;
     return win.webContents?.executeJavaScript(evalJs);
-}
+};
 
-export const executeDarkMode = async (view: BrowserWindow | BrowserView, data: {
-    isSystem: boolean,
-}) => {
-    data = Object.assign({
-        isSystem: false
-    }, data)
+export const executeDarkMode = async (
+    view: BrowserWindow | BrowserView,
+    data: {
+        isSystem: boolean;
+    }
+) => {
+    data = Object.assign(
+        {
+            isSystem: false,
+        },
+        data
+    );
     if (await AppsMain.shouldDarkMode()) {
         // body and html
         view.webContents.executeJavaScript(`
@@ -36,4 +37,4 @@ export const executeDarkMode = async (view: BrowserWindow | BrowserView, data: {
             view.webContents.executeJavaScript(`document.body.setAttribute('arco-theme', 'dark');`);
         }
     }
-}
+};

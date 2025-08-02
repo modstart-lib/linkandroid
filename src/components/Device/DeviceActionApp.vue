@@ -7,8 +7,8 @@ import {ref} from "vue";
 const appManagerDialog = ref<InstanceType<typeof DeviceAppManagerDialog> | null>(null);
 const appInstallDialog = ref<InstanceType<typeof DeviceAppInstallDialog> | null>(null);
 const props = defineProps<{
-    device: DeviceRecord
-}>()
+    device: DeviceRecord;
+}>();
 </script>
 
 <template>
@@ -20,21 +20,13 @@ const props = defineProps<{
                 </template>
             </a-button>
             <template #content>
-                <a-doption @click="appManagerDialog?.show(props.device)">{{
-                        $t('管理应用')
-                    }}
-                </a-doption>
-                <a-doption @click="appInstallDialog?.show(props.device)">{{
-                        $t('安装应用')
-                    }}
-                </a-doption>
+                <a-doption @click="appManagerDialog?.show(props.device)">{{ $t("管理应用") }} </a-doption>
+                <a-doption @click="appInstallDialog?.show(props.device)">{{ $t("安装应用") }} </a-doption>
             </template>
         </a-dropdown>
     </a-tooltip>
-    <DeviceAppManagerDialog ref="appManagerDialog"/>
-    <DeviceAppInstallDialog ref="appInstallDialog"/>
+    <DeviceAppManagerDialog ref="appManagerDialog" />
+    <DeviceAppInstallDialog ref="appInstallDialog" />
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

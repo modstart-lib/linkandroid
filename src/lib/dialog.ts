@@ -1,9 +1,9 @@
-import {Message, MessageReturn, Modal} from '@arco-design/web-vue';
+import {Message, MessageReturn, Modal} from "@arco-design/web-vue";
 import Prompt from "./components/Prompt.vue";
 import {h} from "vue";
 import {i18n, t} from "../lang";
 
-let loadingLayers: MessageReturn[] = []
+let loadingLayers: MessageReturn[] = [];
 
 export const Dialog = {
     tipSuccess: (msg: string) => {
@@ -13,96 +13,98 @@ export const Dialog = {
         Message.error(msg);
     },
     confirm: (content: string, title: string | null = null): Promise<void> => {
-        title = title || t('提示')
+        title = title || t("提示");
         return new Promise((resolve, reject) => {
             Modal.confirm({
                 title,
                 content,
-                titleAlign: 'start',
+                titleAlign: "start",
                 simple: false,
-                width: '25rem',
-                modalClass: 'arco-modal-confirm',
-                okText: t('确定'),
-                cancelText: t('取消'),
+                width: "25rem",
+                modalClass: "arco-modal-confirm",
+                okText: t("确定"),
+                cancelText: t("取消"),
                 onOk: () => {
                     resolve();
                 },
                 onCancel: () => {
                     // reject();
-                }
+                },
             });
         });
     },
     alertSuccess: (content: string, title: string | null = null): Promise<void> => {
-        title = title || t('提示')
-        return new Promise((resolve) => {
+        title = title || t("提示");
+        return new Promise(resolve => {
             Modal.confirm({
                 title,
                 content,
                 simple: false,
-                width: '25rem',
+                width: "25rem",
                 onOk: () => {
                     resolve();
-                }
+                },
             });
         });
     },
     alertError: (content: string, title: string | null = null): Promise<void> => {
-        title = title || t('提示')
-        return new Promise((resolve) => {
+        title = title || t("提示");
+        return new Promise(resolve => {
             Modal.confirm({
                 title,
                 content,
                 simple: false,
-                width: '25rem',
+                width: "25rem",
                 onOk: () => {
                     resolve();
-                }
+                },
             });
         });
     },
     loadingOn: (content: string | null = null) => {
-        content = content || t('加载中...')
+        content = content || t("加载中...");
         const loading = Message.loading({
             content,
-            duration: 0
+            duration: 0,
         });
-        loadingLayers.push(loading)
+        loadingLayers.push(loading);
     },
     loadingUpdate: (content: string) => {
         if (loadingLayers.length > 0) {
-            const contentContainer = document.querySelector('.arco-message-list .arco-message-loading .arco-message-content')
+            const contentContainer = document.querySelector(
+                ".arco-message-list .arco-message-loading .arco-message-content"
+            );
             if (contentContainer) {
-                contentContainer.innerHTML = content
+                contentContainer.innerHTML = content;
             }
         }
     },
     loadingOff: () => {
-        const loading = loadingLayers.pop()
+        const loading = loadingLayers.pop();
         if (loading) {
-            loading.close()
+            loading.close();
         }
     },
-    prompt: (content: string, defaultValue: string = ''): Promise<string | null> => {
-        return new Promise((resolve) => {
-            let inputValue = defaultValue
+    prompt: (content: string, defaultValue: string = ""): Promise<string | null> => {
+        return new Promise(resolve => {
+            let inputValue = defaultValue;
             Modal.open({
                 title: content,
                 simple: false,
-                titleAlign: 'start',
+                titleAlign: "start",
                 content: () => {
                     return h(Prompt, {
                         value: defaultValue,
                         onChange: (value: string) => {
-                            inputValue = value
-                        }
-                    })
+                            inputValue = value;
+                        },
+                    });
                 },
-                width: '25rem',
+                width: "25rem",
                 onOk: () => {
                     resolve(inputValue);
-                }
+                },
             });
         });
-    }
-}
+    },
+};

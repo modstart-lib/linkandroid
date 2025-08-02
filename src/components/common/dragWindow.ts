@@ -1,13 +1,5 @@
-export const useDragWindow = (
-    {
-        name,
-        ignore
-    }: {
-        name: string | null;
-        ignore?: (e: MouseEvent) => boolean;
-    }
-) => {
-    name = name || null
+export const useDragWindow = ({name, ignore}: {name: string | null; ignore?: (e: MouseEvent) => boolean}) => {
+    name = name || null;
     let animationId: number;
     let mouseX: number;
     let mouseY: number;
@@ -15,7 +7,7 @@ export const useDragWindow = (
     let clientHeight = 0;
     let draggable = true;
 
-    const onDragWindowMouseDown = (e) => {
+    const onDragWindowMouseDown = e => {
         // 右击不移动
         if (e.button === 2) {
             return;
@@ -32,13 +24,13 @@ export const useDragWindow = (
         if (Math.abs(document.body.clientHeight - clientHeight) > 5) {
             clientHeight = document.body.clientHeight;
         }
-        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener("mouseup", onMouseUp);
         animationId = requestAnimationFrame(moveWindow);
     };
 
     const onMouseUp = () => {
         draggable = false;
-        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener("mouseup", onMouseUp);
         cancelAnimationFrame(animationId);
     };
 
@@ -47,11 +39,10 @@ export const useDragWindow = (
             if (draggable) {
                 animationId = requestAnimationFrame(moveWindow);
             }
-        })
+        });
     };
 
     return {
         onDragWindowMouseDown,
     };
 };
-

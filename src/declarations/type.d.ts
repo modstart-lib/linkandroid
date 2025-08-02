@@ -11,11 +11,7 @@ declare interface Window {
         offBroadcast: (type: string, cb: (data: any) => void) => void;
         registerCallPage: (
             name: string,
-            cb: (
-                resolve: (data: any) => void,
-                reject: (error: string) => void,
-                data: any
-            ) => void
+            cb: (resolve: (data: any) => void, reject: (error: string) => void, data: any) => void
         ) => void;
         createChannel: (cb: (data: any) => void) => string;
         destroyChannel: (channel: string) => void;
@@ -72,11 +68,7 @@ declare interface Window {
                     stdout?: (data: string, process: any) => void;
                     stderr?: (data: string, process: any) => void;
                     success?: (process: any) => void;
-                    error?: (
-                        msg: string,
-                        exitCode: number,
-                        process: any
-                    ) => void;
+                    error?: (msg: string, exitCode: number, process: any) => void;
                     cwd?: string;
                     outputEncoding?: string;
                     env?: Record<string, any>;
@@ -86,11 +78,7 @@ declare interface Window {
                 send: (data: any) => void;
                 result: () => Promise<string>;
             }>;
-            availablePort: (
-                start: number,
-                lockKey?: string,
-                lockTime?: number
-            ) => Promise<number>;
+            availablePort: (start: number, lockKey?: string, lockTime?: number) => Promise<number>;
             fixExecutable: (executable: string) => Promise<void>;
             getClipboardText: () => Promise<string>;
             setClipboardText: (text: string) => Promise<void>;
@@ -137,19 +125,11 @@ declare interface Window {
             root: () => string;
             info: (msg: string, data: any = null) => Promise<void>;
             error: (msg: string, data: any = null) => Promise<void>;
-            collect: (option?: {
-                startTime?: string;
-                endTime?: string;
-                limit?: number;
-            }) => Promise<string>;
+            collect: (option?: {startTime?: string; endTime?: string; limit?: number}) => Promise<string>;
         };
         storage: {
             all: () => Promise<any>;
-            get: (
-                group: string,
-                key: string,
-                defaultValue: any
-            ) => Promise<any>;
+            get: (group: string, key: string, defaultValue: any) => Promise<any>;
             set: (group: string, key: string, value: any) => Promise<void>;
             write: (group: string, value: any) => Promise<void>;
             read: (group: string, defaultValue: any = null) => Promise<any>;
@@ -165,48 +145,16 @@ declare interface Window {
         file: {
             fullPath: (path: string) => Promise<string>;
             absolutePath: (path: string) => string;
-            exists: (
-                path: string,
-                option?: { isFullPath?: boolean }
-            ) => Promise<boolean>;
-            isDirectory: (
-                path: string,
-                option?: { isFullPath?: boolean }
-            ) => Promise<boolean>;
-            mkdir: (
-                path: string,
-                option?: { isFullPath?: boolean }
-            ) => Promise<void>;
-            list: (
-                path: string,
-                option?: { isFullPath?: boolean }
-            ) => Promise<any[]>;
-            listAll: (
-                path: string,
-                option?: { isFullPath?: boolean }
-            ) => Promise<any[]>;
-            write: (
-                path: string,
-                data: any,
-                option?: { isFullPath?: boolean }
-            ) => Promise<void>;
-            writeBuffer: (
-                path: string,
-                data: any,
-                option?: { isFullPath?: boolean }
-            ) => Promise<void>;
-            read: (
-                path: string,
-                option?: { isFullPath?: boolean }
-            ) => Promise<any>;
-            readBuffer: (
-                path: string,
-                option?: { isFullPath?: boolean }
-            ) => Promise<any>;
-            deletes: (
-                path: string,
-                option?: { isFullPath?: boolean }
-            ) => Promise<void>;
+            exists: (path: string, option?: {isFullPath?: boolean}) => Promise<boolean>;
+            isDirectory: (path: string, option?: {isFullPath?: boolean}) => Promise<boolean>;
+            mkdir: (path: string, option?: {isFullPath?: boolean}) => Promise<void>;
+            list: (path: string, option?: {isFullPath?: boolean}) => Promise<any[]>;
+            listAll: (path: string, option?: {isFullPath?: boolean}) => Promise<any[]>;
+            write: (path: string, data: any, option?: {isFullPath?: boolean}) => Promise<void>;
+            writeBuffer: (path: string, data: any, option?: {isFullPath?: boolean}) => Promise<void>;
+            read: (path: string, option?: {isFullPath?: boolean}) => Promise<any>;
+            readBuffer: (path: string, option?: {isFullPath?: boolean}) => Promise<any>;
+            deletes: (path: string, option?: {isFullPath?: boolean}) => Promise<void>;
             rename: (
                 pathOld: string,
                 pathNew: string,
@@ -215,15 +163,8 @@ declare interface Window {
                     overwrite?: boolean;
                 }
             ) => Promise<void>;
-            copy: (
-                pathOld: string,
-                pathNew: string,
-                option?: { isFullPath?: boolean }
-            ) => Promise<void>;
-            temp: (
-                ext: string = "tmp",
-                prefix: string = "file"
-            ) => Promise<string>;
+            copy: (pathOld: string, pathNew: string, option?: {isFullPath?: boolean}) => Promise<void>;
+            temp: (ext: string = "tmp", prefix: string = "file") => Promise<string>;
             tempDir: (prefix: string = "dir") => Promise<string>;
             watchText: (
                 path: string,
@@ -235,21 +176,13 @@ declare interface Window {
             ) => Promise<{
                 stop: Function;
             }>;
-            appendText: (
-                path: string,
-                data: any,
-                option?: { isFullPath?: boolean }
-            ) => Promise<void>;
+            appendText: (path: string, data: any, option?: {isFullPath?: boolean}) => Promise<void>;
             openFile: (options: {} = {}) => Promise<string | null>;
             openDirectory: (options: {} = {}) => Promise<string | null>;
             openSave: (options: {} = {}) => Promise<string | null>;
             openPath: (path: string, options: {} = {}) => Promise<void>;
             ext: (path: string) => Promise<string>;
-            textToName: (
-                text: string,
-                ext: string = "",
-                maxLimit: number = 100
-            ) => Promise<string>;
+            textToName: (text: string, ext: string = "", maxLimit: number = 100) => Promise<string>;
             hubRootDefault: () => Promise<string>;
             hubSave: (
                 file: string,
@@ -315,15 +248,8 @@ declare interface Window {
             ) => Promise<any>;
         };
         misc: {
-            getZipFileContent: (
-                path: string,
-                pathInZip: string
-            ) => Promise<string>;
-            unzip: (
-                zipPath: string,
-                dest: string,
-                option?: { process: Function }
-            ) => Promise<void>;
+            getZipFileContent: (path: string, pathInZip: string) => Promise<string>;
+            unzip: (zipPath: string, dest: string, option?: {process: Function}) => Promise<void>;
         };
 
         adb: {
@@ -345,18 +271,13 @@ declare interface Window {
             screenrecord: (
                 serial: string,
                 option?: {
-                    progress: (
-                        type: "error" | "success" | "stdout" | "stderr",
-                        data: any
-                    ) => void;
+                    progress: (type: "error" | "success" | "stdout" | "stderr", data: any) => void;
                 }
             ) => Promise<{
                 stop: Function | null;
                 devicePath: string;
             }>;
-            watch: (
-                callback: (type: string, data: any) => void
-            ) => Promise<void>;
+            watch: (callback: (type: string, data: any) => void) => Promise<void>;
             fileList: (serial: string, filePath: string) => Promise<any>;
             filePush: (
                 serial: string,
@@ -408,11 +329,7 @@ declare interface Window {
                     stdout?: (data: string, process: any) => void;
                     stderr?: (data: string, process: any) => void;
                     success?: (process: any) => void;
-                    error?: (
-                        msg: string,
-                        exitCode: number,
-                        process: any
-                    ) => void;
+                    error?: (msg: string, exitCode: number, process: any) => void;
                     env?: Record<string, any>;
                 }
             ) => Promise<any>;

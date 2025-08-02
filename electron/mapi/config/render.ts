@@ -1,28 +1,28 @@
 import {ipcRenderer} from "electron";
 
 const all = async () => {
-    return ipcRenderer.invoke('config:all')
-}
+    return ipcRenderer.invoke("config:all");
+};
 
 const get = async (key: string, defaultValue: any = null) => {
-    return ipcRenderer.invoke('config:get', key, defaultValue)
-}
+    return ipcRenderer.invoke("config:get", key, defaultValue);
+};
 
 const set = async (key: string, value: any) => {
-    return ipcRenderer.invoke('config:set', key, value)
-}
+    return ipcRenderer.invoke("config:set", key, value);
+};
 
 const allEnv = async () => {
-    return ipcRenderer.invoke('config:allEnv')
-}
+    return ipcRenderer.invoke("config:allEnv");
+};
 
 const getEnv = async (key: string, defaultValue: any = null) => {
-    return ipcRenderer.invoke('config:getEnv', key, defaultValue)
-}
+    return ipcRenderer.invoke("config:getEnv", key, defaultValue);
+};
 
 const setEnv = async (key: string, value: any) => {
-    return ipcRenderer.invoke('config:setEnv', key, value)
-}
+    return ipcRenderer.invoke("config:setEnv", key, value);
+};
 
 export default {
     all,
@@ -30,5 +30,5 @@ export default {
     set,
     allEnv,
     getEnv,
-    setEnv
-}
+    setEnv,
+};

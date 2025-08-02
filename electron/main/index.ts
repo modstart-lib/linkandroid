@@ -1,10 +1,10 @@
-import {app, BrowserWindow, desktopCapturer, session, shell} from 'electron'
-import {optimizer} from '@electron-toolkit/utils'
+import {app, BrowserWindow, desktopCapturer, session, shell} from "electron";
+import {optimizer} from "@electron-toolkit/utils";
 
 /** process.js 必须位于非依赖项的顶部 */
 import {isDummy} from "../lib/process";
 import {AppEnv, AppRuntime} from "../mapi/env";
-import {MAPI} from '../mapi/main';
+import {MAPI} from "../mapi/main";
 
 import {WindowConfig} from "../config/window";
 import {AppConfig} from "../../src/config";
@@ -21,69 +21,63 @@ import {executeHooks} from "../lib/hooks";
 import {DevToolsManager} from "../lib/devtools";
 import {AppsMain} from "../mapi/app/main";
 
-const isDummyNew = isDummy
+const isDummyNew = isDummy;
 
-if (process.env['ELECTRON_ENV_PROD']) {
-    DevToolsManager.setEnable(false)
+if (process.env["ELECTRON_ENV_PROD"]) {
+    DevToolsManager.setEnable(false);
 }
 
-process.on('uncaughtException', (reason) => {
-    let error: any = reason
+process.on("uncaughtException", reason => {
+    let error: any = reason;
     if (error instanceof Error) {
-        error = [
-            error.message,
-            error.stack,
-        ].join("\n")
+        error = [error.message, error.stack].join("\n");
     }
-    Log.error('UncaughtException', error);
+    Log.error("UncaughtException", error);
 });
 
-process.on('unhandledRejection', (reason) => {
-    Log.error('UnhandledRejection', reason);
-    let error: any = reason
+process.on("unhandledRejection", reason => {
+    Log.error("UnhandledRejection", reason);
+    let error: any = reason;
     if (error instanceof Error) {
-        error = [
-            error.message,
-            error.stack,
-        ].join("\n")
+        error = [error.message, error.stack].join("\n");
     }
-    Log.error('UnhandledRejection', error);
+    Log.error("UnhandledRejection", error);
 });
 
-app.disableHardwareAcceleration()
+app.disableHardwareAcceleration();
 
 // Set application name for Windows 10+ notifications
-if (process.platform === 'win32') app.setAppUserModelId(app.getName())
+if (process.platform === "win32") app.setAppUserModelId(app.getName());
 
 if (!app.requestSingleInstanceLock()) {
     // 如何激活已经启动的实例？
     // https://www.electronjs.org/docs/api/app#apprequestsingleinstancelock
-    app.quit()
-    process.exit(0)
+    app.quit();
+    process.exit(0);
 }
 
-const hasSplashWindow = true
+const hasSplashWindow = true;
 
-AppEnv.appRoot = process.env.APP_ROOT
-AppEnv.appData = app.getPath('appData')
-AppEnv.userData = app.getPath('userData')
-AppEnv.isInit = true
+AppEnv.appRoot = process.env.APP_ROOT;
+AppEnv.appData = app.getPath("appData");
+AppEnv.userData = app.getPath("userData");
+AppEnv.isInit = true;
 
-MAPI.init()
-ConfigContextMenu.init()
+MAPI.init();
+ConfigContextMenu.init();
 
-Log.info('Starting')
-Log.info('LaunchInfo', {
+Log.info("Starting");
+Log.info("LaunchInfo", {
     isPackaged,
     userData: AppEnv.userData,
-})
+});
 
 async function createWindow() {
-    let icon = logoPath
-    if (process.platform === 'win32') {
-        icon = icoLogoPath
-    } else if (process.platform === 'darwin') {
-        icon = icnsLogoPath
+    let icon = logoPath;
+    if (process.platform === "win32") {
+        icon = icoLogoPath;
+    } else if (process.platform === "darwin") {
+        icon = icnsLogoPath;
     }
     if (hasSplashWindow) {
         AppRuntime.splashWindow = new BrowserWindow({
@@ -95,8 +89,8 @@ async function createWindow() {
             alwaysOnTop: true,
             hasShadow: true,
             skipTaskbar: true,
-        })
-        rendererLoadPath(AppRuntime.splashWindow, 'splash.html')
+        });
+        rendererLoadPath(AppRuntime.splashWindow, "splash.html");
     }
     AppRuntime.mainWindow = new BrowserWindow({
         show: !hasSplashWindow,
@@ -111,7 +105,7 @@ async function createWindow() {
         width: WindowConfig.initWidth,
         height: WindowConfig.initHeight,
         backgroundColor: await AppsMain.defaultDarkModeBackgroundColor(),
-        titleBarStyle: 'hidden',
+        titleBarStyle: "hidden",
         trafficLightPosition: {x: 10, y: 11},
         webPreferences: {
             preload: preloadDefault,
@@ -124,105 +118,102 @@ async function createWindow() {
             contextIsolation: false,
             // sandbox: false,
         },
-    })
-
-    AppRuntime.mainWindow.on('closed', () => {
-        AppRuntime.mainWindow = null
-    })
-    AppRuntime.mainWindow.on('show', async () => {
-        await executeHooks(AppRuntime.mainWindow, 'Show')
     });
-    AppRuntime.mainWindow.on('hide', async () => {
-        await executeHooks(AppRuntime.mainWindow, 'Hide')
+
+    AppRuntime.mainWindow.on("closed", () => {
+        AppRuntime.mainWindow = null;
+    });
+    AppRuntime.mainWindow.on("show", async () => {
+        await executeHooks(AppRuntime.mainWindow, "Show");
+    });
+    AppRuntime.mainWindow.on("hide", async () => {
+        await executeHooks(AppRuntime.mainWindow, "Hide");
     });
 
     if (isMac) {
-        AppRuntime.mainWindow.on('close', (event) => {
+        AppRuntime.mainWindow.on("close", event => {
             // @ts-ignore
             if (!app.quitForce) {
-                executeHooks(AppRuntime.mainWindow, 'ShowQuitConfirmDialog')
+                executeHooks(AppRuntime.mainWindow, "ShowQuitConfirmDialog");
                 event.preventDefault();
             }
-        })
+        });
     }
-    AppRuntime.mainWindow.on('enter-full-screen', () => {
-        executeHooks(AppRuntime.mainWindow, 'EnterFullScreen')
-    })
-    AppRuntime.mainWindow.on('leave-full-screen', () => {
-        executeHooks(AppRuntime.mainWindow, 'LeaveFullScreen')
-    })
+    AppRuntime.mainWindow.on("enter-full-screen", () => {
+        executeHooks(AppRuntime.mainWindow, "EnterFullScreen");
+    });
+    AppRuntime.mainWindow.on("leave-full-screen", () => {
+        executeHooks(AppRuntime.mainWindow, "LeaveFullScreen");
+    });
 
-    rendererLoadPath(AppRuntime.mainWindow, 'index.html')
-    DevToolsManager.register('Main', AppRuntime.mainWindow)
+    rendererLoadPath(AppRuntime.mainWindow, "index.html");
+    DevToolsManager.register("Main", AppRuntime.mainWindow);
 
-    AppRuntime.mainWindow.webContents.on('did-finish-load', () => {
+    AppRuntime.mainWindow.webContents.on("did-finish-load", () => {
         if (hasSplashWindow) {
-            AppRuntime.mainWindow?.show()
+            AppRuntime.mainWindow?.show();
             setTimeout(() => {
                 try {
-                    AppRuntime.splashWindow?.close()
-                    AppRuntime.splashWindow = null
-                } catch (e) {
-                }
+                    AppRuntime.splashWindow?.close();
+                    AppRuntime.splashWindow = null;
+                } catch (e) {}
             }, 1000);
         }
-        Page.ready('main')
-        DevToolsManager.autoShow(AppRuntime.mainWindow)
-    })
+        Page.ready("main");
+        DevToolsManager.autoShow(AppRuntime.mainWindow);
+    });
     AppRuntime.mainWindow.webContents.setWindowOpenHandler(({url}) => {
-        if (url.startsWith('https:')) shell.openExternal(url)
-        return {action: 'deny'}
-    })
+        if (url.startsWith("https:")) shell.openExternal(url);
+        return {action: "deny"};
+    });
 }
 
 app.whenReady()
     .then(() => {
         session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
-            desktopCapturer.getSources({types: ['screen']}).then((sources) => {
+            desktopCapturer.getSources({types: ["screen"]}).then(sources => {
                 // Grant access to the first screen found.
-                callback({video: sources[0], audio: 'loopback'})
-            })
-        })
+                callback({video: sources[0], audio: "loopback"});
+            });
+        });
     })
     .then(ConfigLang.readyAsync)
     .then(() => {
-        MAPI.ready()
-        ConfigMenu.ready()
-        ConfigTray.ready()
-        app.on('browser-window-created', (_, window) => {
-            optimizer.watchWindowShortcuts(window)
-        })
-        createWindow().then()
-    })
+        MAPI.ready();
+        ConfigMenu.ready();
+        ConfigTray.ready();
+        app.on("browser-window-created", (_, window) => {
+            optimizer.watchWindowShortcuts(window);
+        });
+        createWindow().then();
+    });
 
-app.on('will-quit', () => {
-    MAPI.destroy()
+app.on("will-quit", () => {
+    MAPI.destroy();
 });
 
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit()
-})
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") app.quit();
+});
 
-app.on('second-instance', () => {
+app.on("second-instance", () => {
     if (AppRuntime.mainWindow) {
         if (AppRuntime.mainWindow.isMinimized()) {
-            AppRuntime.mainWindow.restore()
+            AppRuntime.mainWindow.restore();
         }
-        AppRuntime.mainWindow.show()
-        AppRuntime.mainWindow.focus()
+        AppRuntime.mainWindow.show();
+        AppRuntime.mainWindow.focus();
     }
-})
+});
 
-app.on('activate', () => {
-    const allWindows = BrowserWindow.getAllWindows()
+app.on("activate", () => {
+    const allWindows = BrowserWindow.getAllWindows();
     if (allWindows.length) {
         if (!AppRuntime.mainWindow.isVisible()) {
-            AppRuntime.mainWindow.show()
+            AppRuntime.mainWindow.show();
         }
-        AppRuntime.mainWindow.focus()
+        AppRuntime.mainWindow.focus();
     } else {
-        createWindow().then()
+        createWindow().then();
     }
-})
-
-
+});

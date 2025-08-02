@@ -8,7 +8,7 @@ export const DevToolsManager = {
     colCount: 3,
     windows: new Map<BrowserWindow | BrowserView, BrowserWindow>(),
     setEnable(enable: boolean) {
-        DevToolsManager.enable = enable
+        DevToolsManager.enable = enable;
     },
     getWindow(win: BrowserWindow | BrowserView) {
         return this.windows.get(win);
@@ -17,7 +17,7 @@ export const DevToolsManager = {
         if (this.windows.has(win)) {
             return this.windows.get(win);
         }
-        const {x, y, width, height} = this.getDisplayPosition()
+        const {x, y, width, height} = this.getDisplayPosition();
         // console.log('DevToolsManager', name, {x, y, width, height})
         const devtools = new BrowserWindow({
             show: true,
@@ -29,18 +29,18 @@ export const DevToolsManager = {
         });
         // console.log('DevToolsManager', name, {x, y})
         win.webContents.setDevToolsWebContents(devtools.webContents);
-        win.webContents.on('destroyed', () => {
+        win.webContents.on("destroyed", () => {
             // console.log('DevToolsManager', 'destroyed', name)
-            devtools.destroy()
-            this.windows.delete(win)
-        })
-        devtools.webContents.on('dom-ready', () => {
+            devtools.destroy();
+            this.windows.delete(win);
+        });
+        devtools.webContents.on("dom-ready", () => {
             setTimeout(() => {
                 if (!devtools.isDestroyed()) {
-                    devtools.setTitle(name)
+                    devtools.setTitle(name);
                 }
-            }, 1000)
-        })
+            }, 1000);
+        });
         this.windows.set(win, devtools);
         return devtools;
     },
@@ -54,15 +54,17 @@ export const DevToolsManager = {
         });
     },
     getDisplayPosition(): {
-        x: number, y: number,
-        width: number, height: number
+        x: number;
+        y: number;
+        width: number;
+        height: number;
     } {
-        const display = this.getLargestDisplay()
+        const display = this.getLargestDisplay();
         const {x, y, width, height} = display.workArea;
         // console.log('DevToolsManager', 'getDisplayPosition', {x, y, width, height})
         if (width < 1300) {
-            this.rowCount = 3
-            this.colCount = 2
+            this.rowCount = 3;
+            this.colCount = 2;
         }
         const itemWidth = Math.floor(width / this.rowCount);
         const itemHeight = Math.floor(height / this.colCount);
@@ -74,23 +76,23 @@ export const DevToolsManager = {
             y: y + col * itemHeight,
             width: itemWidth,
             height: itemHeight,
-        }
+        };
     },
     register(name: string, win: BrowserWindow | BrowserView) {
         if (!isDev || !DevToolsManager.enable) {
-            return
+            return;
         }
         this.getOrCreateWindow(name, win);
     },
     autoShow(win: BrowserWindow | BrowserView) {
         if (!isDev || !DevToolsManager.enable) {
-            return
+            return;
         }
         if (WindowConfig.alwaysOpenDevTools) {
             win.webContents.openDevTools({
-                mode: 'detach',
+                mode: "detach",
                 activate: false,
-            })
+            });
         }
-    }
-}
+    },
+};

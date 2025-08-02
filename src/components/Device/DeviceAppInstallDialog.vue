@@ -4,50 +4,46 @@ import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
 import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 
-const visible = ref(false)
-const device = ref({} as DeviceRecord)
+const visible = ref(false);
+const device = ref({} as DeviceRecord);
 
 const show = (d: DeviceRecord) => {
     if (d.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t('设备未连接'))
-        return
+        Dialog.tipError(t("设备未连接"));
+        return;
     }
-    device.value = d
+    device.value = d;
     window.$mapi.file.openFile().then((path: string) => {
         if (path) {
-            Dialog.loadingOn(t('正在安装'))
-            window.$mapi.adb.install(device.value.id, path)
+            Dialog.loadingOn(t("正在安装"));
+            window.$mapi.adb
+                .install(device.value.id, path)
                 .then(() => {
-                    Dialog.loadingOff()
-                    Dialog.tipSuccess(t('安装成功'))
+                    Dialog.loadingOff();
+                    Dialog.tipSuccess(t("安装成功"));
                 })
-                .catch((err) => {
-                    Dialog.loadingOff()
-                    Dialog.tipError(t('安装失败') + ':' + err)
-                })
+                .catch(err => {
+                    Dialog.loadingOff();
+                    Dialog.tipError(t("安装失败") + ":" + err);
+                });
         }
-    })
-}
+    });
+};
 defineExpose({
-    show
-})
+    show,
+});
 </script>
 
 <template>
-    <a-modal v-model:visible="visible"
-             width="40rem"
-             title-align="start">
+    <a-modal v-model:visible="visible" width="40rem" title-align="start">
         <template #title>
-            {{ $t('安装应用') }}
+            {{ $t("安装应用") }}
         </template>
         <template #footer>
             <div></div>
         </template>
         <div>
-            <div class="px-2 h-48 bg-gray-100">
-
-            </div>
+            <div class="px-2 h-48 bg-gray-100"></div>
         </div>
     </a-modal>
 </template>
-

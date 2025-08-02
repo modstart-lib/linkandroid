@@ -2,23 +2,23 @@ import {AppConfig} from "../../../src/config";
 import {memoryInfo, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
 import {post} from "../../lib/api";
 
-let tickDataList = []
+let tickDataList = [];
 
-let tickSendTimer = null
+let tickSendTimer = null;
 
 const tickSendAsync = () => {
     if (tickSendTimer) {
-        clearTimeout(tickSendTimer)
-        tickSendTimer = null
+        clearTimeout(tickSendTimer);
+        tickSendTimer = null;
     }
     if (!AppConfig.statisticsUrl) {
-        tickDataList = []
-        return
+        tickDataList = [];
+        return;
     }
     tickSendTimer = setTimeout(async () => {
-        tickSendTimer = null
+        tickSendTimer = null;
         if (!tickDataList.length) {
-            return
+            return;
         }
         // console.log('tickSend', JSON.stringify(tickDataList))
         post(AppConfig.statisticsUrl, {
@@ -30,24 +30,26 @@ const tickSendAsync = () => {
                 version: platformVersion(),
                 arch: platformArch(),
                 mem: memoryInfo(),
-            }
-        }).then(res => {
-            // console.log('tickSend', tickDataList, res)
-        }).catch(err => {
-            // console.error('tickSend', tickDataList, err)
+            },
         })
-        tickDataList = []
-    }, 2000)
-}
+            .then(res => {
+                // console.log('tickSend', tickDataList, res)
+            })
+            .catch(err => {
+                // console.error('tickSend', tickDataList, err)
+            });
+        tickDataList = [];
+    }, 2000);
+};
 
 const tick = (name: string, data: any) => {
     tickDataList.push({
         name,
         data,
-    })
-    tickSendAsync()
-}
+    });
+    tickSendAsync();
+};
 
 export default {
-    tick
-}
+    tick,
+};

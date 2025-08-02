@@ -5,74 +5,74 @@ import {isDev} from "../lib/env";
 import lang from "../mapi/lang/main";
 import {ConfigMain} from "../mapi/config/main";
 
-export const defaultLocale = 'zh-CN'
+export const defaultLocale = "zh-CN";
 
-let locale = defaultLocale
+let locale = defaultLocale;
 
 export const langMessageList = [
     {
-        name: 'en-US',
-        label: 'English',
-        messages: enUS
+        name: "en-US",
+        label: "English",
+        messages: enUS,
     },
     {
-        name: 'zh-CN',
-        label: '简体中文',
-        messages: zhCN
+        name: "zh-CN",
+        label: "简体中文",
+        messages: zhCN,
     },
-]
+];
 
 const buildMessages = (): any => {
-    let messages = {}
+    let messages = {};
     for (let m of langMessageList) {
-        let msgList = {}
+        let msgList = {};
         for (let k in source) {
-            const v = source[k]
+            const v = source[k];
             if (m.messages[v]) {
-                msgList[k] = m.messages[v]
+                msgList[k] = m.messages[v];
             }
         }
-        messages[m.name] = msgList
+        messages[m.name] = msgList;
     }
-    return messages
-}
+    return messages;
+};
 
-
-let messages = buildMessages()
+let messages = buildMessages();
 
 export const t = (text: string, param: object | null = null) => {
     if (messages[locale]) {
         if (messages[locale][text]) {
             if (param) {
                 return messages[locale][text].replace(/\{(\w+)\}/g, function (match, key) {
-                    return (key in param) ? param[key] : match;
+                    return key in param ? param[key] : match;
                 });
             }
-            return messages[locale][text]
+            return messages[locale][text];
         }
     }
     if (isDev) {
-        console.warn('key not found, writing', locale, text, messages)
-        lang.writeSourceKey(text).then(() => {
-            console.info('writeSourceKey.success', locale, text)
-        }).catch((e) => {
-            console.error('writeSourceKey.error', locale, text, e)
-        })
-        lang.writeSourceKeyUse(text).then(() => {
-        })
+        console.warn("key not found, writing", locale, text, messages);
+        lang.writeSourceKey(text)
+            .then(() => {
+                console.info("writeSourceKey.success", locale, text);
+            })
+            .catch(e => {
+                console.error("writeSourceKey.error", locale, text, e);
+            });
+        lang.writeSourceKeyUse(text).then(() => {});
     }
     return text;
-}
+};
 
 const readyAsync = async () => {
-    locale = await ConfigMain.get('lang', defaultLocale)
-}
+    locale = await ConfigMain.get("lang", defaultLocale);
+};
 
 const getLocale = () => {
-    return locale
-}
+    return locale;
+};
 
 export const ConfigLang = {
     readyAsync,
     getLocale,
-}
+};

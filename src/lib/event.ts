@@ -5,16 +5,15 @@ const emitter = new TinyEmitter();
 
 export const GlobalEvent = {
     on: function (event: EventType, callback: Function) {
-        emitter.on(event, callback)
+        emitter.on(event, callback);
     },
     once: function (event: EventType, callback: Function) {
-        emitter.once(event, callback)
+        emitter.once(event, callback);
     },
     off: function (event: EventType, callback: Function) {
-        emitter.off(event, callback)
+        emitter.off(event, callback);
     },
     emit: function (event: EventType, ...args: any[]) {
-        emitter.emit(event, ...args)
+        emitter.emit(event, ...args);
     },
-}
-
+};

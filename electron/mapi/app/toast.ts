@@ -2,36 +2,41 @@ import {BrowserWindow} from "electron";
 import {AppsMain} from "./main";
 import {icons} from "./icons";
 
-let win = null
-let winCloseTimer = null
+let win = null;
+let winCloseTimer = null;
 
-export const makeToast = (msg: string, options?: {
-    duration?: number,
-    status?: 'success' | 'error' | 'info'
-}) => {
-
+export const makeToast = (
+    msg: string,
+    options?: {
+        duration?: number;
+        status?: "success" | "error" | "info";
+    }
+) => {
     if (win) {
-        win.close()
-        clearTimeout(winCloseTimer)
-        win = null
-        winCloseTimer = null
+        win.close();
+        clearTimeout(winCloseTimer);
+        win = null;
+        winCloseTimer = null;
     }
 
-    options = Object.assign({
-        status: 'info',
-        duration: 0
-    }, options)
+    options = Object.assign(
+        {
+            status: "info",
+            duration: 0,
+        },
+        options
+    );
 
     if (options.duration === 0) {
-        options.duration = Math.max(msg.length * 400, 3000)
+        options.duration = Math.max(msg.length * 400, 3000);
     }
     // console.log('options', options)
 
-    const display = AppsMain.getCurrentScreenDisplay()
+    const display = AppsMain.getCurrentScreenDisplay();
     // console.log('xxxx', primaryDisplay);
-    const width = display.workArea.width
-    const height = 60
-    const icon = icons[options.status] || icons.success
+    const width = display.workArea.width;
+    const height = 60;
+    const icon = icons[options.status] || icons.success;
 
     win = new BrowserWindow({
         height,
@@ -48,7 +53,7 @@ export const makeToast = (msg: string, options?: {
         show: false,
         focusable: false,
         skipTaskbar: true,
-    })
+    });
     const htmlContent = `
   <!DOCTYPE html>
   <html>
@@ -97,25 +102,27 @@ export const makeToast = (msg: string, options?: {
 
     const encodedHTML = encodeURIComponent(htmlContent);
     win.loadURL(`data:text/html;charset=UTF-8,${encodedHTML}`);
-    win.on('ready-to-show', async () => {
-        const width = Math.ceil(await win.webContents.executeJavaScript(`(()=>{
+    win.on("ready-to-show", async () => {
+        const width = Math.ceil(
+            await win.webContents.executeJavaScript(`(()=>{
             const message = document.getElementById('message');
             const width = message.scrollWidth;
             return width;
-        })()`))
-        win.setSize(width + 20, height)
-        const x = display.workArea.x + (display.workArea.width / 2) - ((width + 20) / 2)
-        const y = display.workArea.y + (display.workArea.height * 1 / 4)
-        win.setPosition(Math.floor(x), Math.floor(y))
-        win.show()
+        })()`)
+        );
+        win.setSize(width + 20, height);
+        const x = display.workArea.x + display.workArea.width / 2 - (width + 20) / 2;
+        const y = display.workArea.y + (display.workArea.height * 1) / 4;
+        win.setPosition(Math.floor(x), Math.floor(y));
+        win.show();
         // win.webContents.openDevTools({
         //     mode: 'detach'
         // })
-    })
+    });
     winCloseTimer = setTimeout(() => {
-        win.close()
-        clearTimeout(winCloseTimer)
-        win = null
-        winCloseTimer = null
-    }, options.duration)
-}
+        win.close();
+        clearTimeout(winCloseTimer);
+        win = null;
+        winCloseTimer = null;
+    }, options.duration);
+};

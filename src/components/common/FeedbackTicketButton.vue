@@ -2,17 +2,15 @@
 import {AppConfig} from "../../config";
 
 const doShow = () => {
-    window.$mapi.app.windowOpen('feedback')
-}
+    window.$mapi.app.windowOpen("feedback");
+};
 </script>
 
 <template>
-    <a-button v-if="!!AppConfig.feedbackUrl"
-              size="mini"
-              @click="doShow">
+    <a-button v-if="!!AppConfig.feedbackUrl" size="mini" @click="doShow">
         <template #icon>
-            <icon-customer-service/>
+            <icon-customer-service />
         </template>
-        {{ $t('工单反馈') }}
+        {{ $t("工单反馈") }}
     </a-button>
 </template>

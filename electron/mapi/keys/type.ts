@@ -1,28 +1,28 @@
 export enum HotkeyMouseButtonEnum {
     LEFT = 1,
-    RIGHT = 2
+    RIGHT = 2,
 }
 
 export type HotkeyKeyItem = {
-    key: string
+    key: string;
     // Alt Option
-    altKey: boolean
+    altKey: boolean;
     // Ctrl Control
-    ctrlKey: boolean
+    ctrlKey: boolean;
     // Command Win
-    metaKey: boolean
+    metaKey: boolean;
     // Shift
-    shiftKey: boolean
-    times: number
-}
+    shiftKey: boolean;
+    times: number;
+};
 
 export type HotkeyKeySimpleItem = {
-    type: 'Ctrl' | 'Alt' | 'Meta',
-    times: number
-}
+    type: "Ctrl" | "Alt" | "Meta";
+    times: number;
+};
 
 export type HotkeyMouseItem = {
-    button: HotkeyMouseButtonEnum
-    type: 'click' | 'longPress'
-    clickTimes?: number
-}
+    button: HotkeyMouseButtonEnum;
+    type: "click" | "longPress";
+    clickTimes?: number;
+};

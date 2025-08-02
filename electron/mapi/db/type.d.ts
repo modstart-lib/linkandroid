@@ -5,4 +5,4 @@ type DB = {
     select(sql: string, params?: any): Promise<any>;
     update(sql: string, params?: any): Promise<any>;
     delete(sql: string, params?: any): Promise<any>;
-}
+};

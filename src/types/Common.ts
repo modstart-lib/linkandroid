@@ -1,5 +1,5 @@
 export type ResultType = {
-    code: number
-    msg: string
-    data: any
-}
+    code: number;
+    msg: string;
+    data: any;
+};

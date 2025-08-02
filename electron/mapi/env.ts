@@ -6,22 +6,22 @@ export const AppEnv = {
     appRoot: null as string,
     appData: null as string,
     userData: null as string,
-}
+};
 
 export const AppRuntime = {
     fileHubRoot: null as string,
     splashWindow: null as BrowserWindow,
     mainWindow: null as BrowserWindow,
     windows: {} as Record<string, BrowserWindow>,
-}
+};
 
 export const waitAppEnvReady = async () => {
     while (!AppEnv.isInit) {
         await new Promise(resolve => {
-            setTimeout(resolve, 1000)
-        })
+            setTimeout(resolve, 1000);
+        });
     }
-}
+};
 
 export const callHandleFromMainOrRender = async (name: string, ...args) => {
     if (electron.ipcRenderer) {
@@ -36,5 +36,4 @@ export const callHandleFromMainOrRender = async (name: string, ...args) => {
             return null;
         }
     }
-}
-
+};

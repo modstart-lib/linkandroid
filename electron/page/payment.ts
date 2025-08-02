@@ -9,7 +9,7 @@ import * as remoteMain from "@electron/remote/main";
 import {DevToolsManager} from "../lib/devtools";
 
 export const PagePayment = {
-    NAME: 'payment',
+    NAME: "payment",
     event: {
         onRefresh: null,
         onWatch: null,
@@ -17,30 +17,30 @@ export const PagePayment = {
     },
     open: async (option: {
         onRefresh: () => Promise<{
-            payUrl: string,
-            watchUrl: string,
-            payExpireSeconds: number,
-            body: string,
-        }>,
+            payUrl: string;
+            watchUrl: string;
+            payExpireSeconds: number;
+            body: string;
+        }>;
         onWatch: () => Promise<{
-            status: 'WaitPay' | 'Scanned' | 'Payed' | 'Expired' | 'Error',
-        }>,
-        onClose: () => void,
-        parent?: BrowserWindow,
+            status: "WaitPay" | "Scanned" | "Payed" | "Expired" | "Error";
+        }>;
+        onClose: () => void;
+        parent?: BrowserWindow;
     }): Promise<{
-        close: () => void,
+        close: () => void;
     }> => {
-        PagePayment.event.onRefresh = option.onRefresh
-        PagePayment.event.onWatch = option.onWatch
-        PagePayment.event.onClose = option.onClose
-        let icon = logoPath
-        if (process.platform === 'win32') {
-            icon = icoLogoPath
-        } else if (process.platform === 'darwin') {
-            icon = icnsLogoPath
+        PagePayment.event.onRefresh = option.onRefresh;
+        PagePayment.event.onWatch = option.onWatch;
+        PagePayment.event.onClose = option.onClose;
+        let icon = logoPath;
+        if (process.platform === "win32") {
+            icon = icoLogoPath;
+        } else if (process.platform === "darwin") {
+            icon = icnsLogoPath;
         }
-        let parent = option.parent || null
-        let alwaysOnTop = !parent
+        let parent = option.parent || null;
+        let alwaysOnTop = !parent;
         const win = new BrowserWindow({
             show: true,
             title: AppConfig.name,
@@ -57,7 +57,7 @@ export const PagePayment = {
             skipTaskbar: true,
             resizable: false,
             maximizable: false,
-            backgroundColor: '#f1f5f9',
+            backgroundColor: "#f1f5f9",
             focusable: true,
             parent,
             alwaysOnTop,
@@ -72,43 +72,42 @@ export const PagePayment = {
                 contextIsolation: false,
                 // sandbox: false,
             },
-        })
+        });
 
-        win.on('closed', () => {
-            Page.unregisterWindow(PagePayment.NAME)
-            PagePayment.event.onClose()
-        })
+        win.on("closed", () => {
+            Page.unregisterWindow(PagePayment.NAME);
+            PagePayment.event.onClose();
+        });
 
-        rendererLoadPath(win, 'page/payment.html');
+        rendererLoadPath(win, "page/payment.html");
 
-        remoteMain.enable(win.webContents)
+        remoteMain.enable(win.webContents);
 
-        win.webContents.on('did-finish-load', () => {
-            Page.ready('payment')
-            DevToolsManager.autoShow(win)
-            win.focus()
-        })
-        DevToolsManager.register('Payment', win)
+        win.webContents.on("did-finish-load", () => {
+            Page.ready("payment");
+            DevToolsManager.autoShow(win);
+            win.focus();
+        });
+        DevToolsManager.register("Payment", win);
         // win.webContents.setWindowOpenHandler(({url}) => {
         //     if (url.startsWith('https:')) shell.openExternal(url)
         //     return {action: 'deny'}
         // })
-        Page.registerWindow(PagePayment.NAME, win)
+        Page.registerWindow(PagePayment.NAME, win);
 
         return {
             close: () => {
-                win.close()
-            }
-        }
-    }
-}
+                win.close();
+            },
+        };
+    },
+};
 
-ipcMain.handle('Payment.Event', async (event, type: 'refresh' | 'watch', param: any) => {
+ipcMain.handle("Payment.Event", async (event, type: "refresh" | "watch", param: any) => {
     switch (type) {
-        case 'refresh':
-            return await PagePayment.event.onRefresh()
-        case 'watch':
-            return await PagePayment.event.onWatch()
+        case "refresh":
+            return await PagePayment.event.onRefresh();
+        case "watch":
+            return await PagePayment.event.onWatch();
     }
-})
-
+});
