@@ -1,10 +1,10 @@
+import chardet from "chardet";
+import dayjs from "dayjs";
+import iconvLite from "iconv-lite";
 import {Base64} from "js-base64";
 import * as crypto from "node:crypto";
-import dayjs from "dayjs";
 import fs from "node:fs";
 import Showdown from "showdown";
-import iconvLite from "iconv-lite";
-import chardet from "chardet";
 // import {Iconv} from "iconv"
 import {isMac, isWin} from "./env";
 
@@ -68,6 +68,188 @@ export const EncodeUtil = {
         let dec = decipher.update(str, "base64", "utf8");
         dec += decipher.final("utf8");
         return dec;
+    },
+    async fileXzipEncode(pathname: string): Promise<string> {
+        if (!fs.existsSync(pathname)) {
+            throw new Error(`Input file not found: ${pathname}`);
+        }
+
+        // Generate new filepath with .xzip extension
+        const basePath = pathname.substring(0, pathname.lastIndexOf("."));
+        const outputPath = basePath + ".xzip";
+
+        // Get file info
+        const fileStats = fs.statSync(pathname);
+        const fileSize = fileStats.size;
+        const fileExt = pathname.split(".").pop() || "";
+
+        // Generate random 16-character key
+        const encryptionKey = StrUtil.randomString(16);
+
+        // Create metadata
+        const filemeta = {
+            version: 1,
+            format: fileExt,
+            size: fileSize,
+            key: encryptionKey,
+        };
+
+        // Convert metadata to JSON and then base64 encode
+        const metaJson = JSON.stringify(filemeta);
+        const metaB64 = Buffer.from(metaJson, "utf-8").toString("base64");
+        const metaLength = metaB64.length;
+
+        // Prepare encryption key
+        const keyBytes = Buffer.from(encryptionKey, "utf-8");
+        const keyLength = keyBytes.length;
+
+        // Stream processing: read, encrypt and write in chunks
+        const inputStream = fs.createReadStream(pathname);
+        const outputStream = fs.createWriteStream(outputPath);
+
+        // Write metadata length (4 bytes, little-endian)
+        const metaLengthBuffer = Buffer.allocUnsafe(4);
+        metaLengthBuffer.writeUInt32LE(metaLength, 0);
+        outputStream.write(metaLengthBuffer);
+
+        // Write base64 encoded metadata
+        outputStream.write(Buffer.from(metaB64, "utf-8"));
+
+        // Stream encrypt the file content
+        let bytesProcessed = 0;
+        return new Promise((resolve, reject) => {
+            inputStream.on("data", (chunk: Buffer) => {
+                // XOR encrypt the chunk
+                const encryptedChunk = Buffer.alloc(chunk.length);
+                for (let i = 0; i < chunk.length; i++) {
+                    encryptedChunk[i] = chunk[i] ^ keyBytes[bytesProcessed % keyLength];
+                    bytesProcessed++;
+                }
+
+                // Write encrypted chunk
+                outputStream.write(encryptedChunk);
+            });
+
+            inputStream.on("end", () => {
+                outputStream.end();
+                resolve(outputPath);
+            });
+
+            inputStream.on("error", error => {
+                outputStream.destroy();
+                reject(error);
+            });
+
+            outputStream.on("error", error => {
+                inputStream.destroy();
+                reject(error);
+            });
+        });
+    },
+    async fileXzipDecode(pathname: string): Promise<string> {
+        if (!fs.existsSync(pathname)) {
+            throw new Error(`Input file not found: ${pathname}`);
+        }
+
+        if (!pathname.endsWith(".xzip")) {
+            return pathname; // Not an xzip file, return as is
+        }
+
+        let outputPath = pathname.replace(/\.xzip$/, "");
+
+        return new Promise((resolve, reject) => {
+            const inputStream = fs.createReadStream(pathname);
+            let metadataRead = false;
+            let filemeta: any = null;
+            let keyBytes: Buffer;
+            let bytesProcessed = 0;
+            let outputStream: fs.WriteStream;
+            let remainingMetaBytes = 0;
+            let metaBuffer = Buffer.alloc(0);
+
+            inputStream.on("data", (chunk: Buffer) => {
+                let chunkOffset = 0;
+
+                if (!metadataRead) {
+                    if (remainingMetaBytes === 0) {
+                        // Read metadata length (first 4 bytes)
+                        if (chunk.length < 4) {
+                            reject(new Error("Invalid xzip file: insufficient data for metadata length"));
+                            return;
+                        }
+                        const metaLength = chunk.readUInt32LE(0);
+                        remainingMetaBytes = metaLength;
+                        chunkOffset = 4;
+                    }
+
+                    // Read metadata
+                    const availableMetaBytes = Math.min(remainingMetaBytes, chunk.length - chunkOffset);
+                    const metaChunk = chunk.subarray(chunkOffset, chunkOffset + availableMetaBytes);
+                    metaBuffer = Buffer.concat([metaBuffer, metaChunk] as readonly Uint8Array[]);
+                    remainingMetaBytes -= availableMetaBytes;
+                    chunkOffset += availableMetaBytes;
+
+                    if (remainingMetaBytes === 0) {
+                        // Parse metadata
+                        try {
+                            const metaB64 = metaBuffer.toString("utf-8");
+                            const metaJson = Buffer.from(metaB64, "base64").toString("utf-8");
+                            filemeta = JSON.parse(metaJson);
+                            keyBytes = Buffer.from(filemeta.key, "utf-8");
+
+                            // Create output file with correct extension
+                            const finalOutputPath = outputPath + (filemeta.format ? "." + filemeta.format : "");
+                            outputStream = fs.createWriteStream(finalOutputPath);
+
+                            metadataRead = true;
+
+                            // Set the final output path for resolution
+                            outputPath = finalOutputPath;
+                        } catch (error) {
+                            reject(new Error("Invalid xzip file: corrupted metadata"));
+                            return;
+                        }
+                    }
+                }
+
+                if (metadataRead && chunkOffset < chunk.length) {
+                    // Decrypt remaining chunk data
+                    const encryptedChunk = chunk.subarray(chunkOffset);
+                    const decryptedChunk = Buffer.alloc(encryptedChunk.length);
+                    const keyLength = keyBytes.length;
+
+                    for (let i = 0; i < encryptedChunk.length; i++) {
+                        decryptedChunk[i] = encryptedChunk[i] ^ keyBytes[bytesProcessed % keyLength];
+                        bytesProcessed++;
+                    }
+
+                    outputStream.write(decryptedChunk);
+                }
+            });
+
+            inputStream.on("end", () => {
+                if (outputStream) {
+                    outputStream.end();
+                    resolve(outputPath);
+                } else {
+                    reject(new Error("Invalid xzip file: incomplete metadata"));
+                }
+            });
+
+            inputStream.on("error", error => {
+                if (outputStream) {
+                    outputStream.destroy();
+                }
+                reject(error);
+            });
+
+            if (outputStream) {
+                outputStream.on("error", error => {
+                    inputStream.destroy();
+                    reject(error);
+                });
+            }
+        });
     },
 };
 
