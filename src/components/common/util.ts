@@ -1,8 +1,10 @@
-import {Dialog} from "../../lib/dialog";
+import {onMounted, watch} from "vue";
+import {AppConfig} from "../../config";
 import {t} from "../../lang";
 import {defaultResponseProcessor} from "../../lib/api";
+import {Dialog} from "../../lib/dialog";
+import {StorageUtil} from "../../lib/storage";
 import {VersionUtil} from "../../lib/util";
-import {AppConfig} from "../../config";
 
 export const doCopy = async (text: string, successTip: string = ""): Promise<void> => {
     successTip = successTip || t("复制成功");
@@ -27,4 +29,28 @@ export const doCheckForUpdate = async (noticeLatest?: boolean) => {
             window.$mapi.app.openExternalWeb(AppConfig.downloadUrl);
         });
     });
+};
+
+export const dataAutoSaveDraft = (key: string, data: any) => {
+    onMounted(async () => {
+        const old = StorageUtil.getObject(key);
+        for (const prop in old) {
+            if (Object.prototype.hasOwnProperty.call(old, prop)) {
+                data[prop] = old[prop];
+            }
+        }
+    });
+    watch(
+        () => data,
+        async value => {
+            StorageUtil.set(key, value);
+        },
+        {
+            deep: true,
+        }
+    );
+    const clearDraft = () => {
+        StorageUtil.remove(key);
+    };
+    return {clearDraft};
 };
