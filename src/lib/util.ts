@@ -1,4 +1,3 @@
-import {Base64} from "js-base64";
 import dayjs from "dayjs";
 
 export const sleep = (time = 1000) => {
@@ -169,5 +168,19 @@ export const ShellUtil = {
 export const ObjectUtil = {
     clone(obj: any) {
         return JSON.parse(JSON.stringify(obj));
+    },
+};
+
+export const DownloadUtil = {
+    downloadFile(content: string, filename?: string) {
+        const blob = new Blob([content], {type: "application/octet-stream"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename || `download_${TimeUtil.datetimeString()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     },
 };

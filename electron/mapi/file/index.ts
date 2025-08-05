@@ -1,10 +1,10 @@
-import path from "node:path";
-import {AppEnv, waitAppEnvReady} from "../env";
 import fs from "node:fs";
+import path from "node:path";
+import {Readable} from "node:stream";
 import {StrUtil, TimeUtil} from "../../lib/util";
 import Apps from "../app";
-import {Readable} from "node:stream";
 import {ConfigIndex} from "../config";
+import {AppEnv, waitAppEnvReady} from "../env";
 
 const nodePath = path;
 
@@ -787,6 +787,26 @@ const inDir = (path: string, dir: string) => {
     return path.startsWith(dir);
 };
 
+const pathToName = (path: string, includeExt: boolean = true, maxLimit: number = 100) => {
+    if (!path) {
+        return "";
+    }
+    path = path.replace(/\\/g, "/");
+    const parts = path.split("/");
+    const name = parts[parts.length - 1];
+    const nameOnly = name.split(".")[0];
+    const ext = includeExt ? `.${name.split(".").slice(1).join(".")}` : "";
+    let result = nameOnly;
+    maxLimit -= ext.length;
+    if (result.length > maxLimit) {
+        result = result.substring(0, maxLimit);
+    }
+    if (!result) {
+        result = "EMPTY";
+    }
+    return `${result}${ext}`;
+};
+
 export const FileIndex = {
     fullPath,
     absolutePath,
@@ -809,9 +829,10 @@ export const FileIndex = {
     appendText,
     download,
     ext,
+    textToName,
+    pathToName,
     hubRootDefault,
     hubSave,
-    textToName,
 };
 
 export default FileIndex;

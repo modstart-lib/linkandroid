@@ -182,7 +182,8 @@ declare interface Window {
             openSave: (options: {} = {}) => Promise<string | null>;
             openPath: (path: string, options: {} = {}) => Promise<void>;
             ext: (path: string) => Promise<string>;
-            textToName: (text: string, ext: string = "", maxLimit: number = 100) => Promise<string>;
+            textToName: (text: string, ext: string = "", maxLimit: number = 100) => string;
+            pathToName: (path: string, includeExt: boolean = true, maxLimit: number = 100) => string;
             hubRootDefault: () => Promise<string>;
             hubSave: (
                 file: string,
