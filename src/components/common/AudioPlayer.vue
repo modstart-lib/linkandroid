@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import {computed, onBeforeUnmount, onMounted, ref, watch, watchEffect} from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from "vue";
 import WaveSurfer from "wavesurfer.js";
-import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record.esm.js";
-import {TimeUtil} from "../../lib/util";
-import {Dialog} from "../../lib/dialog";
-import {AudioUtil} from "../../lib/audio";
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
+import { AudioUtil } from "../../lib/audio";
+import { Dialog } from "../../lib/dialog";
+import { TimeUtil } from "../../lib/util";
 
 const props = withDefaults(
     defineProps<{
@@ -42,7 +42,7 @@ const isTrimming = ref(false);
 const recordUrl = ref<string | null>(null);
 const isRecording = ref(false);
 const recordInputDeviceSelect = ref(null);
-const recordInputDevices = ref<{id: string; name: string}[]>([]);
+const recordInputDevices = ref<{ id: string; name: string }[]>([]);
 const recordVisible = ref(false);
 
 const timeTotal = ref<number>(0);
@@ -154,6 +154,11 @@ watch(
     () => props.url,
     url => {
         if (url) {
+            // auto add file:// when url is local file
+            if (url.startsWith("file:") || url.startsWith("http:") || url.startsWith("https:")) {
+            } else {
+                url = `file://${url}`;
+            }
             waveUrl.value = url;
             waveUrlSource.value = "url";
         }
@@ -265,7 +270,7 @@ const doRecordStart = async () => {
         return;
     }
     try {
-        await waveRecord.value.startRecording({deviceId: recordInputDeviceSelect.value});
+        await waveRecord.value.startRecording({ deviceId: recordInputDeviceSelect.value });
         isRecording.value = true;
         waveVisible.value = true;
     } catch (e) {
@@ -307,14 +312,10 @@ defineExpose({
 <template>
     <div class="border rounded-lg py-2">
         <pre v-if="0" style="white-space: wrap; font-size: 10px">{{ JSON.stringify(debugInfo, null, 2) }}</pre>
-        <div
-            class="px-2 overflow-hidden"
-            :style="
-                (isRecording || isTrimming || (showWave && !recordVisible)) && waveVisible
-                    ? 'height:40px;'
-                    : 'height:0;'
-            "
-        >
+        <div class="px-2 overflow-hidden" :style="(isRecording || isTrimming || (showWave && !recordVisible)) && waveVisible
+            ? 'height:40px;'
+            : 'height:0;'
+            ">
             <div ref="waveContainer" style="height: 40px" class="w-full overflow-hidden"></div>
         </div>
         <div v-if="!recordVisible && waveUrl" class="h-10 px-2 flex items-center">
@@ -330,14 +331,8 @@ defineExpose({
                 {{ timeCurrentFormat + "/" + timeTotalFormat }}
             </div>
             <div class="ml-3 flex-grow">
-                <a-slider
-                    :model-value="timeCurrent"
-                    :max="timeTotal"
-                    @change="onSeek as any"
-                    :show-tooltip="false"
-                    :step="0.001"
-                    :min="0"
-                />
+                <a-slider :model-value="timeCurrent" :max="timeTotal" @change="onSeek as any" :show-tooltip="false"
+                    :step="0.001" :min="0" />
             </div>
             <div class="ml-3">
                 <a-tooltip :content="$t('收起')" mini v-if="showWave && waveVisible && !isTrimming && !isRecording">
@@ -377,18 +372,12 @@ defineExpose({
                 <div v-if="!isRecording && waveUrl" @click="doRecordBack" class="cursor-pointer w-8 h-8 inline-flex">
                     <icon-left class="m-auto text-gray-700 hover:text-primary text-2xl" />
                 </div>
-                <div
-                    v-if="recordInputDevices.length && !isRecording"
-                    @click="doRecordStart"
-                    class="cursor-pointer w-8 h-8 inline-flex"
-                >
+                <div v-if="recordInputDevices.length && !isRecording" @click="doRecordStart"
+                    class="cursor-pointer w-8 h-8 inline-flex">
                     <icon-record class="m-auto text-red-700 hover:text-primary text-2xl" />
                 </div>
-                <div
-                    v-else-if="recordInputDevices.length"
-                    @click="doRecordStop"
-                    class="cursor-pointer w-8 h-8 inline-flex"
-                >
+                <div v-else-if="recordInputDevices.length" @click="doRecordStop"
+                    class="cursor-pointer w-8 h-8 inline-flex">
                     <icon-record-stop class="m-auto text-gray-700 hover:text-primary text-2xl" />
                 </div>
             </div>

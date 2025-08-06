@@ -328,10 +328,10 @@ export const taskStore = defineStore("task", {
             const index = taskChangeListeners.findIndex(v => v.biz === biz && v.callback === callback);
             taskChangeListeners.splice(index, 1);
         },
-        fireChange(record: TaskRecord, type: TaskChangeType) {
+        fireChange(record: Partial<TaskRecord>, type: TaskChangeType) {
             taskChangeListeners.forEach(v => {
                 if (v.biz === record.biz) {
-                    v.callback(record.bizId, type);
+                    v.callback(record.bizId as string, type);
                 }
             });
         },
