@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue";
 import PageWebviewStatus from "../components/common/PageWebviewStatus.vue";
-import {useUserPage} from "./User/hook";
+import {useUserPage} from "../hooks/user";
 
 const status = ref<InstanceType<typeof PageWebviewStatus> | null>(null);
 const web = ref<any | null>(null);

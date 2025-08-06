@@ -1,6 +1,6 @@
 import {ref} from "vue";
-import {useUserStore} from "../../store/modules/user";
-import {useSettingStore} from "../../store/modules/setting";
+import {useUserStore} from "../store/modules/user";
+import {useSettingStore} from "../store/modules/setting";
 
 const setting = useSettingStore();
 
