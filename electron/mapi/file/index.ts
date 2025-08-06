@@ -5,6 +5,7 @@ import {StrUtil, TimeUtil} from "../../lib/util";
 import Apps from "../app";
 import {ConfigIndex} from "../config";
 import {AppEnv, waitAppEnvReady} from "../env";
+import {Log} from "../log";
 
 const nodePath = path;
 
@@ -289,6 +290,19 @@ const readLine = async (
     });
 };
 
+const clean = async (paths: string[], option?: {isFullPath?: boolean}) => {
+    if (!paths || !Array.isArray(paths) || paths.length === 0) {
+        return;
+    }
+    for (const path of paths) {
+        try {
+            await deletes(path, option);
+        } catch (e) {
+            Log.error(`CleanError: ${path}`, e);
+        }
+    }
+};
+
 const deletes = async (path: string, option?: {isFullPath?: boolean}) => {
     option = Object.assign(
         {
@@ -453,7 +467,7 @@ const getHubSavePath = async (
         ...saveParam,
     };
     savePath = savePath.replace(/\{(\w+)\}/g, (match, key) => {
-        console.log(`HubSave.getHubSavePath: ${key} = ${param[key]}`, param);
+        // console.log(`HubSave.getHubSavePath: ${key} = ${param[key]}`, param);
         return param[key] || key;
     });
     while (
@@ -529,9 +543,13 @@ const tempRoot = async () => {
     return tempDir;
 };
 
-const temp = async (ext: string = "tmp", prefix: string = "file") => {
+const temp = async (ext: string = "tmp", prefix: string = "file", suffix: string = "") => {
     const root = await tempRoot();
-    const p = [prefix, TimeUtil.timestampInMs(), StrUtil.randomString(32)].join("_");
+    const parts = [prefix, TimeUtil.timestampInMs(), StrUtil.randomString(32)];
+    if (suffix) {
+        parts.push(suffix);
+    }
+    const p = parts.join("_");
     return path.join(root, `${p}.${ext}`);
 };
 
@@ -820,6 +838,7 @@ export const FileIndex = {
     read,
     readBuffer,
     readLine,
+    clean,
     deletes,
     rename,
     copy,

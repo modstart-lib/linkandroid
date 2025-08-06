@@ -157,6 +157,7 @@ declare interface Window {
             read: (path: string, option?: {isFullPath?: boolean}) => Promise<any>;
             readBuffer: (path: string, option?: {isFullPath?: boolean}) => Promise<any>;
             deletes: (path: string, option?: {isFullPath?: boolean}) => Promise<void>;
+            clean: (paths: string[], option?: {isFullPath?: boolean}) => Promise<void>;
             rename: (
                 pathOld: string,
                 pathNew: string,
@@ -166,7 +167,7 @@ declare interface Window {
                 }
             ) => Promise<void>;
             copy: (pathOld: string, pathNew: string, option?: {isFullPath?: boolean}) => Promise<void>;
-            temp: (ext: string = "tmp", prefix: string = "file") => Promise<string>;
+            temp: (ext: string = "tmp", prefix: string = "file", suffix: string = "") => Promise<string>;
             tempDir: (prefix: string = "dir") => Promise<string>;
             watchText: (
                 path: string,
@@ -340,6 +341,24 @@ declare interface Window {
         ffmpeg: {
             version: () => Promise<string>;
             run: (args: string[]) => Promise<string>;
+            runToFileOrFail: (args: string[], format: string, label?: string) => Promise<string>;
+            getMediaDuration: (filePath: string, ms: boolean = false) => Promise<number>;
+            setMediaRatio: (
+                input: string,
+                output: string,
+                option?: {
+                    ratio: number;
+                }
+            ) => Promise<string>;
+            convertAudio: (
+                input: string,
+                output?: string,
+                option?: {
+                    channels?: number;
+                    sampleRate?: number;
+                    format?: string;
+                }
+            ) => Promise<string>;
         };
     };
 }
