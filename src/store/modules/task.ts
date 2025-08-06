@@ -14,12 +14,12 @@
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
 
-import {defineStore} from "pinia";
-import store from "../index";
-import {toRaw} from "vue";
 import {cloneDeep} from "lodash-es";
-import {StringUtil} from "../../lib/util";
+import {defineStore} from "pinia";
+import {toRaw} from "vue";
 import {mapError} from "../../lib/error";
+import {StringUtil} from "../../lib/util";
+import store from "../index";
 
 export type TaskRecordStatus = "queue" | "running" | "querying" | "success" | "fail" | "delete";
 
@@ -312,6 +312,9 @@ export const taskStore = defineStore("task", {
                 immediate ? 0 : 1000
             );
         },
+        get(biz: string) {
+            return this.bizMap[biz] || null;
+        },
         register(biz: string, taskBiz: TaskBiz) {
             this.bizMap[biz] = taskBiz;
         },
@@ -340,7 +343,7 @@ export const taskStore = defineStore("task", {
             param = Object.assign(
                 {
                     timeout: 60 * 10 * 1000,
-                    queryInterval: 1 * 1000,
+                    queryInterval: 5 * 1000,
                     status: "queue",
                     runStart: 0,
                 },

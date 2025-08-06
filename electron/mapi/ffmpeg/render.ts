@@ -1,6 +1,6 @@
 import ffmpegPath from "ffmpeg-static";
-import {Apps} from "../app";
 import {binResolve, isPackaged} from "../../lib/env";
+import {Apps} from "../app";
 
 const getBinPath = () => {
     if (isPackaged) {
@@ -17,7 +17,13 @@ const version = async () => {
 };
 
 const run = async (args: string[]) => {
-    const controller = await Apps.spawnShell(`"${getBinPath()}" ${args.join(" ")}`);
+    const controller = await Apps.spawnShell(`${getBinPath()} ${args.join(" ")}`);
+    if (args[0] !== getBinPath()) {
+        args.unshift(getBinPath());
+    }
+    const controller = await Apps.spawnShell(args, {
+        shell: false,
+    });
     return await controller.result();
 };
 

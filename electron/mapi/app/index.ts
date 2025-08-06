@@ -1,11 +1,11 @@
-import util from "node:util";
-import net from "node:net";
-import {exec as _exec, spawn} from "node:child_process";
-import {isLinux, isMac, isWin, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
-import {Log} from "../log/index";
 import iconv from "iconv-lite";
-import {IconvUtil, ShellUtil, StrUtil} from "../../lib/util";
+import {exec as _exec, spawn} from "node:child_process";
+import net from "node:net";
+import util from "node:util";
 import {AppConfig} from "../../../src/config";
+import {isLinux, isMac, isWin, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
+import {IconvUtil, ShellUtil, StrUtil} from "../../lib/util";
+import {Log} from "../log/index";
 
 const exec = util.promisify(_exec);
 
@@ -18,7 +18,7 @@ const outputStringConvert = (outputEncoding: "utf8" | "cp936", data: any) => {
     }
     let dataEncoding = "binary";
     if (Buffer.isBuffer(data)) {
-        dataEncoding = IconvUtil.detect(data);
+        dataEncoding = IconvUtil.detect(data as any);
         if ("UTF-8" === dataEncoding) {
             return data.toString("utf8");
         }
@@ -34,18 +34,20 @@ const shell = async (
     option?: {
         cwd?: string;
         outputEncoding?: string;
+        shell?: boolean;
     }
 ) => {
     option = Object.assign(
         {
             cwd: process.cwd(),
             outputEncoding: isWin ? "cp936" : "utf8",
+            shell: true,
         },
         option
     );
     const result = await exec(command, {
         env: {...process.env},
-        shell: true,
+        shell: option.shell,
         encoding: "binary",
         cwd: option["cwd"],
     } as any);
@@ -65,6 +67,7 @@ const spawnShell = async (
         cwd?: string;
         outputEncoding?: string;
         env?: Record<string, any>;
+        shell?: boolean;
     } | null = null
 ): Promise<{
     stop: () => void;
@@ -76,6 +79,7 @@ const spawnShell = async (
             cwd: process.cwd(),
             outputEncoding: isWin ? "cp936" : "utf8",
             env: {},
+            shell: true,
         },
         option
     );
@@ -99,7 +103,7 @@ const spawnShell = async (
     const spawnProcess = spawn(commandEntry, args, {
         env: {...process.env, ...option.env},
         cwd: option["cwd"],
-        shell: true,
+        shell: option.shell,
         encoding: "binary",
     } as any);
     let end = false;
@@ -189,7 +193,13 @@ const spawnShell = async (
                             if (isSuccess) {
                                 resolve(stdoutList.join("") + stderrList.join(""));
                             } else {
-                                reject(`command ${command} failed with code ${exitCode}`);
+                                reject(
+                                    [
+                                        `command ${command} failed with code ${exitCode} : `,
+                                        stdoutList.join(""),
+                                        stderrList.join(""),
+                                    ].join("")
+                                );
                             }
                         }, 10);
                     };
