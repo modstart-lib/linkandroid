@@ -1,6 +1,6 @@
+import {execSync} from "child_process";
 import {resolve} from "node:path";
 import os from "os";
-import {execSync} from "child_process";
 import {Log} from "../mapi/log";
 
 export const isPackaged = ["true"].includes(process.env.IS_PACKAGED);
@@ -116,3 +116,16 @@ export const extraResolve = (filePath: string) => {
     const basePath = isPackaged ? process.resourcesPath : "electron/resources";
     return resolve(basePath, "extra", filePath);
 };
+
+export const extraResolveBin = (filePath: string) => {
+    if (isWin) {
+        if (!filePath.endsWith(".exe")) {
+            filePath += ".exe";
+        }
+    }
+    const dir = [platformName(), platformArch()].join("-");
+    const p = [dir, filePath].join("/");
+    return extraResolve(p);
+};
+
+console.log("xxxx", extraResolveBin("ffmpeg"));

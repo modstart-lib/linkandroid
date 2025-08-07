@@ -1,13 +1,9 @@
-import ffmpegPath from "ffmpeg-static";
-import {binResolve, isPackaged} from "../../lib/env";
+import {extraResolve} from "../../lib/env";
 import {Apps} from "../app";
 import FileIndex from "../file";
 
 const getBinPath = () => {
-    if (isPackaged) {
-        return binResolve("ffmpeg/ffmpeg");
-    }
-    return ffmpegPath;
+    return extraResolve("ffmpeg");
 };
 
 const version = async () => {
