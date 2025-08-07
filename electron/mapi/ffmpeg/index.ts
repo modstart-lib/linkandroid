@@ -1,9 +1,9 @@
-import {extraResolve} from "../../lib/env";
+import {extraResolveBin} from "../../lib/env";
 import {Apps} from "../app";
 import FileIndex from "../file";
 
 const getBinPath = () => {
-    return extraResolve("ffmpeg");
+    return extraResolveBin("ffmpeg");
 };
 
 const version = async () => {

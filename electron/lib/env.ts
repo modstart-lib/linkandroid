@@ -127,5 +127,3 @@ export const extraResolveBin = (filePath: string) => {
     const p = [dir, filePath].join("/");
     return extraResolve(p);
 };
-
-console.log("xxxx", extraResolveBin("ffmpeg"));
