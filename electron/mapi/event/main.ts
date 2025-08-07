@@ -2,7 +2,7 @@ import {AppRuntime} from "../env";
 import {ipcMain} from "electron";
 import {StrUtil} from "../../lib/util";
 
-const init = () => {};
+const init = async () => {};
 
 type NameType = "main" | string;
 type EventType = "APP_READY" | "CALL_PAGE" | "CHANNEL" | "BROADCAST";

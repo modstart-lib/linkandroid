@@ -204,6 +204,18 @@ declare interface Window {
                     };
                 }
             ) => Promise<string>;
+            hubFile: (
+                ext: string,
+                option?: {
+                    returnFullPath?: boolean;
+                    saveGroup?: string;
+                    savePath?: string;
+                    savePathParam?: {
+                        [key: string]: any;
+                    };
+                }
+            ) => Promise<string>;
+            isHubFile: (file: string, option?: {isFullPath?: boolean}) => Promise<boolean>;
         };
         updater: {
             checkForUpdate: () => Promise<ApiResult<any>>;

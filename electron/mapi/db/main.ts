@@ -4,6 +4,8 @@ import migration from "./migration";
 import {AppEnv} from "../env";
 import {Log} from "../log/main";
 import {ipcMain} from "electron";
+import fs from "node:fs";
+import {Files} from "../file/main";
 
 let dbPath: string | null = null;
 let dbConn: Database | null = null;
@@ -102,24 +104,27 @@ const migrate = async () => {
     for (const version of migration.versions) {
         const result = await db.first(
             `SELECT *
-                                       FROM migrate
-                                       WHERE version = ?`,
+             FROM migrate
+             WHERE version = ?`,
             [version.version]
         );
         if (!result) {
-            Log.info(`Migrating to version ${version.version}`);
+            Log.info(`DB.Migrate`, {version: version.version});
             await version.up(db);
             await db.execute(
                 `INSERT INTO migrate (version)
-                              VALUES (?)`,
+                 VALUES (?)`,
                 [version.version]
             );
         }
     }
 };
 
-const init = () => {
+const init = async () => {
     dbPath = path.join(AppEnv.userData, "database.db");
+    if (!(await Files.exists(dbPath, {isFullPath: true}))) {
+        dbPath = await Files.fullPath("database.db");
+    }
     dbConn = new sqlite3.Database(dbPath, err => {
         if (err) {
             Log.error("DBConnect SQLite database failed:", err.message);

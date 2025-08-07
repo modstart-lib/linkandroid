@@ -8,7 +8,7 @@ import Apps from "../app";
 import StorageMain from "../storage/main";
 import {Log} from "../log/main";
 
-const init = () => {
+const init = async () => {
     setTimeout(() => {
         refresh().then();
     }, 1000);

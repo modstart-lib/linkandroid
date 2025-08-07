@@ -440,7 +440,8 @@ const _getHubSavePath = async (
     saveParam: {
         [key: string]: any;
     },
-    ext: string = "bin"
+    ext: string,
+    autoCreateDir: boolean = false
 ) => {
     if (!saveGroup) {
         saveGroup = "file";
@@ -480,7 +481,69 @@ const _getHubSavePath = async (
     ) {
         savePath = savePath + `-${StrUtil.randomString(3)}`;
     }
+    if (autoCreateDir) {
+        const savePathFull = path.join(hubRoot, savePath);
+        const dir = nodePath.dirname(savePathFull);
+        if (!(await exists(dir, {isFullPath: true}))) {
+            fs.mkdirSync(dir, {recursive: true});
+        }
+    }
     return `${savePath}.${ext}`;
+};
+
+const hubFile = async (
+    ext: string,
+    option?: {
+        returnFullPath?: boolean;
+        autoCreateDir?: boolean;
+        saveGroup?: string;
+        savePath?: string;
+        savePathParam?: {
+            [key: string]: any;
+        };
+    }
+) => {
+    option = Object.assign(
+        {
+            returnFullPath: false,
+            autoCreateDir: true,
+            saveGroup: "file",
+            savePath: null,
+            savePathParam: {},
+        },
+        option
+    );
+    if (!ext) {
+        throw "HubSave.FilePathEmpty";
+    }
+    const hubRoot_ = await hubRoot();
+    const savePath = await _getHubSavePath(
+        hubRoot_,
+        option.saveGroup,
+        option.savePath,
+        option.savePathParam,
+        ext,
+        option.autoCreateDir
+    );
+    if (option.returnFullPath) {
+        return path.join(hubRoot_, savePath);
+    }
+    return savePath;
+};
+
+const isHubFile = async (file: string, option?: {isFullPath?: boolean}) => {
+    option = Object.assign(
+        {
+            isFullPath: false,
+        },
+        option
+    );
+    let fp = file;
+    if (!option.isFullPath) {
+        fp = await fullPath(file);
+    }
+    const hubRoot_ = await hubRoot();
+    return inDir(fp, hubRoot_);
 };
 
 const hubSave = async (
@@ -897,6 +960,8 @@ export const FileIndex = {
     pathToName,
     hubRootDefault,
     hubSave,
+    hubFile,
+    isHubFile,
 };
 
 export default FileIndex;
