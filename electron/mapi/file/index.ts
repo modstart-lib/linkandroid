@@ -442,7 +442,7 @@ const getHubSavePath = async (
     ext: string = "bin"
 ) => {
     if (!savePath) {
-        savePath = path.join("file", "{year}_{month}", "{day}", "{hour}", "{minute}_{second}_{random}");
+        savePath = path.join("file", "{year}{month}{day}", "{hour}{minute}_{second}_{random}");
     }
     savePath = savePath.replace(/\\/g, "/");
     if (savePath.endsWith(`.${ext}`)) {

@@ -104,7 +104,6 @@ ipcMain.handle("app:openExternal", (event, url: string) => {
     return shell.openExternal(url);
 });
 ipcMain.handle("app:openPath", (event, url: string) => {
-    console.log('xxxx',url)
     return shell.openPath(url);
 });
 ipcMain.handle("app:showItemInFolder", (event, url: string) => {

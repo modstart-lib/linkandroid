@@ -45,7 +45,7 @@ const doOpen = () => {
             </template>
         </a-input>
         <template #help>
-            <div class="flex mt-2">
+            <div class="flex items-center mt-2">
                 <a-button
                     size="mini"
                     class="mr-2"
