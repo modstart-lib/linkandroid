@@ -51,7 +51,9 @@ declare interface Window {
                     height: number;
                 }
             ) => Promise<void>;
-            openExternalWeb: (url: string) => Promise<void>;
+            openExternal: (url: string) => Promise<void>;
+            openPath: (url: string) => Promise<void>;
+            showItemInFolder: (url: string) => Promise<void>;
             appEnv: () => Promise<any>;
             setRenderAppEnv: (env: any) => Promise<void>;
             isDarkMode: () => Promise<boolean>;
@@ -183,7 +185,6 @@ declare interface Window {
             openFile: (options: {} = {}) => Promise<string | null>;
             openDirectory: (options: {} = {}) => Promise<string | null>;
             openSave: (options: {} = {}) => Promise<string | null>;
-            openPath: (path: string, options: {} = {}) => Promise<void>;
             ext: (path: string) => Promise<string>;
             textToName: (text: string, ext: string = "", maxLimit: number = 100) => string;
             pathToName: (path: string, includeExt: boolean = true, maxLimit: number = 100) => string;

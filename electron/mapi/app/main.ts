@@ -1,19 +1,19 @@
 import {app, BrowserWindow, clipboard, ipcMain, nativeImage, nativeTheme, screen, shell} from "electron";
-import {WindowConfig} from "../../config/window";
-import {AppRuntime} from "../env";
-import {isDev, isMac, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
-import {AppPosition} from "./lib/position";
-import {Events} from "../event/main";
-import {ConfigMain} from "../config/main";
+import {AppConfig} from "../../../src/config";
 import {CommonConfig} from "../../config/common";
+import {WindowConfig} from "../../config/window";
+import {isDev, isMac, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
 import {preloadDefault, rendererDistPath} from "../../lib/env-main";
 import {Page} from "../../page";
-import {makeToast} from "./toast";
-import {SetupMain} from "./setup";
+import {ConfigMain} from "../config/main";
+import {AppRuntime} from "../env";
+import {Events} from "../event/main";
 import {Files} from "../file/main";
-import {makeLoading} from "./loading";
-import {AppConfig} from "../../../src/config";
 import Apps from "./index";
+import {AppPosition} from "./lib/position";
+import {makeLoading} from "./loading";
+import {SetupMain} from "./setup";
+import {makeToast} from "./toast";
 
 const getWindowByName = (name?: string) => {
     if (!name || "main" === name) {
@@ -100,8 +100,15 @@ const windowSetSize = (
     }
 };
 
-ipcMain.handle("app:openExternalWeb", (event, url: string) => {
+ipcMain.handle("app:openExternal", (event, url: string) => {
     return shell.openExternal(url);
+});
+ipcMain.handle("app:openPath", (event, url: string) => {
+    console.log('xxxx',url)
+    return shell.openPath(url);
+});
+ipcMain.handle("app:showItemInFolder", (event, url: string) => {
+    return shell.showItemInFolder(url);
 });
 
 ipcMain.handle("app:getPreload", event => {

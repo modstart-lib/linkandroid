@@ -11,7 +11,7 @@ const licenseYear = new Date().getFullYear();
 const devSettingVisible = ref(false);
 
 const doOpenLog = async () => {
-    await window.$mapi.file.openPath(window.$mapi.log.root());
+    await window.$mapi.app.openPath(window.$mapi.log.root());
 };
 let clickTimes = 0;
 let clickLastTime = 0;

@@ -26,7 +26,7 @@ export const doCheckForUpdate = async (noticeLatest?: boolean) => {
             return;
         }
         Dialog.confirm(t("发现新版本{version}，是否立即下载更新？", {version: res.data.version})).then(() => {
-            window.$mapi.app.openExternalWeb(AppConfig.downloadUrl);
+            window.$mapi.app.openExternal(AppConfig.downloadUrl);
         });
     });
 };

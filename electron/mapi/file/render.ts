@@ -13,14 +13,9 @@ const openSave = async (options: {} = {}) => {
     return ipcRenderer.invoke("file:openSave", options);
 };
 
-const openPath = async (path: string, options: {} = {}) => {
-    return ipcRenderer.invoke("file:openPath", path, options);
-};
-
 export default {
     ...fileIndex,
     openFile,
     openDirectory,
     openSave,
-    openPath,
 };

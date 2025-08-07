@@ -1,6 +1,6 @@
 import {ipcRenderer} from "electron";
 import {resolve} from "node:path";
-import {isPackaged, platformName, platformArch} from "../../lib/env";
+import {isPackaged, platformArch, platformName} from "../../lib/env";
 import {AppEnv, waitAppEnvReady} from "../env";
 import appIndex from "./index";
 
@@ -56,8 +56,16 @@ const windowMove = (name: string | null, data: {mouseX: number; mouseY: number; 
     return ipcRenderer.invoke("window:move", name, data);
 };
 
-const openExternalWeb = (url: string) => {
-    return ipcRenderer.invoke("app:openExternalWeb", url);
+const openExternal = (url: string) => {
+    return ipcRenderer.invoke("app:openExternal", url);
+};
+
+const openPath = (url: string) => {
+    return ipcRenderer.invoke("app:openPath", url);
+};
+
+const showItemInFolder = (url: string) => {
+    return ipcRenderer.invoke("app:showItemInFolder", url);
 };
 
 const getPreload = async () => {
@@ -152,7 +160,9 @@ export const AppsRender = {
     windowHide,
     windowClose,
     windowMove,
-    openExternalWeb,
+    openExternal,
+    openPath,
+    showItemInFolder,
     getPreload,
     appEnv,
     setRenderAppEnv,
