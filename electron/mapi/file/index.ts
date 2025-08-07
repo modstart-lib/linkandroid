@@ -433,16 +433,20 @@ const hubRoot = async () => {
     return hubDir;
 };
 
-const getHubSavePath = async (
+const _getHubSavePath = async (
     hubRoot: string,
+    saveGroup: string,
     savePath: string,
     saveParam: {
         [key: string]: any;
     },
     ext: string = "bin"
 ) => {
+    if (!saveGroup) {
+        saveGroup = "file";
+    }
     if (!savePath) {
-        savePath = path.join("file", "{year}{month}{day}", "{hour}{minute}_{second}_{random}");
+        savePath = path.join(saveGroup, "{year}{month}{day}", "{hour}{minute}_{second}_{random}");
     }
     savePath = savePath.replace(/\\/g, "/");
     if (savePath.endsWith(`.${ext}`)) {
@@ -467,7 +471,6 @@ const getHubSavePath = async (
         ...saveParam,
     };
     savePath = savePath.replace(/\{(\w+)\}/g, (match, key) => {
-        // console.log(`HubSave.getHubSavePath: ${key} = ${param[key]}`, param);
         return param[key] || key;
     });
     while (
@@ -487,6 +490,8 @@ const hubSave = async (
         isFullPath?: boolean;
         returnFullPath?: boolean;
         ignoreWhenInHub?: boolean;
+        cleanOld?: boolean;
+        saveGroup?: string;
         savePath?: string;
         savePathParam?: {
             [key: string]: any;
@@ -499,6 +504,8 @@ const hubSave = async (
             isFullPath: false,
             returnFullPath: false,
             ignoreWhenInHub: false,
+            cleanOld: false,
+            saveGroup: "file",
             savePath: null,
             savePathParam: {},
         },
@@ -523,11 +530,24 @@ const hubSave = async (
             return fp;
         }
     }
-    const savePath = await getHubSavePath(hubRoot_, option.savePath, option.savePathParam, option.ext);
+    const savePath = await _getHubSavePath(
+        hubRoot_,
+        option.saveGroup,
+        option.savePath,
+        option.savePathParam,
+        option.ext
+    );
     const savePathFull = path.join(hubRoot_, savePath);
-    await copy(fp, savePathFull, {
-        isFullPath: true,
-    });
+    if (option.cleanOld) {
+        await rename(fp, savePathFull, {isFullPath: true});
+        if (await exists(fp, {isFullPath: true})) {
+            deletes(fp, {isFullPath: true}).then();
+        }
+    } else {
+        await copy(fp, savePathFull, {
+            isFullPath: true,
+        });
+    }
     if (option.returnFullPath) {
         return savePathFull;
     }
@@ -543,6 +563,27 @@ const tempRoot = async () => {
     return tempDir;
 };
 
+const autoCleanTemp = async (keepDays: number = 1) => {
+    const root = await tempRoot();
+    if (!fs.existsSync(root)) {
+        return;
+    }
+    const files = fs.readdirSync(root);
+    const now = new Date();
+    for (const file of files) {
+        const filePath = path.join(root, file);
+        const stat = fs.statSync(filePath);
+        if (stat.isDirectory()) {
+            continue; // skip directories
+        }
+        const lastModified = new Date(stat.mtimeMs);
+        const diffDays = Math.floor((now.getTime() - lastModified.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays > keepDays) {
+            fs.unlinkSync(filePath);
+        }
+    }
+};
+
 const temp = async (ext: string = "tmp", prefix: string = "file", suffix: string = "") => {
     const root = await tempRoot();
     const parts = [prefix, TimeUtil.timestampInMs(), StrUtil.randomString(32)];
@@ -554,6 +595,10 @@ const temp = async (ext: string = "tmp", prefix: string = "file", suffix: string
 };
 
 const tempDir = async (prefix: string = "dir") => {
+    if (Math.random() < 0.1) {
+        // 10% chance to clean temp directory
+        autoCleanTemp(1).then();
+    }
     const root = await tempRoot();
     const p = [prefix, TimeUtil.timestampInMs(), StrUtil.randomString(32)].join("_");
     const dir = path.join(root, p);
