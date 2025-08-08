@@ -491,6 +491,55 @@ const _getHubSavePath = async (
     return `${savePath}.${ext}`;
 };
 
+const hubDelete = async (
+    file: string,
+    option?: {
+        isFullPath?: boolean;
+        ignoreWhenNotInHub?: boolean;
+        tryLaterWhenFailed?: boolean;
+    }
+) => {
+    option = Object.assign(
+        {
+            isFullPath: false,
+            ignoreWhenNotInHub: true,
+            tryLaterWhenFailed: true,
+        },
+        option
+    );
+    let fp = file;
+    const hubRoot_ = await hubRoot();
+    if (!option.isFullPath) {
+        fp = path.join(hubRoot_, file);
+    }
+    if (!(await isHubFile(fp))) {
+        if (option.ignoreWhenNotInHub) {
+            return;
+        }
+    }
+    if (!(await exists(fp, {isFullPath: true}))) {
+        throw `HubDelete.FileNotFound - ${fp}`;
+    }
+    const del = () => {
+        deletes(fp, {isFullPath: true}).catch(err => {
+            if (option.tryLaterWhenFailed) {
+                setTimeout(del, 1000);
+            } else {
+                Log.error(`HubDelete.Error: ${fp}`, err);
+            }
+        });
+    };
+    del();
+};
+
+const hubFullPath = async (file: string): Promise<string> => {
+    if (!file) {
+        throw "HubSave.FilePathEmpty";
+    }
+    const hubRoot_ = await hubRoot();
+    return path.join(hubRoot_, file);
+};
+
 const hubFile = async (
     ext: string,
     option?: {
@@ -531,26 +580,15 @@ const hubFile = async (
     return savePath;
 };
 
-const isHubFile = async (file: string, option?: {isFullPath?: boolean}) => {
-    option = Object.assign(
-        {
-            isFullPath: false,
-        },
-        option
-    );
-    let fp = file;
-    if (!option.isFullPath) {
-        fp = await fullPath(file);
-    }
+const isHubFile = async (file: string) => {
     const hubRoot_ = await hubRoot();
-    return inDir(fp, hubRoot_);
+    return inDir(file, hubRoot_);
 };
 
 const hubSave = async (
     file: string,
     option?: {
         ext?: string;
-        isFullPath?: boolean;
         returnFullPath?: boolean;
         ignoreWhenInHub?: boolean;
         cleanOld?: boolean;
@@ -564,8 +602,7 @@ const hubSave = async (
     option = Object.assign(
         {
             ext: null,
-            isFullPath: false,
-            returnFullPath: false,
+            returnFullPath: true,
             ignoreWhenInHub: false,
             cleanOld: false,
             saveGroup: "file",
@@ -577,20 +614,16 @@ const hubSave = async (
     if (!file) {
         throw "HubSave.FilePathEmpty";
     }
-    let fp = file;
-    if (!option.isFullPath) {
-        fp = await fullPath(file);
-    }
-    if (!fs.existsSync(fp)) {
-        throw `HubSave.FileNotFound - ${fp}`;
+    if (!fs.existsSync(file)) {
+        throw `HubSave.FileNotFound - ${file}`;
     }
     if (!option.ext) {
-        option.ext = ext(fp);
+        option.ext = ext(file);
     }
     const hubRoot_ = await hubRoot();
     if (option.ignoreWhenInHub) {
-        if (inDir(fp, hubRoot_)) {
-            return fp;
+        if (inDir(file, hubRoot_)) {
+            return file;
         }
     }
     const savePath = await _getHubSavePath(
@@ -602,12 +635,12 @@ const hubSave = async (
     );
     const savePathFull = path.join(hubRoot_, savePath);
     if (option.cleanOld) {
-        await rename(fp, savePathFull, {isFullPath: true});
-        if (await exists(fp, {isFullPath: true})) {
-            deletes(fp, {isFullPath: true}).then();
+        await rename(file, savePathFull, {isFullPath: true});
+        if (await exists(file, {isFullPath: true})) {
+            deletes(file, {isFullPath: true}).then();
         }
     } else {
-        await copy(fp, savePathFull, {
+        await copy(file, savePathFull, {
             isFullPath: true,
         });
     }
@@ -960,7 +993,9 @@ export const FileIndex = {
     pathToName,
     hubRootDefault,
     hubSave,
+    hubDelete,
     hubFile,
+    hubFullPath,
     isHubFile,
 };
 
