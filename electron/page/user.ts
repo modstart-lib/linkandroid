@@ -1,10 +1,8 @@
-import {BrowserWindow, shell} from "electron";
+import {BrowserWindow} from "electron";
 import {preloadDefault} from "../lib/env-main";
 import {AppRuntime} from "../mapi/env";
 import {t} from "../config/lang";
 import {Page} from "./index";
-import {AppConfig} from "../../src/config";
-import {User} from "../mapi/user/main";
 
 export const PageUser = {
     NAME: "user",

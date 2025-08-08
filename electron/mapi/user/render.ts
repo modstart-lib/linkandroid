@@ -1,8 +1,7 @@
 import {ipcRenderer} from "electron";
-import AppsRender from "../app/render";
 
 const open = async (option: any) => {
-    await AppsRender.windowOpen("user", option);
+    return ipcRenderer.invoke("user:open", option);
 };
 
 const get = async (): Promise<any> => {

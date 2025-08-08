@@ -243,7 +243,12 @@ declare interface Window {
             channelSend: (channel: string, data: any) => Promise<void>;
         };
         user: {
-            open: (option?: any) => Promise<void>;
+            open: (option?: {
+                readyParam: {
+                    page?: string;
+                    [key: string]: any;
+                };
+            }) => Promise<void>;
             get: () => Promise<{
                 apiToken: string;
                 user: {

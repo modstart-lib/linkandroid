@@ -60,6 +60,30 @@ const get = async (): Promise<{
     };
 };
 
+ipcMain.handle(
+    "user:open",
+    async (
+        event,
+        option?: {
+            readyParam: {
+                page?: string;
+                [key: string]: any;
+            };
+        }
+    ) => {
+        option = Object.assign(
+            {
+                readyParam: null,
+            },
+            option || {}
+        );
+        await AppsMain.windowOpen("user", option);
+        if (option.readyParam) {
+            await Events.callPage("user", "ready", option.readyParam);
+        }
+    }
+);
+
 ipcMain.handle("user:get", async event => {
     return get();
 });
@@ -84,7 +108,7 @@ ipcMain.handle("user:save", async (event, data) => {
 
 const refresh = async () => {
     const result = await userInfoApi();
-    // console.log('user.refresh', result)
+    // console.log("user.refresh", JSON.stringify(result, null, 2));
     await save({
         apiToken: result.data.apiToken,
         user: result.data.user,

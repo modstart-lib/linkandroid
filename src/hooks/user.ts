@@ -47,7 +47,7 @@ export const useUserPage = ({web, status}) => {
             }
         });
         web.value.addEventListener("dom-ready", e => {
-            // web.value.openDevTools()
+            // web.value.openDevTools();
             window.$mapi.user.refresh();
             canGoBack.value = getCanGoBack();
             web.value.executeJavaScript(`
@@ -71,6 +71,20 @@ document.addEventListener('click', (event) => {
 });
 `);
             status.value?.setStatus("success");
+            if (window.__page) {
+                window.__page.registerCallPage("ready", (resolve, reject, data) => {
+                    web.value.executeJavaScript(
+                        `var call = function(){
+                            if(!window.__appManagerUserReady){
+                                setTimeout(call,10);
+                                return;
+                            };
+                            window.__appManagerUserReady(${JSON.stringify(data)});
+                         };call();`
+                    );
+                    resolve(undefined);
+                });
+            }
         });
         status.value?.setStatus("loading");
         webPreload.value = await window.$mapi.app.getPreload();
