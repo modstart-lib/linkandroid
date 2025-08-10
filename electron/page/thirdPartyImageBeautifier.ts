@@ -9,7 +9,7 @@ export const PageThirdPartyImageBeautifier = {
     open: (option: any) => {
         const win = new BrowserWindow({
             title: t("截图编辑"),
-            parent: AppRuntime.mainWindow,
+            parent: null,
             minWidth: 900,
             minHeight: 700,
             width: 900,

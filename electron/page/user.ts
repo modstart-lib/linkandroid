@@ -6,10 +6,11 @@ import {Page} from "./index";
 
 export const PageUser = {
     NAME: "user",
-    open: async (option: {parent?: BrowserWindow}) => {
-        option = option || {};
-        let parent = option.parent || AppRuntime.mainWindow;
-        let alwaysOnTop = !parent;
+    open: async (option: { parent?: BrowserWindow }) => {
+        option = Object.assign({
+            parent: null
+        }, option)
+        let alwaysOnTop = !option.parent;
         const win = new BrowserWindow({
             title: t("用户中心"),
             minWidth: 700,
@@ -28,7 +29,7 @@ export const PageUser = {
             center: true,
             transparent: false,
             focusable: true,
-            parent,
+            parent: option.parent,
             alwaysOnTop,
         });
         return Page.openWindow(PageUser.NAME, win, "page/user.html");

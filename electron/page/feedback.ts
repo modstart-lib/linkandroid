@@ -10,7 +10,7 @@ export const PageFeedback = {
     open: async (option: any) => {
         const win = new BrowserWindow({
             title: t("工单反馈"),
-            parent: AppRuntime.mainWindow,
+            parent: null,
             minWidth: WindowConfig.feedbackWidth,
             minHeight: WindowConfig.feedbackHeight,
             width: WindowConfig.feedbackWidth,

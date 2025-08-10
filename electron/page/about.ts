@@ -10,7 +10,7 @@ export const PageAbout = {
     open: async (option: any) => {
         const win = new BrowserWindow({
             title: t("关于"),
-            parent: AppRuntime.mainWindow,
+            parent: null,
             minWidth: WindowConfig.aboutWidth,
             minHeight: WindowConfig.aboutHeight,
             width: WindowConfig.aboutWidth,
