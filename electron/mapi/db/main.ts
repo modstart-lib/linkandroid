@@ -125,10 +125,6 @@ const init = async () => {
     const userDbPath = path.join(AppEnv.userData, "database.db");
     if (fs.existsSync(userDbPath)) {
         dbPath = userDbPath;
-    } else {
-        if (!fs.existsSync(AppEnv.dataRoot)) {
-            fs.mkdirSync(AppEnv.dataRoot, {recursive: true});
-        }
     }
     dbConn = new sqlite3.Database(dbPath, err => {
         if (err) {

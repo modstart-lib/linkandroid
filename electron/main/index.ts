@@ -1,6 +1,7 @@
 import {app, BrowserWindow, desktopCapturer, session, shell} from "electron";
 import {optimizer} from "@electron-toolkit/utils";
 import path from "node:path";
+import fs from "node:fs";
 
 /** process.js 必须位于非依赖项的顶部 */
 import {isDummy} from "../lib/process";
@@ -63,6 +64,16 @@ AppEnv.appRoot = process.env.APP_ROOT;
 AppEnv.appData = app.getPath("appData");
 AppEnv.userData = app.getPath("userData");
 AppEnv.dataRoot = path.join(AppEnv.userData, "data");
+
+if (!fs.existsSync(AppEnv.dataRoot)) {
+    fs.mkdirSync(AppEnv.dataRoot, {recursive: true});
+}
+for (const dir of ["logs", "storage"]) {
+    if (!fs.existsSync(path.join(AppEnv.dataRoot, dir))) {
+        fs.mkdirSync(path.join(AppEnv.dataRoot, dir), {recursive: true});
+    }
+}
+
 AppEnv.isInit = true;
 
 MAPI.init();
