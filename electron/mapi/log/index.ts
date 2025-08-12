@@ -8,6 +8,8 @@ import FileIndex from "../file";
 
 let fileName = null;
 let fileStream = null;
+let appFileNames = {};
+let appFileStreams = {};
 
 const stringDatetime = () => {
     return date.format(new Date(), "YYYYMMDD");
@@ -17,7 +19,7 @@ const logsDir = () => {
 };
 
 const appLogsDir = () => {
-    return path.join(AppEnv.userData, "data/logs");
+    return path.join(AppEnv.dataRoot, "logs");
 };
 
 const root = () => {
@@ -27,6 +29,10 @@ const root = () => {
 const file = () => {
     return path.join(logsDir(), "log_" + stringDatetime() + ".log");
 };
+
+const appFile = (name: string) => {
+    return path.join(appLogsDir(), name + "_" + stringDatetime() + ".log");
+}
 
 const cleanOldLogs = (keepDays: number) => {
     const logDirs = [
@@ -104,6 +110,46 @@ const error = (label: string, data: any = null) => {
     return log("ERROR", label, data);
 };
 
+const appLog = (name: string, level: "INFO" | "ERROR", label: string, data: any = null) => {
+    if (appFileNames[name] !== appFile(name)) {
+        appFileNames[name] = appFile(name);
+        if (appFileStreams[name]) {
+            appFileStreams[name].end();
+        }
+        const logDir = appLogsDir();
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir);
+        }
+        appFileStreams[name] = fs.createWriteStream(appFileNames[name], {flags: "a"});
+    }
+    let line = [];
+    line.push(date.format(new Date(), "YYYY-MM-DD HH:mm:ss"));
+    line.push(level);
+    line.push(label);
+    if (data) {
+        if (!["number", "string"].includes(typeof data)) {
+            data = JSON.stringify(data);
+        }
+        line.push(data);
+    }
+    console.log(`[APP:${name}] - ` + line.join(" - "));
+    appFileStreams[name].write(line.join(" - ") + "\n");
+}
+
+const appPath = (name: string) => {
+    if (!appFileNames[name]) {
+        appFileNames[name] = appFile(name);
+    }
+    return appFileNames[name];
+}
+
+const appInfo = (name: string, label: string, data: any = null) => {
+    return appLog(name, "INFO", label, data);
+}
+const appError = (name: string, label: string, data: any = null) => {
+    return appLog(name, "ERROR", label, data);
+};
+
 const infoRenderOrMain = (label: string, data: any = null) => {
     if (electron.ipcRenderer) {
         return electron.ipcRenderer.invoke("log:info", label, data);
@@ -119,7 +165,23 @@ const errorRenderOrMain = (label: string, data: any = null) => {
     }
 };
 
-const collectRenderOrMain = async (option?: {startTime?: string; endTime?: string; limit?: number}) => {
+const appInfoRenderOrMain = (name: string, label: string, data: any = null) => {
+    if (electron.ipcRenderer) {
+        return electron.ipcRenderer.invoke("log:appInfo", name, label, data);
+    } else {
+        return appInfo(name, label, data);
+    }
+}
+
+const appErrorRenderOrMain = (name: string, label: string, data: any = null) => {
+    if (electron.ipcRenderer) {
+        return electron.ipcRenderer.invoke("log:appError", name, label, data);
+    } else {
+        return appError(name, label, data);
+    }
+};
+
+const collectRenderOrMain = async (option?: { startTime?: string; endTime?: string; limit?: number }) => {
     option = Object.assign(
         {
             startTime: dayjs().subtract(1, "day").format("YYYY-MM-DD HH:mm:ss"),
@@ -194,10 +256,18 @@ export default {
     error,
     infoRenderOrMain,
     errorRenderOrMain,
+    appPath,
+    appInfo,
+    appError,
+    appInfoRenderOrMain,
+    appErrorRenderOrMain,
     collectRenderOrMain,
 };
 
 export const Log = {
     info: infoRenderOrMain,
     error: errorRenderOrMain,
+    appPath,
+    appInfo: appInfoRenderOrMain,
+    appError: appErrorRenderOrMain,
 };

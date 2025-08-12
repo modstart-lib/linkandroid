@@ -3,17 +3,23 @@ import {preloadDefault} from "../lib/env-main";
 import {t} from "../config/lang";
 import {Page} from "./index";
 import {WindowConfig} from "../config/window";
+import {AppRuntime} from "../mapi/env";
 
-export const PageAbout = {
-    NAME: "about",
-    open: async (option: any) => {
+export const PageLog = {
+    NAME: "log",
+    open: async (option: {
+        log: string,
+    }) => {
+        if (AppRuntime.windows[PageLog.NAME]) {
+            AppRuntime.windows[PageLog.NAME].close();
+        }
         const win = new BrowserWindow({
-            title: t("关于"),
+            title: t("日志"),
             parent: null,
-            minWidth: WindowConfig.aboutWidth,
-            minHeight: WindowConfig.aboutHeight,
-            width: WindowConfig.aboutWidth,
-            height: WindowConfig.aboutHeight,
+            minWidth: WindowConfig.logWidth,
+            minHeight: WindowConfig.logHeight,
+            width: WindowConfig.logWidth,
+            height: WindowConfig.logHeight,
             webPreferences: {
                 preload: preloadDefault,
                 // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
@@ -28,6 +34,18 @@ export const PageAbout = {
             frame: false,
             transparent: false,
         });
-        return Page.openWindow(PageAbout.NAME, win, "page/about.html");
+        await Page.openWindow(PageLog.NAME, win, "page/log.html");
+        const logInit = {
+            log: option.log,
+        }
+        win.webContents.executeJavaScript(`
+        const logInit = ()=>{
+            if(!window.__logInit){
+                setTimeout(logInit, 100);
+                return;
+            }
+            window.__logInit(${JSON.stringify(logInit)});
+        };logInit();
+        `);
     },
 };

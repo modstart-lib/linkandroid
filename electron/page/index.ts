@@ -10,6 +10,7 @@ import {DevToolsManager} from "../lib/devtools";
 import {PageFeedback} from "./feedback";
 import {PagePayment} from "./payment";
 import {PageMonitor} from "./monitor";
+import {PageLog} from "./log";
 
 const Pages = {
     thirdPartyImageBeautifier: PageThirdPartyImageBeautifier,
@@ -19,6 +20,7 @@ const Pages = {
     payment: PagePayment,
     feedback: PageFeedback,
     monitor: PageMonitor,
+    log: PageLog,
 };
 
 export const Page = {

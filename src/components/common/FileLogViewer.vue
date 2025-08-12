@@ -8,12 +8,14 @@ const props = withDefaults(
         maxLines?: number;
         height?: string;
         autoScroll?: boolean;
+        isFullPath?: boolean;
     }>(),
     {
         file: "",
         maxLines: 1000,
         height: "100%",
         autoScroll: true,
+        isFullPath: false,
     }
 );
 
@@ -34,6 +36,7 @@ onMounted(async () => {
             }
         },
         {
+            isFullPath: props.isFullPath,
             limit: props.maxLines,
         }
     );
@@ -46,8 +49,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div>
-        <LogViewer :height="props.height" :logs="logs" :auto-scroll="autoScroll" />
+    <div :style="{height:props.height}">
+        <LogViewer :height="props.height" :logs="logs" :auto-scroll="autoScroll"/>
     </div>
 </template>
 
