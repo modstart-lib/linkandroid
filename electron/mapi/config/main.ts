@@ -7,13 +7,24 @@ import {Events} from "../event/main";
 let data = null;
 let dataEnv = {};
 
-const configPath = () => {
+const userDataRoot = () => {
     return path.join(AppEnv.userData, "config.json");
+};
+
+const dataRoot = () => {
+    return path.join(AppEnv.dataRoot, "config.json");
+}
+
+const filePath = () => {
+    if (fs.existsSync(userDataRoot())) {
+        return userDataRoot();
+    }
+    return dataRoot();
 };
 
 const load = () => {
     try {
-        let json = fs.readFileSync(configPath()).toString();
+        let json = fs.readFileSync(filePath()).toString();
         json = JSON.parse(json);
         data = json || {};
     } catch (e) {
@@ -28,7 +39,7 @@ const loadIfNeed = () => {
 };
 
 const save = () => {
-    fs.writeFileSync(configPath(), JSON.stringify(data, null, 4));
+    fs.writeFileSync(filePath(), JSON.stringify(data, null, 4));
 };
 
 const all = async () => {

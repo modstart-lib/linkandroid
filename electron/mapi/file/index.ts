@@ -10,7 +10,7 @@ import {Log} from "../log";
 const nodePath = path;
 
 const root = () => {
-    return path.join(AppEnv.userData, "data");
+    return AppEnv.dataRoot
 };
 
 const absolutePath = (path: string) => {
@@ -25,7 +25,7 @@ const fullPath = async (path: string) => {
     return nodePath.join(root(), path);
 };
 
-const exists = async (path: string, option?: {isFullPath?: boolean}) => {
+const exists = async (path: string, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -47,7 +47,7 @@ const exists = async (path: string, option?: {isFullPath?: boolean}) => {
     });
 };
 
-const isDirectory = async (path: string, option?: {isFullPath?: boolean}) => {
+const isDirectory = async (path: string, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -64,7 +64,7 @@ const isDirectory = async (path: string, option?: {isFullPath?: boolean}) => {
     return fs.statSync(fp).isDirectory();
 };
 
-const mkdir = async (path: string, option?: {isFullPath?: boolean}) => {
+const mkdir = async (path: string, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -80,7 +80,7 @@ const mkdir = async (path: string, option?: {isFullPath?: boolean}) => {
     }
 };
 
-const list = async (path: string, option?: {isFullPath?: boolean}) => {
+const list = async (path: string, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -108,7 +108,7 @@ const list = async (path: string, option?: {isFullPath?: boolean}) => {
     });
 };
 
-const listAll = async (path: string, option?: {isFullPath?: boolean}) => {
+const listAll = async (path: string, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -147,7 +147,7 @@ const listAll = async (path: string, option?: {isFullPath?: boolean}) => {
     return listDirectory(fp);
 };
 
-const write = async (path: string, data: any, option?: {isFullPath?: boolean}) => {
+const write = async (path: string, data: any, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -172,7 +172,7 @@ const write = async (path: string, data: any, option?: {isFullPath?: boolean}) =
     fs.closeSync(f);
 };
 
-const writeBuffer = async (path: string, data: any, option?: {isFullPath?: boolean}) => {
+const writeBuffer = async (path: string, data: any, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -221,7 +221,7 @@ const read = async (
     return content;
 };
 
-const readBuffer = async (path: string, option?: {isFullPath?: boolean}): Promise<Buffer> => {
+const readBuffer = async (path: string, option?: { isFullPath?: boolean }): Promise<Buffer> => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -290,7 +290,7 @@ const readLine = async (
     });
 };
 
-const clean = async (paths: string[], option?: {isFullPath?: boolean}) => {
+const clean = async (paths: string[], option?: { isFullPath?: boolean }) => {
     if (!paths || !Array.isArray(paths) || paths.length === 0) {
         return;
     }
@@ -303,7 +303,7 @@ const clean = async (paths: string[], option?: {isFullPath?: boolean}) => {
     }
 };
 
-const deletes = async (path: string, option?: {isFullPath?: boolean}) => {
+const deletes = async (path: string, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -381,7 +381,8 @@ const rename = async (
     try {
         fs.renameSync(fullPathOld, fullPathNew);
         success = true;
-    } catch (e) {}
+    } catch (e) {
+    }
     if (!success) {
         // cross-device link not permitted, rename
         fs.copyFileSync(fullPathOld, fullPathNew);
@@ -389,7 +390,7 @@ const rename = async (
     }
 };
 
-const copy = async (pathOld: string, pathNew: string, option?: {isFullPath?: boolean}) => {
+const copy = async (pathOld: string, pathNew: string, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -478,7 +479,7 @@ const _getHubSavePath = async (
         await exists(path.join(hubRoot, savePath + `.${ext}`), {
             isFullPath: true,
         })
-    ) {
+        ) {
         savePath = savePath + `-${StrUtil.randomString(3)}`;
     }
     if (autoCreateDir) {
@@ -812,7 +813,7 @@ const watchText = async (
 let appendTextPathCached = null;
 let appendTextStreamCached = null;
 
-const appendText = async (path: string, data: any, option?: {isFullPath?: boolean}) => {
+const appendText = async (path: string, data: any, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
             isFullPath: false,

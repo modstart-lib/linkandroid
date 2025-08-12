@@ -1,21 +1,29 @@
-import path from "node:path";
 import {AppEnv, waitAppEnvReady} from "../env";
 import fs from "node:fs";
 import {ipcMain} from "electron";
+import nodePath from "node:path";
 
 let data = {};
 
-const configRoot = () => {
-    return path.join(AppEnv.userData, "storage");
+const userDataRoot = () => {
+    return nodePath.join(AppEnv.userData, "storage");
 };
 
-const configPath = (group: string) => {
-    return path.join(configRoot(), `${group}.json`);
+const dataRoot = () => {
+    return nodePath.join(AppEnv.dataRoot, "storage");
+}
+
+const filePath = (group: string) => {
+    let p = nodePath.join(userDataRoot(), `${group}.json`);
+    if (fs.existsSync(p)) {
+        return p;
+    }
+    return nodePath.join(dataRoot(), `${group}.json`);
 };
 
 const load = (group: string) => {
     try {
-        const p = configPath(group);
+        const p = filePath(group);
         let json = fs.readFileSync(p).toString();
         json = JSON.parse(json);
         data[group] = json || {};
@@ -31,9 +39,10 @@ const loadIfNeed = (group: string) => {
 };
 
 const save = (group: string) => {
-    const path = configPath(group);
-    if (!fs.existsSync(configRoot())) {
-        fs.mkdirSync(configRoot(), {recursive: true});
+    const path = filePath(group);
+    const dir = nodePath.dirname(path);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, {recursive: true});
     }
     fs.writeFileSync(path, JSON.stringify(data[group], null, 4));
 };

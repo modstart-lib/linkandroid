@@ -121,9 +121,10 @@ const migrate = async () => {
 };
 
 const init = async () => {
-    dbPath = path.join(AppEnv.userData, "database.db");
-    if (!(await Files.exists(dbPath, {isFullPath: true}))) {
-        dbPath = await Files.fullPath("database.db");
+    dbPath = path.join(AppEnv.dataRoot, "database.db");
+    const userDbPath = path.join(AppEnv.userData, "database.db");
+    if (fs.existsSync(userDbPath)) {
+        dbPath = userDbPath;
     }
     dbConn = new sqlite3.Database(dbPath, err => {
         if (err) {

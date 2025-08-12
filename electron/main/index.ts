@@ -1,5 +1,6 @@
 import {app, BrowserWindow, desktopCapturer, session, shell} from "electron";
 import {optimizer} from "@electron-toolkit/utils";
+import path from "node:path";
 
 /** process.js 必须位于非依赖项的顶部 */
 import {isDummy} from "../lib/process";
@@ -61,6 +62,7 @@ const hasSplashWindow = true;
 AppEnv.appRoot = process.env.APP_ROOT;
 AppEnv.appData = app.getPath("appData");
 AppEnv.userData = app.getPath("userData");
+AppEnv.dataRoot = path.join(AppEnv.userData, "data");
 AppEnv.isInit = true;
 
 MAPI.init();
@@ -70,6 +72,7 @@ Log.info("Starting");
 Log.info("LaunchInfo", {
     isPackaged,
     userData: AppEnv.userData,
+    dataRoot: AppEnv.dataRoot,
 });
 
 async function createWindow() {
