@@ -27,12 +27,15 @@ export const DevToolsManager = {
             height,
             title: name,
         });
+        devtools.on("closed", (e) => {
+            // console.log('DevToolsManager', 'close', name)
+            this.windows.delete(win);
+        })
         // console.log('DevToolsManager', name, {x, y})
         win.webContents.setDevToolsWebContents(devtools.webContents);
         win.webContents.on("destroyed", () => {
             // console.log('DevToolsManager', 'destroyed', name)
             devtools.destroy();
-            this.windows.delete(win);
         });
         devtools.webContents.on("dom-ready", () => {
             setTimeout(() => {

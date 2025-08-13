@@ -111,8 +111,12 @@ const error = (label: string, data: any = null) => {
 };
 
 const appLog = (name: string, level: "INFO" | "ERROR", label: string, data: any = null) => {
+    let fileChanged = false;
     if (appFileNames[name] !== appFile(name)) {
         appFileNames[name] = appFile(name);
+        fileChanged = true;
+    }
+    if (fileChanged || !appFileStreams[name]) {
         if (appFileStreams[name]) {
             appFileStreams[name].end();
         }
