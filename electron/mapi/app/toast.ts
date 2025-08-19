@@ -4,8 +4,9 @@ import {icons} from "./icons";
 
 let win = null;
 let winCloseTimer = null;
+let winShowTime = null;
 
-export const makeToast = (
+export const makeToast = async (
     msg: string,
     options?: {
         duration?: number;
@@ -13,11 +14,16 @@ export const makeToast = (
     }
 ) => {
     if (win) {
+        if (winShowTime && Date.now() - winShowTime < 1000) {
+            // show at least 1 second
+            await new Promise(resolve => setTimeout(resolve, 1000 - (Date.now() - winShowTime)));
+        }
         win.close();
         clearTimeout(winCloseTimer);
         win = null;
         winCloseTimer = null;
     }
+    winShowTime = Date.now();
 
     options = Object.assign(
         {
