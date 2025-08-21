@@ -21,8 +21,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "dev:mac": "pkill -f focusany; vite",
-        "dev:mac:pre": "export ELECTRON_ENV_PROD=1 && pkill -f focusany; vite",
+        "dev:mac": "pkill -f linkandroid; vite",
+        "dev:mac:pre": "export ELECTRON_ENV_PROD=1 && pkill -f linkandroid; vite",
         "dev:win": "chcp 65001 && vite",
         "dev:win:pre": "chcp 65001 && set ELECTRON_ENV_PROD=1 && vite",
         "dev:debug": "vite --debug",
