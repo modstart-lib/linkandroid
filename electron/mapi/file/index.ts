@@ -953,10 +953,16 @@ const pathToName = (path: string, includeExt: boolean = true, maxLimit: number =
     }
     path = path.replace(/\\/g, "/");
     const parts = path.split("/");
-    const name = parts[parts.length - 1];
-    const nameOnly = name.split(".")[0];
-    const ext = includeExt ? `.${name.split(".").slice(1).join(".")}` : "";
-    let result = nameOnly;
+    const nameWithExt = parts[parts.length - 1];
+    const nameParts = nameWithExt.split(".");
+    let ext = ''
+    if (nameParts.length > 1) {
+        ext = '.' + nameParts.pop();
+    }
+    if (!includeExt) {
+        ext = '';
+    }
+    let result = nameParts.join(".");
     maxLimit -= ext.length;
     if (result.length > maxLimit) {
         result = result.substring(0, maxLimit);
