@@ -59,7 +59,13 @@ export const t = (text: string, param: object | null = null) => {
             .catch(e => {
                 console.error("writeSourceKey.error", locale, text, e);
             });
-        lang.writeSourceKeyUse(text).then(() => {});
+        lang.writeSourceKeyUse(text).then(() => {
+        });
+    }
+    if (param) {
+        return text.replace(/\{(\w+)\}/g, function (match, key) {
+            return key in param ? param[key] : match;
+        });
     }
     return text;
 };
