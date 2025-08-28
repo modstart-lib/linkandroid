@@ -964,7 +964,7 @@ const pathToName = (path: string, includeExt: boolean = true, maxLimit: number =
     }
     let result = nameParts.join(".");
     maxLimit -= ext.length;
-    if (result.length > maxLimit) {
+    if (maxLimit > 0 && result.length > maxLimit) {
         result = result.substring(0, maxLimit);
     }
     if (!result) {
