@@ -78,10 +78,11 @@ const autoWrite = (delay = 10000) => {
     }
     autoWriteTimer = setTimeout(() => {
         autoWriteTimer = null;
+        const count = Object.keys(mergeJson['source'] || {}).length;
         dialog.showMessageBox(AppRuntime.mainWindow, {
             type: "info",
             title: "Info",
-            message: "Write lang json file ( cause app quit )",
+            message: `Write ${count} lang key(s) now ? This will cause app restart`,
             buttons: ["OK", "Delay 60s", "Delay 10s"],
             defaultId: 0,
             cancelId: 1,
