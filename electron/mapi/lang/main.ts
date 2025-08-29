@@ -5,6 +5,7 @@ import {langMessageList} from "../../config/lang";
 import {app, dialog, ipcMain} from "electron";
 import {Log} from "../log/main";
 import {isDev} from "../../lib/env";
+import {AppsMain} from "../app/main";
 
 const fileSyncer = {
     readJson: async function (file: string) {
@@ -60,12 +61,13 @@ const writeSourceKey = async (key: string) => {
     }
     source[key] = StrUtil.hashCodeWithDuplicateCheck(key, Object.values(source));
     mergeJson['source'][key] = source[key];
-    Log.info("Lang.writeSourceKey", {key, id: source[key]});
     for (let l of langMessageList) {
         const langJson = await readLang(l.name);
         langJson[source[key]] = key;
         mergeJson[l.name][source[key]] = key;
     }
+    Log.info("Lang.writeSourceKey", {key, id: source[key]});
+    AppsMain.toast(`New lang key: ${key}`, {status: "info"}).then();
     autoWrite();
 };
 
