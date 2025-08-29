@@ -4,8 +4,6 @@ import zhCN from "./../../src/lang/zh-CN.json";
 import {isDev} from "../lib/env";
 import lang from "../mapi/lang/main";
 import {ConfigMain} from "../mapi/config/main";
-import {AppsMain} from "../mapi/app/main";
-import {Log} from "../mapi/log/main";
 
 export const defaultLocale = "zh-CN";
 

@@ -5,7 +5,6 @@ import {langMessageList} from "../../config/lang";
 import {app, dialog, ipcMain} from "electron";
 import {Log} from "../log/main";
 import {isDev} from "../../lib/env";
-import {AppsMain} from "../app/main";
 
 const fileSyncer = {
     readJson: async function (file: string) {
@@ -15,7 +14,7 @@ const fileSyncer = {
     },
     writeJson: async function (file: string, data: any, order: "key" | "value" = "key") {
         let filePath = Files.absolutePath([AppEnv.appRoot, file].join("/"));
-        let jsonString;
+        let jsonString: any;
         if (order === "key") {
             jsonString = JsonUtil.stringifyOrdered(data);
         } else {
@@ -79,9 +78,9 @@ const autoWrite = (delay = 10000) => {
         autoWriteTimer = null;
         dialog.showMessageBox(AppRuntime.mainWindow, {
             type: "info",
-            title: "提示",
-            message: "确定现在同步语言文件吗？",
-            buttons: ["确定", "延迟60秒", "延迟10秒"],
+            title: "Info",
+            message: "Write lang json file ( cause app quit )",
+            buttons: ["OK", "Delay 60s", "Delay 10s"],
             defaultId: 0,
             cancelId: 1,
         }).then(async (result) => {
