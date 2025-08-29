@@ -1,33 +1,19 @@
 import {Files} from "../file/main";
-import {AppEnv} from "../env";
+import {AppEnv, AppRuntime} from "../env";
 import {JsonUtil, StrUtil} from "../../lib/util";
 import {langMessageList} from "../../config/lang";
-import {ipcMain} from "electron";
+import {app, dialog, ipcMain} from "electron";
+import {Log} from "../log/main";
+import {isDev} from "../../lib/env";
+import {AppsMain} from "../app/main";
 
 const fileSyncer = {
-    lock: {},
     readJson: async function (file: string) {
-        if (this.lock[file]) {
-            return new Promise<any>(resolve => {
-                setTimeout(() => {
-                    resolve(this.readJson(file));
-                }, 100);
-            });
-        }
-        this.lock[file] = true;
         let filePath = Files.absolutePath([AppEnv.appRoot, file].join("/"));
         const sourceContent = (await Files.read(filePath)) || "{}";
-        this.lock[file] = sourceContent;
         return JSON.parse(sourceContent);
     },
     writeJson: async function (file: string, data: any, order: "key" | "value" = "key") {
-        if (!this.lock[file]) {
-            return new Promise<any>(resolve => {
-                setTimeout(() => {
-                    resolve(this.writeJson(file, data));
-                }, 100);
-            });
-        }
         let filePath = Files.absolutePath([AppEnv.appRoot, file].join("/"));
         let jsonString;
         if (order === "key") {
@@ -35,27 +21,101 @@ const fileSyncer = {
         } else {
             jsonString = JsonUtil.stringifyValueOrdered(data);
         }
-        if (jsonString !== this.lock[file]) {
-            await Files.write(filePath, jsonString);
-        }
-        this.lock[file] = false;
+        await Files.write(filePath, jsonString);
     },
 };
 
-const writeSourceKey = async (key: string) => {
+const mergeJson = {};
+let autoWriteTimer = null;
+
+const readSource = async () => {
     const json = await fileSyncer.readJson("src/lang/source.json");
-    const sourceIds: string[] = Object.values(json);
-    if (!json[key]) {
-        json[key] = StrUtil.hashCodeWithDuplicateCheck(key, sourceIds);
-        console.log("Lang.autoWriteSourceKey", key, json[key]);
+    if (!mergeJson['source']) {
+        mergeJson['source'] = {};
     }
-    await fileSyncer.writeJson("src/lang/source.json", json);
+    for (const k in mergeJson['source']) {
+        if (!json[k]) {
+            json[k] = mergeJson['source'][k];
+        }
+    }
+    return json;
+}
+
+const readLang = async (name: string) => {
+    const jsonLang = await fileSyncer.readJson(`src/lang/${name}.json`);
+    if (!mergeJson[name]) {
+        mergeJson[name] = {};
+    }
+    for (const k in mergeJson[name]) {
+        if (!jsonLang[k]) {
+            jsonLang[k] = mergeJson[name][k];
+        }
+    }
+    return jsonLang;
+}
+
+const writeSourceKey = async (key: string) => {
+    const source = await readSource();
+    if (source[key]) {
+        return;
+    }
+    source[key] = StrUtil.hashCodeWithDuplicateCheck(key, Object.values(source));
+    mergeJson['source'][key] = source[key];
+    Log.info("Lang.writeSourceKey", {key, id: source[key]});
     for (let l of langMessageList) {
-        const jsonLang = await fileSyncer.readJson(`src/lang/${l.name}.json`);
-        jsonLang[json[key]] = key;
-        await fileSyncer.writeJson(`src/lang/${l.name}.json`, jsonLang);
+        const langJson = await readLang(l.name);
+        langJson[source[key]] = key;
+        mergeJson[l.name][source[key]] = key;
     }
+    autoWrite();
 };
+
+const autoWrite = (delay = 10000) => {
+    if (autoWriteTimer) {
+        clearTimeout(autoWriteTimer);
+        autoWriteTimer = null;
+    }
+    autoWriteTimer = setTimeout(() => {
+        autoWriteTimer = null;
+        dialog.showMessageBox(AppRuntime.mainWindow, {
+            type: "info",
+            title: "提示",
+            message: "确定现在同步语言文件吗？",
+            buttons: ["确定", "延迟60秒", "延迟10秒"],
+            defaultId: 0,
+            cancelId: 1,
+        }).then(async (result) => {
+            if (result.response === 0) {
+                for (const k in mergeJson) {
+                    if (k === 'source') {
+                        const source = await readSource();
+                        await fileSyncer.writeJson("src/lang/source.json", source);
+                    } else {
+                        const langJson = await readLang(k);
+                        await fileSyncer.writeJson(`src/lang/${k}.json`, langJson);
+                    }
+                }
+                for (const k in mergeJson) {
+                    mergeJson[k] = {};
+                }
+            } else if (result.response === 1) {
+                autoWrite(60000);
+            } else if (result.response === 2) {
+                autoWrite(10000);
+            }
+        });
+    }, delay);
+}
+if (isDev) {
+    app.on("before-quit", (e) => {
+        for (const k in mergeJson) {
+            if (mergeJson[k] && Object.keys(mergeJson[k]).length > 0) {
+                e.preventDefault();
+                autoWrite(0);
+            }
+        }
+    });
+}
 
 const writeSourceKeyUse = async (key: string) => {
     const json = await fileSyncer.readJson("src/lang/source-use.json");

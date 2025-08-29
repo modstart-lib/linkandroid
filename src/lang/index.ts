@@ -102,19 +102,10 @@ export const t = (key: string, param: object | null = null) => {
     if (isDev) {
         getLocale().then(locale => {
             if (!messages[locale][key]) {
-                console.warn("key not found, writing", locale, key, messages);
-                window.$mapi.lang
-                    .writeSourceKey(key)
-                    .then(() => {
-                        console.info("writeSourceKey.success", locale, key);
-                    })
-                    .catch(e => {
-                        console.error("writeSourceKey.error", locale, key, e);
-                    });
+                window.$mapi.lang.writeSourceKey(key).then();
             }
         });
-        window.$mapi.lang.writeSourceKeyUse(key).then(() => {
-        });
+        window.$mapi.lang.writeSourceKeyUse(key).then();
     }
     // check if exists key
     if (!i18n.global.te(key) && param) {

@@ -219,4 +219,54 @@ body[data-theme="dark"] {
     }
 }
 
+.arco-select{
+    border-radius: 0.5rem;
+}
+
+.arco-slider {
+    margin-bottom: 0 !important;
+
+    .arco-slider-mark {
+        font-size: 10px !important;
+    }
+}
+
+.arco-checkbox {
+    padding-left: 0;
+}
+
+.arco-radio-button.arco-radio-checked {
+    background-color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    color: #FFFFFF !important;
+    border-radius: 0.5rem;
+}
+
+.arco-select-view-multiple {
+    border-radius: 0.5rem;
+}
+
+.arco-btn-primary,
+.arco-btn-primary[type='button']:not(.arco-btn-status-success),
+.arco-btn-primary[type='button']:not(.arco-btn-status-danger),
+.arco-btn-primary[type='button']:not(.arco-btn-status-warning),
+.arco-btn-primary[type='submit'] {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #FFFFFF;
+
+    &:hover {
+        background-color: var(--color-primary-lighter);
+        border-color: var(--color-primary-lighter);
+        color: #FFFFFF;
+    }
+}
+
+[data-theme="dark"] {
+    .arco-radio-group-button {
+        .arco-radio-button {
+            color: #CCC;
+        }
+    }
+}
 /////////// arco end ///////////

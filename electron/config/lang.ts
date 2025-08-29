@@ -4,6 +4,8 @@ import zhCN from "./../../src/lang/zh-CN.json";
 import {isDev} from "../lib/env";
 import lang from "../mapi/lang/main";
 import {ConfigMain} from "../mapi/config/main";
+import {AppsMain} from "../mapi/app/main";
+import {Log} from "../mapi/log/main";
 
 export const defaultLocale = "zh-CN";
 
@@ -40,6 +42,9 @@ const buildMessages = (): any => {
 let messages = buildMessages();
 
 export const t = (text: string, param: object | null = null) => {
+    if (isDev) {
+        lang.writeSourceKeyUse(text).then();
+    }
     if (messages[locale]) {
         if (messages[locale][text]) {
             if (param) {
@@ -51,16 +56,7 @@ export const t = (text: string, param: object | null = null) => {
         }
     }
     if (isDev) {
-        console.warn("key not found, writing", locale, text, messages);
-        lang.writeSourceKey(text)
-            .then(() => {
-                console.info("writeSourceKey.success", locale, text);
-            })
-            .catch(e => {
-                console.error("writeSourceKey.error", locale, text, e);
-            });
-        lang.writeSourceKeyUse(text).then(() => {
-        });
+        lang.writeSourceKey(text).then();
     }
     if (param) {
         return text.replace(/\{(\w+)\}/g, function (match, key) {
