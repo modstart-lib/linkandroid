@@ -79,11 +79,12 @@ const autoWrite = (delay = 10000) => {
     autoWriteTimer = setTimeout(() => {
         autoWriteTimer = null;
         const count = Object.keys(mergeJson['source'] || {}).length;
+        const keys = Object.keys(mergeJson['source'] || {}).join("\n");
         dialog.showMessageBox(AppRuntime.mainWindow, {
             type: "info",
             title: "Info",
-            message: `Write ${count} lang key(s) now ? This will cause app restart`,
-            buttons: ["OK", "Delay 60s", "Delay 10s"],
+            message: `Write ${count} lang key(s) now ? This will cause app restart\n\n${keys}`,
+            buttons: ["OK", "Not Write", "Delay 10s", "Delay 60s"],
             defaultId: 0,
             cancelId: 1,
         }).then(async (result) => {
@@ -101,9 +102,16 @@ const autoWrite = (delay = 10000) => {
                     mergeJson[k] = {};
                 }
             } else if (result.response === 1) {
-                autoWrite(60000);
+                Log.info("Lang.autoWrite", "User canceled write lang keys");
+                for (const k in mergeJson) {
+                    mergeJson[k] = {};
+                }
             } else if (result.response === 2) {
+                Log.info("Lang.autoWrite", "User delay write lang keys 10s");
                 autoWrite(10000);
+            } else if (result.response === 3) {
+                Log.info("Lang.autoWrite", "User delay write lang keys 60s");
+                autoWrite(60000);
             }
         });
     }, delay);

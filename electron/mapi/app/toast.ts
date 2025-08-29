@@ -18,8 +18,12 @@ export const makeToast = async (
             // show at least 1 second
             await new Promise(resolve => setTimeout(resolve, 1000 - (Date.now() - winShowTime)));
         }
-        win.close();
-        clearTimeout(winCloseTimer);
+        if (win) {
+            win.close();
+        }
+        if (winCloseTimer) {
+            clearTimeout(winCloseTimer);
+        }
         win = null;
         winCloseTimer = null;
     }
@@ -109,6 +113,7 @@ export const makeToast = async (
     const encodedHTML = encodeURIComponent(htmlContent);
     win.loadURL(`data:text/html;charset=UTF-8,${encodedHTML}`);
     win.on("ready-to-show", async () => {
+        if (!win) return;
         const width = Math.ceil(
             await win.webContents.executeJavaScript(`(()=>{
             const message = document.getElementById('message');
@@ -125,10 +130,12 @@ export const makeToast = async (
         //     mode: 'detach'
         // })
     });
-    winCloseTimer = setTimeout(() => {
-        win.close();
-        clearTimeout(winCloseTimer);
+    win.on("closed", () => {
         win = null;
+    })
+    winCloseTimer = setTimeout(() => {
         winCloseTimer = null;
+        if (!win) return;
+        win.close();
     }, options.duration);
 };
