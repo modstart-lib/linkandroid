@@ -1,10 +1,10 @@
-import {onMounted, watch} from "vue";
+import {onMounted, toRaw, watch} from "vue";
 import {AppConfig} from "../../config";
 import {t} from "../../lang";
 import {defaultResponseProcessor} from "../../lib/api";
 import {Dialog} from "../../lib/dialog";
 import {StorageUtil} from "../../lib/storage";
-import {VersionUtil} from "../../lib/util";
+import {ObjectUtil, VersionUtil} from "../../lib/util";
 
 export const doCopy = async (text: string | object, successTip: string = ""): Promise<void> => {
     successTip = successTip || t("复制成功");
@@ -40,10 +40,10 @@ export const doOpenFile = async (options?: {
         const opt: any = {};
         if (options.extensions && options.extensions.length > 0) {
             opt.filters = [{
-                extensions: options.extensions
+                extensions: toRaw(options.extensions),
             }]
         }
-        const result = await window.$mapi.file.openFile(options);
+        const result = await window.$mapi.file.openFile(opt);
         if (result) {
             return result
         }
