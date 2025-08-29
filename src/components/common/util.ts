@@ -30,6 +30,28 @@ export const doSaveFile = async (filePath: string) => {
     }
 };
 
+export const doOpenFile = async (options?: {
+    extensions?: [],
+}) => {
+    options = Object.assign({
+        extensions: [],
+    }, options);
+    try {
+        const opt: any = {};
+        if (options.extensions && options.extensions.length > 0) {
+            opt.filters = [{
+                extensions: options.extensions
+            }]
+        }
+        const result = await window.$mapi.file.openFile(options);
+        if (result) {
+            return result
+        }
+    } catch (error) {
+        Dialog.tipError(t("选择文件失败:{error}", {error}));
+    }
+}
+
 export const doCheckForUpdate = async (noticeLatest?: boolean) => {
     const res = await window.$mapi.updater.checkForUpdate();
     defaultResponseProcessor(res, (res: ApiResult<any>) => {
