@@ -25,7 +25,9 @@ const fileSyncer = {
     },
 };
 
+
 const mergeJson = {};
+let mergeJsonIgnore = false;
 let autoWriteTimer = null;
 
 const readSource = async () => {
@@ -67,8 +69,10 @@ const writeSourceKey = async (key: string) => {
         mergeJson[l.name][source[key]] = key;
     }
     Log.info("Lang.writeSourceKey", {key, id: source[key]});
-    AppsMain.toast(`New lang key: ${key}`, {status: "info"}).then();
-    autoWrite();
+    AppsMain.toast(`Lang Missing: ${key}`, {status: "info"}).then();
+    if (!mergeJsonIgnore) {
+        autoWrite();
+    }
 };
 
 const autoWrite = (delay = 10000) => {
@@ -106,6 +110,7 @@ const autoWrite = (delay = 10000) => {
                 for (const k in mergeJson) {
                     mergeJson[k] = {};
                 }
+                mergeJsonIgnore = true;
             } else if (result.response === 2) {
                 Log.info("Lang.autoWrite", "User delay write lang keys 10s");
                 autoWrite(10000);
@@ -118,10 +123,12 @@ const autoWrite = (delay = 10000) => {
 }
 if (isDev) {
     app.on("before-quit", (e) => {
-        for (const k in mergeJson) {
-            if (mergeJson[k] && Object.keys(mergeJson[k]).length > 0) {
-                e.preventDefault();
-                autoWrite(0);
+        if (!mergeJsonIgnore) {
+            for (const k in mergeJson) {
+                if (mergeJson[k] && Object.keys(mergeJson[k]).length > 0) {
+                    e.preventDefault();
+                    autoWrite(0);
+                }
             }
         }
     });
