@@ -180,6 +180,7 @@ export const AppsRender = {
     getAutoLaunch,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
+    spawnBinary: appIndex.spawnBinary,
     availablePort: appIndex.availablePort,
     fixExecutable: appIndex.fixExecutable,
     getUserAgent: appIndex.getUserAgent,

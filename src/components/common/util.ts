@@ -30,9 +30,11 @@ export const doSaveFile = async (filePath: string) => {
     }
 };
 
-export const doOpenFile = async (options?: {
-    extensions?: [],
-}) => {
+export const doOpenFile = async (
+    options?: {
+        extensions?: string[],
+    }
+): Promise<string | undefined> => {
     options = Object.assign({
         extensions: [],
     }, options);

@@ -3,7 +3,16 @@ import {exec as _exec, spawn} from "node:child_process";
 import net from "node:net";
 import util from "node:util";
 import {AppConfig} from "../../../src/config";
-import {isLinux, isMac, isWin, platformArch, platformName, platformUUID, platformVersion} from "../../lib/env";
+import {
+    extraResolveBin,
+    isLinux,
+    isMac,
+    isWin,
+    platformArch,
+    platformName,
+    platformUUID,
+    platformVersion
+} from "../../lib/env";
 import {IconvUtil, ShellUtil, StrUtil} from "../../lib/util";
 import {Log} from "../log/index";
 
@@ -210,6 +219,32 @@ const spawnShell = async (
     };
 };
 
+
+const spawnBinary = async (
+    binary: string,
+    args: string[],
+    option: {
+        stdout?: (data: string, process: any) => void;
+        stderr?: (data: string, process: any) => void;
+        success?: (process: any) => void;
+        error?: (msg: string, exitCode: number, process: any) => void;
+        cwd?: string;
+        outputEncoding?: string;
+        env?: Record<string, any>;
+        shell?: boolean;
+    } | null = null
+): Promise<{
+    stop: () => void;
+    send: (data: any) => void;
+    result: () => Promise<string>;
+}> => {
+    args.unshift(extraResolveBin(binary));
+    return await Apps.spawnShell(args, {
+        ...(option || {}),
+        shell: false,
+    });
+};
+
 const availablePortLock: {
     [port: number]: {
         lockKey: string;
@@ -289,6 +324,7 @@ const getUserAgent = () => {
 export const Apps = {
     shell,
     spawnShell,
+    spawnBinary,
     availablePort,
     isPortAvailable,
     fixExecutable,
