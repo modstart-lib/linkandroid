@@ -15,12 +15,6 @@
         "dist",
         "dist-electron"
     ],
-    "extraResources": [
-        {
-            "from": "node_modules/ffmpeg-static",
-            "to": "bin/ffmpeg",
-        }
-    ],
     "win": {
         icon: "electron/resources/build/logo.ico",
         "target": [
