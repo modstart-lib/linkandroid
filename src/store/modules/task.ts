@@ -72,7 +72,7 @@ export type TaskBiz = {
 };
 
 const taskChangeListeners = [] as {
-    biz: string;
+    biz: string | null;
     callback: (bizId: string, status: TaskChangeType) => void;
 }[];
 let runNextTimer = null as any;
@@ -276,7 +276,8 @@ export const taskStore = defineStore("task", {
                     }
                     this.bizMap[record.biz]
                         .failFunc(record.bizId, record.msg, record.bizParam)
-                        .then(() => {})
+                        .then(() => {
+                        })
                         .catch(e => {
                             console.error("Task.FailFunc.Error", e);
                             window.$mapi.log.error("Task.FailFunc.Error", e.toString()).catch(e => {
@@ -321,16 +322,16 @@ export const taskStore = defineStore("task", {
         unregister(biz: string) {
             delete this.bizMap[biz];
         },
-        onChange(biz: string, callback: (bizId: string, type: TaskChangeType) => void) {
+        onChange(biz: string | null, callback: (bizId: string, type: TaskChangeType) => void) {
             taskChangeListeners.push({biz, callback});
         },
-        offChange(biz: string, callback: (bizId: string, type: TaskChangeType) => void) {
+        offChange(biz: string | null, callback: (bizId: string, type: TaskChangeType) => void) {
             const index = taskChangeListeners.findIndex(v => v.biz === biz && v.callback === callback);
             taskChangeListeners.splice(index, 1);
         },
         fireChange(record: Partial<TaskRecord>, type: TaskChangeType) {
             taskChangeListeners.forEach(v => {
-                if (v.biz === record.biz) {
+                if (null === v.biz || v.biz === record.biz) {
                     v.callback(record.bizId as string, type);
                 }
             });
@@ -381,7 +382,7 @@ export const taskStore = defineStore("task", {
 });
 
 export const task = taskStore(store);
-task.init().then(() => {});
+task.init().then();
 
 export const useTaskStore = () => {
     return task;
