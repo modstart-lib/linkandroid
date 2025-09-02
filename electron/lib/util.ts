@@ -718,7 +718,7 @@ export const MarkdownUtil = {
 };
 
 type HotkeyModifierType = "Control" | "Option" | "Command" | "Ctrl" | "Alt" | "Win" | "Meta" | "Shift";
-type HotkeyType = {key: string; modifiers: HotkeyModifierType[]};
+type HotkeyType = { key: string; modifiers: HotkeyModifierType[] };
 
 export const HotKeyUtil = {
     orderModifiers(modifiers: HotkeyModifierType[]) {

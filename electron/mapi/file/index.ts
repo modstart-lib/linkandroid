@@ -246,6 +246,23 @@ const readBuffer = async (path: string, option?: { isFullPath?: boolean }): Prom
     });
 };
 
+const readStream = async (path: string, option?: { isFullPath?: boolean }) => {
+    option = Object.assign(
+        {
+            isFullPath: false,
+        },
+        option
+    );
+    let fp = path;
+    if (!option.isFullPath) {
+        fp = await fullPath(path);
+    }
+    if (!fs.existsSync(fp)) {
+        return null;
+    }
+    return fs.createReadStream(fp);
+}
+
 const readLine = async (
     path: string,
     callback: (line: string) => void,
@@ -985,6 +1002,7 @@ export const FileIndex = {
     writeBuffer,
     read,
     readBuffer,
+    readStream,
     readLine,
     clean,
     deletes,

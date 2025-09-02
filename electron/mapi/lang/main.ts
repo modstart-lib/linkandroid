@@ -69,7 +69,7 @@ const writeSourceKey = async (key: string) => {
         mergeJson[l.name][source[key]] = key;
     }
     Log.info("Lang.writeSourceKey", {key, id: source[key]});
-    AppsMain.toast(`Lang Missing: ${key}`, {status: "info"}).then();
+    AppsMain.toast(`LangAdded: ${key}`, {status: "info", duration: 1000}).then();
     if (!mergeJsonIgnore) {
         autoWrite();
     }

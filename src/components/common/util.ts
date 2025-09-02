@@ -54,6 +54,67 @@ export const doOpenFile = async (
     }
 }
 
+export const doOpenBrowserFile = (options: {
+    accept: string
+    multiple: boolean
+    max?: string
+}): Promise<File | null> => {
+    options = Object.assign({
+        accept: '*/*',
+        multiple: false,
+        max: undefined
+    });
+    const compareSize = (size: number, target: string): boolean => {
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        const i = sizes.findIndex(item => item === target.replace(/\d+/, ''));
+        return size > parseInt(target) * k ** i;
+    };
+    return new Promise((resolve, reject) => {
+        // 创建input[file]元素
+        const input = document.createElement('input');
+        // 设置相应属性
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', options.accept);
+        if (options.multiple) {
+            input.setAttribute('multiple', 'multiple');
+        } else {
+            input.removeAttribute('multiple');
+        }
+        // 绑定事件
+        input.onchange = function () {
+            // @ts-ignore
+            let files: File[] = Array.from(this.files);
+            if (files) {
+                const length = files.length;
+                files = files.filter(file => {
+                    if (options.max) {
+                        return !compareSize(file.size, options.max);
+                    } else {
+                        return true;
+                    }
+                });
+                if (files && files.length > 0) {
+                    if (length !== files.length) {
+                        // message.warning(`已过滤上传文件中大小大于${options.max}的文件`);
+                    }
+                    resolve(files[0]);
+                } else {
+                    Dialog.tipError(`上传文件大小不能大于${options.max}`);
+                    resolve(null);
+                }
+            } else {
+                reject(null);
+            }
+        };
+        input.oncancel = function () {
+            reject(null);
+        };
+        input.click();
+    });
+};
+
+
 export const doCheckForUpdate = async (noticeLatest?: boolean) => {
     const res = await window.$mapi.updater.checkForUpdate();
     defaultResponseProcessor(res, (res: ApiResult<any>) => {

@@ -1,8 +1,20 @@
+let SparkMD5: any = null;
+
+try {
+    SparkMD5 = await import("spark-md5");
+} catch (e) {
+}
 export const FileUtil = {
     extensionToType(extension: string) {
         const mime = {
             mp3: "audio/mpeg",
             wav: "audio/wav",
+            mp4: "video/mp4",
+            jpg: "image/jpeg",
+            jpeg: "image/jpeg",
+            png: "image/png",
+            gif: "image/gif",
+            svg: "image/svg+xml",
         };
         return mime[extension] || "";
     },
@@ -18,7 +30,7 @@ export const FileUtil = {
     getExt(path: string) {
         const ext = path.lastIndexOf(".");
         if (ext >= 0) {
-            return path.substring(ext + 1);
+            return path.substring(ext + 1).toLowerCase();
         }
         return "";
     },
@@ -40,4 +52,71 @@ export const FileUtil = {
         }
         return path;
     },
+    async md5File(file: File): Promise<string> {
+        return new Promise((resolve, reject) => {
+            if (!SparkMD5) {
+                reject(new Error("SparkMD5 not found"));
+                return;
+            }
+            const chunkSize = 2097152; // Read in chunks of 2MB
+            const chunks = Math.ceil(file.size / chunkSize);
+            let currentChunk = 0;
+            const spark = new SparkMD5.ArrayBuffer();
+            const fileReader = new FileReader();
+
+            fileReader.onload = (e: any) => {
+                if (e.target.error) {
+                    reject(e.target.error);
+                    return;
+                }
+                spark.append(e.target.result); // Append array buffer
+                currentChunk++;
+                if (currentChunk < chunks) {
+                    loadNext();
+                } else {
+                    const md5 = spark.end();
+                    resolve(md5);
+                }
+            };
+
+            fileReader.onerror = () => {
+                reject(fileReader.error);
+            };
+
+            function loadNext() {
+                const start = currentChunk * chunkSize;
+                const end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+                fileReader.readAsArrayBuffer(file.slice(start, end));
+            }
+
+            loadNext();
+        });
+    },
+    async md5Stream(stream: ReadableStream<Uint8Array>): Promise<string> {
+        if (!SparkMD5) {
+            throw new Error("SparkMD5 not found");
+        }
+        const reader = stream.getReader();
+        const spark = new SparkMD5.ArrayBuffer();
+
+        return new Promise((resolve, reject) => {
+            function processChunk() {
+                reader.read().then(({done, value}) => {
+                    if (done) {
+                        const md5 = spark.end();
+                        resolve(md5);
+                        return;
+                    }
+                    if (value) {
+                        spark.append(value.buffer);
+                    }
+                    processChunk();
+                }).catch(err => {
+                    reject(err);
+                });
+            }
+
+            processChunk();
+        });
+    }
 };

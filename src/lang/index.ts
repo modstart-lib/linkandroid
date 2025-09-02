@@ -108,10 +108,13 @@ export const t = (key: string, param: object | null = null) => {
         window.$mapi.lang.writeSourceKeyUse(key).then();
     }
     // check if exists key
-    if (!i18n.global.te(key) && param) {
-        return key.replace(/\{(\w+)\}/g, function (match, key) {
-            return key in param ? param[key] : match;
-        });
+    if (!i18n.global.te(key)) {
+        if (param) {
+            return key.replace(/\{(\w+)\}/g, function (match, key) {
+                return key in param ? param[key] : match;
+            });
+        }
+        return key;
     }
     // @ts-ignore
     return i18n.global.t(key, param as any);

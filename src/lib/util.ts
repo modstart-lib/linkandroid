@@ -17,6 +17,35 @@ export const wait = (callback: () => boolean, interval = 10) => {
     });
 };
 
+/**
+ * 精确计时器
+ * @param callback
+ * @param interval
+ * @returns
+ */
+export function preciseInterval(callback: () => void, interval: number) {
+    let expected = performance.now() + interval;
+    let stop = false;
+
+    function step(timestamp: number) {
+        if (stop) return;
+        if (timestamp >= expected) {
+            callback();
+            // 累积期望的时间，以保持精确的间隔
+            expected += interval;
+        }
+        requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
+    // 返回一个对象包含取消方法
+    return {
+        cancel: () => {
+            stop = true;
+        }
+    };
+}
+
 export const StringUtil = {
     random(length: number = 16) {
         const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
