@@ -95,11 +95,7 @@ declare interface Window {
                     env?: Record<string, any>;
                     shell?: boolean;
                 } | null
-            ) => Promise<{
-                stop: () => void;
-                send: (data: any) => void;
-                result: () => Promise<string>;
-            }>;
+            ) => Promise<string>;
             availablePort: (start: number, lockKey?: string, lockTime?: number) => Promise<number>;
             fixExecutable: (executable: string) => Promise<void>;
             getClipboardText: () => Promise<string>;

@@ -233,16 +233,13 @@ const spawnBinary = async (
         env?: Record<string, any>;
         shell?: boolean;
     } | null = null
-): Promise<{
-    stop: () => void;
-    send: (data: any) => void;
-    result: () => Promise<string>;
-}> => {
+): Promise<string> => {
     args.unshift(extraResolveBin(binary));
-    return await Apps.spawnShell(args, {
+    const res = await Apps.spawnShell(args, {
         ...(option || {}),
         shell: false,
     });
+    return await res.result();
 };
 
 const availablePortLock: {
