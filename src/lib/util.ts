@@ -1,4 +1,6 @@
 import dayjs from "dayjs";
+import {Base64} from "js-base64";
+import {t} from "../lang";
 
 export const sleep = (time = 1000) => {
     return new Promise(resolve => {
@@ -6,10 +8,20 @@ export const sleep = (time = 1000) => {
     });
 };
 
-export const wait = (callback: () => boolean, interval = 10) => {
+export const wait = (callback: () => boolean | Promise<boolean>, interval = 10, timeout = 3600) => {
+    const startTime = Date.now();
     return new Promise(resolve => {
-        const timer = setInterval(() => {
-            if (callback()) {
+        const timer = setInterval(async () => {
+            if (Date.now() - startTime > timeout * 1000) {
+                clearInterval(timer);
+                resolve(false);
+                return;
+            }
+            let res = callback();
+            if (res instanceof Promise) {
+                res = await res;
+            }
+            if (res) {
                 clearInterval(timer);
                 resolve(true);
             }
@@ -100,6 +112,30 @@ export const TimeUtil = {
         if (m < 10) m = "0" + m;
         if (s < 10) s = "0" + s;
         return "00" == h ? `${m}:${s}` : `${h}:${m}:${s}`;
+    },
+    msToTime(ms: number) {
+        ms = parseInt(ms.toString());
+        let h: any = Math.floor(ms / 3600000);
+        let m: any = Math.floor((ms % 3600000) / 60000);
+        let s: any = Math.floor((ms % 60000) / 1000);
+        let f: any = Math.floor(ms % 1000);
+        if (h < 10) h = "0" + h;
+        if (m < 10) m = "0" + m;
+        if (s < 10) s = "0" + s;
+        if (f < 10) f = "00" + f;
+        else if (f < 100) f = "0" + f;
+        return "00" == h ? `${m}:${s}.${f}` : `${h}:${m}:${s}.${f}`;
+    },
+    secondsToHuman(seconds: number) {
+        seconds = parseInt(seconds.toString());
+        let h: any = Math.floor(seconds / 3600);
+        let m: any = Math.floor((seconds % 3600) / 60);
+        let s: any = Math.floor(seconds % 60);
+        const result: string[] = [];
+        if (h > 0) result.push(`${h}${t("小时")}`);
+        if (m > 0) result.push(`${m}${t("分钟")}`);
+        if (s > 0) result.push(`${s}${t("秒")}`);
+        return result.join("");
     },
     replacePattern(text: string) {
         return text

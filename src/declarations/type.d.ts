@@ -174,9 +174,10 @@ declare interface Window {
             listAll: (path: string, option?: { isFullPath?: boolean }) => Promise<any[]>;
             write: (path: string, data: any, option?: { isFullPath?: boolean }) => Promise<void>;
             writeBuffer: (path: string, data: any, option?: { isFullPath?: boolean }) => Promise<void>;
+            writeStream: (path: string, stream: any, option?: { isFullPath?: boolean }) => Promise<void>;
             read: (path: string, option?: { isFullPath?: boolean }) => Promise<any>;
             readBuffer: (path: string, option?: { isFullPath?: boolean }) => Promise<any>;
-            readStream: (path: string, option?: { isFullPath?: boolean }) => Promise<ReadableStream>;
+            readStream: (path: string, option?: { isFullPath?: boolean }) => Promise<ReadableStream | null>;
             deletes: (path: string, option?: { isFullPath?: boolean }) => Promise<void>;
             clean: (paths: string[], option?: { isFullPath?: boolean }) => Promise<void>;
             rename: (

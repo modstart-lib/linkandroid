@@ -27,6 +27,21 @@ export const FileUtil = {
     blobToFile(blob: Blob, name: string) {
         return new File([blob], name);
     },
+    urlToBlob(url: string): Promise<Blob> {
+        return fetch(url).then(res => res.blob());
+    },
+    blobToBase64Url(blob: Blob): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                resolve(reader.result as string);
+            };
+            reader.onerror = (e) => {
+                reject(e);
+            };
+            reader.readAsDataURL(blob);
+        });
+    },
     getExt(path: string) {
         const ext = path.lastIndexOf(".");
         if (ext >= 0) {

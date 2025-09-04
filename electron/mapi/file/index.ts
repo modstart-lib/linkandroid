@@ -1,11 +1,14 @@
-import fs from "node:fs";
+import fs, {createWriteStream} from "node:fs";
 import path from "node:path";
 import {Readable} from "node:stream";
+import {ReadableStream} from "node:stream/web";
 import {StrUtil, TimeUtil} from "../../lib/util";
 import Apps from "../app";
 import {ConfigIndex} from "../config";
 import {AppEnv, waitAppEnvReady} from "../env";
 import {Log} from "../log";
+import electron from "electron";
+import {finished} from "stream/promises";
 
 const nodePath = path;
 
@@ -172,6 +175,51 @@ const write = async (path: string, data: any, option?: { isFullPath?: boolean })
     fs.closeSync(f);
 };
 
+const writeStream = async (path: string, data: any, option?: { isFullPath?: boolean }) => {
+    option = Object.assign(
+        {
+            isFullPath: false,
+        },
+        option
+    );
+    let fp = path;
+    if (!option.isFullPath) {
+        fp = await fullPath(path);
+    }
+    const fullPathDir = nodePath.dirname(fp);
+    if (!fs.existsSync(fullPathDir)) {
+        fs.mkdirSync(fullPathDir, {recursive: true});
+    }
+    if (electron.ipcRenderer) {
+        const webToNode = (stream: any) => {
+            if (stream instanceof ReadableStream) {
+                // 已经是 Node.js 版本的 WHATWG ReadableStream
+                return Readable.fromWeb(stream);
+            }
+            if (typeof stream.getReader === "function") {
+                // 浏览器版本 → 包装成 Node.js 兼容的
+                const nodeStream = new ReadableStream({
+                    async pull(controller) {
+                        const reader = stream.getReader();
+                        while (true) {
+                            const {done, value} = await reader.read();
+                            if (done) break;
+                            controller.enqueue(value);
+                        }
+                        controller.close();
+                    },
+                });
+                return Readable.fromWeb(nodeStream);
+            }
+            throw new Error("Unsupported stream type");
+        }
+        data = webToNode(data);
+    }
+    const fileStream = createWriteStream(fp);
+    data.pipe(fileStream);
+    await finished(fileStream);
+};
+
 const writeBuffer = async (path: string, data: any, option?: { isFullPath?: boolean }) => {
     option = Object.assign(
         {
@@ -260,7 +308,24 @@ const readStream = async (path: string, option?: { isFullPath?: boolean }) => {
     if (!fs.existsSync(fp)) {
         return null;
     }
-    return fs.createReadStream(fp);
+    const stream = fs.createReadStream(fp);
+    if (electron.ipcRenderer) {
+        const nodeToWeb = (nodeStream: any) => {
+            const reader = nodeStream[Symbol.asyncIterator]();
+            return new window.ReadableStream({
+                async pull(controller) {
+                    const {value, done} = await reader.next();
+                    if (done) {
+                        controller.close();
+                    } else {
+                        controller.enqueue(value);
+                    }
+                }
+            });
+        }
+        return nodeToWeb(stream);
+    }
+    return stream;
 }
 
 const readLine = async (
@@ -999,6 +1064,7 @@ export const FileIndex = {
     list,
     listAll,
     write,
+    writeStream,
     writeBuffer,
     read,
     readBuffer,
