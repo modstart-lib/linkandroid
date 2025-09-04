@@ -219,6 +219,18 @@ declare interface Window {
                     };
                 }
             ) => Promise<string>;
+            hubSaveContent: (
+                content: string,
+                option: {
+                    ext: string;
+                    returnFullPath?: boolean;
+                    saveGroup?: string;
+                    savePath?: string;
+                    savePathParam?: {
+                        [key: string]: any;
+                    };
+                }
+            ) => Promise<string>;
             hubDelete: (
                 file: string,
                 option?: {

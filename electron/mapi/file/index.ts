@@ -733,6 +733,44 @@ const hubSave = async (
     return savePath;
 };
 
+const hubSaveContent = async (
+    content: string,
+    option: {
+        ext: string;
+        returnFullPath?: boolean;
+        saveGroup?: string;
+        savePath?: string;
+        savePathParam?: {
+            [key: string]: any;
+        };
+    }
+) => {
+    option = Object.assign(
+        {
+            ext: null,
+            returnFullPath: true,
+            saveGroup: "file",
+            savePath: null,
+            savePathParam: {},
+        },
+        option
+    );
+    const hubRoot_ = await hubRoot();
+    const savePath = await _getHubSavePath(
+        hubRoot_,
+        option.saveGroup,
+        option.savePath,
+        option.savePathParam,
+        option.ext
+    );
+    const savePathFull = path.join(hubRoot_, savePath);
+    await write(savePathFull, content, {isFullPath: true});
+    if (option.returnFullPath) {
+        return savePathFull;
+    }
+    return savePath;
+};
+
 const tempRoot = async () => {
     await waitAppEnvReady();
     const tempDir = path.join(AppEnv.userData, "temp");
@@ -1084,6 +1122,7 @@ export const FileIndex = {
     pathToName,
     hubRootDefault,
     hubSave,
+    hubSaveContent,
     hubDelete,
     hubFile,
     hubFullPath,
