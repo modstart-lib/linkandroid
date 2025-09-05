@@ -95,7 +95,14 @@ const log = (level: "INFO" | "ERROR", label: string, data: any = null) => {
     line.push(label);
     if (data) {
         if (!["number", "string"].includes(typeof data)) {
-            data = JSON.stringify(data);
+            data = JSON.stringify(data, (key, value) => {
+                if (typeof value === "string" && value.length > 200) {
+                    if (value.startsWith("data:") || value.substring(0, 190).match(/^[a-zA-Z0-9+/=]+\s*$/)) {
+                        return value.substring(0, 100) + "...(length=" + value.length + ")"
+                    }
+                }
+                return value;
+            });
         }
         line.push(data);
     }

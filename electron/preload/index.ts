@@ -94,11 +94,19 @@ ipcRenderer.on("MAIN_PROCESS_MESSAGE", (_event: any, payload: any) => {
             return;
         }
         const callPageExecute = () => {
-            window["__page"].callPage[type](
-                (resultData: any) => send(0, "ok", resultData),
-                (error: string) => send(-1, error),
-                data
-            );
+            try {
+                window["__page"].callPage[type](
+                    (resultData: any) => {
+                        send(0, "ok", resultData)
+                    },
+                    (error: string) => {
+                        send(-1, error)
+                    },
+                    data
+                );
+            } catch (e) {
+                send(-1, 'CallPageExecuteError: ' + (e?.message || e.toString()));
+            }
         };
         if (!window["__page"].callPage[type]) {
             if (option.waitReadyTimeout > 0) {
