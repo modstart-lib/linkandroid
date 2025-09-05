@@ -348,8 +348,7 @@ export const TimeUtil = {
     },
     replacePattern(text: string) {
         // @ts-ignore
-        return text
-            .replaceAll("{year}", dayjs().format("YYYY"))
+        return text.replaceAll("{year}", dayjs().format("YYYY"))
             .replaceAll("{month}", dayjs().format("MM"))
             .replaceAll("{day}", dayjs().format("DD"))
             .replaceAll("{hour}", dayjs().format("HH"))
