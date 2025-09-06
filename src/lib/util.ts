@@ -103,28 +103,26 @@ export const TimeUtil = {
     datetimeString() {
         return dayjs().format("YYYYMMDD_HHmmss");
     },
-    secondsToTime(seconds: number) {
-        seconds = parseInt(seconds.toString());
-        let h: any = Math.floor(seconds / 3600);
-        let m: any = Math.floor((seconds % 3600) / 60);
-        let s: any = Math.floor(seconds % 60);
+    secondsToTime(seconds: number, alwaysShowMs: boolean = false) {
+        const sec = Math.floor(seconds);
+        const ms = Math.floor((seconds - sec) * 1000);
+        let h: any = Math.floor(sec / 3600);
+        let m: any = Math.floor((sec % 3600) / 60);
+        let s: any = Math.floor(sec % 60);
         if (h < 10) h = "0" + h;
         if (m < 10) m = "0" + m;
         if (s < 10) s = "0" + s;
-        return "00" == h ? `${m}:${s}` : `${h}:${m}:${s}`;
+        const result = "00" == h ? `${m}:${s}` : `${h}:${m}:${s}`;
+        if (ms > 0 || alwaysShowMs) {
+            let f: any = ms;
+            if (f < 10) f = "00" + f;
+            else if (f < 100) f = "0" + f;
+            return `${result}.${f}`;
+        }
+        return result;
     },
     msToTime(ms: number) {
-        ms = parseInt(ms.toString());
-        let h: any = Math.floor(ms / 3600000);
-        let m: any = Math.floor((ms % 3600000) / 60000);
-        let s: any = Math.floor((ms % 60000) / 1000);
-        let f: any = Math.floor(ms % 1000);
-        if (h < 10) h = "0" + h;
-        if (m < 10) m = "0" + m;
-        if (s < 10) s = "0" + s;
-        if (f < 10) f = "00" + f;
-        else if (f < 100) f = "0" + f;
-        return "00" == h ? `${m}:${s}.${f}` : `${h}:${m}:${s}.${f}`;
+        return this.secondsToTime(ms / 1000, true);
     },
     secondsToHuman(seconds: number) {
         seconds = parseInt(seconds.toString());
