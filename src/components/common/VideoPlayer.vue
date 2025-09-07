@@ -49,6 +49,7 @@ const initPlayer = () => {
             muted: props.autoplayMuted,
             loop: props.loop,
             controls: props.controls,
+            volume: 1.0,
         });
     }
 };
