@@ -773,7 +773,7 @@ const hubSaveContent = async (
 
 const tempRoot = async () => {
     await waitAppEnvReady();
-    const tempDir = path.join(AppEnv.userData, "temp");
+    const tempDir = path.join(root(), "temp");
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, {recursive: true});
     }
