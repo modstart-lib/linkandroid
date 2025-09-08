@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import axios from "axios";
 
 import yauzl from "yauzl";
 import archiver from "archiver";
@@ -147,10 +148,46 @@ const zip = async (
     });
 };
 
+const request = async (option: {
+    url: string,
+    method?: "GET" | "POST";
+    responseType?: "json" | "text" | "arraybuffer";
+    headers?: any;
+    data?: any;
+}) => {
+    option = Object.assign({
+        url: "",
+        method: "GET",
+        responseType: "json",
+        headers: {},
+        data: null,
+    }, option);
+    const response = await axios.request({
+        url: option.url,
+        method: option.method,
+        responseType: option.responseType === "arraybuffer" ? "arraybuffer" : "text",
+        headers: option.headers,
+        data: option.data,
+    });
+    if (response.status !== 200) {
+        throw new Error(`Request failed with status code ${response.status}`);
+    }
+    if (option.responseType === "json") {
+        return JSON.parse(response.data);
+    } else if (option.responseType === "text") {
+        return response.data;
+    } else if (option.responseType === "arraybuffer") {
+        return Buffer.from(response.data);
+    } else {
+        return response.data;
+    }
+}
+
 export const Misc = {
     getZipFileContent,
     unzip,
     zip,
+    request,
 };
 
 export default Misc;

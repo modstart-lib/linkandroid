@@ -310,6 +310,14 @@ declare interface Window {
         misc: {
             getZipFileContent: (path: string, pathInZip: string) => Promise<string>;
             unzip: (zipPath: string, dest: string, option?: { process: Function }) => Promise<void>;
+            zip: (zipPath: string, sourceDir: string, option?: { end?: (archive: any) => void; }) => Promise<void>;
+            request: (option: {
+                url: string;
+                method?: "GET" | "POST";
+                responseType?: "json" | "text" | "arraybuffer";
+                headers?: any;
+                data?: any;
+            }) => Promise<any>;
         };
 
         adb: {

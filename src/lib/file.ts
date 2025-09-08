@@ -1,7 +1,7 @@
 let SparkMD5: any = null;
 
 try {
-    import("spark-md5").then(d=>{
+    import("spark-md5").then(d => {
         SparkMD5 = d
     })
 } catch (e) {
@@ -25,6 +25,15 @@ export const FileUtil = {
             type = this.extensionToType(type);
         }
         return new Blob([buffer], {type: type});
+    },
+    base64ToBuffer(base64: string) {
+        const binaryString = window.atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer;
     },
     blobToFile(blob: Blob, name: string) {
         return new File([blob], name);
