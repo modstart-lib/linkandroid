@@ -1,11 +1,5 @@
-let SparkMD5: any = null;
+import SparkMD5 from "spark-md5";
 
-try {
-    import("spark-md5").then(d => {
-        SparkMD5 = d
-    })
-} catch (e) {
-}
 export const FileUtil = {
     extensionToType(extension: string) {
         const mime = {
@@ -47,7 +41,7 @@ export const FileUtil = {
             reader.onloadend = () => {
                 resolve(reader.result as string);
             };
-            reader.onerror = (e) => {
+            reader.onerror = e => {
                 reject(e);
             };
             reader.readAsDataURL(blob);
@@ -111,7 +105,7 @@ export const FileUtil = {
 
             function loadNext() {
                 const start = currentChunk * chunkSize;
-                const end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+                const end = start + chunkSize >= file.size ? file.size : start + chunkSize;
                 fileReader.readAsArrayBuffer(file.slice(start, end));
             }
 
@@ -127,22 +121,25 @@ export const FileUtil = {
 
         return new Promise((resolve, reject) => {
             function processChunk() {
-                reader.read().then(({done, value}) => {
-                    if (done) {
-                        const md5 = spark.end();
-                        resolve(md5);
-                        return;
-                    }
-                    if (value) {
-                        spark.append(value.buffer);
-                    }
-                    processChunk();
-                }).catch(err => {
-                    reject(err);
-                });
+                reader
+                    .read()
+                    .then(({done, value}) => {
+                        if (done) {
+                            const md5 = spark.end();
+                            resolve(md5);
+                            return;
+                        }
+                        if (value) {
+                            spark.append(value.buffer);
+                        }
+                        processChunk();
+                    })
+                    .catch(err => {
+                        reject(err);
+                    });
             }
 
             processChunk();
         });
-    }
+    },
 };
