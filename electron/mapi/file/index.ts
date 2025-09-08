@@ -28,7 +28,7 @@ const fullPath = async (path: string) => {
     return nodePath.join(root(), path);
 };
 
-const exists = async (path: string, option?: { isFullPath?: boolean }) => {
+const exists = async (path: string, option?: { isFullPath?: boolean }): Promise<boolean> => {
     option = Object.assign(
         {
             isFullPath: false,
@@ -385,7 +385,7 @@ const clean = async (paths: string[], option?: { isFullPath?: boolean }) => {
     }
 };
 
-const deletes = async (path: string, option?: { isFullPath?: boolean }) => {
+const deletes = async (path: string, option?: { isFullPath?: boolean }): Promise<void> => {
     option = Object.assign(
         {
             isFullPath: false,

@@ -4,9 +4,11 @@ import iconvLite from "iconv-lite";
 import {Base64} from "js-base64";
 import * as crypto from "node:crypto";
 import fs from "node:fs";
+import path from "node:path";
 import Showdown from "showdown";
 // import {Iconv} from "iconv"
 import {isMac, isWin} from "./env";
+import FileIndex from "../mapi/file";
 
 export const EncodeUtil = {
     base32Alphabet: "abcdefghijklmnopqrstuvwxyz234567",
@@ -465,9 +467,19 @@ export const JsonUtil = {
 };
 
 export const ImportUtil = {
-    async loadCommonJs(cjsPath: string) {
-        const md5 = await FileUtil.md5(cjsPath);
-        const backend = await import(/* @vite-ignore */ `file://${cjsPath}?t=${md5}`);
+    async loadCommonJs(cjsPath: string, forceReload: boolean = true) {
+        let tempPath = cjsPath;
+        if (forceReload) {
+            const md5 = await FileUtil.md5(cjsPath);
+            tempPath = path.join(
+                await FileIndex.tempDir('commonJs'),
+                `${md5}.cjs`,
+            )
+            if (!fs.existsSync(tempPath)) {
+                fs.copyFileSync(cjsPath, tempPath);
+            }
+        }
+        const backend = await import(/* @vite-ignore */ `file://${tempPath}`);
         // console.log('loadCommonJs', `${cjsPath}?t=${md5}`)
         return backend.default;
     },
