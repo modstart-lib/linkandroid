@@ -1,7 +1,9 @@
 let SparkMD5: any = null;
 
 try {
-    SparkMD5 = await import("spark-md5");
+    import("spark-md5").then(d=>{
+        SparkMD5 = d
+    })
 } catch (e) {
 }
 export const FileUtil = {
