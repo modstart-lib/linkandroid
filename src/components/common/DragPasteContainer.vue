@@ -102,7 +102,7 @@ const onInput = async (files: any[]) => {
     const results: DragPasteFile[] = [];
     for (const f of files) {
         const isDirectory = await window.$mapi.file.isDirectory(f.path, {
-            isFullPath: true,
+            isDataPath: false,
         });
         const pcs = f.name.split(".");
         let fileExt = "";

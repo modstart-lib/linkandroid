@@ -21,7 +21,7 @@ export const doSaveFile = async (filePath: string) => {
         const savePath = await window.$mapi.file.openSave(options);
         if (savePath) {
             await window.$mapi.file.copy(filePath, savePath, {
-                isFullPath: true
+                isDataPath: false
             });
             Dialog.tipSuccess(t("文件已保存到 {path}", {path: savePath}));
         }

@@ -207,8 +207,8 @@ const collectRenderOrMain = async (option?: { startTime?: string; endTime?: stri
     let endDayMs = dayjs(option.endTime).endOf("day").valueOf();
     let resultLines = [];
     let logFiles = [];
-    logFiles = logFiles.concat(await FileIndex.list(logsDir(), {isFullPath: true}));
-    logFiles = logFiles.concat(await FileIndex.list(appLogsDir(), {isFullPath: true}));
+    logFiles = logFiles.concat(await FileIndex.list(logsDir(), {isDataPath: false}));
+    logFiles = logFiles.concat(await FileIndex.list(appLogsDir(), {isDataPath: false}));
     // console.log('logFiles', logFiles)
     logFiles = logFiles.filter(logFile => {
         if (logFile.isDirectory) {
@@ -251,7 +251,7 @@ const collectRenderOrMain = async (option?: { startTime?: string; endTime?: stri
                 }
                 resultLines.push(line);
             },
-            {isFullPath: true}
+            {isDataPath: false}
         );
     }
     return {

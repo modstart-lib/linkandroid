@@ -8,14 +8,14 @@ const props = withDefaults(
         maxLines?: number;
         height?: string;
         autoScroll?: boolean;
-        isFullPath?: boolean;
+        isDataPath?: boolean;
     }>(),
     {
         file: "",
         maxLines: 1000,
         height: "100%",
         autoScroll: true,
-        isFullPath: false,
+        isDataPath: true,
     }
 );
 
@@ -36,7 +36,7 @@ onMounted(async () => {
             }
         },
         {
-            isFullPath: props.isFullPath,
+            isDataPath: props.isDataPath,
             limit: props.maxLines,
         }
     );

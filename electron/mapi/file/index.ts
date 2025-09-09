@@ -13,7 +13,7 @@ import {finished} from "stream/promises";
 const nodePath = path;
 
 const root = () => {
-    return AppEnv.dataRoot
+    return AppEnv.dataRoot;
 };
 
 const absolutePath = (path: string) => {
@@ -28,15 +28,15 @@ const fullPath = async (path: string) => {
     return nodePath.join(root(), path);
 };
 
-const exists = async (path: string, option?: { isFullPath?: boolean }): Promise<boolean> => {
+const exists = async (path: string, option?: {isDataPath?: boolean}): Promise<boolean> => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     return new Promise((resolve, reject) => {
@@ -50,15 +50,15 @@ const exists = async (path: string, option?: { isFullPath?: boolean }): Promise<
     });
 };
 
-const isDirectory = async (path: string, option?: { isFullPath?: boolean }) => {
+const isDirectory = async (path: string, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     if (!fs.existsSync(fp)) {
@@ -67,15 +67,15 @@ const isDirectory = async (path: string, option?: { isFullPath?: boolean }) => {
     return fs.statSync(fp).isDirectory();
 };
 
-const mkdir = async (path: string, option?: { isFullPath?: boolean }) => {
+const mkdir = async (path: string, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     if (!fs.existsSync(fp)) {
@@ -83,15 +83,15 @@ const mkdir = async (path: string, option?: { isFullPath?: boolean }) => {
     }
 };
 
-const list = async (path: string, option?: { isFullPath?: boolean }) => {
+const list = async (path: string, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     if (!fs.existsSync(fp)) {
@@ -111,15 +111,15 @@ const list = async (path: string, option?: { isFullPath?: boolean }) => {
     });
 };
 
-const listAll = async (path: string, option?: { isFullPath?: boolean }) => {
+const listAll = async (path: string, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     if (!fs.existsSync(fp)) {
@@ -150,15 +150,15 @@ const listAll = async (path: string, option?: { isFullPath?: boolean }) => {
     return listDirectory(fp);
 };
 
-const write = async (path: string, data: any, option?: { isFullPath?: boolean }) => {
+const write = async (path: string, data: any, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     const fullPathDir = nodePath.dirname(fp);
@@ -175,15 +175,15 @@ const write = async (path: string, data: any, option?: { isFullPath?: boolean })
     fs.closeSync(f);
 };
 
-const writeStream = async (path: string, data: any, option?: { isFullPath?: boolean }) => {
+const writeStream = async (path: string, data: any, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     const fullPathDir = nodePath.dirname(fp);
@@ -212,7 +212,7 @@ const writeStream = async (path: string, data: any, option?: { isFullPath?: bool
                 return Readable.fromWeb(nodeStream);
             }
             throw new Error("Unsupported stream type");
-        }
+        };
         data = webToNode(data);
     }
     const fileStream = createWriteStream(fp);
@@ -220,15 +220,15 @@ const writeStream = async (path: string, data: any, option?: { isFullPath?: bool
     await finished(fileStream);
 };
 
-const writeBuffer = async (path: string, data: any, option?: { isFullPath?: boolean }) => {
+const writeBuffer = async (path: string, data: any, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     const fullPathDir = nodePath.dirname(fp);
@@ -243,19 +243,19 @@ const writeBuffer = async (path: string, data: any, option?: { isFullPath?: bool
 const read = async (
     path: string,
     option?: {
-        isFullPath?: boolean;
+        isDataPath?: boolean;
         encoding?: string;
     }
 ) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
             encoding: "utf8",
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     if (!fs.existsSync(fp)) {
@@ -269,15 +269,15 @@ const read = async (
     return content;
 };
 
-const readBuffer = async (path: string, option?: { isFullPath?: boolean }): Promise<Buffer> => {
+const readBuffer = async (path: string, option?: {isDataPath?: boolean}): Promise<Buffer> => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     if (!fs.existsSync(fp)) {
@@ -294,15 +294,15 @@ const readBuffer = async (path: string, option?: { isFullPath?: boolean }): Prom
     });
 };
 
-const readStream = async (path: string, option?: { isFullPath?: boolean }) => {
+const readStream = async (path: string, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     if (!fs.existsSync(fp)) {
@@ -320,29 +320,29 @@ const readStream = async (path: string, option?: { isFullPath?: boolean }) => {
                     } else {
                         controller.enqueue(value);
                     }
-                }
+                },
             });
-        }
+        };
         return nodeToWeb(stream);
     }
     return stream;
-}
+};
 
 const readLine = async (
     path: string,
     callback: (line: string) => void,
     option?: {
-        isFullPath?: boolean;
+        isDataPath?: boolean;
     }
 ) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     if (!fs.existsSync(fp)) {
@@ -372,7 +372,7 @@ const readLine = async (
     });
 };
 
-const clean = async (paths: string[], option?: { isFullPath?: boolean }) => {
+const clean = async (paths: string[], option?: {isDataPath?: boolean}) => {
     if (!paths || !Array.isArray(paths) || paths.length === 0) {
         return;
     }
@@ -385,22 +385,18 @@ const clean = async (paths: string[], option?: { isFullPath?: boolean }) => {
     }
 };
 
-const deletes = async (path: string, option?: { isFullPath?: boolean }): Promise<void> => {
+const deletes = async (path: string, option?: {isDataPath?: boolean}): Promise<void> => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
-    if (
-        !(await exists(fp, {
-            isFullPath: true,
-        }))
-    ) {
+    if (!(await exists(fp, {isDataPath: false}))) {
         return;
     }
     return new Promise((resolve, reject) => {
@@ -433,19 +429,19 @@ const rename = async (
     pathOld: string,
     pathNew: string,
     option?: {
-        isFullPath?: boolean;
+        isDataPath?: boolean;
         overwrite?: boolean;
     }
 ) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fullPathOld = pathOld;
     let fullPathNew = pathNew;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fullPathOld = await fullPath(pathOld);
         fullPathNew = await fullPath(pathNew);
     }
@@ -463,8 +459,7 @@ const rename = async (
     try {
         fs.renameSync(fullPathOld, fullPathNew);
         success = true;
-    } catch (e) {
-    }
+    } catch (e) {}
     if (!success) {
         // cross-device link not permitted, rename
         fs.copyFileSync(fullPathOld, fullPathNew);
@@ -472,16 +467,16 @@ const rename = async (
     }
 };
 
-const copy = async (pathOld: string, pathNew: string, option?: { isFullPath?: boolean }) => {
+const copy = async (pathOld: string, pathNew: string, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fullPathOld = pathOld;
     let fullPathNew = pathNew;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fullPathOld = await fullPath(pathOld);
         fullPathNew = await fullPath(pathNew);
     }
@@ -557,17 +552,13 @@ const _getHubSavePath = async (
     savePath = savePath.replace(/\{(\w+)\}/g, (match, key) => {
         return param[key] || key;
     });
-    while (
-        await exists(path.join(hubRoot, savePath + `.${ext}`), {
-            isFullPath: true,
-        })
-        ) {
+    while (await exists(path.join(hubRoot, savePath + `.${ext}`), {isDataPath: false})) {
         savePath = savePath + `-${StrUtil.randomString(3)}`;
     }
     if (autoCreateDir) {
         const savePathFull = path.join(hubRoot, savePath);
         const dir = nodePath.dirname(savePathFull);
-        if (!(await exists(dir, {isFullPath: true}))) {
+        if (!(await exists(dir, {isDataPath: false}))) {
             fs.mkdirSync(dir, {recursive: true});
         }
     }
@@ -577,14 +568,14 @@ const _getHubSavePath = async (
 const hubDelete = async (
     file: string,
     option?: {
-        isFullPath?: boolean;
+        isDataPath?: boolean;
         ignoreWhenNotInHub?: boolean;
         tryLaterWhenFailed?: boolean;
     }
 ) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
             ignoreWhenNotInHub: true,
             tryLaterWhenFailed: true,
         },
@@ -592,7 +583,7 @@ const hubDelete = async (
     );
     let fp = file;
     const hubRoot_ = await hubRoot();
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = path.join(hubRoot_, file);
     }
     if (!(await isHubFile(fp))) {
@@ -600,11 +591,11 @@ const hubDelete = async (
             return;
         }
     }
-    if (!(await exists(fp, {isFullPath: true}))) {
+    if (!(await exists(fp, {isDataPath: false}))) {
         throw `HubDelete.FileNotFound - ${fp}`;
     }
     const del = () => {
-        deletes(fp, {isFullPath: true}).catch(err => {
+        deletes(fp, {isDataPath: false}).catch(err => {
             if (option.tryLaterWhenFailed) {
                 setTimeout(del, 1000);
             } else {
@@ -637,7 +628,7 @@ const hubFile = async (
 ) => {
     option = Object.assign(
         {
-            returnFullPath: false,
+            returnFullPath: true,
             autoCreateDir: true,
             saveGroup: "file",
             savePath: null,
@@ -718,13 +709,13 @@ const hubSave = async (
     );
     const savePathFull = path.join(hubRoot_, savePath);
     if (option.cleanOld) {
-        await rename(file, savePathFull, {isFullPath: true});
-        if (await exists(file, {isFullPath: true})) {
-            deletes(file, {isFullPath: true}).then();
+        await rename(file, savePathFull, {isDataPath: false});
+        if (await exists(file, {isDataPath: false})) {
+            deletes(file, {isDataPath: false}).then();
         }
     } else {
         await copy(file, savePathFull, {
-            isFullPath: true,
+            isDataPath: false,
         });
     }
     if (option.returnFullPath) {
@@ -764,7 +755,7 @@ const hubSaveContent = async (
         option.ext
     );
     const savePathFull = path.join(hubRoot_, savePath);
-    await write(savePathFull, content, {isFullPath: true});
+    await write(savePathFull, content, {isDataPath: false});
     if (option.returnFullPath) {
         return savePathFull;
     }
@@ -829,7 +820,7 @@ const watchText = async (
     path: string,
     callback: (data: {}) => void,
     option?: {
-        isFullPath?: boolean;
+        isDataPath?: boolean;
         limit?: number;
     }
 ): Promise<{
@@ -840,13 +831,13 @@ const watchText = async (
     }
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
             limit: 0,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     let watcher = null;
@@ -933,15 +924,15 @@ const watchText = async (
 let appendTextPathCached = null;
 let appendTextStreamCached = null;
 
-const appendText = async (path: string, data: any, option?: { isFullPath?: boolean }) => {
+const appendText = async (path: string, data: any, option?: {isDataPath?: boolean}) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     if (fp !== appendTextPathCached) {
@@ -963,19 +954,19 @@ const download = async (
     url: string,
     path: string,
     option?: {
-        isFullPath?: boolean;
+        isDataPath?: boolean;
         progress?: (percent: number, total: number) => void;
     }
 ) => {
     option = Object.assign(
         {
-            isFullPath: false,
+            isDataPath: false,
             progress: null,
         },
         option
     );
     let fp = path;
-    if (!option.isFullPath) {
+    if (option.isDataPath) {
         fp = await fullPath(path);
     }
     const fullPathDir = nodePath.dirname(fp);
@@ -1075,12 +1066,12 @@ const pathToName = (path: string, includeExt: boolean = true, maxLimit: number =
     const parts = path.split("/");
     const nameWithExt = parts[parts.length - 1];
     const nameParts = nameWithExt.split(".");
-    let ext = ''
+    let ext = "";
     if (nameParts.length > 1) {
-        ext = '.' + nameParts.pop();
+        ext = "." + nameParts.pop();
     }
     if (!includeExt) {
-        ext = '';
+        ext = "";
     }
     let result = nameParts.join(".");
     maxLimit -= ext.length;

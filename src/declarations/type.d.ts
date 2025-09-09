@@ -163,41 +163,41 @@ declare interface Window {
         file: {
             fullPath: (path: string) => Promise<string>;
             absolutePath: (path: string) => string;
-            exists: (path: string, option?: { isFullPath?: boolean }) => Promise<boolean>;
-            isDirectory: (path: string, option?: { isFullPath?: boolean }) => Promise<boolean>;
-            mkdir: (path: string, option?: { isFullPath?: boolean }) => Promise<void>;
-            list: (path: string, option?: { isFullPath?: boolean }) => Promise<any[]>;
-            listAll: (path: string, option?: { isFullPath?: boolean }) => Promise<any[]>;
-            write: (path: string, data: any, option?: { isFullPath?: boolean }) => Promise<void>;
-            writeBuffer: (path: string, data: any, option?: { isFullPath?: boolean }) => Promise<void>;
-            writeStream: (path: string, stream: any, option?: { isFullPath?: boolean }) => Promise<void>;
-            read: (path: string, option?: { isFullPath?: boolean }) => Promise<any>;
-            readBuffer: (path: string, option?: { isFullPath?: boolean }) => Promise<any>;
-            readStream: (path: string, option?: { isFullPath?: boolean }) => Promise<ReadableStream | null>;
-            deletes: (path: string, option?: { isFullPath?: boolean }) => Promise<void>;
-            clean: (paths: string[], option?: { isFullPath?: boolean }) => Promise<void>;
+            exists: (path: string, option?: { isDataPath?: boolean }) => Promise<boolean>;
+            isDirectory: (path: string, option?: { isDataPath?: boolean }) => Promise<boolean>;
+            mkdir: (path: string, option?: { isDataPath?: boolean }) => Promise<void>;
+            list: (path: string, option?: { isDataPath?: boolean }) => Promise<any[]>;
+            listAll: (path: string, option?: { isDataPath?: boolean }) => Promise<any[]>;
+            write: (path: string, data: any, option?: { isDataPath?: boolean }) => Promise<void>;
+            writeBuffer: (path: string, data: any, option?: { isDataPath?: boolean }) => Promise<void>;
+            writeStream: (path: string, stream: any, option?: { isDataPath?: boolean }) => Promise<void>;
+            read: (path: string, option?: { isDataPath?: boolean }) => Promise<any>;
+            readBuffer: (path: string, option?: { isDataPath?: boolean }) => Promise<any>;
+            readStream: (path: string, option?: { isDataPath?: boolean }) => Promise<ReadableStream | null>;
+            deletes: (path: string, option?: { isDataPath?: boolean }) => Promise<void>;
+            clean: (paths: string[], option?: { isDataPath?: boolean }) => Promise<void>;
             rename: (
                 pathOld: string,
                 pathNew: string,
                 option?: {
-                    isFullPath?: boolean;
+                    isDataPath?: boolean;
                     overwrite?: boolean;
                 }
             ) => Promise<void>;
-            copy: (pathOld: string, pathNew: string, option?: { isFullPath?: boolean }) => Promise<void>;
+            copy: (pathOld: string, pathNew: string, option?: { isDataPath?: boolean }) => Promise<void>;
             temp: (ext: string = "tmp", prefix: string = "file", suffix: string = "") => Promise<string>;
             tempDir: (prefix: string = "dir") => Promise<string>;
             watchText: (
                 path: string,
                 callback: (data: {}) => void,
                 option?: {
-                    isFullPath?: boolean;
+                    isDataPath?: boolean;
                     limit?: number;
                 }
             ) => Promise<{
                 stop: Function;
             }>;
-            appendText: (path: string, data: any, option?: { isFullPath?: boolean }) => Promise<void>;
+            appendText: (path: string, data: any, option?: { isDataPath?: boolean }) => Promise<void>;
             openFile: (options: {} = {}) => Promise<string | null>;
             openDirectory: (options: {} = {}) => Promise<string | null>;
             openSave: (options: {} = {}) => Promise<string | null>;
@@ -234,7 +234,7 @@ declare interface Window {
             hubDelete: (
                 file: string,
                 option?: {
-                    isFullPath?: boolean;
+                    isDataPath?: boolean;
                     ignoreWhenNotInHub?: boolean;
                     tryLaterWhenFailed?: boolean;
                 }
