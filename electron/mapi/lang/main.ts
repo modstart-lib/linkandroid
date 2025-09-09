@@ -10,7 +10,7 @@ import {AppsMain} from "../app/main";
 const fileSyncer = {
     readJson: async function (file: string) {
         let filePath = Files.absolutePath([AppEnv.appRoot, file].join("/"));
-        const sourceContent = (await Files.read(filePath)) || "{}";
+        const sourceContent = (await Files.read(filePath,{isDataPath:true})) || "{}";
         return JSON.parse(sourceContent);
     },
     writeJson: async function (file: string, data: any, order: "key" | "value" = "key") {
@@ -21,7 +21,7 @@ const fileSyncer = {
         } else {
             jsonString = JsonUtil.stringifyValueOrdered(data);
         }
-        await Files.write(filePath, jsonString);
+        await Files.write(filePath, jsonString,{isDataPath:true});
     },
 };
 
