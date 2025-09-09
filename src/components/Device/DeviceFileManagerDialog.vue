@@ -151,7 +151,7 @@ const doDownload = async () => {
 
 const downloadDirectory = async (deviceId: string, sourcePath: string, targetPath: string) => {
     // 创建目标文件夹
-    await window.$mapi.file.mkdir(targetPath, {isFullPath: true});
+    await window.$mapi.file.mkdir(targetPath, {isDataPath: false});
     // 获取源文件夹内容
     const files = await window.$mapi.adb.fileList(deviceId, sourcePath);
     for (let f of files) {

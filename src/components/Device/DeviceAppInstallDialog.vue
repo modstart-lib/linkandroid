@@ -13,7 +13,7 @@ const show = (d: DeviceRecord) => {
         return;
     }
     device.value = d;
-    window.$mapi.file.openFile().then((path: string) => {
+    window.$mapi.file.openFile().then((path) => {
         if (path) {
             Dialog.loadingOn(t("正在安装"));
             window.$mapi.adb
