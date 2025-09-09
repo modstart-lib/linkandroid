@@ -1,5 +1,7 @@
-declare interface Window {
-    __page: {
+export {};
+
+declare global {
+    const __page: {
         onShow: (cb: Function) => void;
         onHide: (cb: Function) => void;
         onMaximize: (cb: Function) => void;
@@ -18,7 +20,7 @@ declare interface Window {
         ipcSendToHost: (channel: string, type: string, data?: any) => void;
         ipcSend: (channel: string, type: string, data?: any) => void;
     };
-    $mapi: {
+    const $mapi: {
         app: {
             getPreload: () => Promise<string>;
             resourcePathResolve: (filePath: string) => Promise<string>;
@@ -402,4 +404,9 @@ declare interface Window {
             ) => Promise<any>;
         };
     };
+}
+
+declare interface Window {
+    __page: typeof __page;
+    $mapi: typeof $mapi;
 }
