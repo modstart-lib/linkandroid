@@ -32,7 +32,7 @@ const file = () => {
 
 const appFile = (name: string) => {
     return path.join(appLogsDir(), name + "_" + stringDatetime() + ".log");
-}
+};
 
 const cleanOldLogs = (keepDays: number) => {
     const logDirs = [
@@ -98,7 +98,7 @@ const log = (level: "INFO" | "ERROR", label: string, data: any = null) => {
             data = JSON.stringify(data, (key, value) => {
                 if (typeof value === "string" && value.length > 200) {
                     if (value.startsWith("data:") || value.substring(0, 190).match(/^[a-zA-Z0-9+/=]+\s*$/)) {
-                        return value.substring(0, 100) + "...(length=" + value.length + ")"
+                        return value.substring(0, 100) + "...(length=" + value.length + ")";
                     }
                 }
                 return value;
@@ -145,24 +145,25 @@ const appLog = (name: string, level: "INFO" | "ERROR", label: string, data: any 
     }
     console.log(`[APP:${name}] - ` + line.join(" - "));
     appFileStreams[name].write(line.join(" - ") + "\n");
-}
+};
 
 const appPath = (name: string) => {
     if (!appFileNames[name]) {
         appFileNames[name] = appFile(name);
     }
     return appFileNames[name];
-}
+};
 
 const appInfo = (name: string, label: string, data: any = null) => {
     return appLog(name, "INFO", label, data);
-}
+};
 const appError = (name: string, label: string, data: any = null) => {
     return appLog(name, "ERROR", label, data);
 };
 
 const infoRenderOrMain = (label: string, data: any = null) => {
     if (electron.ipcRenderer) {
+        console.log("Log.info", label, data);
         return electron.ipcRenderer.invoke("log:info", label, data);
     } else {
         return info(label, data);
@@ -170,6 +171,7 @@ const infoRenderOrMain = (label: string, data: any = null) => {
 };
 const errorRenderOrMain = (label: string, data: any = null) => {
     if (electron.ipcRenderer) {
+        console.error("Log.error", label, data);
         return electron.ipcRenderer.invoke("log:error", label, data);
     } else {
         return error(label, data);
@@ -178,21 +180,23 @@ const errorRenderOrMain = (label: string, data: any = null) => {
 
 const appInfoRenderOrMain = (name: string, label: string, data: any = null) => {
     if (electron.ipcRenderer) {
+        console.log("Log.appInfo", name, label, data);
         return electron.ipcRenderer.invoke("log:appInfo", name, label, data);
     } else {
         return appInfo(name, label, data);
     }
-}
+};
 
 const appErrorRenderOrMain = (name: string, label: string, data: any = null) => {
     if (electron.ipcRenderer) {
+        console.error("Log.appError", name, label, data);
         return electron.ipcRenderer.invoke("log:appError", name, label, data);
     } else {
         return appError(name, label, data);
     }
 };
 
-const collectRenderOrMain = async (option?: { startTime?: string; endTime?: string; limit?: number }) => {
+const collectRenderOrMain = async (option?: {startTime?: string; endTime?: string; limit?: number}) => {
     option = Object.assign(
         {
             startTime: dayjs().subtract(1, "day").format("YYYY-MM-DD HH:mm:ss"),

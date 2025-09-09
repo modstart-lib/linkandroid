@@ -11,7 +11,7 @@ import {
     platformArch,
     platformName,
     platformUUID,
-    platformVersion
+    platformVersion,
 } from "../../lib/env";
 import {IconvUtil, ShellUtil, StrUtil} from "../../lib/util";
 import {Log} from "../log/index";
@@ -192,33 +192,30 @@ const spawnShell = async (
                 return stdoutList.join("") + stderrList.join("");
             }
             return new Promise((resolve, reject) => {
-                spawnProcess.on("exit", code => {
-                    const watchEnd = () => {
-                        setTimeout(() => {
-                            if (!end) {
-                                watchEnd();
-                                return;
-                            }
-                            if (isSuccess) {
-                                resolve(stdoutList.join("") + stderrList.join(""));
-                            } else {
-                                reject(
-                                    [
-                                        `command ${command} failed with code ${exitCode} : `,
-                                        stdoutList.join(""),
-                                        stderrList.join(""),
-                                    ].join("")
-                                );
-                            }
-                        }, 10);
-                    };
-                    watchEnd();
-                });
+                const watchEnd = () => {
+                    setTimeout(() => {
+                        if (!end) {
+                            watchEnd();
+                            return;
+                        }
+                        if (isSuccess) {
+                            resolve(stdoutList.join("") + stderrList.join(""));
+                        } else {
+                            reject(
+                                [
+                                    `command ${command} failed with code ${exitCode} : `,
+                                    stdoutList.join(""),
+                                    stderrList.join(""),
+                                ].join("")
+                            );
+                        }
+                    }, 10);
+                };
+                watchEnd();
             });
         },
     };
 };
-
 
 const spawnBinary = async (
     binary: string,
