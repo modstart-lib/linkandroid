@@ -1,5 +1,6 @@
 import {execSync} from "child_process";
 import {resolve} from "node:path";
+import fs from "node:fs";
 import os from "os";
 import {Log} from "../mapi/log";
 import FileIndex from "../mapi/file";
@@ -127,7 +128,7 @@ export const extraResolveBin = (filePath: string) => {
     const dir = [platformName(), platformArch()].join("-");
     const p = [dir, filePath].join("/");
     const binaryPath = extraResolve(p);
-    if (!FileIndex.exists(binaryPath)) {
+    if (!fs.existsSync(binaryPath)) {
         throw new Error(`Binary file not found: ${binaryPath}`);
     }
     return binaryPath;
