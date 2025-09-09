@@ -162,7 +162,6 @@ declare interface Window {
         };
         file: {
             fullPath: (path: string) => Promise<string>;
-            absolutePath: (path: string) => string;
             exists: (path: string, option?: { isDataPath?: boolean }) => Promise<boolean>;
             isDirectory: (path: string, option?: { isDataPath?: boolean }) => Promise<boolean>;
             mkdir: (path: string, option?: { isDataPath?: boolean }) => Promise<void>;

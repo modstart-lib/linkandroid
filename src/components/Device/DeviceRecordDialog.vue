@@ -102,7 +102,7 @@ const doRecordProcess = async () => {
     try {
         switch (recordData.value.format) {
             case "mp4":
-                await window.$mapi.ffmpeg.run([
+                await window.$mapi.app.spawnBinary('ffmpeg', [
                     "-i",
                     ShellUtil.quotaPath(localTempMp4Path),
                     "-vcodec",
@@ -111,7 +111,7 @@ const doRecordProcess = async () => {
                 ]);
                 break;
             case "gif":
-                await window.$mapi.ffmpeg.run([
+                await window.$mapi.app.spawnBinary('ffmpeg', [
                     "-i",
                     ShellUtil.quotaPath(localTempMp4Path),
                     "-vf",
@@ -129,7 +129,7 @@ const doRecordProcess = async () => {
         recordData.value.status = "fail";
         return;
     }
-    if (!(await window.$mapi.file.exists(window.$mapi.file.absolutePath(resultPath)))) {
+    if (!(await window.$mapi.file.exists(resultPath))) {
         recordData.value.status = "fail";
         return;
     }
@@ -148,18 +148,16 @@ const doRecordDownload = async () => {
     if (!formatRegx.test(path)) {
         path += "." + recordData.value.format;
     }
-    const toPath = window.$mapi.file.absolutePath(path);
-    if (await window.$mapi.file.exists(toPath)) {
-        await window.$mapi.file.deletes(toPath);
+    if (await window.$mapi.file.exists(path)) {
+        await window.$mapi.file.deletes(path);
     }
-    let fromPath = window.$mapi.file.absolutePath(recordData.value.resultPath[recordData.value.format] as string);
-    await window.$mapi.file.copy(fromPath, toPath);
+    let fromPath = recordData.value.resultPath[recordData.value.format] as string;
+    await window.$mapi.file.copy(fromPath, path);
     Dialog.tipSuccess(t("下载成功"));
 };
 
 const doClose = async () => {
-    const tempDir = window.$mapi.file.absolutePath(recordData.value.localTempDir as string);
-    await window.$mapi.file.deletes(tempDir);
+    await window.$mapi.file.deletes(recordData.value.localTempDir as string);
     visible.value = false;
 };
 
@@ -297,7 +295,7 @@ defineExpose({
                             @click="doRecordDownload"
                         >
                             <template #icon>
-                                <icon-down />
+                                <icon-down/>
                             </template>
                             {{ $t("下载已录制文件") }}
                         </a-button>

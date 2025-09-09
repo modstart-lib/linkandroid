@@ -9,19 +9,19 @@ import {AppsMain} from "../app/main";
 
 const fileSyncer = {
     readJson: async function (file: string) {
-        let filePath = Files.absolutePath([AppEnv.appRoot, file].join("/"));
-        const sourceContent = (await Files.read(filePath,{isDataPath:true})) || "{}";
+        let filePath = [AppEnv.appRoot, file].join("/");
+        const sourceContent = (await Files.read(filePath)) || "{}";
         return JSON.parse(sourceContent);
     },
     writeJson: async function (file: string, data: any, order: "key" | "value" = "key") {
-        let filePath = Files.absolutePath([AppEnv.appRoot, file].join("/"));
+        let filePath = [AppEnv.appRoot, file].join("/");
         let jsonString: any;
         if (order === "key") {
             jsonString = JsonUtil.stringifyOrdered(data);
         } else {
             jsonString = JsonUtil.stringifyValueOrdered(data);
         }
-        await Files.write(filePath, jsonString,{isDataPath:true});
+        await Files.write(filePath, jsonString);
     },
 };
 
