@@ -196,6 +196,15 @@ type DefsMapi = {
             stop: Function;
         }>;
         appendText: (path: string, data: any, option?: { isDataPath?: boolean }) => Promise<void>;
+        download: (
+            url: string,
+            path?: string | null,
+            option?: {
+                isDataPath?: boolean;
+                userAgent?: string;
+                progress?: (percent: number, total: number) => void;
+            }
+        ) => Promise<string>;
         openFile: (options: {} = {}) => Promise<string | null>;
         openDirectory: (options: {} = {}) => Promise<string | null>;
         openSave: (options: {} = {}) => Promise<string | null>;

@@ -12,6 +12,29 @@ import {finished} from "stream/promises";
 
 const nodePath = path;
 
+const toNodeReadableStream = (stream: any) => {
+    if (stream instanceof ReadableStream) {
+        // 已经是 Node.js 版本的 WHATWG ReadableStream
+        return Readable.fromWeb(stream);
+    }
+    if (typeof stream.getReader === "function") {
+        // 浏览器版本 → 包装成 Node.js 兼容的
+        const nodeStream = new ReadableStream({
+            async pull(controller) {
+                const reader = stream.getReader();
+                while (true) {
+                    const {done, value} = await reader.read();
+                    if (done) break;
+                    controller.enqueue(value);
+                }
+                controller.close();
+            },
+        });
+        return Readable.fromWeb(nodeStream);
+    }
+    throw new Error("Unsupported stream type");
+};
+
 const root = () => {
     return AppEnv.dataRoot;
 };
@@ -191,29 +214,7 @@ const writeStream = async (path: string, data: any, option?: {isDataPath?: boole
         fs.mkdirSync(fullPathDir, {recursive: true});
     }
     if (electron.ipcRenderer) {
-        const webToNode = (stream: any) => {
-            if (stream instanceof ReadableStream) {
-                // 已经是 Node.js 版本的 WHATWG ReadableStream
-                return Readable.fromWeb(stream);
-            }
-            if (typeof stream.getReader === "function") {
-                // 浏览器版本 → 包装成 Node.js 兼容的
-                const nodeStream = new ReadableStream({
-                    async pull(controller) {
-                        const reader = stream.getReader();
-                        while (true) {
-                            const {done, value} = await reader.read();
-                            if (done) break;
-                            controller.enqueue(value);
-                        }
-                        controller.close();
-                    },
-                });
-                return Readable.fromWeb(nodeStream);
-            }
-            throw new Error("Unsupported stream type");
-        };
-        data = webToNode(data);
+        data = toNodeReadableStream(data);
     }
     const fileStream = createWriteStream(fp);
     data.pipe(fileStream);
@@ -952,19 +953,26 @@ const appendText = async (path: string, data: any, option?: {isDataPath?: boolea
 
 const download = async (
     url: string,
-    path: string,
+    path: string | null = null,
     option?: {
         isDataPath?: boolean;
+        userAgent?: string;
         progress?: (percent: number, total: number) => void;
     }
-) => {
+): Promise<string> => {
     option = Object.assign(
         {
             isDataPath: false,
+            userAgent: Apps.getUserAgent(),
             progress: null,
         },
         option
     );
+    if (!path) {
+        const ext = FileIndex.ext(url);
+        path = await temp(ext || "bin", "download");
+        option.isDataPath = false;
+    }
     let fp = path;
     if (option.isDataPath) {
         fp = await fullPath(path);
@@ -976,7 +984,7 @@ const download = async (
     const res = await fetch(url, {
         method: "GET",
         headers: {
-            "User-Agent": Apps.getUserAgent(),
+            "User-Agent": option.userAgent,
         },
     });
     if (!res.ok) {
@@ -987,8 +995,7 @@ const download = async (
     const totalSize = contentLength ? parseInt(contentLength, 10) : null;
     let downloaded = 0;
 
-    // @ts-ignore
-    const readableStream = Readable.fromWeb(res.body);
+    let readableStream = toNodeReadableStream(res.body);
     const fileStream = fs.createWriteStream(fp);
     return new Promise((resolve, reject) => {
         readableStream
@@ -1003,7 +1010,7 @@ const download = async (
             .on("end", () => {
                 // console.log('download.end')
                 fileStream.end();
-                resolve(undefined);
+                resolve(fp);
             })
             .on("error", err => {
                 // console.log('download.error', err)
