@@ -27,4 +27,5 @@ export const Log = {
     appPath: logIndex.appPath,
     appInfo: logIndex.appInfo,
     appError: logIndex.appError,
+    jsonStringifyLogData: logIndex.jsonStringifyLogData,
 };

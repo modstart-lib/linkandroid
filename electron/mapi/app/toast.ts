@@ -5,6 +5,7 @@ import {icons} from "./icons";
 let win = null;
 let winCloseTimer = null;
 let winShowTime = null;
+const toastMsgQueue: { msg: string, options: any }[] = [];
 
 export const makeToast = async (
     msg: string,
@@ -15,17 +16,20 @@ export const makeToast = async (
 ) => {
     if (win) {
         if (winShowTime && Date.now() - winShowTime < 1000) {
-            // show at least 1 second
+            // make previous toast last at least 1 second
+            if (toastMsgQueue.length > 0) {
+                toastMsgQueue.forEach(item => {
+                    item.options = Object.assign({}, item.options, {duration: 1000});
+                })
+            }
+            toastMsgQueue.push({msg, options});
             await new Promise(resolve => setTimeout(resolve, 1000 - (Date.now() - winShowTime)));
+            if (win) {
+                win.close();
+            }
+            return;
         }
-        if (win) {
-            win.close();
-        }
-        if (winCloseTimer) {
-            clearTimeout(winCloseTimer);
-        }
-        win = null;
-        winCloseTimer = null;
+        win.close();
     }
     winShowTime = Date.now();
 
@@ -40,7 +44,7 @@ export const makeToast = async (
     if (options.duration === 0) {
         options.duration = Math.max(msg.length * 400, 3000);
     }
-    // console.log('options', options)
+    // console.log('toast', msg, options)
 
     const display = AppsMain.getCurrentScreenDisplay();
     // console.log('xxxx', primaryDisplay);
@@ -132,6 +136,15 @@ export const makeToast = async (
     });
     win.on("closed", () => {
         win = null;
+        if (winCloseTimer) {
+            clearTimeout(winCloseTimer);
+        }
+        setTimeout(() => {
+            if (toastMsgQueue.length > 0) {
+                const item = toastMsgQueue.shift();
+                makeToast(item.msg, item.options);
+            }
+        }, 0);
     })
     winCloseTimer = setTimeout(() => {
         winCloseTimer = null;

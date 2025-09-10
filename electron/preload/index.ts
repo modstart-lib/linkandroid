@@ -95,7 +95,7 @@ ipcRenderer.on("MAIN_PROCESS_MESSAGE", (_event: any, payload: any) => {
         }
         const callPageExecute = () => {
             try {
-                window["__page"].callPage[type](
+                const maybePromise = window["__page"].callPage[type](
                     (resultData: any) => {
                         send(0, "ok", resultData)
                     },
@@ -104,7 +104,14 @@ ipcRenderer.on("MAIN_PROCESS_MESSAGE", (_event: any, payload: any) => {
                     },
                     data
                 );
+                if (maybePromise && typeof maybePromise.then === "function") {
+                    maybePromise.catch((e: any) => {
+                        console.error('CallPage.Error', e);
+                        send(-1, "CallPageExecuteError: " + (e?.message || e.toString()));
+                    });
+                }
             } catch (e) {
+                console.error('CallPage.Error', e);
                 send(-1, 'CallPageExecuteError: ' + (e?.message || e.toString()));
             }
         };

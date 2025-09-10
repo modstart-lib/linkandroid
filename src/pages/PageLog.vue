@@ -32,7 +32,7 @@ window['__logInit'] = (option: { log: string }) => {
             </div>
         </div>
         <div class="flex-grow overflow-hidden relative bg-black">
-            <FileLogViewer v-if="!!file" :file="file" is-full-path :auto-scroll="autoScroll"/>
+            <FileLogViewer v-if="!!file" :file="file" :is-data-path="false" :auto-scroll="autoScroll"/>
             <div v-else>
                 <div class="text-center py-20 text-gray-300">
                     <div>

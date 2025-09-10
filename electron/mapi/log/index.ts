@@ -14,6 +14,18 @@ let appFileStreams = {};
 const stringDatetime = () => {
     return date.format(new Date(), "YYYYMMDD");
 };
+
+const jsonStringifyLogData = (data: any) => {
+    return JSON.stringify(data, (key, value) => {
+        if (typeof value === "string" && value.length > 200) {
+            if (value.startsWith("data:") || value.substring(0, 190).match(/^[a-zA-Z0-9+/=]+\s*$/)) {
+                return value.substring(0, 100) + "...(length=" + value.length + ")";
+            }
+        }
+        return value;
+    })
+}
+
 const logsDir = () => {
     return path.join(AppEnv.userData, "logs");
 };
@@ -95,14 +107,7 @@ const log = (level: "INFO" | "ERROR", label: string, data: any = null) => {
     line.push(label);
     if (data) {
         if (!["number", "string"].includes(typeof data)) {
-            data = JSON.stringify(data, (key, value) => {
-                if (typeof value === "string" && value.length > 200) {
-                    if (value.startsWith("data:") || value.substring(0, 190).match(/^[a-zA-Z0-9+/=]+\s*$/)) {
-                        return value.substring(0, 100) + "...(length=" + value.length + ")";
-                    }
-                }
-                return value;
-            });
+            data = jsonStringifyLogData(data);
         }
         line.push(data);
     }
@@ -196,7 +201,7 @@ const appErrorRenderOrMain = (name: string, label: string, data: any = null) => 
     }
 };
 
-const collectRenderOrMain = async (option?: {startTime?: string; endTime?: string; limit?: number}) => {
+const collectRenderOrMain = async (option?: { startTime?: string; endTime?: string; limit?: number }) => {
     option = Object.assign(
         {
             startTime: dayjs().subtract(1, "day").format("YYYY-MM-DD HH:mm:ss"),
@@ -277,9 +282,11 @@ export default {
     appInfoRenderOrMain,
     appErrorRenderOrMain,
     collectRenderOrMain,
+    jsonStringifyLogData,
 };
 
 export const Log = {
+    jsonStringifyLogData,
     info: infoRenderOrMain,
     error: errorRenderOrMain,
     appPath,
