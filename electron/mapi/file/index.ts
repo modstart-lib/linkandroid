@@ -35,6 +35,20 @@ const toNodeReadableStream = (stream: any) => {
     throw new Error("Unsupported stream type");
 };
 
+const toWebReadableStream = (stream: any) => {
+    const reader = stream[Symbol.asyncIterator]();
+    return new window.ReadableStream({
+        async pull(controller) {
+            const {value, done} = await reader.next();
+            if (done) {
+                controller.close();
+            } else {
+                controller.enqueue(value);
+            }
+        },
+    });
+}
+
 const root = () => {
     return AppEnv.dataRoot;
 };
@@ -51,7 +65,7 @@ const fullPath = async (path: string) => {
     return nodePath.join(root(), path);
 };
 
-const exists = async (path: string, option?: {isDataPath?: boolean}): Promise<boolean> => {
+const exists = async (path: string, option?: { isDataPath?: boolean }): Promise<boolean> => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -73,7 +87,7 @@ const exists = async (path: string, option?: {isDataPath?: boolean}): Promise<bo
     });
 };
 
-const isDirectory = async (path: string, option?: {isDataPath?: boolean}) => {
+const isDirectory = async (path: string, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -90,7 +104,7 @@ const isDirectory = async (path: string, option?: {isDataPath?: boolean}) => {
     return fs.statSync(fp).isDirectory();
 };
 
-const mkdir = async (path: string, option?: {isDataPath?: boolean}) => {
+const mkdir = async (path: string, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -106,7 +120,7 @@ const mkdir = async (path: string, option?: {isDataPath?: boolean}) => {
     }
 };
 
-const list = async (path: string, option?: {isDataPath?: boolean}) => {
+const list = async (path: string, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -134,7 +148,7 @@ const list = async (path: string, option?: {isDataPath?: boolean}) => {
     });
 };
 
-const listAll = async (path: string, option?: {isDataPath?: boolean}) => {
+const listAll = async (path: string, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -173,7 +187,7 @@ const listAll = async (path: string, option?: {isDataPath?: boolean}) => {
     return listDirectory(fp);
 };
 
-const write = async (path: string, data: any, option?: {isDataPath?: boolean}) => {
+const write = async (path: string, data: any, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -198,7 +212,7 @@ const write = async (path: string, data: any, option?: {isDataPath?: boolean}) =
     fs.closeSync(f);
 };
 
-const writeStream = async (path: string, data: any, option?: {isDataPath?: boolean}) => {
+const writeStream = async (path: string, data: any, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -221,7 +235,7 @@ const writeStream = async (path: string, data: any, option?: {isDataPath?: boole
     await finished(fileStream);
 };
 
-const writeBuffer = async (path: string, data: any, option?: {isDataPath?: boolean}) => {
+const writeBuffer = async (path: string, data: any, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -270,7 +284,7 @@ const read = async (
     return content;
 };
 
-const readBuffer = async (path: string, option?: {isDataPath?: boolean}): Promise<Buffer> => {
+const readBuffer = async (path: string, option?: { isDataPath?: boolean }): Promise<Buffer> => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -295,7 +309,7 @@ const readBuffer = async (path: string, option?: {isDataPath?: boolean}): Promis
     });
 };
 
-const readStream = async (path: string, option?: {isDataPath?: boolean}) => {
+const readStream = async (path: string, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -307,24 +321,11 @@ const readStream = async (path: string, option?: {isDataPath?: boolean}) => {
         fp = await fullPath(path);
     }
     if (!fs.existsSync(fp)) {
-        return null;
+        throw `FileNotFound: ${fp}`;
     }
     const stream = fs.createReadStream(fp);
     if (electron.ipcRenderer) {
-        const nodeToWeb = (nodeStream: any) => {
-            const reader = nodeStream[Symbol.asyncIterator]();
-            return new window.ReadableStream({
-                async pull(controller) {
-                    const {value, done} = await reader.next();
-                    if (done) {
-                        controller.close();
-                    } else {
-                        controller.enqueue(value);
-                    }
-                },
-            });
-        };
-        return nodeToWeb(stream);
+        return toWebReadableStream(stream);
     }
     return stream;
 };
@@ -373,7 +374,7 @@ const readLine = async (
     });
 };
 
-const clean = async (paths: string[], option?: {isDataPath?: boolean}) => {
+const clean = async (paths: string[], option?: { isDataPath?: boolean }) => {
     if (!paths || !Array.isArray(paths) || paths.length === 0) {
         return;
     }
@@ -386,7 +387,7 @@ const clean = async (paths: string[], option?: {isDataPath?: boolean}) => {
     }
 };
 
-const deletes = async (path: string, option?: {isDataPath?: boolean}): Promise<void> => {
+const deletes = async (path: string, option?: { isDataPath?: boolean }): Promise<void> => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -460,7 +461,8 @@ const rename = async (
     try {
         fs.renameSync(fullPathOld, fullPathNew);
         success = true;
-    } catch (e) {}
+    } catch (e) {
+    }
     if (!success) {
         // cross-device link not permitted, rename
         fs.copyFileSync(fullPathOld, fullPathNew);
@@ -468,7 +470,7 @@ const rename = async (
     }
 };
 
-const copy = async (pathOld: string, pathNew: string, option?: {isDataPath?: boolean}) => {
+const copy = async (pathOld: string, pathNew: string, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
@@ -925,7 +927,7 @@ const watchText = async (
 let appendTextPathCached = null;
 let appendTextStreamCached = null;
 
-const appendText = async (path: string, data: any, option?: {isDataPath?: boolean}) => {
+const appendText = async (path: string, data: any, option?: { isDataPath?: boolean }) => {
     option = Object.assign(
         {
             isDataPath: false,
