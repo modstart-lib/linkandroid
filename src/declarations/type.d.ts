@@ -259,6 +259,10 @@ type DefsMapi = {
             }
         ) => Promise<string>;
         isHubFile: (file: string) => Promise<boolean>;
+        cacheForget: (key: any) => Promise<void>;
+        cacheSet: (key: any, data: any) => Promise<void>;
+        cacheGet: <T>(key: any) => Promise<T | null>;
+        cacheGetPath: (key: any) => Promise<string | null>;
     };
     updater: {
         checkForUpdate: () => Promise<ApiResult<any>>;

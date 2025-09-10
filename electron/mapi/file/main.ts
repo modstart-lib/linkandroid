@@ -7,7 +7,8 @@ ipcMain.handle("file:openFile", async (_, options) => {
             properties: ["openFile"],
             ...options,
         })
-        .catch(e => {});
+        .catch(e => {
+        });
     if (!res || res.canceled) {
         return null;
     }
@@ -20,7 +21,8 @@ ipcMain.handle("file:openDirectory", async (_, options) => {
             properties: ["openDirectory"],
             ...options,
         })
-        .catch(e => {});
+        .catch(e => {
+        });
     if (!res || res.canceled) {
         return null;
     }
@@ -32,7 +34,8 @@ ipcMain.handle("file:openSave", async (_, options) => {
         .showSaveDialog({
             ...options,
         })
-        .catch(e => {});
+        .catch(e => {
+        });
     if (!res || res.canceled) {
         return null;
     }

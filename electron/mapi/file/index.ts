@@ -2,7 +2,7 @@ import fs, {createWriteStream} from "node:fs";
 import path from "node:path";
 import {Readable} from "node:stream";
 import {ReadableStream} from "node:stream/web";
-import {StrUtil, TimeUtil} from "../../lib/util";
+import {EncodeUtil, StrUtil, TimeUtil} from "../../lib/util";
 import Apps from "../app";
 import {ConfigIndex} from "../config";
 import {AppEnv, waitAppEnvReady} from "../env";
@@ -1093,6 +1093,62 @@ const pathToName = (path: string, includeExt: boolean = true, maxLimit: number =
     return `${result}${ext}`;
 };
 
+const _sortObjectDeep = (obj: any): any => {
+    if (Array.isArray(obj)) {
+        return obj.map(_sortObjectDeep);
+    } else if (obj && typeof obj === 'object') {
+        return Object.keys(obj)
+            .sort()
+            .reduce((acc, key) => {
+                acc[key] = _sortObjectDeep(obj[key]);
+                return acc;
+            }, {} as any);
+    }
+    return obj;
+}
+
+const cacheKey = async (key: any): Promise<string> => {
+    const keyObjString = JSON.stringify(_sortObjectDeep(key));
+    const keyMd5 = EncodeUtil.md5(keyObjString);
+    return path.join(await tempRoot(), `FileCache_${keyMd5}`);
+}
+const cacheForget = async (key: any): Promise<void> => {
+    const keyPath = await cacheKey(key);
+    if (await exists(keyPath)) {
+        await deletes(keyPath);
+    }
+}
+const cacheSet = async (key: any, data: any): Promise<void> => {
+    const keyPath = await cacheKey(key);
+    await write(keyPath, JSON.stringify(data));
+}
+const cacheGet = async (key: any): Promise<any | null> => {
+    const keyPath = await cacheKey(key);
+    if (!await exists(keyPath)) {
+        return null;
+    }
+    const content = await read(keyPath);
+    if (!content) {
+        return null;
+    }
+    try {
+        return JSON.parse(content);
+    } catch (e) {
+        return null;
+    }
+}
+const cacheGetPath = async (key: any): Promise<string | null> => {
+    const p = await cacheGet(key);
+    if (!p) {
+        return null;
+    }
+    if (!await exists(p)) {
+        await cacheForget(key);
+        return null;
+    }
+    return p;
+}
+
 export const FileIndex = {
     fullPath,
     absolutePath,
@@ -1127,6 +1183,10 @@ export const FileIndex = {
     hubFile,
     hubFullPath,
     isHubFile,
+    cacheForget,
+    cacheSet,
+    cacheGetPath,
+    cacheGet,
 };
 
 export default FileIndex;
