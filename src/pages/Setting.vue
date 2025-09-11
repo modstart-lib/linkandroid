@@ -40,21 +40,21 @@ onBeforeUnmount(() => {
     <div class="flex select-none">
         <div
             ref="tabContainer"
-            class="p-8 w-56 flex-shrink-0 border-r border-solid border-gray-100 dark:border-gray-800"
+            class="p-6 w-56 flex-shrink-0 border-r border-solid border-gray-100 dark:border-gray-800"
         >
-            <div data-section="basic" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer menu-active">
+            <div data-section="basic" class="p-2 rounded-lg mb-4 cursor-pointer menu-active">
                 <div class="text-base">
                     <icon-settings />
                     {{ t("基础设置") }}
                 </div>
             </div>
-            <div data-section="env" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer">
+            <div data-section="env" class="p-2 rounded-lg mb-4 cursor-pointer">
                 <div class="text-base">
                     <icon-code />
                     {{ t("环境设置") }}
                 </div>
             </div>
-            <div data-section="about" class="p-2 rounded-lg mr-2 mb-4 cursor-pointer">
+            <div data-section="about" class="p-2 rounded-lg mb-4 cursor-pointer">
                 <div class="text-base">
                     <icon-user />
                     {{ t("关于软件") }}
