@@ -549,7 +549,7 @@ const _getHubSavePath = async (
         hour: TimeUtil.replacePattern("{hour}"),
         minute: TimeUtil.replacePattern("{minute}"),
         second: TimeUtil.replacePattern("{second}"),
-        random: StrUtil.randomString(10),
+        random: StrUtil.randomString(32),
         ...saveParam,
     };
     savePath = savePath.replace(/\{(\w+)\}/g, (match, key) => {
