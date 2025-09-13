@@ -18,7 +18,7 @@ import {cloneDeep} from "lodash-es";
 import {defineStore} from "pinia";
 import {toRaw} from "vue";
 import {mapError} from "../../lib/error";
-import {StringUtil} from "../../lib/util";
+import {StringUtil, TimeUtil} from "../../lib/util";
 import store from "../index";
 
 export type TaskRecordStatus = "queue" | "running" | "querying" | "success" | "fail" | "delete";
@@ -27,7 +27,7 @@ export type TaskRecordRunStatus = "retry" | "success" | "querying";
 
 export type TaskRecordQueryStatus = "running" | "success" | "fail";
 
-export type TaskChangeType = "running" | "success" | "fail";
+export type TaskChangeType = "running" | "success" | "fail" | "change" | "requestCancel";
 
 export type TaskRecord = {
     id: string;
@@ -116,11 +116,14 @@ export const taskStore = defineStore("task", {
             isInit: false,
             bizMap: {} as Record<string, TaskBiz>,
             records: [] as TaskRecord[],
+            cancelMap: {} as Record<string, {
+                expire: number,
+            }>,
         };
     },
     actions: {
         async init() {
-            await window.$mapi.storage.get("task", "records", []).then(records => {
+            await $mapi.storage.get("task", "records", []).then(records => {
                 this.records = records;
                 this.isInit = true;
                 this._run(true);
@@ -143,6 +146,15 @@ export const taskStore = defineStore("task", {
                 }
             });
             // console.log('task.records', JSON.stringify(this.records, null, 2))
+            // request cancel
+            this.records
+                .filter(r => r.status === "queue" || r.status === "running" || r.status === "querying")
+                .filter(r => this.shouldCancel(r.biz, r.bizId))
+                .forEach(record => {
+                    record.status = "fail";
+                    record.msg = mapError("UserCancel");
+                    changed = true;
+                });
             // queue
             this.records
                 .filter(r => r.status === "queue")
@@ -183,7 +195,7 @@ export const taskStore = defineStore("task", {
                             record.status = "fail";
                             record.msg = mapError(e);
                             console.error("Task.RunFunc.Error", e);
-                            window.$mapi.log.error("Task.RunFunc.Error", e.toString()).catch(e => {
+                            $mapi.log.error("Task.RunFunc.Error", e.toString()).catch(e => {
                                 console.error("Task.RunFunc.Error.Log", e);
                             });
                         })
@@ -221,7 +233,7 @@ export const taskStore = defineStore("task", {
                             record.msg = mapError(e);
                             changed = true;
                             console.error("Task.QueryFunc.Error", e);
-                            window.$mapi.log.error("Task.QueryFunc.Error", e.toString()).catch(e => {
+                            $mapi.log.error("Task.QueryFunc.Error", e.toString()).catch(e => {
                                 console.error("Task.QueryFunc.Error.Log", e);
                             });
                         })
@@ -252,7 +264,7 @@ export const taskStore = defineStore("task", {
                         })
                         .catch(e => {
                             console.error("Task.SuccessFunc.Error", e);
-                            window.$mapi.log.error("Task.SuccessFunc.Error", e.toString()).catch(e => {
+                            $mapi.log.error("Task.SuccessFunc.Error", e.toString()).catch(e => {
                                 console.error("Task.SuccessFunc.Error.Log", e);
                             });
                             record.status = "fail";
@@ -280,7 +292,7 @@ export const taskStore = defineStore("task", {
                         })
                         .catch(e => {
                             console.error("Task.FailFunc.Error", e);
-                            window.$mapi.log.error("Task.FailFunc.Error", e.toString()).catch(e => {
+                            $mapi.log.error("Task.FailFunc.Error", e.toString()).catch(e => {
                                 console.error("Task.FailFunc.Error.Log", e);
                             });
                         })
@@ -336,6 +348,25 @@ export const taskStore = defineStore("task", {
                 }
             });
         },
+        requestCancel(biz: string, bizId: string) {
+            this.cancelMap[`${biz}-${bizId}`] = {
+                expire: TimeUtil.timestampMS() + 60 * 60 * 1000,
+            };
+            this.fireChange({biz, bizId}, 'requestCancel')
+        },
+        shouldCancel(biz: string, bizId: string) {
+            // expire old
+            for (const key in this.cancelMap) {
+                if (this.cancelMap[key].expire < TimeUtil.timestampMS()) {
+                    delete this.cancelMap[key];
+                }
+            }
+            if (!!this.cancelMap[`${biz}-${bizId}`]) {
+                delete this.cancelMap[`${biz}-${bizId}`];
+                return true;
+            }
+            return false;
+        },
         async dispatch(biz: string, bizId: string, bizParam?: any, param?: object) {
             await this.waitInit();
             if (!this.bizMap[biz]) {
@@ -343,7 +374,7 @@ export const taskStore = defineStore("task", {
             }
             param = Object.assign(
                 {
-                    timeout: 60 * 10 * 1000,
+                    timeout: 24 * 60 * 60 * 1000,
                     queryInterval: 5 * 1000,
                     status: "queue",
                     runStart: 0,
@@ -376,7 +407,7 @@ export const taskStore = defineStore("task", {
                 // record.status = undefined
                 // record.runtime = undefined
             });
-            await window.$mapi.storage.set("task", "records", savedRecords);
+            await $mapi.storage.set("task", "records", savedRecords);
         },
     },
 });
