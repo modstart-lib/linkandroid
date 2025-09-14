@@ -4,7 +4,7 @@ import {t} from "../../lang";
 import {defaultResponseProcessor} from "../../lib/api";
 import {Dialog} from "../../lib/dialog";
 import {StorageUtil} from "../../lib/storage";
-import {ObjectUtil, VersionUtil} from "../../lib/util";
+import {VersionUtil} from "../../lib/util";
 
 export const doCopy = async (text: string | object, successTip: string = ""): Promise<void> => {
     successTip = successTip || t("复制成功");
@@ -33,10 +33,12 @@ export const doSaveFile = async (filePath: string) => {
 export const doOpenFile = async (
     options?: {
         extensions?: string[],
+        multiple?: boolean,
     }
-): Promise<string | undefined> => {
+): Promise<string | string[] | undefined> => {
     options = Object.assign({
         extensions: [],
+        multiple: false,
     }, options);
     try {
         const opt: any = {};
@@ -44,6 +46,9 @@ export const doOpenFile = async (
             opt.filters = [{
                 extensions: toRaw(options.extensions),
             }]
+        }
+        if (options.multiple) {
+            opt.properties = ['openFile', 'multiSelections'];
         }
         const result = await window.$mapi.file.openFile(opt);
         if (result) {
