@@ -48,7 +48,7 @@ export const doOpenFile = async (
             }]
         }
         if (options.multiple) {
-            opt.properties = ['openFile', 'multiSelections'];
+            opt.properties = ['multiSelections'];
         }
         const result = await window.$mapi.file.openFile(opt);
         if (result) {

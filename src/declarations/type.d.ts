@@ -205,7 +205,13 @@ type DefsMapi = {
                 progress?: (percent: number, total: number) => void;
             }
         ) => Promise<string>;
-        openFile: (options: {} = {}) => Promise<string | null>;
+        openFile: (options: {
+            filters?: {
+                name: string;
+                extensions: string[];
+            }[],
+            properties?: ("multiSelections")[]
+        } = {}) => Promise<string | null>;
         openDirectory: (options: {} = {}) => Promise<string | null>;
         openSave: (options: {} = {}) => Promise<string | null>;
         ext: (path: string) => Promise<string>;
