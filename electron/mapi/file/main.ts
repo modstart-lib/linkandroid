@@ -26,8 +26,8 @@ ipcMain.handle("file:openFile", async (
     if (!res || res.canceled) {
         return null;
     }
-    if (res.filePaths.length > 1) {
-        return res.filePaths;
+    if (options.properties.includes("multiSelections")) {
+        return res.filePaths || null;
     }
     return res.filePaths?.[0] || null;
 });
