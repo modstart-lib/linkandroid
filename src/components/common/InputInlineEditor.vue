@@ -3,6 +3,7 @@ import {nextTick, ref} from "vue";
 
 const props = defineProps<{
     value: string | null | undefined;
+    onChange?: (value: string) => Promise<boolean>;
 }>();
 const emit = defineEmits({
     change: (value: string) => true,
@@ -20,10 +21,19 @@ const doEnter = () => {
     });
 };
 const doConfirm = () => {
-    nextTick(() => {
-        visible.value = false;
-    });
-    emit("change", valueEdit.value);
+    if (props.onChange) {
+        props.onChange(valueEdit.value).then((ok) => {
+            if (ok) {
+                visible.value = false;
+                emit("change", valueEdit.value);
+            }
+        });
+    } else {
+        emit("change", valueEdit.value);
+        nextTick(() => {
+            visible.value = false;
+        });
+    }
 };
 </script>
 
@@ -36,7 +46,7 @@ const doConfirm = () => {
                     <a-input v-model="valueEdit" @pressEnter="doEnter">
                         <template #append>
                             <div class="cursor-pointer" @click="doConfirm">
-                                <icon-check />
+                                <icon-check/>
                             </div>
                         </template>
                     </a-input>
