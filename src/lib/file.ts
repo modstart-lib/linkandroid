@@ -117,7 +117,7 @@ export const FileUtil = {
             throw new Error("SparkMD5 not found");
         }
         const reader = stream.getReader();
-        const spark = new SparkMD5.ArrayBuffer();
+        const spark: any = new SparkMD5.ArrayBuffer();
 
         return new Promise((resolve, reject) => {
             function processChunk() {
@@ -141,5 +141,12 @@ export const FileUtil = {
 
             processChunk();
         });
+    },
+    formatSize: (bytes: number) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     },
 };
