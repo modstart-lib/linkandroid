@@ -3,7 +3,7 @@ import {nextTick, ref} from "vue";
 
 const props = defineProps<{
     value: string | null | undefined;
-    onChange?: (value: string) => Promise<boolean>;
+    onChangeCallback?: (value: string) => Promise<boolean>;
 }>();
 const emit = defineEmits({
     change: (value: string) => true,
@@ -21,8 +21,8 @@ const doEnter = () => {
     });
 };
 const doConfirm = () => {
-    if (props.onChange) {
-        props.onChange(valueEdit.value).then((ok) => {
+    if (props.onChangeCallback) {
+        props.onChangeCallback(valueEdit.value).then((ok) => {
             if (ok) {
                 visible.value = false;
                 emit("change", valueEdit.value);

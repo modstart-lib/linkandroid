@@ -65,6 +65,8 @@ export type TaskBiz = {
     successFunc: (bizId: string, bizParam: any) => Promise<void>;
     // Make sure the "failFunc" function always not throw an error
     failFunc: (bizId: string, msg: string, bizParam: any) => Promise<void>;
+    // request cancel callback, when user request cancel a task, will call this function
+    requestCancelFunc?: (bizId: string, bizParam: any) => Promise<void>;
     // ----------------------------------------------------
     // the following not use in schedule, only for biz
     [key: string]: any;
@@ -353,6 +355,11 @@ export const taskStore = defineStore("task", {
                 expire: TimeUtil.timestampMS() + 60 * 60 * 1000,
             };
             this.fireChange({biz, bizId}, 'requestCancel')
+            if (this.bizMap[biz]?.requestCancelFunc) {
+                this.bizMap[biz]?.requestCancelFunc?.(bizId, {}).catch(e => {
+                    $mapi.log.error("Task.RequestCancelFunc.Error", e.toString()).then();
+                });
+            }
         },
         shouldCancel(biz: string, bizId: string) {
             // expire old
