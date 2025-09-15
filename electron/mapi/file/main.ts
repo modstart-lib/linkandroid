@@ -59,6 +59,19 @@ ipcMain.handle("file:openSave", async (_, options): Promise<string | null> => {
     return res.filePath || null;
 });
 
+const autoCleanTemp = async () => {
+    fileIndex.autoCleanTemp(1).finally(() => {
+        setTimeout(() => {
+            autoCleanTemp();
+        }, 10 * 60 * 1000);
+    });
+}
+
+setTimeout(() => {
+    autoCleanTemp().then();
+}, 5000);
+
+
 export default {
     ...fileIndex,
 };

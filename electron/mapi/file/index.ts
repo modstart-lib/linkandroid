@@ -502,7 +502,7 @@ const hubRootDefault = async () => {
     return path.join(root(), "hub");
 };
 
-const hubRoot = async () => {
+const hubRoot = async (): Promise<string> => {
     const hubDirDefault = await hubRootDefault();
     let hubDir = await ConfigIndex.get("hubRoot", "");
     if (!hubDir) {
@@ -774,7 +774,7 @@ const tempRoot = async () => {
     return tempDir;
 };
 
-const autoCleanTemp = async (keepDays: number = 1) => {
+const autoCleanTemp = async (keepDays: number = 7) => {
     const root = await tempRoot();
     if (!fs.existsSync(root)) {
         return;
@@ -789,8 +789,11 @@ const autoCleanTemp = async (keepDays: number = 1) => {
         }
         const lastModified = new Date(stat.mtimeMs);
         const diffDays = Math.floor((now.getTime() - lastModified.getTime()) / (1000 * 60 * 60 * 24));
-        if (diffDays > keepDays) {
+        if (diffDays >= keepDays) {
             fs.unlinkSync(filePath);
+            Log.info('AutoCleanTemp.Clean', filePath);
+        } else {
+            // console.log('AutoCleanTemp.Skip', filePath, diffDays);
         }
     }
 };
@@ -806,10 +809,6 @@ const temp = async (ext: string = "tmp", prefix: string = "file", suffix: string
 };
 
 const tempDir = async (prefix: string = "dir") => {
-    if (Math.random() < 0.1) {
-        // 10% chance to clean temp directory
-        autoCleanTemp(1).then();
-    }
     const root = await tempRoot();
     const p = [prefix, TimeUtil.timestampInMs(), StrUtil.randomString(32)].join("_");
     const dir = path.join(root, p);
@@ -1038,6 +1037,28 @@ const ext = (path: string) => {
     return nodePath.extname(path).replace(/^\./, "");
 };
 
+const stat = async (path: string, option?: { isDataPath?: boolean }): Promise<{
+    size: number;
+    isDirectory: boolean;
+    lastModified: number;
+}> => {
+    option = Object.assign({
+            isDataPath: false,
+        },
+        option
+    );
+    let fp = path;
+    if (option.isDataPath) {
+        fp = await fullPath(path);
+    }
+    const stat = fs.statSync(fp);
+    return {
+        size: stat.size,
+        isDirectory: stat.isDirectory(),
+        lastModified: stat.mtimeMs,
+    };
+}
+
 const textToName = (text: string, ext: string = "", maxLimit: number = 100) => {
     if (text) {
         // 转换为合法的文件名
@@ -1174,9 +1195,11 @@ export const FileIndex = {
     appendText,
     download,
     ext,
+    stat,
     textToName,
     pathToName,
     hubRootDefault,
+    hubRoot,
     hubSave,
     hubSaveContent,
     hubDelete,
@@ -1187,6 +1210,7 @@ export const FileIndex = {
     cacheSet,
     cacheGetPath,
     cacheGet,
+    autoCleanTemp,
 };
 
 export default FileIndex;
