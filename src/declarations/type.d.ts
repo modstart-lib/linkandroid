@@ -188,7 +188,10 @@ type DefsMapi = {
                 overwrite?: boolean;
             }
         ) => Promise<void>;
-        copy: (pathOld: string, pathNew: string, option?: { isDataPath?: boolean }) => Promise<void>;
+        copy: (pathOld: string, pathNew: string, option?: {
+            isDataPath?: boolean,
+            overwrite?: boolean;
+        }) => Promise<void>;
         temp: (ext: string = "tmp", prefix: string = "file", suffix: string = "") => Promise<string>;
         tempDir: (prefix: string = "dir") => Promise<string>;
         watchText: (

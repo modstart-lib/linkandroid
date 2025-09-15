@@ -470,10 +470,14 @@ const rename = async (
     }
 };
 
-const copy = async (pathOld: string, pathNew: string, option?: { isDataPath?: boolean }) => {
+const copy = async (pathOld: string, pathNew: string, option?: {
+    isDataPath?: boolean,
+    overwrite?: boolean,
+}) => {
     option = Object.assign(
         {
             isDataPath: false,
+            overwrite: false,
         },
         option
     );
@@ -487,7 +491,11 @@ const copy = async (pathOld: string, pathNew: string, option?: { isDataPath?: bo
         throw `Copy.FileNotFound - ${fullPathOld}`;
     }
     if (fs.existsSync(fullPathNew)) {
-        throw `FileAlreadyExists:${fullPathNew}`;
+        if (option.overwrite) {
+            await deletes(fullPathNew, {isDataPath: false});
+        } else {
+            throw `Copy.FileAlreadyExists - ${fullPathNew}`;
+        }
     }
     // console.log('copy', fullPathOld, fullPathNew)
     const dir = nodePath.dirname(fullPathNew);
