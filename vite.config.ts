@@ -71,6 +71,9 @@ export default defineConfig(({command}) => {
                     ];
                     files.forEach(f => {
                         const p = path.resolve(__dirname, "dist", f);
+                        if(!fs.existsSync(p)) {
+                            return;
+                        }
                         let html = fs.readFileSync(p, "utf-8");
                         for (const key in AppConfig) {
                             html = html.replace(new RegExp(`%${key}%`, "g"), AppConfig[key]);
