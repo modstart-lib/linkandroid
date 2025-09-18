@@ -1,4 +1,4 @@
-import sqlite3, {Database} from "sqlite3";
+import sqlite3, {Database} from "better-sqlite3";
 import path from "node:path";
 import migration from "./migration";
 import {AppEnv} from "../env";
@@ -12,82 +12,101 @@ let dbConn: Database | null = null;
 let dbSuccess = false;
 
 const db = {
+    /**
+     * 检查数据库连接是否已初始化
+     * @throws {string} 如果数据库未初始化则抛出异常
+     */
     _check() {
         if (!dbSuccess) {
             throw "DBNotInitialized";
         }
     },
+    /**
+     * 执行SQL语句（无返回值）
+     * @param {string} sql - SQL语句
+     * @param {any[]} params - 参数数组
+     * @returns {Promise<void>}
+     */
     async execute(sql: string, params: any = []): Promise<void> {
         db._check();
-        return new Promise((resolve, reject) => {
-            dbConn.prepare(sql).run(...params, function (err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(undefined);
-                }
-            });
-        });
+        try {
+            dbConn.prepare(sql).run(...params);
+        } catch (err) {
+            throw err;
+        }
     },
+    /**
+     * 插入数据并返回插入的行ID
+     * @param {string} sql - SQL语句
+     * @param {any[]} params - 参数数组
+     * @returns {Promise<string | number>} 插入的行ID
+     */
     async insert(sql: string, params: any = []): Promise<string | number> {
         db._check();
-        return new Promise((resolve, reject) => {
-            dbConn.prepare(sql).run(...params, function (err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(this.lastID);
-                }
-            });
-        });
+        try {
+            const result = dbConn.prepare(sql).run(...params);
+            return result.lastInsertRowid;
+        } catch (err) {
+            throw err;
+        }
     },
+    /**
+     * 查询单行数据
+     * @param {string} sql - SQL语句
+     * @param {any[]} params - 参数数组
+     * @returns {Promise<any>} 查询结果
+     */
     async first(sql: string, params: any = []): Promise<any> {
         db._check();
-        return new Promise((resolve, reject) => {
-            dbConn.prepare(sql).get(...params, (err, row) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(row);
-                }
-            });
-        });
+        try {
+            return dbConn.prepare(sql).get(...params);
+        } catch (err) {
+            throw err;
+        }
     },
+    /**
+     * 查询多行数据
+     * @param {string} sql - SQL语句
+     * @param {any[]} params - 参数数组
+     * @returns {Promise<any[]>} 查询结果数组
+     */
     async select(sql: string, params: any = []): Promise<any[]> {
         db._check();
-        return new Promise((resolve, reject) => {
-            dbConn.prepare(sql).all(...params, (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(rows);
-                }
-            });
-        });
+        try {
+            return dbConn.prepare(sql).all(...params);
+        } catch (err) {
+            throw err;
+        }
     },
+    /**
+     * 更新数据并返回影响的行数
+     * @param {string} sql - SQL语句
+     * @param {any[]} params - 参数数组
+     * @returns {Promise<number>} 影响的行数
+     */
     async update(sql: string, params: any = []): Promise<number> {
         db._check();
-        return new Promise((resolve, reject) => {
-            dbConn.prepare(sql).run(...params, function (err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(this.changes);
-                }
-            });
-        });
+        try {
+            const result = dbConn.prepare(sql).run(...params);
+            return result.changes;
+        } catch (err) {
+            throw err;
+        }
     },
+    /**
+     * 删除数据并返回影响的行数
+     * @param {string} sql - SQL语句
+     * @param {any[]} params - 参数数组
+     * @returns {Promise<number>} 影响的行数
+     */
     async delete(sql: string, params: any = []): Promise<number> {
         db._check();
-        return new Promise((resolve, reject) => {
-            dbConn.prepare(sql).run(...params, function (err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(this.changes);
-                }
-            });
-        });
+        try {
+            const result = dbConn.prepare(sql).run(...params);
+            return result.changes;
+        } catch (err) {
+            throw err;
+        }
     },
 };
 
@@ -120,20 +139,25 @@ const migrate = async () => {
     }
 };
 
+/**
+ * 初始化数据库连接
+ * @returns {Promise<void>}
+ */
 const init = async () => {
     dbPath = path.join(AppEnv.dataRoot, "database.db");
     const userDbPath = path.join(AppEnv.userData, "database.db");
     if (fs.existsSync(userDbPath)) {
         dbPath = userDbPath;
     }
-    dbConn = new sqlite3.Database(dbPath, err => {
-        if (err) {
-            Log.error("DBConnect SQLite database failed:", err.message);
-        } else {
-            dbSuccess = true;
-            migrate().then();
-        }
-    });
+    try {
+        dbConn = new sqlite3(dbPath);
+        dbSuccess = true;
+        await migrate();
+        Log.info("Database connected successfully");
+    } catch (err) {
+        Log.error("DBConnect SQLite database failed:", err.message);
+        throw err;
+    }
 };
 
 ipcMain.handle("db:execute", (event, sql: string, params: any) => {
