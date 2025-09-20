@@ -1,4 +1,4 @@
-import {dialog, ipcMain, shell} from "electron";
+import {dialog, ipcMain} from "electron";
 import fileIndex from "./index";
 
 ipcMain.handle("file:openFile", async (
@@ -17,6 +17,8 @@ ipcMain.handle("file:openFile", async (
     if (!options.properties.includes("openFile")) {
         options.properties.push("openFile");
     }
+    // @ts-ignore
+    options.properties.push('noResolveAliases');
     const res = await dialog
         .showOpenDialog({
             ...options,
