@@ -103,7 +103,7 @@ export const TimeUtil = {
     datetimeString() {
         return dayjs().format("YYYYMMDD_HHmmss");
     },
-    secondsToTime(seconds: number, alwaysShowMs: boolean = false) {
+    secondsToTime(seconds: number, showMs: boolean = false) {
         const sec = Math.floor(seconds);
         const ms = Math.floor((seconds - sec) * 1000);
         let h: any = Math.floor(sec / 3600);
@@ -113,7 +113,7 @@ export const TimeUtil = {
         if (m < 10) m = "0" + m;
         if (s < 10) s = "0" + s;
         const result = "00" == h ? `${m}:${s}` : `${h}:${m}:${s}`;
-        if (ms > 0 || alwaysShowMs) {
+        if (showMs) {
             let f: any = ms;
             if (f < 10) f = "00" + f;
             else if (f < 100) f = "0" + f;
