@@ -139,18 +139,47 @@ export const doCheckForUpdate = async (noticeLatest?: boolean) => {
     });
 };
 
-export const dataAutoSaveDraft = (key: string, data: any) => {
-    onMounted(async () => {
-        const old = StorageUtil.getObject(key);
-        for (const prop in old) {
-            if (Object.prototype.hasOwnProperty.call(old, prop)) {
-                data[prop] = old[prop];
+export const dataAutoSaveDraft = (
+    key: string,
+    data: any,
+    option?: {
+        type: 'object' | 'array',
+        confirmText?: string | null,
+    }
+) => {
+    option = Object.assign({
+        type: 'object',
+        confirmText: null,
+    }, option);
+    const load = async () => {
+        const value = await result()
+        if ('object' === option?.type) {
+            if (value) {
+                if (option.confirmText) {
+                    await Dialog.confirm(option.confirmText)
+                }
+                for (const k in value) {
+                    if (Object.prototype.hasOwnProperty.call(value, k)) {
+                        data[k] = value[k];
+                    }
+                }
+            }
+        } else if ('array' === option?.type) {
+            if (Array.isArray(value) && value.length > 0) {
+                if (option.confirmText) {
+                    await Dialog.confirm(option.confirmText)
+                }
+                data.splice(0, data.length, ...value);
             }
         }
-    });
+    }
+    onMounted(async () => [
+        await load()
+    ]);
     watch(
         () => data,
         async value => {
+            // console.log('data changed, save draft to local storage', key, value);
             StorageUtil.set(key, value);
         },
         {
@@ -160,5 +189,16 @@ export const dataAutoSaveDraft = (key: string, data: any) => {
     const clearDraft = () => {
         StorageUtil.remove(key);
     };
-    return {clearDraft};
+    const result = async () => {
+        if ('object' === option?.type) {
+            return StorageUtil.getObject(key);
+        } else if ('array' === option?.type) {
+            return StorageUtil.getArray(key);
+        }
+        throw new Error('dataAutoSaveDraft: unknown type' + option?.type);
+    }
+    return {
+        clearDraft,
+        load,
+    };
 };
