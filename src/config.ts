@@ -5,6 +5,7 @@ const BASE_URL = "https://linkandroid.com";
 
 export const AppConfig = {
     name: "LinkAndroid",
+    title: "LinkAndroid",
     slogan: "Link android to PC easily",
     version: packageJson.version,
     website: `${BASE_URL}`,

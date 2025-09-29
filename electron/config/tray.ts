@@ -28,7 +28,7 @@ const quitApp = () => {
 const ready = () => {
     tray = new Tray(trayPath);
 
-    tray.setToolTip(AppConfig.name);
+    tray.setToolTip(AppConfig.title);
 
     if (isWin) {
         tray.on("click", () => {

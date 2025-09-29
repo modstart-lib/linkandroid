@@ -43,7 +43,7 @@ export const PagePayment = {
         let alwaysOnTop = !parent;
         const win = new BrowserWindow({
             show: true,
-            title: AppConfig.name,
+            title: AppConfig.title,
             ...(!isPackaged ? {icon} : {}),
             frame: false,
             transparent: false,

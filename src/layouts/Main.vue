@@ -51,7 +51,7 @@ const doQuit = async () => {
                     <img src="/logo.svg" class="w-4 t-4" />
                 </div>
                 <div class="p-2 flex-grow">
-                    {{ AppConfig.name }}
+                    {{ AppConfig.title }}
                 </div>
             </div>
             <div v-if="!isOsx" class="p-1 leading-4">

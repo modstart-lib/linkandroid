@@ -42,7 +42,7 @@ const doDevSettingTriggerClick = () => {
                         <img class="w-14 h-14 mx-auto" src="./../assets/image/logo.svg" />
                     </div>
                     <div class="text-xl pt-2 font-bold">
-                        {{ AppConfig.name }}
+                        {{ AppConfig.title }}
                     </div>
                 </div>
             </div>
@@ -117,7 +117,7 @@ const doDevSettingTriggerClick = () => {
                 </div>
             </div>
             <div class="text-gray-400 text-center select-none" @click="doDevSettingTriggerClick">
-                &copy; {{ licenseYear }} {{ AppConfig.name }}
+                &copy; {{ licenseYear }} {{ AppConfig.title }}
             </div>
         </div>
     </div>

@@ -19,7 +19,7 @@ export const PageSetup = {
         }
         const win = new BrowserWindow({
             show: true,
-            title: AppConfig.name,
+            title: AppConfig.title,
             ...(!isPackaged ? {icon} : {}),
             frame: false,
             transparent: false,
