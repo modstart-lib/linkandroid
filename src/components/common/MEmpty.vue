@@ -9,9 +9,13 @@
                 />
             </div>
             <div class="text-center text-sm">
-                {{ $t("暂无记录") }}
+                {{ text || $t("暂无记录") }}
             </div>
         </div>
     </div>
 </template>
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const props = defineProps<{
+    text?: string;
+}>();
+</script>
