@@ -1,8 +1,8 @@
-import fs from "node:fs";
-import axios from "axios";
-
-import yauzl from "yauzl";
 import archiver from "archiver";
+import axios from "axios";
+import fs from "node:fs";
+import path from "node:path";
+import yauzl from "yauzl";
 
 const getZipFileContent = async (path: string, pathInZip: string) => {
     return new Promise((resolve, reject) => {
@@ -78,7 +78,7 @@ const unzip = async (
             });
             zipfile.on("end", function () {
                 // console.log('unzip end')
-                resolve(true);
+                resolve(undefined);
             });
             zipfile.on("entry", function (entry: any) {
                 if (option.process) {
@@ -119,12 +119,14 @@ const zip = async (
     zipPath: string,
     sourceDir: string,
     option?: {
-        end?: (archive: any) => void;
+        end?: (archive: any) => Promise<void>;
+        filter?: (params: { name: string, path: string, fullPath: string, isDir: boolean }) => Promise<boolean>;
     }
-) => {
+): Promise<void> => {
     option = Object.assign(
         {
             end: null,
+            filter: null,
         },
         option
     );
@@ -134,17 +136,44 @@ const zip = async (
             zlib: {level: 9},
         });
         output.on("close", function () {
-            resolve(true);
+            resolve(undefined);
         });
         archive.on("error", function (err: any) {
             reject(err);
         });
         archive.pipe(output);
-        archive.directory(sourceDir, false);
-        if (option.end) {
-            option.end(archive);
-        }
-        archive.finalize();
+
+        const addFiles = async (dir: string, relativePath: string = "") => {
+            const items = fs.readdirSync(path.join(dir, relativePath));
+            for (const item of items) {
+                const fullPath = path.join(dir, relativePath, item);
+                const relPath = path.join(relativePath, item).replace(/\\/g, "/"); // Normalize for zip
+                const stat = fs.statSync(fullPath);
+                const isDir = stat.isDirectory();
+                const shouldInclude = !option.filter || await option.filter({
+                    name: item,
+                    path: relPath,
+                    fullPath,
+                    isDir
+                });
+                if (isDir) {
+                    if (shouldInclude) {
+                        await addFiles(dir, relPath);
+                    }
+                } else {
+                    if (shouldInclude) {
+                        archive.file(fullPath, {name: relPath});
+                    }
+                }
+            }
+        };
+
+        addFiles(sourceDir).then(async () => {
+            if (option.end) {
+                await option.end(archive);
+            }
+            archive.finalize();
+        }).catch(reject);
     });
 };
 
