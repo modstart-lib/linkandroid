@@ -1,6 +1,6 @@
 {
     "name": "linkandroid",
-    "version": "0.7.0",
+    "version": "1.0.0",
     "main": "dist-electron/main/index.js",
     "description": "Link android to PC easily",
     "author": "ModStartLib",

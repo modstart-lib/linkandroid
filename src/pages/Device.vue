@@ -15,7 +15,6 @@ import DeviceAdbShellDialog from "./Device/DeviceAdbShellDialog.vue";
 import DeviceActionApp from "./Device/DeviceActionApp.vue";
 import DeviceActionRecord from "./Device/DeviceActionRecord.vue";
 import DeviceActionScreenshot from "./Device/DeviceActionScreenshot.vue";
-import {AppConfig} from "../config";
 import DeviceActionWifiOn from "./Device/DeviceActionWifiOn.vue";
 import DeviceActionMirrorCamera from "./Device/DeviceActionMirrorCamera.vue";
 import DeviceActionMirrorOTG from "./Device/DeviceActionMirrorOTG.vue";
@@ -25,6 +24,8 @@ import DeviceType from "./Device/DeviceType.vue";
 import DeviceActionConnect from "./Device/DeviceActionConnect.vue";
 import DeviceActionWifiOff from "./Device/DeviceActionWifiOff.vue";
 import DeviceDefaultSettingDialog from "./Device/DeviceDefaultSettingDialog.vue";
+import DeviceFilterEmpty from "./Device/DeviceFilterEmpty.vue";
+import DeviceEmpty from "./Device/DeviceEmpty.vue";
 
 const settingDialog = ref<InstanceType<typeof DeviceSettingDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -34,13 +35,21 @@ const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | nul
 const defaultSettingDialog = ref<InstanceType<typeof DeviceDefaultSettingDialog> | null>(null);
 
 const actionMirrors = ref<Record<string, InstanceType<typeof DeviceActionMirror> | null>>({});
-const helpShow = ref(false);
 
 const deviceStore = useDeviceStore();
 
-const deviceRecords = computed(() => {
-    const records = deviceStore.records;
-    return records;
+const searchKeywords = ref("");
+const filterRecords = computed(() => {
+    return deviceStore.records.filter(r => {
+        const keywords = searchKeywords.value.toLowerCase();
+        if (keywords) {
+            if (r.name?.toLowerCase().includes(keywords)) {
+                return true;
+            }
+            return false;
+        }
+        return true;
+    });
 });
 
 const doRefresh = async () => {
@@ -77,10 +86,6 @@ const onEditName = async (device: DeviceRecord, name: string) => {
         Dialog.tipError(mapError(e));
     }
 };
-
-const doHelp = () => {
-    window.$mapi.app.openExternalWeb(AppConfig.helpUrl);
-};
 </script>
 
 <template>
@@ -93,7 +98,14 @@ const doHelp = () => {
                 {{ $t("设备") }}
             </div>
             <div class="flex items-center">
-                <a-button v-if="deviceStore.records.length > 0" @click="doRefresh" class="ml-1">
+                <a-input-search
+                    v-if="deviceStore.records.length > 0"
+                    v-model="searchKeywords"
+                    :placeholder="$t('搜索设备')"
+                    class="w-48"
+                    allow-clear
+                />
+                <a-button @click="doRefresh" class="ml-1">
                     <template #icon>
                         <icon-refresh/>
                     </template>
@@ -119,43 +131,10 @@ const doHelp = () => {
             </div>
         </div>
         <div class="-mx-2">
-            <div v-if="!deviceRecords.length" class="py-20">
-                <div class="text-center">
-                    <img class="h-40 m-auto opacity-50" src="./../assets/image/device-empty.svg"/>
-                </div>
-                <div class="mt-10 text-center text-lg text-gray-400">
-                    <div>{{ $t("还没有设备，使用USB连接电脑开始使用～") }}</div>
-                </div>
-                <div class="mt-10 text-center">
-                    <a-button class="mx-1" type="primary" @click="doRefresh">
-                        <template #icon>
-                            <icon-refresh class="mr-1"/>
-                        </template>
-                        {{ $t("刷新") }}
-                    </a-button>
-                    <a-button class="mx-1" @click="helpShow = true">
-                        <template #icon>
-                            <icon-book class="mr-1"/>
-                        </template>
-                        {{ $t("如何连接？") }}
-                    </a-button>
-                </div>
-                <div v-if="helpShow" class="pt-5 text-center">
-                    <div class="inline-block bg-gray-100 dark:bg-gray-700 text-left rounded-lg p-4">
-                        <div>① {{ $t("打开手机USB调试") }}</div>
-                        <div>② {{ $t("使用USB连接电脑") }}</div>
-                        <div class="pt-3">
-                            {{ $t("更多内容，请查看") }}
-                            <a href="javascript:;" class="text-link" @click="doHelp">
-                                <icon-book/>
-                                {{ $t("在线文档") }}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <DeviceEmpty v-if="!deviceStore.records.length"/>
+            <DeviceFilterEmpty v-else-if="!filterRecords.length"/>
             <div v-else class="flex flex-wrap">
-                <div v-for="(r, rIndex) in deviceRecords" :key="rIndex" class="w-full lg:w-1/2 2xl:w-1/3 p-3">
+                <div v-for="(r, rIndex) in filterRecords" :key="rIndex" class="w-full lg:w-1/2 2xl:w-1/3 p-3">
                     <div
                         class="hover:shadow-lg bg-white dark:bg-gray-800 shadow border border-solid h-64 border-gray-100 dark:border-gray-800 rounded-lg flex flex-col"
                     >
@@ -184,8 +163,7 @@ const doHelp = () => {
                                 <a-tooltip :content="$t('投屏到电脑')">
                                     <div
                                         @click="actionMirrors[rIndex]?.start()"
-                                        class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl bg-black text-center overflow-hidden"
-                                    >
+                                        class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl bg-black text-center overflow-hidden">
                                         <div v-if="r.screenshot && r.runtime?.previewImage === 'yes'">
                                             <img :src="r.screenshot" class="max-h-44 max-w-44 rounded-sm"/>
                                         </div>
