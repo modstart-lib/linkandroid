@@ -19,9 +19,9 @@ const doMirror = async () => {
     Dialog.loadingOn(t("正在进入OTG模式"));
     const args = ["--otg", "--always-on-top"];
     try {
-        mirrorController.value = await window.$mapi.scrcpy.mirror(props.device.id, {
+        mirrorController.value = await $mapi.scrcpy.mirror(props.device.id, {
             title: props.device.name as string,
-            args: args.join(" "),
+            args,
         });
         await sleep(1000);
         Dialog.tipSuccess(t("进入OTG模式成功"));

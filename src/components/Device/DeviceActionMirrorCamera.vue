@@ -25,9 +25,9 @@ const doMirror = async () => {
         // '--camera-facing=back',
     ];
     try {
-        const mirrorController = await window.$mapi.scrcpy.mirror(props.device.id, {
+        const mirrorController = await $mapi.scrcpy.mirror(props.device.id, {
             title: props.device.name as string,
-            args: args.join(" "),
+            args,
         });
         await sleep(1000);
         Dialog.tipSuccess(t("打开摄像头成功"));

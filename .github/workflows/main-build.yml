@@ -63,6 +63,15 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: init ( Windows )
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: bash ./scripts/init.sh
+
+      - name: init ( Linux/osx )
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: bash ./scripts/init.sh
+
       - name: Build Release Files
         run: npm run build
         env:

@@ -413,7 +413,7 @@ type DefsMapi = {
         setBinPath: (binPath: string) => Promise<boolean>;
         shell: (command: string) => Promise<string>;
         spawnShell: (
-            command: string,
+            args: string[],
             option?: {
                 stdout?: Function | null;
                 stderr?: Function | null;
@@ -425,7 +425,7 @@ type DefsMapi = {
             serial: string,
             option: {
                 title?: string;
-                args?: string;
+                args?: string[];
                 stdout?: (data: string, process: any) => void;
                 stderr?: (data: string, process: any) => void;
                 success?: (process: any) => void;

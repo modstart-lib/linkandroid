@@ -7,28 +7,28 @@ const basic = ref({
     scrcpyPath: null as string | null,
 });
 const doLoad = async () => {
-    basic.value.adbPath = await window.$mapi.adb.getBinPath();
-    basic.value.scrcpyPath = await window.$mapi.scrcpy.getBinPath();
+    basic.value.adbPath = await $mapi.adb.getBinPath();
+    basic.value.scrcpyPath = await $mapi.scrcpy.getBinPath();
 };
 
 onMounted(doLoad);
 
 const doAdbPathChange = async (value: string) => {
-    await window.$mapi.adb.setBinPath(value);
+    await $mapi.adb.setBinPath(value);
     await doLoad();
 };
 const doSelectAdbPath = async () => {
-    const adbPath = await window.$mapi.file.openFile();
+    const adbPath = await $mapi.file.openFile();
     if (adbPath) {
         await doAdbPathChange(adbPath);
     }
 };
 const doScrcpyPathChange = async (value: string) => {
-    await window.$mapi.scrcpy.setBinPath(value);
+    await $mapi.scrcpy.setBinPath(value);
     await doLoad();
 };
 const doSelectScrcpyPath = async () => {
-    const scrcpyPath = await window.$mapi.file.openFile();
+    const scrcpyPath = await $mapi.file.openFile();
     if (scrcpyPath) {
         await doScrcpyPathChange(scrcpyPath);
     }

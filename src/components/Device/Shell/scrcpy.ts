@@ -4,13 +4,12 @@ import {useFixCursor} from "./index";
 import {t} from "../../../lang";
 
 export const useScrcpyCommand = ({loading, vueCommand, history}) => {
-    const scrcpyCommand = async args => {
+    const scrcpyCommand = async (args) => {
         loading.value = true;
-        const command = args.slice(1).join(" ");
         const appendToHistory = debounce(vueCommand.value.appendToHistory, 500);
         let stdoutText = "";
         let stderrText = "";
-        window.$mapi.scrcpy.spawnShell(command, {
+        await $mapi.scrcpy.spawnShell(args.slice(1), {
             stdout(text) {
                 loading.value = false;
                 stdoutText += text;

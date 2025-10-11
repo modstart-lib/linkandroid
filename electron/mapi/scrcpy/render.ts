@@ -31,7 +31,7 @@ const shell = async (command: string) => {
 };
 
 const spawnShell = async (
-    command: string,
+    args: string[],
     option: {
         stdout?: (data: string, process: any) => void;
         stderr?: (data: string, process: any) => void;
@@ -42,16 +42,16 @@ const spawnShell = async (
         env?: Record<string, any>;
     } | null = null
 ) => {
-    let scrcpyPath = await getBinPath();
-    // console.log('spawnShell', `"${scrcpyPath}" ${command}`)
-    return await Apps.spawnShell(`"${scrcpyPath}" ${command}`, option);
+    return await Apps.spawnShell([
+        await getBinPath(), ...args
+    ], option);
 };
 
 const mirror = async (
     serial: string,
     option: {
         title?: string;
-        args?: string;
+        args?: string[];
         stdout?: (data: string, process: any) => void;
         stderr?: (data: string, process: any) => void;
         success?: (process: any) => void;
@@ -59,18 +59,20 @@ const mirror = async (
         env?: Record<string, any>;
     }
 ) => {
-    option = Object.assign(
-        {
-            env: {},
-        },
-        option
-    );
+    option = Object.assign({
+        env: {},
+        args: [],
+    }, option);
     option.env["ADB"] = await ADB.getBinPath();
     if (isWin) {
         option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");
     }
     // console.log('mirror', serial, option.args)
-    return spawnShell(`--serial="${serial}" --window-title="${option.title}" ${option.args}`, {
+    return spawnShell([
+        `--serial="${serial}"`,
+        `--window-title="${option.title}"`,
+        ...option.args,
+    ], {
         stdout: option.stdout,
         stderr: option.stderr,
         success: option.success,

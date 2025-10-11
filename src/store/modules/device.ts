@@ -85,7 +85,7 @@ export const deviceStore = defineStore("device", {
     }),
     actions: {
         async init() {
-            await window.$mapi.storage.get("device", "records", []).then(records => {
+            await $mapi.storage.get("device", "records", []).then(records => {
                 records.forEach((record: DeviceRecord) => {
                     record.status = createDeviceStatus(record);
                     record.runtime = getDeviceRuntime(record);
@@ -101,7 +101,7 @@ export const deviceStore = defineStore("device", {
             }, 2000);
         },
         async startWatch() {
-            await window.$mapi.adb.watch((type, data) => {
+            await $mapi.adb.watch((type, data) => {
                 // console.log('watch', type, data)
                 this.refresh().then();
             });
@@ -112,7 +112,7 @@ export const deviceStore = defineStore("device", {
                     continue;
                 }
                 try {
-                    const res = await window.$mapi.adb.screencap(r.id);
+                    const res = await $mapi.adb.screencap(r.id);
                     await this.edit(
                         r,
                         {
@@ -124,7 +124,8 @@ export const deviceStore = defineStore("device", {
                     try {
                         await this.refresh();
                         break;
-                    } catch (ee) {}
+                    } catch (ee) {
+                    }
                 }
             }
             setTimeout(async () => {
@@ -132,7 +133,7 @@ export const deviceStore = defineStore("device", {
             }, 5 * 1000);
         },
         async connectedDevices(): Promise<DeviceRecord[]> {
-            const res = await window.$mapi.adb.devices();
+            const res = await $mapi.adb.devices();
             const data: DeviceRecord[] = [];
             for (const d of res || []) {
                 data.push({
@@ -240,7 +241,7 @@ export const deviceStore = defineStore("device", {
                 record.runtime = undefined;
                 record.status = undefined;
             });
-            await window.$mapi.storage.set("device", "records", savedRecords);
+            await $mapi.storage.set("device", "records", savedRecords);
         },
         async doTop(index: number) {
             const record = this.records[index];
@@ -256,7 +257,8 @@ export const deviceStore = defineStore("device", {
             if (runtime.value.mirrorController) {
                 try {
                     runtime.value.mirrorController.stop();
-                } catch (e) {}
+                } catch (e) {
+                }
                 return;
             }
             Dialog.loadingOn(t("正在投屏"));
@@ -290,16 +292,18 @@ export const deviceStore = defineStore("device", {
                 args.push(setting.scrcpyArgs);
             }
 
-            const mirrorStart = async () => {};
-            const mirrorEnd = async () => {};
+            const mirrorStart = async () => {
+            };
+            const mirrorEnd = async () => {
+            };
             let successTimer: any = null;
             try {
-                runtime.value.mirrorController = await window.$mapi.scrcpy.mirror(device.id, {
+                runtime.value.mirrorController = await $mapi.scrcpy.mirror(device.id, {
                     title: device.name as string,
-                    args: args.join(" "),
+                    args,
                     stdout: (data: string, process: any) => {
                         console.log("mirror.stdout", {data});
-                        window.$mapi.log.info("Mirror.stdout", {data});
+                        $mapi.log.info("Mirror.stdout", {data});
                         if (!successTimer) {
                             successTimer = setTimeout(() => {
                                 if (runtime.value.mirrorController) {
@@ -310,17 +314,17 @@ export const deviceStore = defineStore("device", {
                     },
                     stderr: (data: string, process: any) => {
                         console.log("mirror.stderr", {data});
-                        window.$mapi.log.error("Mirror.stderr", {data});
+                        $mapi.log.error("Mirror.stderr", {data});
                     },
                     success: (process: any) => {
                         console.log("mirror.success");
-                        window.$mapi.log.info("Mirror.success");
+                        $mapi.log.info("Mirror.success");
                         runtime.value.mirrorController = null;
                         mirrorEnd().then();
                     },
                     error: (msg: string, exitCode: number, process: any) => {
                         console.log("mirror.error", {msg, exitCode});
-                        window.$mapi.log.error("Mirror.error", {msg, exitCode});
+                        $mapi.log.error("Mirror.error", {msg, exitCode});
                         runtime.value.mirrorController = null;
                         Dialog.alertError(t("投屏失败") + ` : <code>${msg}</code>`);
                         mirrorEnd().then();
@@ -340,13 +344,14 @@ export const deviceStore = defineStore("device", {
                     return device.setting[name];
                 }
             }
-            return await window.$mapi.config.get(`Device.${name}`, defaultValue);
+            return await $mapi.config.get(`Device.${name}`, defaultValue);
         },
     },
 });
 
 const device = deviceStore(store);
-device.init().then(() => {});
+device.init().then(() => {
+});
 
 export const useDeviceStore = () => {
     return device;
