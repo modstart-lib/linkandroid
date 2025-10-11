@@ -1,8 +1,7 @@
 import {exec as _exec} from "node:child_process";
 import util from "node:util";
-import which from "which";
 import Config from "../config/render";
-import {extraResolve, isWin} from "../../lib/env";
+import {extraResolveBin, isWin} from "../../lib/env";
 import {Apps} from "../app";
 import {ADB} from "../adb/render";
 import {IconvUtil} from "../../lib/util";
@@ -14,16 +13,7 @@ const getBinPath = async () => {
     if (binPath) {
         return binPath;
     }
-    switch (process.platform) {
-        case "win32":
-            return extraResolve("win/scrcpy/scrcpy.exe");
-        // case 'darwin':
-        //     return extraResolve('mac/scrcpy/scrcpy')
-        // case 'linux':
-        //   return extraResolve('linux/scrcpy/scrcpy')
-        default:
-            return which.sync("scrcpy", {nothrow: true});
-    }
+    return extraResolveBin('scrcpy/scrcpy')
 };
 
 const setBinPath = async (binPath: string) => {

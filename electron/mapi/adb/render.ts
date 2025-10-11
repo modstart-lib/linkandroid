@@ -1,15 +1,11 @@
-import {exec as _exec} from "node:child_process";
-import util from "node:util";
 import {Adb} from "@devicefarmer/adbkit";
-import {extraResolve, platformArch, platformName} from "../../lib/env";
+import {extraResolveBin} from "../../lib/env";
 import Config from "../config/render";
 import {FileUtil, TimeUtil} from "../../lib/util";
 import dayjs from "dayjs";
 import fs from "node:fs";
 import Client from "@devicefarmer/adbkit/dist/src/adb/client";
 import {Apps} from "../app";
-
-const exec = util.promisify(_exec);
 
 let client = null;
 window.addEventListener("beforeunload", () => {
@@ -28,18 +24,7 @@ const getBinPath = async () => {
     if (binPath) {
         return binPath;
     }
-    const arch = platformArch();
-    switch (platformName()) {
-        case "win":
-            return extraResolve("win/android-platform-tools/adb.exe");
-        case "osx":
-            return extraResolve("mac/android-platform-tools/adb");
-        case "linux":
-            if ("arm64" == arch) {
-                return extraResolve("linux/android-platform-tools-arm64/adb");
-            }
-            return extraResolve("linux/android-platform-tools/adb");
-    }
+    return extraResolveBin("scrcpy/adb");
 };
 
 const setBinPath = async (binPath: string) => {
