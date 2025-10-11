@@ -302,8 +302,8 @@ export const deviceStore = defineStore("device", {
                     title: device.name as string,
                     args,
                     stdout: (data: string, process: any) => {
-                        console.log("mirror.stdout", {data});
-                        $mapi.log.info("Mirror.stdout", {data});
+                        console.log("mirror.stdout", data);
+                        $mapi.log.info("Mirror.stdout", data);
                         if (!successTimer) {
                             successTimer = setTimeout(() => {
                                 if (runtime.value.mirrorController) {
@@ -313,8 +313,8 @@ export const deviceStore = defineStore("device", {
                         }
                     },
                     stderr: (data: string, process: any) => {
-                        console.log("mirror.stderr", {data});
-                        $mapi.log.error("Mirror.stderr", {data});
+                        console.log("mirror.stderr", data);
+                        $mapi.log.error("Mirror.stderr", data);
                     },
                     success: (process: any) => {
                         console.log("mirror.success");
@@ -330,6 +330,25 @@ export const deviceStore = defineStore("device", {
                         mirrorEnd().then();
                     },
                 });
+                // setTimeout(async () => {
+                //     let x = 500, y = 2000, step = 10;
+                //     for (let i = 0; i < step; i++) {
+                //         x -= 50;
+                //         const payload = {
+                //             event: '',
+                //             data: {x, y},
+                //         }
+                //         if (i === 0) {
+                //             payload.event = "ActionDown";
+                //         } else if (i === step - 1) {
+                //             payload.event = "ActionUp";
+                //         } else {
+                //             payload.event = "ActionMove";
+                //         }
+                //         runtime.value.mirrorController?.send('LAEvent:' + JSON.stringify(payload) + "\n");
+                //         await sleep(10);
+                //     }
+                // }, 5000)
                 await sleep(1000);
                 await mirrorStart();
             } catch (error) {

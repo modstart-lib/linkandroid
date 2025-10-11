@@ -1,12 +1,8 @@
-import {exec as _exec} from "node:child_process";
-import util from "node:util";
 import Config from "../config/render";
 import {extraResolveBin, isWin} from "../../lib/env";
 import {Apps} from "../app";
 import {ADB} from "../adb/render";
 import {IconvUtil} from "../../lib/util";
-
-const exec = util.promisify(_exec);
 
 const getBinPath = async () => {
     const binPath = await Config.get("common.scrcpyPath");
@@ -42,8 +38,20 @@ const spawnShell = async (
         env?: Record<string, any>;
     } | null = null
 ) => {
+    option = Object.assign({
+        env: {},
+        args: [],
+    }, option);
+    option.env["ADB"] = await ADB.getBinPath();
+    if (isWin) {
+        option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");
+    }
+    let binary = await getBinPath();
+    // local debug
+    // option.env["SCRCPY_SERVER_PATH"] = '/Users/mz/data/project/linkandroid/linkandroid-scrcpy/x/server/scrcpy-server';
+    // binary = '/Users/mz/data/project/linkandroid/linkandroid-scrcpy/x/app/scrcpy';
     return await Apps.spawnShell([
-        await getBinPath(), ...args
+        binary, ...args
     ], option);
 };
 
@@ -63,10 +71,6 @@ const mirror = async (
         env: {},
         args: [],
     }, option);
-    option.env["ADB"] = await ADB.getBinPath();
-    if (isWin) {
-        option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");
-    }
     // console.log('mirror', serial, option.args)
     return spawnShell([
         `--serial="${serial}"`,
