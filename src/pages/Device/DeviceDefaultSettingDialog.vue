@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import SettingItemYesNo from "../common/SettingItemYesNo.vue";
+import SettingItemYesNo from "../../components/common/SettingItemYesNo.vue";
 import {useSettingStore} from "../../store/modules/setting";
-import SettingItemInput from "../common/SettingItemInput.vue";
+import SettingItemInput from "../../components/common/SettingItemInput.vue";
 
 const setting = useSettingStore();
 const visible = ref(false);

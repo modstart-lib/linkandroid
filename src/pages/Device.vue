@@ -1,30 +1,30 @@
 <script setup lang="ts">
 import {useDeviceStore} from "../store/modules/device";
 import {DeviceRecord, EnumDeviceStatus, EnumDeviceType} from "../types/Device";
-import DeviceStatus from "../components/Device/DeviceStatus.vue";
+import DeviceStatus from "./Device/DeviceStatus.vue";
 import {Dialog} from "../lib/dialog";
 import {mapError} from "../lib/error";
 import InputInlineEditor from "../components/common/InputInlineEditor.vue";
-import DeviceSettingDialog from "../components/Device/DeviceSettingDialog.vue";
+import DeviceSettingDialog from "./Device/DeviceSettingDialog.vue";
 import {computed, ref} from "vue";
 import {t} from "../lang";
-import DeviceFileManagerDialog from "../components/Device/DeviceFileManagerDialog.vue";
-import DeviceConnectWifiDialog from "../components/Device/DeviceConnectWifiDialog.vue";
-import DeviceShellDialog from "../components/Device/DeviceShellDialog.vue";
-import DeviceAdbShellDialog from "../components/Device/DeviceAdbShellDialog.vue";
-import DeviceActionApp from "../components/Device/DeviceActionApp.vue";
-import DeviceActionRecord from "../components/Device/DeviceActionRecord.vue";
-import DeviceActionScreenshot from "../components/Device/DeviceActionScreenshot.vue";
+import DeviceFileManagerDialog from "./Device/DeviceFileManagerDialog.vue";
+import DeviceConnectWifiDialog from "./Device/DeviceConnectWifiDialog.vue";
+import DeviceShellDialog from "./Device/DeviceShellDialog.vue";
+import DeviceAdbShellDialog from "./Device/DeviceAdbShellDialog.vue";
+import DeviceActionApp from "./Device/DeviceActionApp.vue";
+import DeviceActionRecord from "./Device/DeviceActionRecord.vue";
+import DeviceActionScreenshot from "./Device/DeviceActionScreenshot.vue";
 import {AppConfig} from "../config";
-import DeviceActionWifiOn from "../components/Device/DeviceActionWifiOn.vue";
-import DeviceActionMirrorCamera from "../components/Device/DeviceActionMirrorCamera.vue";
-import DeviceActionMirrorOTG from "../components/Device/DeviceActionMirrorOTG.vue";
-import DeviceActionMirror from "../components/Device/DeviceActionMirror.vue";
-import DeviceActionDisconnect from "../components/Device/DeviceActionDisconnect.vue";
-import DeviceType from "../components/Device/DeviceType.vue";
-import DeviceActionConnect from "../components/Device/DeviceActionConnect.vue";
-import DeviceActionWifiOff from "../components/Device/DeviceActionWifiOff.vue";
-import DeviceDefaultSettingDialog from "../components/Device/DeviceDefaultSettingDialog.vue";
+import DeviceActionWifiOn from "./Device/DeviceActionWifiOn.vue";
+import DeviceActionMirrorCamera from "./Device/DeviceActionMirrorCamera.vue";
+import DeviceActionMirrorOTG from "./Device/DeviceActionMirrorOTG.vue";
+import DeviceActionMirror from "./Device/DeviceActionMirror.vue";
+import DeviceActionDisconnect from "./Device/DeviceActionDisconnect.vue";
+import DeviceType from "./Device/DeviceType.vue";
+import DeviceActionConnect from "./Device/DeviceActionConnect.vue";
+import DeviceActionWifiOff from "./Device/DeviceActionWifiOff.vue";
+import DeviceDefaultSettingDialog from "./Device/DeviceDefaultSettingDialog.vue";
 
 const settingDialog = ref<InstanceType<typeof DeviceSettingDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -95,20 +95,20 @@ const doHelp = () => {
             <div class="flex items-center">
                 <a-button v-if="deviceStore.records.length > 0" @click="doRefresh" class="ml-1">
                     <template #icon>
-                        <icon-refresh />
+                        <icon-refresh/>
                     </template>
                     {{ $t("刷新") }}
                 </a-button>
                 <a-button @click="connectWifiDialog?.show()" class="ml-1">
                     <template #icon>
-                        <icon-link />
+                        <icon-link/>
                     </template>
                     {{ $t("连接网络设备") }}
                 </a-button>
                 <a-dropdown trigger="hover">
                     <a-button class="ml-1">
                         <template #icon>
-                            <icon-caret-down />
+                            <icon-caret-down/>
                         </template>
                     </a-button>
                     <template #content>
@@ -121,7 +121,7 @@ const doHelp = () => {
         <div class="-mx-2">
             <div v-if="!deviceRecords.length" class="py-20">
                 <div class="text-center">
-                    <img class="h-40 m-auto opacity-50" src="./../assets/image/device-empty.svg" />
+                    <img class="h-40 m-auto opacity-50" src="./../assets/image/device-empty.svg"/>
                 </div>
                 <div class="mt-10 text-center text-lg text-gray-400">
                     <div>{{ $t("还没有设备，使用USB连接电脑开始使用～") }}</div>
@@ -129,13 +129,13 @@ const doHelp = () => {
                 <div class="mt-10 text-center">
                     <a-button class="mx-1" type="primary" @click="doRefresh">
                         <template #icon>
-                            <icon-refresh class="mr-1" />
+                            <icon-refresh class="mr-1"/>
                         </template>
                         {{ $t("刷新") }}
                     </a-button>
                     <a-button class="mx-1" @click="helpShow = true">
                         <template #icon>
-                            <icon-book class="mr-1" />
+                            <icon-book class="mr-1"/>
                         </template>
                         {{ $t("如何连接？") }}
                     </a-button>
@@ -147,7 +147,7 @@ const doHelp = () => {
                         <div class="pt-3">
                             {{ $t("更多内容，请查看") }}
                             <a href="javascript:;" class="text-link" @click="doHelp">
-                                <icon-book />
+                                <icon-book/>
                                 {{ $t("在线文档") }}
                             </a>
                         </div>
@@ -162,7 +162,7 @@ const doHelp = () => {
                         <div class="flex overflow-hidden flex-shrink-0 items-center h-12 px-4 py-2">
                             <div class="overflow-hidden">
                                 <div class="font-bold truncate cursor-pointer">
-                                    <DeviceType :type="r.type" />
+                                    <DeviceType :type="r.type"/>
                                     <span>
                                         {{ r.name }}
                                     </span>
@@ -171,12 +171,12 @@ const doHelp = () => {
                             <div class="flex-grow">
                                 <InputInlineEditor :value="r.name" @change="onEditName(r, $event)">
                                     <a class="ml-1 text-gray-400" href="javascript:;">
-                                        <icon-pen />
+                                        <icon-pen/>
                                     </a>
                                 </InputInlineEditor>
                             </div>
                             <div class="w-28 flex-shrink-0 text-right">
-                                <DeviceStatus :status="r.status" />
+                                <DeviceStatus :status="r.status"/>
                             </div>
                         </div>
                         <div class="h-52 relative">
@@ -187,32 +187,32 @@ const doHelp = () => {
                                         class="cursor-pointer border-4 border-b-8 border-solid border-black rounded-lg shadow-2xl bg-black text-center overflow-hidden"
                                     >
                                         <div v-if="r.screenshot && r.runtime?.previewImage === 'yes'">
-                                            <img :src="r.screenshot" class="max-h-44 max-w-44 rounded-sm" />
+                                            <img :src="r.screenshot" class="max-h-44 max-w-44 rounded-sm"/>
                                         </div>
                                         <div v-else class="w-24 h-44 bg-gray-200 text-xs text-gray-300 flex rounded-sm">
                                             <div class="m-auto">
-                                                <icon-eye class="text-2xl" />
+                                                <icon-eye class="text-2xl"/>
                                             </div>
                                         </div>
                                     </div>
                                 </a-tooltip>
                             </div>
                             <div class="absolute bottom-0 right-0 p-4">
-                                <DeviceActionMirror ref="actionMirrors" :device="r" />
-                                <DeviceActionApp :device="r" />
-                                <DeviceActionScreenshot :device="r" />
-                                <DeviceActionRecord :device="r" />
+                                <DeviceActionMirror ref="actionMirrors" :device="r"/>
+                                <DeviceActionApp :device="r"/>
+                                <DeviceActionScreenshot :device="r"/>
+                                <DeviceActionRecord :device="r"/>
                                 <a-tooltip :content="$t('文件管理')">
                                     <a-button class="ml-1" @click="fileManagerDialog?.show(r)">
                                         <template #icon>
-                                            <icon-folder class="text-gray-400" />
+                                            <icon-folder class="text-gray-400"/>
                                         </template>
                                     </a-button>
                                 </a-tooltip>
                                 <a-dropdown trigger="hover" :popup-max-height="false">
                                     <a-button class="ml-1">
                                         <template #icon>
-                                            <icon-settings class="text-gray-400" />
+                                            <icon-settings class="text-gray-400"/>
                                         </template>
                                     </a-button>
                                     <template #content>
@@ -230,10 +230,10 @@ const doHelp = () => {
                                             "
                                             :device="r"
                                         />
-                                        <DeviceActionWifiOn v-if="r.type === EnumDeviceType.USB" :device="r" />
-                                        <DeviceActionWifiOff v-if="r.type === EnumDeviceType.WIFI" :device="r" />
-                                        <DeviceActionMirrorCamera :device="r" />
-                                        <DeviceActionMirrorOTG v-if="r.type === EnumDeviceType.USB" :device="r" />
+                                        <DeviceActionWifiOn v-if="r.type === EnumDeviceType.USB" :device="r"/>
+                                        <DeviceActionWifiOff v-if="r.type === EnumDeviceType.WIFI" :device="r"/>
+                                        <DeviceActionMirrorCamera :device="r"/>
+                                        <DeviceActionMirrorOTG v-if="r.type === EnumDeviceType.USB" :device="r"/>
                                         <a-doption @click="adbShellDialog?.show(r)">
                                             {{ $t("命令行") }}
                                         </a-doption>
@@ -258,12 +258,12 @@ const doHelp = () => {
             </div>
         </div>
     </div>
-    <DeviceConnectWifiDialog ref="connectWifiDialog" />
-    <DeviceSettingDialog ref="settingDialog" />
-    <DeviceFileManagerDialog ref="fileManagerDialog" />
-    <DeviceAdbShellDialog ref="adbShellDialog" />
-    <DeviceShellDialog ref="shellDialog" />
-    <DeviceDefaultSettingDialog ref="defaultSettingDialog" />
+    <DeviceConnectWifiDialog ref="connectWifiDialog"/>
+    <DeviceSettingDialog ref="settingDialog"/>
+    <DeviceFileManagerDialog ref="fileManagerDialog"/>
+    <DeviceAdbShellDialog ref="adbShellDialog"/>
+    <DeviceShellDialog ref="shellDialog"/>
+    <DeviceDefaultSettingDialog ref="defaultSettingDialog"/>
 </template>
 
 <style scoped lang="less">
@@ -277,6 +277,7 @@ const doHelp = () => {
         background-repeat: no-repeat;
     }
 }
+
 [data-theme="dark"] {
     .pb-device-container {
         background-color: var(--color-background);

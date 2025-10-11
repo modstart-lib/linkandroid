@@ -3,7 +3,7 @@ import {computed, ref, nextTick} from "vue";
 import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
 import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
-import FileExt from "../common/FileExt.vue";
+import FileExt from "../../components/common/FileExt.vue";
 
 const visible = ref(false);
 const isEditPath = ref(false);

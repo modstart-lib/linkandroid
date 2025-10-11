@@ -3,7 +3,7 @@ import {computed, ref} from "vue";
 import {DeviceRecord} from "../../types/Device";
 import {useDeviceStore} from "../../store/modules/device";
 import {t} from "../../lang";
-import SettingItemYesNoDefault from "../common/SettingItemYesNoDefault.vue";
+import SettingItemYesNoDefault from "../../components/common/SettingItemYesNoDefault.vue";
 
 const deviceStore = useDeviceStore();
 const visible = ref(false);
