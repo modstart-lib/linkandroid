@@ -43,7 +43,7 @@ const doOpenLog = async () => {
     <div class="flex mb-3 items-center">
         <div class="w-20">{{ t("声明") }}</div>
         <div class="flex-grow">
-            {{ t("本产品为开源软件，遵循 Apache 2.0 开源协议。") }}
+            {{ t("本产品为开源软件，遵循 Apache-2.0 开源协议。") }}
         </div>
     </div>
     <div class="mb-3">
