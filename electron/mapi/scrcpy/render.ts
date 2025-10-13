@@ -21,11 +21,6 @@ const setBinPath = async (binPath: string) => {
     return true;
 };
 
-const shell = async (command: string) => {
-    const scrcpyPath = await getBinPath();
-    return await Apps.shell(`"${scrcpyPath}" ${command}`);
-};
-
 const spawnShell = async (
     args: string[],
     option: {
@@ -52,7 +47,10 @@ const spawnShell = async (
     // binary = '/Users/mz/data/project/linkandroid/linkandroid-scrcpy/x/app/scrcpy';
     return await Apps.spawnShell([
         binary, ...args
-    ], option);
+    ], {
+        ...option,
+        shell: false,
+    });
 };
 
 const mirror = async (
@@ -88,7 +86,6 @@ const mirror = async (
 export default {
     getBinPath,
     setBinPath,
-    shell,
     spawnShell,
     mirror,
 };

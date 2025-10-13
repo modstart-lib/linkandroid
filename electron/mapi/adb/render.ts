@@ -46,18 +46,13 @@ const getClient = async (): Promise<Client> => {
     return client;
 };
 
-const adbShell = async (command: string, deviceId?: string) => {
-    const adbPath = await getBinPath();
-    if (deviceId) {
-        deviceId = `-s "${deviceId}"`;
-    } else {
-        deviceId = "";
-    }
-    return await Apps.shell(`"${adbPath}" ${deviceId} ${command}`);
+const adbShell = async (args: string[], deviceId?: string) => {
+    const controller = await spawnShell(args, {}, deviceId);
+    return await controller.result();
 };
 
-const adbSpawnShell = async (
-    command: string,
+const spawnShell = async (
+    args: string[],
     option?: {
         stdout?: (data: string, process: any) => void;
         stderr?: (data: string, process: any) => void;
@@ -68,11 +63,15 @@ const adbSpawnShell = async (
 ) => {
     const adbPath = await getBinPath();
     if (deviceId) {
-        deviceId = `-s "${deviceId}"`;
-    } else {
-        deviceId = "";
+        args = ["-s", deviceId, ...args];
     }
-    return await Apps.spawnShell(`"${adbPath}" ${deviceId} ${command}`, option);
+    return await Apps.spawnShell([
+        adbPath,
+        ...args,
+    ], {
+        ...option,
+        shell: false,
+    });
 };
 
 const devices = async () => {
@@ -95,7 +94,7 @@ const disconnect = async (host: string, port?: number) => {
 
 const getDeviceIP = async (id: string) => {
     try {
-        const {stdout} = await adbShell(`-s ${id} shell ip -f inet addr show wlan0`);
+        const stdout = await adbShell(["-s", id, "shell", "ip", "-f", "inet", "addr", "show", "wlan0"]);
         const reg = /inet ([0-9.]+)\/\d+/;
         const match = stdout.toString().match(reg);
         const value = match[1];
@@ -140,7 +139,9 @@ const screenrecord = async (
         devicePath: null as string | null,
     };
     controller.devicePath = "/sdcard/LinkAndroid_screenshot_" + TimeUtil.timestampInMs() + ".mp4";
-    const shellControl = await adbSpawnShell(`-s "${deviceId}" shell screenrecord "${controller.devicePath}"`, {
+    const shellControl = await spawnShell([
+        "-s", deviceId, "shell", "screenrecord", controller.devicePath
+    ], {
         stdout: data => {
             // console.log('screenrecord.stdout', data)
         },
@@ -265,7 +266,9 @@ const filePull = async (
 };
 
 const fileDelete = async (id: string, devicePath: string) => {
-    await adbShell(`-s ${id} shell rm -rf '${devicePath}'`);
+    await adbShell([
+        "-s", id, "shell", "rm", "-rf", `${devicePath}`
+    ]);
 };
 
 const listApps = async (id: string) => {
@@ -291,8 +294,7 @@ const info = async (id: string) => {
 export default {
     getBinPath,
     setBinPath,
-    adbShell,
-    adbSpawnShell,
+    spawnShell,
     devices,
     shell,
     connect,

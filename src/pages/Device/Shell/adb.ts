@@ -4,13 +4,12 @@ import {useFixCursor} from "./index";
 import {t} from "../../../lang";
 
 export const useAdbCommand = ({loading, vueCommand, history}) => {
-    const adbCommand = async args => {
+    const adbCommand = async (args: string[]) => {
         loading.value = true;
-        const command = args.slice(1).join(" ");
         const appendToHistory = debounce(vueCommand.value.appendToHistory, 500);
         let stdoutText = "";
         let stderrText = "";
-        window.$mapi.adb.adbSpawnShell(command, {
+        $mapi.adb.spawnShell(args.slice(1), {
             stdout(text) {
                 loading.value = false;
                 stdoutText += text;

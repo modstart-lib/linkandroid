@@ -355,9 +355,8 @@ type DefsMapi = {
     adb: {
         getBinPath: () => Promise<string>;
         setBinPath: (binPath: string) => Promise<boolean>;
-        adbShell: (command: string, deviceId?: string) => Promise<string>;
-        adbSpawnShell: (
-            command: string,
+        spawnShell: (
+            args: string[],
             option?: {
                 stdout?: Function | null;
                 stderr?: Function | null;
@@ -411,7 +410,6 @@ type DefsMapi = {
     scrcpy: {
         getBinPath: () => Promise<string>;
         setBinPath: (binPath: string) => Promise<boolean>;
-        shell: (command: string) => Promise<string>;
         spawnShell: (
             args: string[],
             option?: {

@@ -43,9 +43,10 @@ watch(
             nextTick(() => {
                 fitAddon.fit();
                 term.focus();
-            }, 0);
-            const command = ["-s", device.value?.id as string, "shell", "-tt"].join(" ");
-            shellController = await window.$mapi.adb.adbSpawnShell(command, {
+            });
+            shellController = await window.$mapi.adb.spawnShell([
+                "-s", device.value?.id as string, "shell", "-tt"
+            ], {
                 stdout: data => {
                     // console.log('stdout', JSON.stringify(data))
                     term.write(data);
