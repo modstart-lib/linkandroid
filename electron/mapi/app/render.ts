@@ -94,6 +94,7 @@ const setRenderAppEnv = (env: any) => {
     AppEnv.appRoot = env.appRoot;
     AppEnv.appData = env.appData;
     AppEnv.userData = env.userData;
+    AppEnv.dataRoot = env.dataRoot;
 };
 
 const getClipboardText = () => {
