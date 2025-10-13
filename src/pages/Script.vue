@@ -10,9 +10,6 @@ import DeviceConnectWifiDialog from "./Device/DeviceConnectWifiDialog.vue";
 import DeviceShellDialog from "./Device/DeviceShellDialog.vue";
 import DeviceAdbShellDialog from "./Device/DeviceAdbShellDialog.vue";
 import DeviceDefaultSettingDialog from "./Device/DeviceDefaultSettingDialog.vue";
-import DeviceFilterEmpty from "./Device/DeviceFilterEmpty.vue";
-import DeviceEmpty from "./Device/DeviceEmpty.vue";
-import DeviceItem from "./Device/DeviceItem.vue";
 
 const settingDialog = ref<InstanceType<typeof DeviceSettingDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -52,72 +49,34 @@ const doRefresh = async () => {
 
 <template>
     <div
-        class="pb-device-container min-h-[calc(100vh-5rem)] relative select-none"
+        class="pb-script-container min-h-full relative select-none"
         :class="{'has-records': deviceStore.records.length > 0}"
     >
         <div class="pb-header flex items-center sticky top-0 bg-white px-8 py-2 my-4"
              style="z-index:1;">
             <div class="text-3xl font-bold flex-grow">
-                {{ $t("设备") }}
+                {{ $t("脚本") }}
             </div>
             <div class="flex items-center">
                 <a-input-search
                     v-if="deviceStore.records.length > 0"
                     v-model="searchKeywords"
-                    :placeholder="$t('搜索设备')"
+                    :placeholder="$t('搜索脚本')"
                     class="w-48"
                     allow-clear
                 />
-                <a-button @click="doRefresh" class="ml-1">
-                    <template #icon>
-                        <icon-refresh/>
-                    </template>
-                    {{ $t("刷新") }}
-                </a-button>
-                <a-button @click="connectWifiDialog?.show()" class="ml-1">
-                    <template #icon>
-                        <icon-link/>
-                    </template>
-                    {{ $t("连接网络设备") }}
-                </a-button>
-                <a-dropdown trigger="hover">
-                    <a-button class="ml-1">
-                        <template #icon>
-                            <icon-caret-down/>
-                        </template>
-                    </a-button>
-                    <template #content>
-                        <a-doption @click="shellDialog?.show()">{{ $t("命令行工具") }}</a-doption>
-                        <a-doption @click="defaultSettingDialog?.show()">{{ $t("默认设置") }}</a-doption>
-                    </template>
-                </a-dropdown>
             </div>
         </div>
         <div class="px-8">
-            <DeviceEmpty v-if="!deviceStore.records.length"/>
-            <DeviceFilterEmpty v-else-if="!filterRecords.length"/>
-            <div v-else class="flex flex-wrap">
-                <div v-for="(r, rIndex) in filterRecords" :key="rIndex"
-                     class="p-1 w-52 max-w-96 flex-grow">
-                    <DeviceItem :record="r"
-                                @file-manager="fileManagerDialog?.show(r)"
-                                @setting="settingDialog?.show(r)"
-                                @adb-shell="adbShellDialog?.show(r)"
-                    />
-                </div>
+            <div class="p-20 text-center text-gray-400">
+                {{ $t("功能正在开发中，敬请期待") }}
             </div>
         </div>
     </div>
-    <DeviceConnectWifiDialog ref="connectWifiDialog"/>
-    <DeviceSettingDialog ref="settingDialog"/>
-    <DeviceFileManagerDialog ref="fileManagerDialog"/>
-    <DeviceAdbShellDialog ref="adbShellDialog"/>
-    <DeviceShellDialog ref="shellDialog"/>
-    <DeviceDefaultSettingDialog ref="defaultSettingDialog"/>
 </template>
 
 <style scoped lang="less">
-.pb-device-container {
+.pb-script-container {
     &.has-records:after {
         content: '';
         position: absolute;
@@ -136,7 +95,7 @@ const doRefresh = async () => {
 }
 
 [data-theme="dark"] {
-    .pb-device-container {
+    .pb-script-container {
         background-color: var(--color-background);
 
         .pb-header {

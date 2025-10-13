@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {computed} from "vue";
 import {useRouter} from "vue-router";
-import {AppConfig} from "../config";
 import {useUserStore} from "../store/modules/user";
 import {t} from "../lang";
 import {useSettingStore} from "../store/modules/setting";
@@ -18,6 +17,8 @@ const activeTab = computed(() => {
             return "device";
         case "/setting":
             return "setting";
+        case "/script":
+            return "script";
     }
 });
 
@@ -69,9 +70,20 @@ const doUser = async () => {
                 href="javascript:;"
             >
                 <div>
-                    <icon-mobile class="text-xl" />
+                    <icon-mobile class="text-xl"/>
                 </div>
                 <div class="text-sm">{{ $t("设备") }}</div>
+            </a>
+            <a
+                class="page-nav-item block text-center py-3"
+                :class="activeTab === 'script' ? 'script' : ''"
+                @click="$router.push('/script')"
+                href="javascript:;"
+            >
+                <div>
+                    <icon-code class="text-xl"/>
+                </div>
+                <div class="text-sm">{{ $t("脚本") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -80,7 +92,7 @@ const doUser = async () => {
                 href="javascript:;"
             >
                 <div>
-                    <icon-settings class="text-xl" />
+                    <icon-settings class="text-xl"/>
                 </div>
                 <div class="text-sm">{{ $t("设置") }}</div>
             </a>
