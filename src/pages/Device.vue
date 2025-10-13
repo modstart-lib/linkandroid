@@ -60,6 +60,12 @@ const doRefresh = async () => {
             <div class="text-3xl font-bold flex-grow">
                 {{ $t("设备") }}
             </div>
+            <div class="mr-5">
+                <a target="_blank" class="text-red-500" href="https://linkandroid.com/forum">
+                    <icon-message class="mr-1" />
+                    {{ $t("使用遇到问题？发帖求助") }}
+                </a>
+            </div>
             <div class="flex items-center">
                 <a-input-search
                     v-if="deviceStore.records.length > 0"

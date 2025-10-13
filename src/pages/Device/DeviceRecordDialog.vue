@@ -70,7 +70,7 @@ const doRecordStart = async () => {
     recordData.value.resultPath.mp4 = null;
     recordData.value.resultPath.gif = null;
     // console.log('doRecordStart.start')
-    recordController = await window.$mapi.adb.screenrecord(device.value.id, {
+    recordController = await $mapi.adb.screenrecord(device.value.id, {
         progress: (type: string, data: any) => {
             if (type === "success") {
                 doRecordProcess().then();
@@ -93,32 +93,32 @@ const doRecordStop = async () => {
 const doRecordProcess = async () => {
     recordData.value.status = "converting";
     await sleep(1000);
-    recordData.value.localTempDir = await window.$mapi.file.tempDir();
+    recordData.value.localTempDir = await $mapi.file.tempDir();
     const localTempMp4Path = recordData.value.localTempDir + "/record.mp4";
-    await window.$mapi.adb.filePull(device.value.id, recordData.value.devicePath as string, localTempMp4Path);
-    await window.$mapi.adb.fileDelete(device.value.id, recordData.value.devicePath as string);
+    await $mapi.adb.filePull(device.value.id, recordData.value.devicePath as string, localTempMp4Path);
+    await $mapi.adb.fileDelete(device.value.id, recordData.value.devicePath as string);
     recordData.value.localTempMp4Path = localTempMp4Path;
     const resultPath = recordData.value.localTempDir + "/result." + recordData.value.format;
     try {
         switch (recordData.value.format) {
             case "mp4":
-                await window.$mapi.app.spawnBinary('ffmpeg', [
+                await $mapi.app.spawnBinary('ffmpeg', [
                     "-i",
-                    ShellUtil.quotaPath(localTempMp4Path),
+                    localTempMp4Path,
                     "-vcodec",
                     "libx264",
-                    ShellUtil.quotaPath(resultPath),
+                    resultPath,
                 ]);
                 break;
             case "gif":
-                await window.$mapi.app.spawnBinary('ffmpeg', [
+                await $mapi.app.spawnBinary('ffmpeg', [
                     "-i",
-                    ShellUtil.quotaPath(localTempMp4Path),
+                    localTempMp4Path,
                     "-vf",
                     `fps=${recordData.value.gifParam.fps}`,
                     "-c:v",
                     "gif",
-                    ShellUtil.quotaPath(resultPath),
+                    resultPath,
                 ]);
                 break;
             default:
@@ -129,7 +129,7 @@ const doRecordProcess = async () => {
         recordData.value.status = "fail";
         return;
     }
-    if (!(await window.$mapi.file.exists(resultPath))) {
+    if (!(await $mapi.file.exists(resultPath))) {
         recordData.value.status = "fail";
         return;
     }
@@ -138,7 +138,7 @@ const doRecordProcess = async () => {
 };
 
 const doRecordDownload = async () => {
-    let path = await window.$mapi.file.openSave({
+    let path = await $mapi.file.openSave({
         defaultPath: t("录屏") + "_" + TimeUtil.datetimeString(),
     });
     if (!path) {
@@ -148,16 +148,16 @@ const doRecordDownload = async () => {
     if (!formatRegx.test(path)) {
         path += "." + recordData.value.format;
     }
-    if (await window.$mapi.file.exists(path)) {
-        await window.$mapi.file.deletes(path);
+    if (await $mapi.file.exists(path)) {
+        await $mapi.file.deletes(path);
     }
     let fromPath = recordData.value.resultPath[recordData.value.format] as string;
-    await window.$mapi.file.copy(fromPath, path);
+    await $mapi.file.copy(fromPath, path);
     Dialog.tipSuccess(t("下载成功"));
 };
 
 const doClose = async () => {
-    await window.$mapi.file.deletes(recordData.value.localTempDir as string);
+    await $mapi.file.deletes(recordData.value.localTempDir as string);
     visible.value = false;
 };
 
