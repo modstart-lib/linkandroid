@@ -56,14 +56,10 @@
 ### MacOS
 
 - download MacOS installer from [https://linkandroid.com](https://linkandroid.com)
-- install `scrcpy` manually, refer to [scrcpy tutorial](https://github.com/Genymobile/scrcpy)
-    - [https://github.com/Genymobile/scrcpy/blob/master/doc/macos.md](https://github.com/Genymobile/scrcpy/blob/master/doc/macos.md)
 
 ### Linux
 
 - download Linux installer from [https://linkandroid.com](https://linkandroid.com)
-- install `scrcpy` manually, refer to [scrcpy tutorial](https://github.com/Genymobile/scrcpy)
-    - [https://github.com/Genymobile/scrcpy/blob/master/doc/linux.md](https://github.com/Genymobile/scrcpy/blob/master/doc/linux.md)
 
 ## We uses
 
