@@ -10,14 +10,14 @@ const props = defineProps<Props>();
 
 <template>
     <div
-        class="text-white px-2 py-1 rounded-full text-sm inline-flex items-center"
+        class="text-white px-1 py-1 rounded-full text-xs inline-flex items-center"
         :class="{
             'bg-gray-400': props.status === EnumDeviceStatus.WAIT_CONNECTING,
             'bg-green-500': props.status === EnumDeviceStatus.CONNECTED,
             'bg-red-500': props.status === EnumDeviceStatus.DISCONNECTED,
         }"
     >
-        <div class="w-2 h-2 rounded-full bg-white mr-2"></div>
+        <div class="w-2 h-2 rounded-full bg-white mr-1"></div>
         <div v-if="props.status === EnumDeviceStatus.WAIT_CONNECTING">
             {{ $t("连接中") }}
         </div>
