@@ -88,7 +88,7 @@ const doRefresh = async () => {
         background-size: 15rem 15rem;
         background-position: 98% 98%;
         background-blend-mode: lighten;
-        background-color: rgba(255, 255, 255, 0.8);
+        background-color: transparent;
         background-repeat: no-repeat;
         opacity: 0.5;
     }
