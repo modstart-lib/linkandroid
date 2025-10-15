@@ -76,7 +76,7 @@ const doUser = async () => {
             </a>
             <a
                 class="page-nav-item block text-center py-3"
-                :class="activeTab === 'script' ? 'script' : ''"
+                :class="activeTab === 'script' ? 'active' : ''"
                 @click="$router.push('/script')"
                 href="javascript:;"
             >

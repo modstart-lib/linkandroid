@@ -71,8 +71,8 @@ const mirror = async (
     }, option);
     // console.log('mirror', serial, option.args)
     return spawnShell([
-        `--serial="${serial}"`,
-        `--window-title="${option.title}"`,
+        '--serial', serial,
+        '--window-title', option.title || 'LinkAndroid',
         ...option.args,
     ], {
         stdout: option.stdout,

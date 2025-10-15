@@ -280,10 +280,10 @@ export const deviceStore = defineStore("device", {
                 args.push("--no-audio");
             }
             if (setting.videoBitRate) {
-                args.push(`--video-bit-rate="${setting.videoBitRate}"`);
+                args.push('--video-bit-rate', setting.videoBitRate);
             }
             if (setting.maxFps) {
-                args.push(`--max-fps="${setting.maxFps}"`);
+                args.push('--max-fps', setting.maxFps);
             }
             if (setting.dimWhenMirror === "yes") {
                 args.push("--turn-screen-off");

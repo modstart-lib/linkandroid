@@ -49,7 +49,7 @@ const doRefresh = async () => {
 
 <template>
     <div
-        class="pb-script-container min-h-full relative select-none"
+        class="pb-script-container min-h-[calc(100vh-4rem)] relative select-none"
         :class="{'has-records': deviceStore.records.length > 0}"
     >
         <div class="pb-header flex items-center sticky top-0 bg-white px-8 py-2 my-4"
@@ -68,31 +68,19 @@ const doRefresh = async () => {
             </div>
         </div>
         <div class="px-8">
-            <div class="p-20 text-center text-gray-400">
-                {{ $t("功能正在开发中，敬请期待") }}
+            <div class="py-32 text-center">
+                <div class="mb-10">
+                    <icon-robot class="text-5xl"/>
+                </div>
+                <div class="text-gray-400">
+                    {{ $t("功能正在开发中，敬请期待") }}
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped lang="less">
-.pb-script-container {
-    &.has-records:after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 15rem;
-        height: 15rem;
-        background-image: url("./../assets/image/device-bg.svg");
-        background-size: 15rem 15rem;
-        background-position: 98% 98%;
-        background-blend-mode: lighten;
-        background-color: transparent;
-        background-repeat: no-repeat;
-        opacity: 0.5;
-    }
-}
 
 [data-theme="dark"] {
     .pb-script-container {

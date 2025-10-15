@@ -52,7 +52,7 @@ const doRefresh = async () => {
 
 <template>
     <div
-        class="pb-device-container min-h-[calc(100vh-5rem)] relative select-none"
+        class="pb-device-container min-h-[calc(100vh-4rem)] relative select-none"
         :class="{'has-records': deviceStore.records.length > 0}"
     >
         <div class="pb-header flex items-center sticky top-0 bg-white px-8 py-2 my-4"
@@ -62,7 +62,7 @@ const doRefresh = async () => {
             </div>
             <div class="mr-5">
                 <a target="_blank" class="text-red-500" href="https://linkandroid.com/forum">
-                    <icon-message class="mr-1" />
+                    <icon-message class="mr-1"/>
                     {{ $t("使用遇到问题？发帖求助") }}
                 </a>
             </div>
@@ -132,8 +132,8 @@ const doRefresh = async () => {
         width: 15rem;
         height: 15rem;
         background-image: url("./../assets/image/device-bg.svg");
-        background-size: 15rem 15rem;
-        background-position: 98% 98%;
+        background-size: contain;
+        background-position: bottom;
         background-blend-mode: lighten;
         background-color: transparent;
         background-repeat: no-repeat;

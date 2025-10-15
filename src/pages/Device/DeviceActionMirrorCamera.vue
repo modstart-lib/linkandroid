@@ -20,9 +20,8 @@ const doMirror = async () => {
     }
     Dialog.loadingOn(t("正在打开摄像头"));
     const args = [
-        "--video-source=camera",
+        '--video-source', 'camera',
         "--always-on-top",
-        // '--camera-facing=back',
     ];
     try {
         const mirrorController = await $mapi.scrcpy.mirror(props.device.id, {
