@@ -806,17 +806,21 @@ const autoCleanTemp = async (keepDays: number = 7) => {
     }
 };
 
-const temp = async (ext: string = "tmp", prefix: string = "file", suffix: string = "") => {
-    const root = await tempRoot();
+const tempName = async (ext: string = "tmp", prefix: string = "file", suffix: string = ""): Promise<string> => {
     const parts = [prefix, TimeUtil.timestampInMs(), StrUtil.randomString(32)];
     if (suffix) {
         parts.push(suffix);
     }
     const p = parts.join("_");
-    return path.join(root, `${p}.${ext}`);
+    return `${p}.${ext}`;
+}
+
+const temp = async (ext: string = "tmp", prefix: string = "file", suffix: string = ""): Promise<string> => {
+    const root = await tempRoot();
+    return path.join(root, await tempName(ext, prefix, suffix));
 };
 
-const tempDir = async (prefix: string = "dir") => {
+const tempDir = async (prefix: string = "dir"): Promise<string> => {
     const root = await tempRoot();
     const p = [prefix, TimeUtil.timestampInMs(), StrUtil.randomString(32)].join("_");
     const dir = path.join(root, p);
@@ -1197,6 +1201,8 @@ export const FileIndex = {
     deletes,
     rename,
     copy,
+    tempRoot,
+    tempName,
     temp,
     tempDir,
     watchText,
