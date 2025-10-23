@@ -49,6 +49,26 @@ export const UI = {
             }
         });
     },
+    smoothScrollTop: (element: HTMLElement, to: number, duration = 200) => {
+        return new Promise((resolve) => {
+            const start = element.scrollTop;
+            const change = to - start;
+            const startTime = performance.now();
+            const animate = (now) => {
+                const progress = Math.min((now - startTime) / duration, 1);
+                const eased = progress < 0.5
+                    ? 4 * progress * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                element.scrollTop = start + change * eased;
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    resolve(undefined);
+                }
+            }
+            requestAnimationFrame(animate);
+        });
+    }
 };
 
 export class TabContentScroller {
