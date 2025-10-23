@@ -1,6 +1,6 @@
-import {BrowserWindow} from "electron";
-import {AppsMain} from "./main";
-import {icons} from "./icons";
+import { BrowserWindow } from "electron";
+import { icons } from "./icons";
+import { AppsMain } from "./main";
 
 let win = null;
 let winCloseTimer = null;
@@ -68,50 +68,56 @@ export const makeToast = async (
         focusable: false,
         skipTaskbar: true,
     });
-    const htmlContent = `
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <style>
-        html,body{
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-            background: rgba(0, 0, 0, 0.4);
-            color: #FFFFFF;
-            font-family: "PingFang SC", "Helvetica Neue", Helvetica, STHeiTi, "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
-        }
-        .message-view {
-            height: 100vh;
-            display:flex;
-            text-align:center;
-            padding:0 10px;
-        }
-        .message-view div{
-            margin: auto;
-            font-size: 16px;
-            display: inline-block;
-            line-height: 30px;
-            white-space: nowrap;
-        }
-        .message-view div .icon{
-            width: 30px;
-            height: 30px;
-            display:inline-block;
-            margin-right: 5px;
-            vertical-align: top;
-        }
-        ::-webkit-scrollbar {
-          width: 0;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="message-view" onclick="window.close()">
-        <div id="message">${icon}${msg}</div>
-      </div>
-    </body>
-  </html>
+        const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <style>
+                html,body{
+                        height: 100%;
+                        margin: 0;
+                        padding: 0;
+                        background: transparent;
+                        color: #FFFFFF;
+                        font-family: "PingFang SC", "Helvetica Neue", Helvetica, STHeiTi, "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+                }
+                .message-view {
+                        height: 100%;
+                        display:flex;
+                        text-align:center;
+                        padding:10px;
+                        box-sizing: border-box;
+                }
+                .message-view div{
+                        margin: auto;
+                        font-size: 16px;
+                        display: inline-flex;
+                        align-items: center;
+                        line-height: 20px;
+                        white-space: nowrap;
+                        background: rgba(0, 0, 0, 0.85);
+                        border-radius: 15px;
+                        padding: 8px 14px;
+                        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+                }
+                .message-view div .icon{
+                        width: 30px;
+                        height: 30px;
+                        display:inline-block;
+                        margin-right: 8px;
+                        vertical-align: middle;
+                }
+                ::-webkit-scrollbar {
+                    width: 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="message-view" onclick="window.close()">
+                <div id="message">${icon}${msg}</div>
+            </div>
+        </body>
+    </html>
 `;
 
     const encodedHTML = encodeURIComponent(htmlContent);
