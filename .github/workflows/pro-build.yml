@@ -136,9 +136,10 @@ jobs:
       - name: Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          draft: false
+          draft: true
           prerelease: false
           fail_on_unmatched_files: false
+          overwrite_files: true
           files: |
             code/dist-release/*.exe
             code/dist-release/*.dmg
