@@ -1,6 +1,6 @@
-import { BrowserWindow } from "electron";
-import { icons } from "./icons";
-import { AppsMain } from "./main";
+import {BrowserWindow} from "electron";
+import {icons} from "./icons";
+import {AppsMain} from "./main";
 
 let win = null;
 let winCloseTimer = null;
@@ -55,6 +55,7 @@ export const makeToast = async (
     win = new BrowserWindow({
         height,
         width,
+        parent: null,
         x: 0,
         y: 0,
         modal: false,
@@ -68,7 +69,7 @@ export const makeToast = async (
         focusable: false,
         skipTaskbar: true,
     });
-        const htmlContent = `
+    const htmlContent = `
     <!DOCTYPE html>
     <html>
         <head>
@@ -83,10 +84,10 @@ export const makeToast = async (
                 }
                 .message-view {
                         height: 100%;
-                        display:flex;
                         text-align:center;
-                        padding:10px;
                         box-sizing: border-box;
+                        background-color:transparent;
+                        padding: 10px;
                 }
                 .message-view div{
                         margin: auto;
@@ -94,11 +95,10 @@ export const makeToast = async (
                         display: inline-flex;
                         align-items: center;
                         line-height: 20px;
-                        white-space: nowrap;
                         background: rgba(0, 0, 0, 0.85);
                         border-radius: 15px;
-                        padding: 8px 14px;
-                        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+                        padding: 10px 10px;
+                        box-shadow: 5px 5px 5px rgba(0,0,0,0.3);
                 }
                 .message-view div .icon{
                         width: 30px;
@@ -106,6 +106,7 @@ export const makeToast = async (
                         display:inline-block;
                         margin-right: 8px;
                         vertical-align: middle;
+                        flex-shrink: 0;
                 }
                 ::-webkit-scrollbar {
                     width: 0;
@@ -124,18 +125,20 @@ export const makeToast = async (
     win.loadURL(`data:text/html;charset=UTF-8,${encodedHTML}`);
     win.on("ready-to-show", async () => {
         if (!win) return;
-        const width = Math.ceil(
-            await win.webContents.executeJavaScript(`(()=>{
+        const containerSize = await win.webContents.executeJavaScript(`(()=>{
             const message = document.getElementById('message');
             const width = message.scrollWidth;
-            return width;
-        })()`)
-        );
-        win.setSize(width + 20, height);
-        const x = display.workArea.x + display.workArea.width / 2 - (width + 20) / 2;
+            const height = message.scrollHeight;
+            return {width:width,height:height};
+        })()`);
+        // console.log('containerSize', containerSize);
+        const containerWidth = containerSize.width + 20;
+        const containerHeight = containerSize.height + 20;
+        win.setSize(containerWidth, containerHeight);
+        const x = display.workArea.x + display.workArea.width / 2 - containerWidth / 2;
         const y = display.workArea.y + (display.workArea.height * 1) / 4;
         win.setPosition(Math.floor(x), Math.floor(y));
-        win.show();
+        win.showInactive();
         // win.webContents.openDevTools({
         //     mode: 'detach'
         // })
