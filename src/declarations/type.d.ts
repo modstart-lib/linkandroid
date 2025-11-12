@@ -353,7 +353,7 @@ type DefsMapi = {
     };
 
     adb: {
-        getBinPath: () => Promise<string>;
+        getBinPath: (returnEmptyWhenDefault: boolean = false) => Promise<string>;
         setBinPath: (binPath: string) => Promise<boolean>;
         spawnShell: (
             args: string[],
@@ -408,7 +408,7 @@ type DefsMapi = {
         }>;
     };
     scrcpy: {
-        getBinPath: () => Promise<string>;
+        getBinPath: (returnEmptyWhenDefault: boolean = false) => Promise<string>;
         setBinPath: (binPath: string) => Promise<boolean>;
         spawnShell: (
             args: string[],

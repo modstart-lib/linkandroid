@@ -19,12 +19,16 @@ const destroy = () => {
     }
 };
 
-const getBinPath = async () => {
+const getBinPath = async (returnEmptyWhenDefault: boolean = false): Promise<string> => {
     const binPath = await Config.get("common.adbPath");
+    const binPathDefault = extraResolveBin("scrcpy/adb");
+    if (returnEmptyWhenDefault && (!binPath || binPath === binPathDefault)) {
+        return '';
+    }
     if (binPath) {
         return binPath;
     }
-    return extraResolveBin("scrcpy/adb");
+    return binPathDefault;
 };
 
 const setBinPath = async (binPath: string) => {

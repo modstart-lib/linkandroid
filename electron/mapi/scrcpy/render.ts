@@ -4,12 +4,16 @@ import {Apps} from "../app";
 import {ADB} from "../adb/render";
 import {IconvUtil} from "../../lib/util";
 
-const getBinPath = async () => {
+const getBinPath = async (returnEmptyWhenDefault: boolean = false):Promise<string> => {
     const binPath = await Config.get("common.scrcpyPath");
+    const binPathDefault = extraResolveBin("scrcpy/scrcpy");
+    if (returnEmptyWhenDefault && (!binPath || binPath === binPathDefault)) {
+        return '';
+    }
     if (binPath) {
         return binPath;
     }
-    return extraResolveBin('scrcpy/scrcpy')
+    return binPathDefault
 };
 
 const setBinPath = async (binPath: string) => {
@@ -39,7 +43,7 @@ const spawnShell = async (
     }, option);
     option.env["ADB"] = await ADB.getBinPath();
     if (isWin) {
-        option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");
+        // option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");
     }
     let binary = await getBinPath();
     // local debug

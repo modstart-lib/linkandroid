@@ -4,11 +4,15 @@ import {onMounted, ref} from "vue";
 
 const basic = ref({
     adbPath: null as string | null,
+    adbPathDefault: null as string | null,
     scrcpyPath: null as string | null,
+    scrcpyPathDefault: null as string | null,
 });
 const doLoad = async () => {
-    basic.value.adbPath = await $mapi.adb.getBinPath();
-    basic.value.scrcpyPath = await $mapi.scrcpy.getBinPath();
+    basic.value.adbPath = await $mapi.adb.getBinPath(true);
+    basic.value.adbPathDefault = await $mapi.adb.getBinPath();
+    basic.value.scrcpyPath = await $mapi.scrcpy.getBinPath(true);
+    basic.value.scrcpyPathDefault = await $mapi.scrcpy.getBinPath();
 };
 
 onMounted(doLoad);
@@ -38,7 +42,9 @@ const doSelectScrcpyPath = async () => {
 <template>
     <a-form :model="{}" layout="vertical">
         <a-form-item field="name" :label="t('adb路径')">
-            <a-input @change="doAdbPathChange" v-model="basic.adbPath as string">
+            <a-input @change="doAdbPathChange"
+                     :placeholder="basic.adbPathDefault"
+                     v-model="basic.adbPath as string">
                 <template #append>
                     <span @click="doSelectAdbPath" class="cursor-pointer">
                         {{ t("选择路径") }}
@@ -47,7 +53,9 @@ const doSelectScrcpyPath = async () => {
             </a-input>
         </a-form-item>
         <a-form-item field="name" :label="t('scrcpy路径')">
-            <a-input @change="doScrcpyPathChange" v-model="basic.scrcpyPath as string">
+            <a-input @change="doScrcpyPathChange"
+                     :placeholder="basic.scrcpyPathDefault"
+                     v-model="basic.scrcpyPath as string">
                 <template #append>
                     <span @click="doSelectScrcpyPath" class="cursor-pointer">
                         {{ t("选择路径") }}

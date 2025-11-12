@@ -37,7 +37,8 @@ const tryFirst = (functionList: (() => any)[]) => {
     for (const fun of functionList) {
         try {
             return fun();
-        } catch (e) {}
+        } catch (e) {
+        }
     }
     return null;
 };
@@ -106,20 +107,20 @@ export const platformUUID = () => {
     return platformUUIDCache;
 };
 
-export const buildResolve = (value: string) => {
+export const buildResolve = (value: string): string => {
     return resolve(`electron/resources/build/${value}`);
 };
 
-export const binResolve = (value: string) => {
+export const binResolve = (value: string): string => {
     return resolve(process.resourcesPath, "bin", value);
 };
 
-export const extraResolve = (filePath: string) => {
+export const extraResolve = (filePath: string): string => {
     const basePath = isPackaged ? process.resourcesPath : "electron/resources";
     return resolve(basePath, "extra", filePath);
 };
 
-export const extraResolveBin = (filePath: string) => {
+export const extraResolveBin = (filePath: string): string => {
     if (isWin) {
         if (!filePath.endsWith(".exe")) {
             filePath += ".exe";
