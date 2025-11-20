@@ -1,4 +1,4 @@
-# LinkAndroid
+# 📱 LinkAndroid
 
 ![](./screenshots/en/home.png)
 
@@ -8,87 +8,87 @@
 [![star](https://gitee.com/modstart-lib/linkandroid/badge/star.svg)](https://gitee.com/modstart-lib/linkandroid)
 [![star](https://gitcode.com/modstart-lib/linkandroid/star/badge.svg)](https://gitcode.com/modstart-lib/linkandroid)
 
-## Guide
+## 📖 Guide
 
 【[中文文档](./README-CN.md)】 【[English](./README.md)】
 
-`LinkAndroid` is an all-in-one mobile phone connection assistant that can easily connect `Android` and computers. After connecting the phone, you can screen mirroring, GIF/MP4 screen recording, screenshots, file management, and phone operation.
+`LinkAndroid` is an all-in-one mobile connection assistant 🚀 that lets you easily connect your `Android` device to your computer 📱💻. Once connected, enjoy powerful features like screen mirroring, GIF/MP4 recording, screenshots, file management, and phone operations, making mobile management simple and efficient!
 
-## Features
+## ✨ Features
 
-- multiple phone connect supported
-- screen mirroring, based on scrcpy, support phone operation
-- screenshot, image beautifier will be opened automatically after screenshot
-- GIF/MP4 screen recording
-- application management
-- file management, support upload/download/delete
-- shell command, support adb, screen command and phone shell command
-- 1i8n support, English/Simplified Chinese supported 
+- 📱 Multiple phone connections supported, easy control of multiple devices
+- 🖥️ Screen mirroring, based on scrcpy, supports phone operations
+- 📸 Screenshots, image beautifier opens automatically after screenshot
+- 🎥 GIF/MP4 screen recording, record phone screen as GIF or MP4
+- 📱 Application management, supports install/uninstall/launch apps
+- 📁 File management, supports upload/download/delete
+- 💻 Shell commands, supports adb, screen commands, and phone shell commands
+- 🌐 Internationalization support, English/Simplified Chinese supported
 
-## Previews
+## 📸 Previews
 
-### Screen mirroring
+### 🖥️ Screen mirroring
 
 ![](./screenshots/en/mirror.png)
 
-### Screen recording
+### 🎥 Screen recording
 
 ![](./screenshots/en/screenrecord.png)
 
-### Screenshot
+### 📸 Screenshot
 
 ![](./screenshots/en/screenshot.png)
 
-### Command line
+### 💻 Command line
 
 ![](./screenshots/en/screenshot.png)
 
-### App management
+### 📱 App management
 
 ![](./screenshots/en/appmanage.png)
 
-## Get the app
+## 📥 Get the app
 
-### Windows
+### 💻 Windows
 
-- download Windows installer from [https://linkandroid.com](https://linkandroid.com)
+- Download Windows installer from [https://linkandroid.com](https://linkandroid.com)
 
-### MacOS
+### 🍎 MacOS
 
-- download MacOS installer from [https://linkandroid.com](https://linkandroid.com)
+- Download MacOS installer from [https://linkandroid.com](https://linkandroid.com)
 
-### Linux
+### 🐧 Linux
 
-- download Linux installer from [https://linkandroid.com](https://linkandroid.com)
+- Download Linux installer from [https://linkandroid.com](https://linkandroid.com)
 
-## We uses
+## ⚙️ Tech Stack
 
 - `electron`
 - `vue3`
 - `typescript`
 
-## Development
+## 🚀 Development
 
-> only node 20 tested
+> Only tested on Node 20
 
 ```shell
-# install dependencies
+# Install dependencies
 npm install
-# run in dev mode
+# Run in dev mode
 npm run dev
-# build
+# Build
 npm run build
 ```
 
-## 加入交流群
+## 💬 Join the Community
 
-> 添加好友请备注 LinkAndroid
+> Add friend with note "LinkAndroid"
 
 <table width="100%">
     <thead>
         <tr>
-            <th width="50%">微信交流群</th>
-            <th>QQ交流群</th>
+            <th width="50%">WeChat Group</th>
+            <th>QQ Group</th>
         </tr>
     </thead>
     <tbody>
@@ -105,6 +105,6 @@ npm run build
     </tbody>
 </table>
 
-## License
+## 📄 License
 
 Apache-2.0
