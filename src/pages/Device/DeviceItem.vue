@@ -27,6 +27,7 @@ const emit = defineEmits<{
     (e: "setting"): void,
     (e: "file-manager"): void,
     (e: "adbShell"): void,
+    (e: "wifi-qrcode"): void,
 }>();
 
 const actionMirror = ref<InstanceType<typeof DeviceActionMirror> | null>(null);
@@ -132,6 +133,15 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                         />
                         <DeviceActionWifiOn v-if="record.type === EnumDeviceType.USB" :device="record"/>
                         <DeviceActionWifiOff v-if="record.type === EnumDeviceType.WIFI" :device="record"/>
+                        <a-doption
+                            v-if="record.status === EnumDeviceStatus.CONNECTED"
+                            @click="emit('wifi-qrcode')"
+                        >
+                            <template #icon>
+                                <icon-qrcode/>
+                            </template>
+                            {{ $t("设备连接二维码") }}
+                        </a-doption>
                         <DeviceActionMirrorCamera :device="record"/>
                         <DeviceActionMirrorOTG v-if="record.type === EnumDeviceType.USB" :device="record"/>
                         <a-doption @click="emit('adbShell')">

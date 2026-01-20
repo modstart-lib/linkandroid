@@ -2,6 +2,7 @@ import archiver from "archiver";
 import axios from "axios";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import yauzl from "yauzl";
 
 const getZipFileContent = async (path: string, pathInZip: string) => {
@@ -212,11 +213,35 @@ const request = async (option: {
     }
 }
 
+const getNetworkInterfaces = () => {
+    const interfaces = os.networkInterfaces();
+    const result: Array<{ name: string; address: string; family: string; internal: boolean }> = [];
+
+    for (const [name, addresses] of Object.entries(interfaces)) {
+        if (!addresses) continue;
+
+        for (const addr of addresses) {
+            // Filter out internal (loopback) addresses and only include IPv4
+            if (!addr.internal && addr.family === 'IPv4') {
+                result.push({
+                    name,
+                    address: addr.address,
+                    family: addr.family,
+                    internal: addr.internal,
+                });
+            }
+        }
+    }
+
+    return result;
+};
+
 export const Misc = {
     getZipFileContent,
     unzip,
     zip,
     request,
+    getNetworkInterfaces,
 };
 
 export default Misc;

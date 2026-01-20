@@ -7,6 +7,7 @@ import {computed, ref} from "vue";
 import {t} from "../lang";
 import DeviceFileManagerDialog from "./Device/DeviceFileManagerDialog.vue";
 import DeviceConnectWifiDialog from "./Device/DeviceConnectWifiDialog.vue";
+import DeviceWirelessPairingDialog from "./Device/DeviceWirelessPairingDialog.vue";
 import DeviceShellDialog from "./Device/DeviceShellDialog.vue";
 import DeviceAdbShellDialog from "./Device/DeviceAdbShellDialog.vue";
 import DeviceDefaultSettingDialog from "./Device/DeviceDefaultSettingDialog.vue";
@@ -19,6 +20,7 @@ const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | nul
 const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
 const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
 const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
+const wirelessPairingDialog = ref<InstanceType<typeof DeviceWirelessPairingDialog> | null>(null);
 const defaultSettingDialog = ref<InstanceType<typeof DeviceDefaultSettingDialog> | null>(null);
 
 const deviceStore = useDeviceStore();
@@ -86,6 +88,12 @@ const doRefresh = async () => {
                     </template>
                     {{ $t("连接网络设备") }}
                 </a-button>
+                <a-button @click="wirelessPairingDialog?.show()" class="ml-1">
+                    <template #icon>
+                        <icon-qrcode/>
+                    </template>
+                    {{ $t("无线调试配对") }}
+                </a-button>
                 <a-dropdown trigger="hover">
                     <a-button class="ml-1">
                         <template #icon>
@@ -114,7 +122,8 @@ const doRefresh = async () => {
             </div>
         </div>
     </div>
-    <DeviceConnectWifiDialog ref="connectWifiDialog"/>
+    <DeviceConnectWifiDialog ref="connectWifiDialog" @update="doRefresh"/>
+    <DeviceWirelessPairingDialog ref="wirelessPairingDialog" @update="doRefresh"/>
     <DeviceSettingDialog ref="settingDialog"/>
     <DeviceFileManagerDialog ref="fileManagerDialog"/>
     <DeviceAdbShellDialog ref="adbShellDialog"/>

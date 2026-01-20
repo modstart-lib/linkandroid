@@ -295,6 +295,42 @@ const info = async (id: string) => {
     return result;
 };
 
+const pair = async (
+    host: string,
+    pairingCode: string,
+    option?: {
+        success?: (data: any) => void;
+        error?: (msg: string) => void;
+    }
+) => {
+    const controller = await spawnShell([
+        "pair", `${host}`, `${pairingCode}`
+    ], {
+        stdout: (data, process) => {
+            // Check if pairing succeeded
+            if (data.includes("Successfully paired")) {
+                option?.success?.({ message: data });
+            }
+        },
+        stderr: (data, process) => {
+            // ADB sometimes outputs success messages to stderr
+            if (data.includes("Successfully paired")) {
+                option?.success?.({ message: data });
+            } else if (data.includes("failed") || data.includes("error")) {
+                option?.error?.(data);
+            }
+        },
+        success: (process) => {
+            // Process completed successfully
+        },
+        error: (msg, exitCode, process) => {
+            option?.error?.(msg);
+        },
+    });
+
+    return controller;
+};
+
 export default {
     getBinPath,
     setBinPath,
@@ -319,6 +355,7 @@ export default {
     fileDelete,
     listApps,
     info,
+    pair,
 };
 
 export const ADB = {
