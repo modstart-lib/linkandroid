@@ -23,7 +23,7 @@ const activeTab = computed(() => {
 });
 
 const userTip = computed(() => {
-    return user.user.id ? user.user.name : t("未登录");
+    return user.user.id ? user.user.name : t("common.notLoggedIn");
 });
 
 const doUser = async () => {
