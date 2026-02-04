@@ -48,7 +48,7 @@ onBeforeUnmount(() => {
                     {{ t("page.setting.basic") }}
                 </div>
             </div>
-            <div data-section="env" class="p-2 rounded-lg mb-4 cursor-pointer">
+            <div v-if="0" data-section="env" class="p-2 rounded-lg mb-4 cursor-pointer">
                 <div class="text-base">
                     <icon-code />
                     {{ t("page.setting.env") }}
@@ -73,8 +73,8 @@ onBeforeUnmount(() => {
                         <SettingBasic />
                     </div>
                 </div>
-                <div class="border-b border-solid border-gray-200 dark:border-gray-800 my-6"></div>
-                <div data-section="env" class="scroll-mt-4">
+                <div v-if="0" class="border-b border-solid border-gray-200 dark:border-gray-800 my-6"></div>
+                <div v-if="0" data-section="env" class="scroll-mt-4">
                     <div class="text-base font-bold mb-4">{{ t("page.setting.env") }}</div>
                     <div>
                         <SettingEnv />
