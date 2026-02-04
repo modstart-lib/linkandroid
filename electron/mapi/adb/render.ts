@@ -309,13 +309,13 @@ const pair = async (
         stdout: (data, process) => {
             // Check if pairing succeeded
             if (data.includes("Successfully paired")) {
-                option?.success?.({ message: data });
+                option?.success?.({message: data});
             }
         },
         stderr: (data, process) => {
             // ADB sometimes outputs success messages to stderr
             if (data.includes("Successfully paired")) {
-                option?.success?.({ message: data });
+                option?.success?.({message: data});
             } else if (data.includes("failed") || data.includes("error")) {
                 option?.error?.(data);
             }

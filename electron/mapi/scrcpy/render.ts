@@ -1,10 +1,10 @@
 import Config from "../config/render";
-import {extraResolveBin, isWin} from "../../lib/env";
+import {extraResolveBin, extraResolveWithPlatform, isWin} from "../../lib/env";
 import {Apps} from "../app";
 import {ADB} from "../adb/render";
-import {IconvUtil} from "../../lib/util";
+import {Log} from "../log";
 
-const getBinPath = async (returnEmptyWhenDefault: boolean = false):Promise<string> => {
+const getBinPath = async (returnEmptyWhenDefault: boolean = false): Promise<string> => {
     const binPath = await Config.get("common.scrcpyPath");
     const binPathDefault = extraResolveBin("scrcpy/scrcpy");
     if (returnEmptyWhenDefault && (!binPath || binPath === binPathDefault)) {
@@ -42,6 +42,7 @@ const spawnShell = async (
         args: [],
     }, option);
     option.env["ADB"] = await ADB.getBinPath();
+    option.env['SCRCPY_SERVER_PATH'] = await extraResolveWithPlatform('scrcpy/scrcpy-server');
     if (isWin) {
         // option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");
     }
@@ -49,6 +50,10 @@ const spawnShell = async (
     // local debug
     // option.env["SCRCPY_SERVER_PATH"] = '/Users/mz/data/project/linkandroid/linkandroid-scrcpy/x/server/scrcpy-server';
     // binary = '/Users/mz/data/project/linkandroid/linkandroid-scrcpy/x/app/scrcpy';
+
+    Log.info('Scrcpy.spawnShell', [
+        binary, ...args
+    ].join(' '))
     return await Apps.spawnShell([
         binary, ...args
     ], {
@@ -73,12 +78,12 @@ const mirror = async (
         env: {},
         args: [],
     }, option);
-    // console.log('mirror', serial, option.args)
-    return spawnShell([
+    const args = [
         '--serial', serial,
         '--window-title', option.title || 'LinkAndroid',
         ...option.args,
-    ], {
+    ]
+    return spawnShell(args, {
         stdout: option.stdout,
         stderr: option.stderr,
         success: option.success,

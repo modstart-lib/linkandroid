@@ -63,6 +63,7 @@
         "@electron-toolkit/utils": "^3.0.0",
         "@electron/remote": "^2.1.2",
         "@types/showdown": "^2.0.6",
+        "@types/ws": "^8.18.1",
         "@xterm/addon-fit": "^0.10.0",
         "@xterm/xterm": "^5.5.0",
         "@zxing/browser": "^0.1.5",
@@ -87,7 +88,8 @@
         "tiny-emitter": "^2.1.0",
         "vue-command": "^35.2.1",
         "vue-i18n": "^9.13.1",
-        "vue-router": "^4.4.0"
+        "vue-router": "^4.4.0",
+        "ws": "^8.19.0"
     },
     "optionalDependencies": {
         "node-mac-permissions": "^2.4.0"

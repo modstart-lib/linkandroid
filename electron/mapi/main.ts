@@ -10,6 +10,7 @@ import keys from "./keys/main";
 import user from "./user/main";
 import misc from "./misc/main";
 import updater from "./updater/main";
+import serve from "./serve/main";
 
 const $mapi = {
     app,
@@ -24,6 +25,7 @@ const $mapi = {
     user,
     misc,
     updater,
+    serve,
 };
 
 export const MAPI = {
@@ -31,11 +33,13 @@ export const MAPI = {
         await $mapi.user.init();
         await $mapi.db.init();
         await $mapi.event.init();
+        await $mapi.serve.start();
     },
     ready() {
         $mapi.keys.ready();
     },
     destroy() {
         $mapi.keys.destroy();
+        $mapi.serve.stop();
     },
 };

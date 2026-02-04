@@ -431,6 +431,12 @@ type DefsMapi = {
             }
         ) => Promise<any>;
     };
+    serve: {
+        start: () => Promise<number>;
+        stop: () => Promise<void>;
+        getPort: () => Promise<number>;
+        getAddress: () => Promise<string>;
+    };
 };
 
 
@@ -444,5 +450,5 @@ declare global {
     const $mapi: DefsMapi;
 }
 
-export {};
+export { };
 

@@ -1,14 +1,13 @@
-import {defineStore} from "pinia";
+import { cloneDeep } from "lodash-es";
+import { defineStore } from "pinia";
+import { computed, ComputedRef, ref, toRaw } from "vue";
+import { t } from "../../lang";
+import { Dialog } from "../../lib/dialog";
+import { mapError } from "../../lib/error";
+import { isIPWithPort } from "../../lib/linkandroid";
+import { DeviceRecord, DeviceRuntime, EnumDeviceStatus, EnumDeviceType } from "../../types/Device";
 import store from "../index";
-import {DeviceRecord, DeviceRuntime, EnumDeviceStatus, EnumDeviceType} from "../../types/Device";
-import {cloneDeep} from "lodash-es";
-import {computed, ComputedRef, ref, toRaw} from "vue";
-import {isIPWithPort} from "../../lib/linkandroid";
-import {Dialog} from "../../lib/dialog";
-import {t} from "../../lang";
-import {sleep} from "../../lib/util";
-import {mapError} from "../../lib/error";
-import {useSettingStore} from "./setting";
+import { useSettingStore } from "./setting";
 
 const getEmptySetting = () => {
     return JSON.parse(
@@ -27,6 +26,17 @@ const getEmptySetting = () => {
 const deviceRuntime = ref<Map<string, DeviceRuntime>>(new Map());
 const setting = useSettingStore();
 const previewImageDefault = setting.configGet("Device.previewImage", "yes");
+
+// WebSocket 客户端管理
+let ws: WebSocket | null = null;
+let wsReconnectTimer: any = null;
+let wsReconnectAttempts = 0;
+const wsMaxReconnectAttempts = 10;
+const wsReconnectDelay = 3000;
+
+// debug_manage 控制器管理
+const deviceControllers = new Map<string, any>();
+
 const createDeviceStatus = (record: DeviceRecord): ComputedRef<EnumDeviceStatus> => {
     const id = record.id;
     return computed(() => {
@@ -62,21 +72,206 @@ const updateDeviceRuntime = (record: DeviceRecord) => {
     });
 };
 
-// const getDeviceRuntime = (record: DeviceRecord): DeviceRuntime => {
-//     const id = record.id
-//     const value = deviceRuntime.value?.get(id)
-//     if (value) {
-//         return value
-//     }
-//     deviceRuntime.value?.set(id, {
-//         status: EnumDeviceStatus.WAIT_CONNECTING,
-//         mirrorController: null,
-//         previewImage: record.setting?.previewImage || previewImageDefault,
-//     } as DeviceRuntime)
-//     return deviceRuntime.value?.get(id) as DeviceRuntime
-// }
 const deleteDeviceRuntime = (record: DeviceRecord) => {
     deviceRuntime.value?.delete(record.id);
+};
+
+// 连接 WebSocket
+const connectWebSocket = async () => {
+    try {
+        const wsAddress = await $mapi.serve.getAddress();
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            return;
+        }
+
+        // 添加查询参数标识为 Render 客户端
+        const wsUrl = `${wsAddress}/server?type=Render`;
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+            console.log("WebSocket connected to server as Render client");
+            wsReconnectAttempts = 0;
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                if (data.type === "DeviceConnect") {
+                    console.log("Device connected:", data.deviceId);
+                    deviceStore().refresh();
+                    return;
+                }
+
+                if (data.type === "DeviceDisconnect") {
+                    console.log("Device disconnected:", data.deviceId);
+                    deviceStore().refresh();
+                    return;
+                }
+
+                if (data.type === "DevicePreview") {
+                    const {deviceId, data: previewData} = data;
+                    const device = deviceStore().records.find(r => r.id === deviceId);
+                    if (device && previewData) {
+                        deviceStore().edit(device, {
+                            screenshot: previewData,
+                        }, false);
+                    }
+                    return;
+                }
+
+                if (data.type === "DevicePanelButtonClick") {
+                    handlePanelButtonClick(data.deviceId, data.data.id);
+                    return;
+                }
+
+                if (data.type === "DeviceStatus") {
+                    return;
+                }
+
+                console.log("WebSocket message:", data);
+            } catch (error) {
+                console.error("WebSocket message parse error:", error);
+            }
+        };
+
+        ws.onclose = () => {
+            console.log("WebSocket disconnected, will retry...");
+            ws = null;
+
+            // 自动重连
+            if (wsReconnectAttempts < wsMaxReconnectAttempts) {
+                wsReconnectAttempts++;
+                const delay = Math.min(wsReconnectDelay * wsReconnectAttempts, 30000); // 最长30秒
+                console.log(`WebSocket reconnecting in ${delay}ms (attempt ${wsReconnectAttempts}/${wsMaxReconnectAttempts})`);
+                wsReconnectTimer = setTimeout(() => {
+                    connectWebSocket();
+                }, delay);
+            } else {
+                console.error("WebSocket max reconnection attempts reached");
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+    } catch (error) {
+        console.error("Failed to connect WebSocket:", error);
+    }
+};
+
+// 断开 WebSocket
+const disconnectWebSocket = () => {
+    if (wsReconnectTimer) {
+        clearTimeout(wsReconnectTimer);
+        wsReconnectTimer = null;
+    }
+    if (ws) {
+        ws.close();
+        ws = null;
+    }
+};
+
+const handlePanelButtonClick = async (deviceId: string, buttonId: string) => {
+    console.log(`Handling panel button click: device=${deviceId}, button=${buttonId}`);
+
+    let args: string[] = [];
+
+    switch (buttonId) {
+        case "home":
+            args = ["shell", "input", "keyevent", "KEYCODE_HOME"];
+            await $mapi.adb.spawnShell(args, {}, deviceId);
+            break;
+        case "back":
+            args = ["shell", "input", "keyevent", "KEYCODE_BACK"];
+            await $mapi.adb.spawnShell(args, {}, deviceId);
+            break;
+        case "recent":
+            args = ["shell", "input", "keyevent", "KEYCODE_APP_SWITCH"];
+            await $mapi.adb.spawnShell(args, {}, deviceId);
+            break;
+        case "volume_up":
+            args = ["shell", "input", "keyevent", "KEYCODE_VOLUME_UP"];
+            await $mapi.adb.spawnShell(args, {}, deviceId);
+            break;
+        case "volume_down":
+            args = ["shell", "input", "keyevent", "KEYCODE_VOLUME_DOWN"];
+            await $mapi.adb.spawnShell(args, {}, deviceId);
+            break;
+        case "screenshot":
+            args = ["shell", "input", "keyevent", "KEYCODE_SYSRQ"];
+            await $mapi.adb.spawnShell(args, {}, deviceId);
+            break;
+        default:
+            console.log(`Unknown button: ${buttonId}`);
+            break;
+    }
+};
+
+// 启动 debug_manage
+const startDeviceManage = async (deviceId: string) => {
+    try {
+        // 如果已经在运行,先停止
+        if (deviceControllers.has(deviceId)) {
+            await stopDeviceManage(deviceId);
+        }
+
+        const wsAddress = await $mapi.serve.getAddress();
+
+        // 启动 debug_manage (管理模式：预览+无视频音频播放)
+        const wsUrl = `${wsAddress}/server?type=DeviceManage&deviceId=${deviceId}`;
+        const controller = await $mapi.scrcpy.spawnShell([
+            "--serial", deviceId,
+            "--linkandroid-server", wsUrl,
+            "--linkandroid-preview-interval", "1000",
+            "--linkandroid-preview-ratio", "30",
+            "--no-video-playback",
+            "--no-audio-playback",
+            "--linkandroid-skip-taskbar",
+        ], {
+            stdout: (data: string) => {
+                console.log("debug_manage.stdout", deviceId, data);
+            },
+            stderr: (data: string) => {
+                console.error("debug_manage.stderr", deviceId, data);
+            },
+            success: () => {
+                console.log("debug_manage.success", deviceId);
+                deviceControllers.delete(deviceId);
+            },
+            error: (msg: string, exitCode: number) => {
+                console.error("debug_manage.error", deviceId, msg, exitCode);
+                deviceControllers.delete(deviceId);
+
+                // 自动重启
+                setTimeout(() => {
+                    const device = deviceStore().records.find(r => r.id === deviceId);
+                    if (device && device.status === EnumDeviceStatus.CONNECTED) {
+                        startDeviceManage(deviceId);
+                    }
+                }, 5000);
+            },
+        });
+
+        deviceControllers.set(deviceId, controller);
+        console.log("debug_manage started for device:", deviceId);
+    } catch (error) {
+        console.error("Failed to start debug_manage:", deviceId, error);
+    }
+};
+
+// 停止 debug_manage
+const stopDeviceManage = async (deviceId: string) => {
+    const controller = deviceControllers.get(deviceId);
+    if (controller) {
+        try {
+            controller.stop();
+        } catch (error) {
+            console.error("Failed to stop debug_manage:", deviceId, error);
+        }
+        deviceControllers.delete(deviceId);
+    }
 };
 
 export const deviceStore = defineStore("device", {
@@ -94,10 +289,13 @@ export const deviceStore = defineStore("device", {
                 });
                 this.records = records;
             });
+
+            // 连接 WebSocket
+            await connectWebSocket();
+
             await this.refresh();
             setTimeout(async () => {
                 await this.startWatch();
-                await this.updateScreenshot();
             }, 2000);
         },
         async startWatch() {
@@ -105,32 +303,6 @@ export const deviceStore = defineStore("device", {
                 // console.log('watch', type, data)
                 this.refresh().then();
             });
-        },
-        async updateScreenshot() {
-            for (let r of this.records) {
-                if (r.status !== EnumDeviceStatus.CONNECTED) {
-                    continue;
-                }
-                try {
-                    const res = await $mapi.adb.screencap(r.id);
-                    await this.edit(
-                        r,
-                        {
-                            screenshot: res ? `data:image/png;base64,${res}` : null,
-                        },
-                        false
-                    );
-                } catch (e) {
-                    try {
-                        await this.refresh();
-                        break;
-                    } catch (ee) {
-                    }
-                }
-            }
-            setTimeout(async () => {
-                await this.updateScreenshot();
-            }, 5 * 1000);
         },
         async connectedDevices(): Promise<DeviceRecord[]> {
             const res = await $mapi.adb.devices();
@@ -178,11 +350,17 @@ export const deviceStore = defineStore("device", {
                     if (runtime.value.status !== EnumDeviceStatus.CONNECTED) {
                         runtime.value.status = EnumDeviceStatus.CONNECTED;
                         changed = true;
+
+                        // 自动启动 debug_manage
+                        startDeviceManage(record.id);
                     }
                 } else {
                     if (runtime.value.status !== EnumDeviceStatus.DISCONNECTED) {
                         runtime.value.status = EnumDeviceStatus.DISCONNECTED;
                         changed = true;
+
+                        // 停止 debug_manage
+                        stopDeviceManage(record.id);
                     }
                 }
             }
@@ -270,7 +448,8 @@ export const deviceStore = defineStore("device", {
                 maxFps: await this.settingGet(device, "maxFps", "60"),
                 scrcpyArgs: await this.settingGet(device, "scrcpyArgs", ""),
             };
-            // console.log('setting', setting)
+
+            // 构建投屏参数
             const args: string[] = [];
             args.push("--stay-awake");
             if ("yes" === setting.alwaysTop) {
@@ -292,10 +471,12 @@ export const deviceStore = defineStore("device", {
                 args.push(setting.scrcpyArgs);
             }
 
-            const mirrorStart = async () => {
-            };
-            const mirrorEnd = async () => {
-            };
+            // 添加 WebSocket 服务器和面板参数
+            const wsAddress = await $mapi.serve.getAddress();
+            const wsUrl = `${wsAddress}/server?type=DeviceMirror&deviceId=${device.id}`;
+            args.push("--linkandroid-server", wsUrl);
+            args.push("--linkandroid-panel-show");
+
             let successTimer: any = null;
             try {
                 runtime.value.mirrorController = await $mapi.scrcpy.mirror(device.id, {
@@ -320,37 +501,14 @@ export const deviceStore = defineStore("device", {
                         console.log("mirror.success");
                         $mapi.log.info("Mirror.success");
                         runtime.value.mirrorController = null;
-                        mirrorEnd().then();
                     },
                     error: (msg: string, exitCode: number, process: any) => {
                         console.log("mirror.error", {msg, exitCode});
                         $mapi.log.error("Mirror.error", {msg, exitCode});
                         runtime.value.mirrorController = null;
                         Dialog.alertError(t("投屏失败") + ` : <code>${msg}</code>`);
-                        mirrorEnd().then();
                     },
                 });
-                // setTimeout(async () => {
-                //     let x = 500, y = 2000, step = 10;
-                //     for (let i = 0; i < step; i++) {
-                //         x -= 50;
-                //         const payload = {
-                //             event: '',
-                //             data: {x, y},
-                //         }
-                //         if (i === 0) {
-                //             payload.event = "ActionDown";
-                //         } else if (i === step - 1) {
-                //             payload.event = "ActionUp";
-                //         } else {
-                //             payload.event = "ActionMove";
-                //         }
-                //         runtime.value.mirrorController?.send('LAEvent:' + JSON.stringify(payload) + "\n");
-                //         await sleep(10);
-                //     }
-                // }, 5000)
-                await sleep(1000);
-                await mirrorStart();
             } catch (error) {
                 Dialog.tipError(mapError(error));
             } finally {

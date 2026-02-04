@@ -17,6 +17,7 @@ import misc from "./misc/render";
 
 import adb from "./adb/render";
 import scrcpy from "./scrcpy/render";
+import serve from "./serve/render";
 
 export const MAPI = {
     init(env: typeof AppEnv = null) {
@@ -39,6 +40,7 @@ export const MAPI = {
 
                 adb,
                 scrcpy,
+                serve,
             });
             db.init();
             event.init();
