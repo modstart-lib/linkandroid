@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import {useDeviceStore} from "../store/modules/device";
-import {Dialog} from "../lib/dialog";
-import {mapError} from "../lib/error";
-import DeviceSettingDialog from "./Device/DeviceSettingDialog.vue";
-import {computed, ref} from "vue";
-import {t} from "../lang";
-import DeviceFileManagerDialog from "./Device/DeviceFileManagerDialog.vue";
-import DeviceConnectWifiDialog from "./Device/DeviceConnectWifiDialog.vue";
-import DeviceWirelessPairingDialog from "./Device/DeviceWirelessPairingDialog.vue";
-import DeviceShellDialog from "./Device/DeviceShellDialog.vue";
+import { computed, ref } from "vue";
+import { t } from "../lang";
+import { Dialog } from "../lib/dialog";
+import { mapError } from "../lib/error";
+import { useDeviceStore } from "../store/modules/device";
 import DeviceAdbShellDialog from "./Device/DeviceAdbShellDialog.vue";
+import DeviceConnectWifiDialog from "./Device/DeviceConnectWifiDialog.vue";
 import DeviceDefaultSettingDialog from "./Device/DeviceDefaultSettingDialog.vue";
-import DeviceFilterEmpty from "./Device/DeviceFilterEmpty.vue";
 import DeviceEmpty from "./Device/DeviceEmpty.vue";
+import DeviceFileManagerDialog from "./Device/DeviceFileManagerDialog.vue";
+import DeviceFilterEmpty from "./Device/DeviceFilterEmpty.vue";
 import DeviceItem from "./Device/DeviceItem.vue";
+import DeviceSettingDialog from "./Device/DeviceSettingDialog.vue";
+import DeviceShellDialog from "./Device/DeviceShellDialog.vue";
+import DeviceWirelessPairingDialog from "./Device/DeviceWirelessPairingDialog.vue";
 
 const settingDialog = ref<InstanceType<typeof DeviceSettingDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -82,18 +82,28 @@ const doRefresh = async () => {
                     </template>
                     {{ $t("刷新") }}
                 </a-button>
-                <a-button @click="connectWifiDialog?.show()" class="ml-1">
-                    <template #icon>
-                        <icon-link/>
+                <a-dropdown trigger="hover">
+                    <a-button class="ml-1">
+                        <template #icon>
+                            <icon-link/>
+                        </template>
+                        {{ $t("连接设备") }}
+                    </a-button>
+                    <template #content>
+                        <a-doption @click="connectWifiDialog?.show()">
+                            <template #icon>
+                                <icon-link/>
+                            </template>
+                            {{ $t("连接网络设备") }}
+                        </a-doption>
+                        <a-doption @click="wirelessPairingDialog?.show()">
+                            <template #icon>
+                                <icon-qrcode/>
+                            </template>
+                            {{ $t("无线调试配对") }}
+                        </a-doption>
                     </template>
-                    {{ $t("连接网络设备") }}
-                </a-button>
-                <a-button @click="wirelessPairingDialog?.show()" class="ml-1">
-                    <template #icon>
-                        <icon-qrcode/>
-                    </template>
-                    {{ $t("无线调试配对") }}
-                </a-button>
+                </a-dropdown>
                 <a-dropdown trigger="hover">
                     <a-button class="ml-1">
                         <template #icon>
