@@ -26,7 +26,7 @@ const doScreenshot = async () => {
 </script>
 
 <template>
-    <a-tooltip :content="$t('截屏')">
+    <a-tooltip :content="$t('device.screenshot')">
         <a-button class="ml-1" @click="doScreenshot()">
             <template #icon>
                 <i class="iconfont icon-camera text-gray-400"></i>

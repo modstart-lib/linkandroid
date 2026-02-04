@@ -15,7 +15,7 @@ const doMirror = async () => {
 };
 const start = () => {
     if (props.device.runtime?.mirrorController) {
-        Dialog.tipError(t("已经在投屏中"));
+        Dialog.tipError(t("device.alreadyMirroring"));
         return;
     }
     doMirror().then();
@@ -26,7 +26,7 @@ defineExpose({
 </script>
 
 <template>
-    <a-tooltip :content="$t('投屏到电脑')">
+    <a-tooltip :content="$t('device.mirrorToComputer')">
         <a-button class="ml-1" :type="device.runtime?.mirrorController ? 'primary' : undefined" @click="doMirror()">
             <template #icon>
                 <i class="iconfont icon-mirror" :class="device.runtime?.mirrorController ? '' : 'text-gray-400'"></i>

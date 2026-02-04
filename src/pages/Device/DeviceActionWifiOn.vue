@@ -33,7 +33,7 @@ const doWifiOn = async () => {
 
 <template>
     <a-doption @click="doWifiOn">
-        {{ $t("添加为网络设备") }}
+        {{ $t("device.addAsNetworkDevice") }}
     </a-doption>
 </template>
 

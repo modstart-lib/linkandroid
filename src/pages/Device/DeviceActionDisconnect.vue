@@ -9,16 +9,16 @@ const props = defineProps<{
 }>();
 const doDisconnect = async () => {
     if (props.device.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t("设备未连接"));
+        Dialog.tipError(t("device.notConnected"));
         return;
     }
-    Dialog.loadingOn(t("正在断开连接"));
+    Dialog.loadingOn(t("device.disconnecting"));
     try {
         const {ip, port} = parseIPPort(props.device.id);
         await window.$mapi.adb.disconnect(ip, port);
-        Dialog.tipSuccess(t("断开设备成功"));
+        Dialog.tipSuccess(t("device.disconnectSuccess"));
     } catch (e) {
-        Dialog.tipError(t("断开设备失败"));
+        Dialog.tipError(t("device.disconnectFailed"));
     } finally {
         Dialog.loadingOff();
     }
@@ -27,7 +27,7 @@ const doDisconnect = async () => {
 
 <template>
     <a-doption @click="doDisconnect">
-        {{ $t("断开连接") }}
+        {{ $t("device.disconnect") }}
     </a-doption>
 </template>
 

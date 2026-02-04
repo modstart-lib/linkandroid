@@ -35,10 +35,10 @@ const filterRecords = computed(() => {
 });
 
 const doRefresh = async () => {
-    Dialog.loadingOn(t("正在刷新设备"));
+    Dialog.loadingOn(t("device.refreshing"));
     try {
         await deviceStore.refresh();
-        Dialog.tipSuccess(t("刷新设备成功"));
+        Dialog.tipSuccess(t("device.refreshSuccess"));
     } catch (e) {
         Dialog.tipError(mapError(e));
     } finally {

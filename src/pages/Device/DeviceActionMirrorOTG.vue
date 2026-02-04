@@ -35,7 +35,7 @@ const doMirror = async () => {
 
 <template>
     <a-doption @click="doMirror">
-        {{ $t("进入OTG模式") }}
+        {{ $t("device.enterOTGMode") }}
     </a-doption>
 </template>
 

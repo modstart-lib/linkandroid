@@ -12,16 +12,16 @@ const props = defineProps<{
 </script>
 
 <template>
-    <a-tooltip :content="$t('应用管理')">
+    <a-tooltip :content="$t('device.appManagement')">
         <a-dropdown trigger="hover">
             <a-button class="ml-1">
                 <template #icon>
-                    <i class="iconfont icon-apk text-gray-400"></i>
+                    <i class="iconfont icon-app"></i>
                 </template>
             </a-button>
             <template #content>
-                <a-doption @click="appManagerDialog?.show(props.device)">{{ $t("管理应用") }} </a-doption>
-                <a-doption @click="appInstallDialog?.show(props.device)">{{ $t("安装应用") }} </a-doption>
+                <a-doption @click="appManagerDialog?.show(props.device)">{{ $t("device.manageApps") }} </a-doption>
+                <a-doption @click="appInstallDialog?.show(props.device)">{{ $t("device.installApp") }} </a-doption>
             </template>
         </a-dropdown>
     </a-tooltip>

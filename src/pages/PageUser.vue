@@ -29,7 +29,7 @@ onMounted(async () => {
                     <template #icon>
                         <icon-left />
                     </template>
-                    {{ $t("返回") }}
+                    {{ $t("page.payment.back") }}
                 </a-button>
             </div>
         </div>

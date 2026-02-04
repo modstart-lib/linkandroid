@@ -8,7 +8,7 @@ interface Props {
 }
 
 const tipText = computed(() => {
-    return props.type === EnumDeviceType.WIFI ? t("网络连接") : t("USB连接");
+    return props.type === EnumDeviceType.WIFI ? t("device.typeWifi") : t("device.typeUsb");
 });
 
 const props = defineProps<Props>();

@@ -19,13 +19,13 @@ const props = defineProps<Props>();
     >
         <div class="w-2 h-2 rounded-full bg-white mr-1"></div>
         <div v-if="props.status === EnumDeviceStatus.WAIT_CONNECTING">
-            {{ $t("连接中") }}
+            {{ $t("device.statusConnecting") }}
         </div>
         <div v-else-if="props.status === EnumDeviceStatus.CONNECTED">
-            {{ $t("已连接") }}
+            {{ $t("device.statusConnected") }}
         </div>
         <div v-else-if="props.status === EnumDeviceStatus.DISCONNECTED">
-            {{ $t("已断开") }}
+            {{ $t("device.statusDisconnected") }}
         </div>
     </div>
 </template>

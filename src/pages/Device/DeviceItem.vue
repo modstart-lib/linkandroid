@@ -39,11 +39,11 @@ const rIndex = computed(() => {
 });
 
 const doDelete = async (device: DeviceRecord) => {
-    Dialog.confirm(t("确定删除设备？")).then(async () => {
-        Dialog.loadingOn(t("正在删除"));
+    Dialog.confirm(t("device.deleteConfirm")).then(async () => {
+        Dialog.loadingOn(t("device.deleting"));
         try {
             await deviceStore.delete(device);
-            Dialog.tipSuccess(t("删除成功"));
+            Dialog.tipSuccess(t("device.deleteSuccess"));
         } catch (e) {
             Dialog.tipError(mapError(e));
         } finally {
@@ -55,7 +55,7 @@ const doDelete = async (device: DeviceRecord) => {
 const onEditName = async (device: DeviceRecord, name: string) => {
     try {
         await deviceStore.edit(device, {name});
-        Dialog.tipSuccess(t("设备编辑成功"));
+        Dialog.tipSuccess(t("device.editSuccess"));
     } catch (e) {
         Dialog.tipError(mapError(e));
     }
@@ -87,7 +87,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
         </div>
         <div class="flex">
             <div class="flex-grow">
-                <a-tooltip :content="$t('投屏到电脑')">
+                <a-tooltip :content="$t('device.mirrorToComputer')">
                     <div
                         @click="actionMirror?.start()"
                         class="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
@@ -109,7 +109,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                 <DeviceActionApp :device="record"/>
                 <DeviceActionScreenshot :device="record"/>
                 <DeviceActionRecord :device="record"/>
-                <a-tooltip :content="$t('文件管理')">
+                <a-tooltip :content="$t('device.fileManager')">
                     <a-button class="ml-1" @click="emit('file-manager')">
                         <template #icon>
                             <icon-folder class="text-gray-400"/>
@@ -140,24 +140,24 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                             <template #icon>
                                 <icon-qrcode/>
                             </template>
-                            {{ $t("设备连接二维码") }}
+                            {{ $t("device.qrcode") }}
                         </a-doption>
                         <DeviceActionMirrorCamera :device="record"/>
                         <DeviceActionMirrorOTG v-if="record.type === EnumDeviceType.USB" :device="record"/>
                         <a-doption @click="emit('adbShell')">
-                            {{ $t("命令行") }}
+                            {{ $t("device.commandLine") }}
                         </a-doption>
                         <a-doption v-if="rIndex > 0" @click="deviceStore.doTop(rIndex)">
-                            {{ $t("设备置顶") }}
+                            {{ $t("device.pinTop") }}
                         </a-doption>
                         <a-doption @click="emit('setting')">
-                            {{ $t("设备设置") }}
+                            {{ $t("device.settings") }}
                         </a-doption>
                         <a-doption
                             v-if="record.status === EnumDeviceStatus.DISCONNECTED"
                             @click="doDelete(record)"
                         >
-                            {{ $t("删除设备") }}
+                            {{ $t("device.delete") }}
                         </a-doption>
                     </template>
                 </a-dropdown>

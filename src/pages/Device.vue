@@ -40,10 +40,10 @@ const filterRecords = computed(() => {
 });
 
 const doRefresh = async () => {
-    Dialog.loadingOn(t("正在刷新设备"));
+    Dialog.loadingOn(t("device.refreshing"));
     try {
         await deviceStore.refresh();
-        Dialog.tipSuccess(t("刷新设备成功"));
+        Dialog.tipSuccess(t("device.refreshSuccess"));
     } catch (e) {
         Dialog.tipError(mapError(e));
     } finally {
@@ -60,19 +60,19 @@ const doRefresh = async () => {
         <div class="pb-header flex items-center sticky top-0 bg-white px-8 py-2 my-4"
              style="z-index:1;">
             <div class="text-3xl font-bold flex-grow">
-                {{ $t("设备") }}
+                {{ $t("device.title") }}
             </div>
             <div class="mr-5">
                 <a target="_blank" class="text-red-500" href="https://linkandroid.com/forum">
                     <icon-message class="mr-1"/>
-                    {{ $t("使用遇到问题？发帖求助") }}
+                    {{ $t("page.feedback.help") }}
                 </a>
             </div>
             <div class="flex items-center">
                 <a-input-search
                     v-if="deviceStore.records.length > 0"
                     v-model="searchKeywords"
-                    :placeholder="$t('搜索设备')"
+                    :placeholder="$t('device.searchPlaceholder')"
                     class="w-48"
                     allow-clear
                 />
@@ -80,27 +80,27 @@ const doRefresh = async () => {
                     <template #icon>
                         <icon-refresh/>
                     </template>
-                    {{ $t("刷新") }}
+                    {{ $t("device.refresh") }}
                 </a-button>
                 <a-dropdown trigger="hover">
                     <a-button class="ml-1">
                         <template #icon>
                             <icon-link/>
                         </template>
-                        {{ $t("连接设备") }}
+                        {{ $t("device.connect") }}
                     </a-button>
                     <template #content>
                         <a-doption @click="connectWifiDialog?.show()">
                             <template #icon>
                                 <icon-link/>
                             </template>
-                            {{ $t("连接网络设备") }}
+                            {{ $t("device.connectNetwork") }}
                         </a-doption>
                         <a-doption @click="wirelessPairingDialog?.show()">
                             <template #icon>
                                 <icon-qrcode/>
                             </template>
-                            {{ $t("无线调试配对") }}
+                            {{ $t("device.wirelessPairing") }}
                         </a-doption>
                     </template>
                 </a-dropdown>
@@ -111,8 +111,8 @@ const doRefresh = async () => {
                         </template>
                     </a-button>
                     <template #content>
-                        <a-doption @click="shellDialog?.show()">{{ $t("命令行工具") }}</a-doption>
-                        <a-doption @click="defaultSettingDialog?.show()">{{ $t("默认设置") }}</a-doption>
+                        <a-doption @click="shellDialog?.show()">{{ $t("device.commandLineTool") }}</a-doption>
+                        <a-doption @click="defaultSettingDialog?.show()">{{ $t("device.defaultSettings") }}</a-doption>
                     </template>
                 </a-dropdown>
             </div>

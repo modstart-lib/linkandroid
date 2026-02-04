@@ -29,7 +29,7 @@ const doWifiOff = async () => {
 
 <template>
     <a-doption @click="doWifiOff">
-        {{ $t("关闭网络设备端口") }}
+        {{ $t("device.closeNetworkPort") }}
     </a-doption>
 </template>
 

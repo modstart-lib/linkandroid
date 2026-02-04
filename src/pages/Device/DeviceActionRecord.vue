@@ -10,7 +10,7 @@ const props = defineProps<{
 </script>
 
 <template>
-    <a-tooltip :content="$t('录制屏幕')">
+    <a-tooltip :content="$t('device.record')">
         <a-button class="ml-1" @click="recordDialog?.show(props.device)">
             <template #icon>
                 <i class="iconfont icon-video text-gray-400"></i>

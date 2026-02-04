@@ -45,19 +45,19 @@ onBeforeUnmount(() => {
             <div data-section="basic" class="p-2 rounded-lg mb-4 cursor-pointer menu-active">
                 <div class="text-base">
                     <icon-settings />
-                    {{ t("基础设置") }}
+                    {{ t("page.setting.basic") }}
                 </div>
             </div>
             <div data-section="env" class="p-2 rounded-lg mb-4 cursor-pointer">
                 <div class="text-base">
                     <icon-code />
-                    {{ t("环境设置") }}
+                    {{ t("page.setting.env") }}
                 </div>
             </div>
             <div data-section="about" class="p-2 rounded-lg mb-4 cursor-pointer">
                 <div class="text-base">
                     <icon-user />
-                    {{ t("关于软件") }}
+                    {{ t("page.setting.about") }}
                 </div>
             </div>
         </div>
@@ -68,14 +68,14 @@ onBeforeUnmount(() => {
                 style="height: calc(100vh - var(--window-header-height))"
             >
                 <div data-section="basic" class="scroll-mt-4">
-                    <div class="text-base font-bold mb-4">{{ t("基础设置") }}</div>
+                    <div class="text-base font-bold mb-4">{{ t("page.setting.basic") }}</div>
                     <div>
                         <SettingBasic />
                     </div>
                 </div>
                 <div class="border-b border-solid border-gray-200 dark:border-gray-800 my-6"></div>
                 <div data-section="env" class="scroll-mt-4">
-                    <div class="text-base font-bold mb-4">{{ t("环境设置") }}</div>
+                    <div class="text-base font-bold mb-4">{{ t("page.setting.env") }}</div>
                     <div>
                         <SettingEnv />
                     </div>
@@ -83,7 +83,7 @@ onBeforeUnmount(() => {
                 <div class="border-b border-solid border-gray-200 dark:border-gray-800 my-6"></div>
                 <div data-section="about" class="scroll-mt-4">
                     <div class="text-base font-bold mb-4">
-                        {{ t("关于软件") }}
+                        {{ t("page.setting.about") }}
                     </div>
                     <div class="">
                         <SettingAbout />

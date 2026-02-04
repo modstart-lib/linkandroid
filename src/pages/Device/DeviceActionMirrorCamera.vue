@@ -40,7 +40,7 @@ const doMirror = async () => {
 
 <template>
     <a-doption @click="doMirror">
-        {{ $t("打开摄像头") }}
+        {{ $t("device.openCamera") }}
     </a-doption>
 </template>
 
