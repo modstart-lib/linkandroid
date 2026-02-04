@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import {useDeviceStore} from "../store/modules/device";
-import {Dialog} from "../lib/dialog";
-import {mapError} from "../lib/error";
-import DeviceSettingDialog from "./Device/DeviceSettingDialog.vue";
 import {computed, ref} from "vue";
 import {t} from "../lang";
-import DeviceFileManagerDialog from "./Device/DeviceFileManagerDialog.vue";
-import DeviceConnectWifiDialog from "./Device/DeviceConnectWifiDialog.vue";
-import DeviceShellDialog from "./Device/DeviceShellDialog.vue";
+import {Dialog} from "../lib/dialog";
+import {mapError} from "../lib/error";
+import {useDeviceStore} from "../store/modules/device";
 import DeviceAdbShellDialog from "./Device/DeviceAdbShellDialog.vue";
+import DeviceConnectWifiDialog from "./Device/DeviceConnectWifiDialog.vue";
 import DeviceDefaultSettingDialog from "./Device/DeviceDefaultSettingDialog.vue";
+import DeviceFileManagerDialog from "./Device/DeviceFileManagerDialog.vue";
+import DeviceSettingDialog from "./Device/DeviceSettingDialog.vue";
+import DeviceShellDialog from "./Device/DeviceShellDialog.vue";
 
 const settingDialog = ref<InstanceType<typeof DeviceSettingDialog> | null>(null);
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null);
@@ -55,13 +55,13 @@ const doRefresh = async () => {
         <div class="pb-header flex items-center sticky top-0 bg-white px-8 py-2 my-4"
              style="z-index:1;">
             <div class="text-3xl font-bold flex-grow">
-                {{ $t("脚本") }}
+                {{ $t("page.script.title") }}
             </div>
             <div class="flex items-center">
                 <a-input-search
                     v-if="deviceStore.records.length > 0"
                     v-model="searchKeywords"
-                    :placeholder="$t('搜索脚本')"
+                    :placeholder="$t('page.script.searchPlaceholder')"
                     class="w-48"
                     allow-clear
                 />
@@ -73,7 +73,7 @@ const doRefresh = async () => {
                     <icon-robot class="text-5xl"/>
                 </div>
                 <div class="text-gray-400">
-                    {{ $t("功能正在开发中，敬请期待") }}
+                    {{ $t("page.script.comingSoon") }}
                 </div>
             </div>
         </div>

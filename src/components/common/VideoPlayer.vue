@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {onBeforeUnmount, onMounted, ref, watch} from "vue";
 import Player from "xgplayer";
 import "xgplayer/dist/index.min.css";
 

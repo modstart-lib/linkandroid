@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
-import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
+import {Dialog} from "../../lib/dialog";
 import {mapError} from "../../lib/error";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 
 const props = defineProps<{
     device: DeviceRecord;
@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const doScreenshot = async () => {
     if (props.device.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t("设备未连接"));
+        Dialog.tipError(t("device.notConnected"));
         return;
     }
     try {

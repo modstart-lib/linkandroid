@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
-import {DeviceRecord} from "../../types/Device";
-import {useDeviceStore} from "../../store/modules/device";
-import {t} from "../../lang";
 import SettingItemYesNoDefault from "../../components/common/SettingItemYesNoDefault.vue";
+import {t} from "../../lang";
+import {useDeviceStore} from "../../store/modules/device";
+import {DeviceRecord} from "../../types/Device";
 
 const deviceStore = useDeviceStore();
 const visible = ref(false);
@@ -19,12 +19,12 @@ const formData = ref({
 const device = ref<DeviceRecord | null>(null);
 const infoColumns = [
     {
-        title: t("名称"),
+        title: t("device.fieldName"),
         dataIndex: "name",
         width: 200,
     },
     {
-        title: t("值"),
+        title: t("device.fieldValue"),
         dataIndex: "value",
     },
 ];
@@ -68,72 +68,72 @@ defineExpose({
     <a-modal v-model:visible="visible" width="40rem" title-align="start">
         <template #title>
             <icon-mobile />
-            {{ $t("设备") }} {{ device?.id }}
+            {{ $t("device.settingsFor") }} {{ device?.id }}
         </template>
         <template #footer>
             <a-button type="primary" @click="doSubmit">
-                {{ $t("保存") }}
+                {{ $t("common.save") }}
             </a-button>
         </template>
         <div v-if="visible" class="-mx-5 -my-6">
             <div class="overflow-y-auto p-5" style="height: calc(80vh - 200px)">
                 <div>
                     <div class="font-bold text-xl mb-3">
-                        {{ $t("投屏") }}
+                        {{ $t("device.title") }}
                     </div>
                     <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t("投屏时关闭屏幕") }}</div>
+                        <div class="flex-grow">{{ $t("device.dimWhenMirror") }}</div>
                         <div class="">
                             <SettingItemYesNoDefault v-model="formData.dimWhenMirror" />
                         </div>
                     </div>
                     <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t("投屏总在最上层") }}</div>
+                        <div class="flex-grow">{{ $t("device.alwaysTop") }}</div>
                         <div class="">
                             <SettingItemYesNoDefault v-model="formData.alwaysTop" />
                         </div>
                     </div>
                     <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t("投屏时转发声音") }}</div>
+                        <div class="flex-grow">{{ $t("device.mirrorSound") }}</div>
                         <div class="">
                             <SettingItemYesNoDefault v-model="formData.mirrorSound" />
                         </div>
                     </div>
                     <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t("显示预览图") }}</div>
+                        <div class="flex-grow">{{ $t("device.previewImage") }}</div>
                         <div class="">
                             <SettingItemYesNoDefault v-model="formData.previewImage" />
                         </div>
                     </div>
                     <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t("视频比特率") }}</div>
+                        <div class="flex-grow">{{ $t("device.videoBitRate") }}</div>
                         <div class="">
                             <a-input
                                 v-model="formData.videoBitRate"
                                 size="small"
-                                :placeholder="$t('留空使用默认配置')"
+                                :placeholder="$t('device.emptyConfigPlaceholder')"
                             />
                         </div>
                     </div>
                     <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t("刷新率") }}</div>
+                        <div class="flex-grow">{{ $t("device.maxFps") }}</div>
                         <div class="">
-                            <a-input v-model="formData.maxFps" size="small" :placeholder="$t('留空使用默认配置')" />
+                            <a-input v-model="formData.maxFps" size="small" :placeholder="$t('device.emptyConfigPlaceholder')" />
                         </div>
                     </div>
                     <div class="flex mb-3">
                         <div class="flex-grow">
-                            {{ $t("自定义参数") }}
-                            <a-tooltip :content="$t('该参数在投屏时会追加到scrcpy命令')">
+                            {{ $t("device.customArgs") }}
+                            <a-tooltip :content="$t('device.customArgsHint')">
                                 <icon-info-circle />
                             </a-tooltip>
                         </div>
                         <div class="">
-                            <a-input v-model="formData.scrcpyArgs" size="small" :placeholder="$t('留空使用默认配置')" />
+                            <a-input v-model="formData.scrcpyArgs" size="small" :placeholder="$t('device.emptyConfigPlaceholder')" />
                         </div>
                     </div>
                     <div class="font-bold text-xl mb-3">
-                        {{ $t("其他") }}
+                        {{ $t("device.other") }}
                     </div>
                     <div class="w-full">
                         <a-table

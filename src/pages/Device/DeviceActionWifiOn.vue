@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
-import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
-import {sleep} from "../../lib/util";
+import {Dialog} from "../../lib/dialog";
 import {mapError} from "../../lib/error";
+import {sleep} from "../../lib/util";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 
 const props = defineProps<{
     device: DeviceRecord;
 }>();
 const doWifiOn = async () => {
     if (props.device.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t("设备未连接"));
+        Dialog.tipError(t("device.notConnected"));
         return;
     }
-    Dialog.loadingOn(t("正在添加为网络设备"));
+    Dialog.loadingOn(t("device.addingAsNetworkDevice"));
     try {
         const host = await window.$mapi.adb.getDeviceIP(props.device.id);
         if (!host) {
-            Dialog.tipError(t("没有获取到局域网连接地址，请检查网络"));
+            Dialog.tipError(t("device.noNetworkAddress"));
         }
         const port = await window.$mapi.adb.tcpip(props.device.id, 5555);
         await sleep(1000);
         await window.$mapi.adb.connect(host, port);
-        Dialog.tipSuccess(t("添加为网络设备成功"));
+        Dialog.tipSuccess(t("device.addAsNetworkDeviceSuccess"));
     } catch (error) {
         Dialog.tipError(mapError(error));
     } finally {

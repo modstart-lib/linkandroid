@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
-import {Dialog} from "../../lib/dialog";
-import {t} from "../../lang";
-import {sleep} from "../../lib/util";
-import {mapError} from "../../lib/error";
 import {ref} from "vue";
+import {t} from "../../lang";
+import {Dialog} from "../../lib/dialog";
+import {mapError} from "../../lib/error";
+import {sleep} from "../../lib/util";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 
 const props = defineProps<{
     device: DeviceRecord;
@@ -13,10 +13,10 @@ const props = defineProps<{
 const mirrorController = ref(null as any);
 const doMirror = async () => {
     if (props.device.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t("设备未连接"));
+        Dialog.tipError(t("device.notConnected"));
         return;
     }
-    Dialog.loadingOn(t("正在进入OTG模式"));
+    Dialog.loadingOn(t("device.enteringOTG"));
     const args = ["--otg", "--always-on-top"];
     try {
         mirrorController.value = await $mapi.scrcpy.mirror(props.device.id, {
@@ -24,7 +24,7 @@ const doMirror = async () => {
             args,
         });
         await sleep(1000);
-        Dialog.tipSuccess(t("进入OTG模式成功"));
+        Dialog.tipSuccess(t("device.enterOTGSuccess"));
     } catch (error) {
         Dialog.tipError(mapError(error));
     } finally {

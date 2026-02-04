@@ -1,13 +1,13 @@
-import { cloneDeep } from "lodash-es";
-import { defineStore } from "pinia";
-import { computed, ComputedRef, ref, toRaw } from "vue";
-import { t } from "../../lang";
-import { Dialog } from "../../lib/dialog";
-import { mapError } from "../../lib/error";
-import { isIPWithPort } from "../../lib/linkandroid";
-import { DeviceRecord, DeviceRuntime, EnumDeviceStatus, EnumDeviceType } from "../../types/Device";
+import {cloneDeep} from "lodash-es";
+import {defineStore} from "pinia";
+import {computed, ComputedRef, ref, toRaw} from "vue";
+import {t} from "../../lang";
+import {Dialog} from "../../lib/dialog";
+import {mapError} from "../../lib/error";
+import {isIPWithPort} from "../../lib/linkandroid";
+import {DeviceRecord, DeviceRuntime, EnumDeviceStatus, EnumDeviceType} from "../../types/Device";
 import store from "../index";
-import { useSettingStore } from "./setting";
+import {useSettingStore} from "./setting";
 
 const getEmptySetting = () => {
     return JSON.parse(
@@ -439,7 +439,7 @@ export const deviceStore = defineStore("device", {
                 }
                 return;
             }
-            Dialog.loadingOn(t("正在投屏"));
+            Dialog.loadingOn(t("device.mirroring"));
             const setting = {
                 dimWhenMirror: await this.settingGet(device, "dimWhenMirror", "no"),
                 alwaysTop: await this.settingGet(device, "alwaysTop", "no"),
@@ -488,7 +488,7 @@ export const deviceStore = defineStore("device", {
                         if (!successTimer) {
                             successTimer = setTimeout(() => {
                                 if (runtime.value.mirrorController) {
-                                    Dialog.tipSuccess(t("投屏成功"));
+                                    Dialog.tipSuccess(t("device.mirrorSuccess"));
                                 }
                             }, 2000);
                         }
@@ -506,7 +506,7 @@ export const deviceStore = defineStore("device", {
                         console.log("mirror.error", {msg, exitCode});
                         $mapi.log.error("Mirror.error", {msg, exitCode});
                         runtime.value.mirrorController = null;
-                        Dialog.alertError(t("投屏失败") + ` : <code>${msg}</code>`);
+                        Dialog.alertError(t("device.mirrorFailed") + ` : <code>${msg}</code>`);
                     },
                 });
             } catch (error) {

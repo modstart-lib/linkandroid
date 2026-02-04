@@ -1,7 +1,8 @@
-import { ipcMain } from "electron";
-import { WebSocket, WebSocketServer } from "ws";
-import { Apps } from "../app";
-import { Log } from "../log/main";
+import {ipcMain} from "electron";
+import {WebSocket, WebSocketServer} from "ws";
+import {t} from "../../config/lang";
+import {Apps} from "../app";
+import {Log} from "../log/main";
 
 let wss: WebSocketServer | null = null;
 let wsPort: number = 10667;
@@ -12,12 +13,12 @@ const panelConfig = {
     type: "panel",
     data: {
         buttons: [
-            {id: "home", text: "首页"},
-            {id: "back", text: "返回"},
-            {id: "recent", text: "最近"},
-            {id: "volume_up", text: "声音+"},
-            {id: "volume_down", text: "声音-"},
-            {id: "screenshot", text: "截图"},
+            {id: "home", text: t("panel.home")},
+            {id: "back", text: t("panel.back")},
+            {id: "recent", text: t("panel.recent")},
+            {id: "volume_up", text: t("panel.volumeUp")},
+            {id: "volume_down", text: t("panel.volumeDown")},
+            {id: "screenshot", text: t("panel.screenshot")},
         ],
     },
 };

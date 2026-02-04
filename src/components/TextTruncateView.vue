@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { doCopy } from './common/util';
+import {computed, ref} from 'vue';
+import {doCopy} from './common/util';
 
 const props = defineProps({
     text: {

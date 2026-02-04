@@ -22,11 +22,11 @@ const statusColor = computed(() => {
 
 const statusText = computed(() => {
     const textMap = {
-        queue: t("排队中"),
-        wait: t("等待中"),
-        running: t("运行中"),
-        success: t("成功"),
-        fail: t("失败"),
+        queue: t("status.queuing"),
+        wait: t("status.waiting"),
+        running: t("status.running"),
+        success: t("common.success"),
+        fail: t("common.failed"),
     };
     return textMap[props.status as string] || "Unknown";
 });

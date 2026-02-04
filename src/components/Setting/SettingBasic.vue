@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import {onMounted, ref} from "vue";
 import {changeLocale, getLocale, listLocales, t} from "../../lang";
 import {useSettingStore} from "../../store/modules/setting";
-import {onMounted, ref} from "vue";
 
 const locale = ref("");
 
@@ -24,14 +24,14 @@ const onLocaleChange = (value: string) => {
                 <a-option v-for="(l, lIndex) in locales" :key="l.name" :value="l.name">{{ l.label }} </a-option>
             </a-select>
         </a-form-item>
-        <a-form-item field="name" :label="t('主题样式')">
+        <a-form-item field="name" :label="t('setting.themeStyle')">
             <a-radio-group
                 :model-value="setting.configGet('darkMode').value"
                 @change="setting.onConfigChange('darkMode', $event)"
             >
-                <a-radio value="light">{{ t("明亮") }}</a-radio>
-                <a-radio value="dark">{{ t("暗黑") }}</a-radio>
-                <a-radio value="auto">{{ t("跟随系统") }}</a-radio>
+                <a-radio value="light">{{ t("theme.light") }}</a-radio>
+                <a-radio value="dark">{{ t("theme.dark") }}</a-radio>
+                <a-radio value="auto">{{ t("setting.followSystem") }}</a-radio>
             </a-radio-group>
         </a-form-item>
         <a-form-item field="name" :label="t('setting.onClose')">

@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
-import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
-import {sleep} from "../../lib/util";
+import {Dialog} from "../../lib/dialog";
 import {mapError} from "../../lib/error";
+import {sleep} from "../../lib/util";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 
 const props = defineProps<{
     device: DeviceRecord;
 }>();
 const doMirror = async () => {
     if (props.device.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t("设备未连接"));
+        Dialog.tipError(t("device.notConnected"));
         return;
     }
     const info = await window.$mapi.adb.info(props.device.id);
     if (info.version < 12) {
-        Dialog.tipError(t("设备版本过低，不支持此功能"));
+        Dialog.tipError(t("device.versionLow"));
         return;
     }
-    Dialog.loadingOn(t("正在打开摄像头"));
+    Dialog.loadingOn(t("device.openingCamera"));
     const args = [
         '--video-source', 'camera',
         "--always-on-top",
@@ -29,7 +29,7 @@ const doMirror = async () => {
             args,
         });
         await sleep(1000);
-        Dialog.tipSuccess(t("打开摄像头成功"));
+        Dialog.tipSuccess(t("device.openCameraSuccess"));
     } catch (error) {
         Dialog.tipError(mapError(error));
     } finally {

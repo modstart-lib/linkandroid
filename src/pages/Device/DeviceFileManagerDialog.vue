@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {computed, ref, nextTick} from "vue";
-import {Dialog} from "../../lib/dialog";
-import {t} from "../../lang";
-import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
+import {computed, nextTick, ref} from "vue";
 import FileExt from "../../components/common/FileExt.vue";
+import {t} from "../../lang";
+import {Dialog} from "../../lib/dialog";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 
 const visible = ref(false);
 const isEditPath = ref(false);
@@ -19,7 +19,7 @@ const inputRef = ref<HTMLInputElement | null>(null); // 输入框引用
 
 const show = (d: DeviceRecord) => {
     if (d.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t("设备未连接"));
+        Dialog.tipError(t("device.notConnected"));
         return;
     }
     visible.value = true;
@@ -102,30 +102,30 @@ const doEditPathConfirm = () => {
 };
 
 const doDelete = async () => {
-    await Dialog.confirm(t("确定删除选中的文件吗？"));
+    await Dialog.confirm(t("device.fileDeleteConfirm"));
     const files = checkedFileRecords.value;
     if (files.length === 0) {
-        Dialog.tipError(t("请选择文件"));
+        Dialog.tipError(t("device.fileSelectFirst"));
         return;
     }
-    Dialog.loadingOn(t("正在删除"));
+    Dialog.loadingOn(t("device.fileDeleting"));
     for (let f of files) {
         await window.$mapi.adb.fileDelete(device.value.id, filePath.value + "/" + f.name);
     }
     Dialog.loadingOff();
-    Dialog.tipSuccess(t("删除成功"));
+    Dialog.tipSuccess(t("device.fileDeleteSuccess"));
     doRefresh().then();
 };
 
 const doUpload = async () => {
     const path = await window.$mapi.file.openFile();
     if (path) {
-        Dialog.loadingOn(t("正在上传"));
+        Dialog.loadingOn(t("device.fileUploading"));
         const fileName = window.$mapi.app.isPlatform("win") ? path.split("\\").pop() : path.split("/").pop();
         const devicePath = filePath.value + "/" + fileName;
         await window.$mapi.adb.filePush(device.value.id, path, devicePath);
         Dialog.loadingOff();
-        Dialog.tipSuccess(t("上传成功"));
+        Dialog.tipSuccess(t("common.success"));
         doRefresh().then();
     }
 };
@@ -134,7 +134,7 @@ const doDownload = async () => {
     const path = await window.$mapi.file.openDirectory();
     if (path) {
         const files = checkedFileRecords.value;
-        Dialog.loadingOn(t("正在下载"));
+        Dialog.loadingOn(t("status.downloading"));
         for (let f of files) {
             const sourcePath = filePath.value + "/" + f.name;
             const targetPath = path + "/" + f.name;
@@ -145,7 +145,7 @@ const doDownload = async () => {
             }
         }
         Dialog.loadingOff();
-        Dialog.tipSuccess(t("下载成功"));
+        Dialog.tipSuccess(t("device.downloadSuccess"));
     }
 };
 
@@ -189,7 +189,7 @@ const toggleSortByModifiedTime = () => {
 <template>
     <a-modal v-model:visible="visible" width="80vw" :footer="false" title-align="start">
         <template #title>
-            {{ $t("文件管理") }}
+            {{ $t("device.fileManager") }}
         </template>
         <div style="height: 60vh; margin: -0.5rem" class="">
             <div class="flex flex-col h-full">
@@ -240,38 +240,38 @@ const toggleSortByModifiedTime = () => {
                         <template #icon>
                             <icon-upload />
                         </template>
-                        {{ $t("上传") }}
+                        {{ $t("common.addFile") }}
                     </a-button>
                     <a-button class="mr-1" @click="doDownload">
                         <template #icon>
                             <icon-download />
                         </template>
-                        {{ $t("下载") }}
+                        {{ $t("common.download") }}
                     </a-button>
                     <a-button class="mr-1" @click="doDelete" :disabled="checkedFileRecords.length === 0">
                         <template #icon>
                             <icon-delete />
                         </template>
-                        {{ $t("删除") }}
+                        {{ $t("common.delete") }}
                     </a-button>
                     <a-button class="mr-1" @click="toggleView">
                         <template #icon>
                             <icon-list v-if="isListView" />
                             <icon-apps v-else />
                         </template>
-                        {{ isListView ? $t("网格视图") : $t("列表视图") }}
+                        {{ isListView ? $t("common.viewGrid") : $t("common.viewList") }}
                     </a-button>
                     <a-button class="mr-1" @click="toggleSortByName">
                         <template #icon>
                             <component :is="sortOrderName === 'asc' ? 'icon-down' : 'icon-up'" />
                         </template>
-                        {{ $t("按文件名排序") }} ({{ sortOrderName === "asc" ? $t("降序") : $t("升序") }})
+                        {{ $t("common.sortByName") }} ({{ sortOrderName === "asc" ? $t("common.sortDesc") : $t("common.sortAsc") }})
                     </a-button>
                     <a-button class="mr-1" @click="toggleSortByModifiedTime">
                         <template #icon>
                             <component :is="sortOrderModifiedTime === 'asc' ? 'icon-down' : 'icon-up'" />
                         </template>
-                        {{ $t("按修改时间排序") }} ({{ sortOrderModifiedTime === "asc" ? $t("降序") : $t("升序") }})
+                        {{ $t("common.sortByTime") }} ({{ sortOrderModifiedTime === "asc" ? $t("common.sortDesc") : $t("common.sortAsc") }})
                     </a-button>
                 </div>
                 <div class="flex-grow overflow-auto border border-solid border-gray-200 rounded p-2">

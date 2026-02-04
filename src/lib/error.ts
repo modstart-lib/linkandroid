@@ -5,12 +5,12 @@ export function mapError(msg: any) {
         msg = msg.toString();
     }
     const map = {
-        FileAlreadyExists: t("文件已存在"),
-        FileNotFound: t("文件未找到"),
-        ProcessTimeout: t("处理超时"),
-        RequestError: t("请求错误"),
-        "Could not find any ADB device": t("找不到设备"),
-        DeviceNotConnected: t("设备未连接"),
+        FileAlreadyExists: t("error.fileExists"),
+        FileNotFound: t("error.fileNotFound"),
+        ProcessTimeout: t("error.processTimeout"),
+        RequestError: t("error.requestError"),
+        "Could not find any ADB device": t("error.adbDeviceNotFound"),
+        DeviceNotConnected: t("device.notConnected"),
     };
     for (let key in map) {
         if (msg.includes(key)) {

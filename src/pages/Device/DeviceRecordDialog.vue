@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, onMounted, ref} from "vue";
-import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
-import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
-import {ShellUtil, sleep, TimeUtil} from "../../lib/util";
+import {Dialog} from "../../lib/dialog";
+import {sleep, TimeUtil} from "../../lib/util";
+import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
 
 const visible = ref(false);
 const device = ref({} as DeviceRecord);
@@ -47,7 +47,7 @@ const recordTime = computed(() => {
 });
 const show = (d: DeviceRecord) => {
     if (EnumDeviceStatus.CONNECTED !== d.status) {
-        Dialog.tipError(t("设备未连接"));
+        Dialog.tipError(t("device.notConnected"));
         return;
     }
     device.value = d;
@@ -139,12 +139,12 @@ const doRecordProcess = async () => {
 
 const doRecordDownload = async () => {
     let path = await $mapi.file.openSave({
-        defaultPath: t("录屏") + "_" + TimeUtil.datetimeString(),
+        defaultPath: t("device.record") + "_" + TimeUtil.datetimeString(),
     });
     if (!path) {
         return;
     }
-    const formatRegx = new RegExp(`\\.${recordData.value.format}$`);
+    const formatRegx = new RegExp(`\.${recordData.value.format}$`);
     if (!formatRegx.test(path)) {
         path += "." + recordData.value.format;
     }
@@ -153,7 +153,7 @@ const doRecordDownload = async () => {
     }
     let fromPath = recordData.value.resultPath[recordData.value.format] as string;
     await $mapi.file.copy(fromPath, path);
-    Dialog.tipSuccess(t("下载成功"));
+    Dialog.tipSuccess(t("device.downloadSuccess"));
 };
 
 const doClose = async () => {
@@ -194,7 +194,7 @@ defineExpose({
         <template #title>
             <div class="flex items-center">
                 <div class="mr-2">
-                    {{ $t("录制屏幕") }}
+                    {{ $t("device.record") }}
                 </div>
             </div>
         </template>
@@ -216,10 +216,10 @@ defineExpose({
                             v-if="recordData.format === 'gif'"
                         >
                             <template #prefix>
-                                {{ $t("帧率") }}
+                                {{ $t("device.recordFps") }}
                             </template>
                             <template #append>
-                                {{ $t("帧/秒") }}
+                                {{ $t("device.recordFpsUnit") }}
                             </template>
                         </a-input-number>
                     </a-form-item>
@@ -228,10 +228,10 @@ defineExpose({
                             <template #icon>
                                 <i class="iconfont icon-video text-white"></i>
                             </template>
-                            {{ $t("开始录制") }}
+                            {{ $t("device.startRecord") }}
                         </a-button>
                         <a-button @click="visible = false" class="mr-1">
-                            {{ $t("关闭") }}
+                            {{ $t("common.close") }}
                         </a-button>
                     </a-form-item>
                 </a-form>
@@ -240,36 +240,36 @@ defineExpose({
                         <div class="flex">
                             <div class="mr-2">
                                 <a-tag color="orange" size="large" v-if="recordData.status === 'recording'">
-                                    {{ $t("正在录制") }}
+                                    {{ $t("device.recording") }}
                                 </a-tag>
                                 <a-tag color="red" size="large" v-else-if="recordData.status === 'converting'">
-                                    {{ $t("正在处理") }}
+                                    {{ $t("device.recordProcessing") }}
                                 </a-tag>
                                 <a-tag color="red" size="large" v-else-if="recordData.status === 'fail'">
-                                    {{ $t("处理失败") }}
+                                    {{ $t("device.recordFailed") }}
                                 </a-tag>
                                 <a-tag color="green" size="large" v-else-if="recordData.status === 'done'">
-                                    {{ $t("处理成功") }}
+                                    {{ $t("device.recordSuccess") }}
                                 </a-tag>
                             </div>
                             <div class="mr-2">
                                 <a-tag size="large">
-                                    {{ $t("格式") }}
+                                    {{ $t("device.recordFormat") }}
                                     {{ recordData.format.toUpperCase() }}
                                 </a-tag>
                             </div>
                             <div class="mr-2">
                                 <a-tag v-if="recordData.status === 'recording'" size="large">
-                                    {{ $t("已录制 {time}", {time: recordTime}) }}
+                                    {{ $t("device.recorded", {time: recordTime}) }}
                                 </a-tag>
                                 <a-tag v-else-if="recordData.status === 'converting'" size="large">
-                                    {{ $t("录制时长 {time}", {time: recordTime}) }}
+                                    {{ $t("device.recordDuration", {time: recordTime}) }}
                                 </a-tag>
                                 <a-tag v-else-if="recordData.status === 'done'" size="large">
-                                    {{ $t("录制时长 {time}", {time: recordTime}) }}
+                                    {{ $t("device.recordDuration", {time: recordTime}) }}
                                 </a-tag>
                                 <a-tag v-else-if="recordData.status === 'fail'" size="large">
-                                    {{ $t("录制时长 {time}", {time: recordTime}) }}
+                                    {{ $t("device.recordDuration", {time: recordTime}) }}
                                 </a-tag>
                             </div>
                             <div class="flex-grow">&nbsp;</div>
@@ -285,7 +285,7 @@ defineExpose({
                             <template #icon>
                                 <i class="iconfont icon-stop text-white"></i>
                             </template>
-                            {{ $t("停止录制") }}
+                            {{ $t("device.stopRecord") }}
                         </a-button>
                         <a-button
                             v-if="['converting', 'fail', 'done'].includes(recordData.status)"
@@ -297,14 +297,14 @@ defineExpose({
                             <template #icon>
                                 <icon-down/>
                             </template>
-                            {{ $t("下载已录制文件") }}
+                            {{ $t("device.downloadRecorded") }}
                         </a-button>
                         <a-button
                             @click="doClose"
                             :disabled="['recording', 'converting'].includes(recordData.status)"
                             class="mr-1"
                         >
-                            {{ $t("关闭") }}
+                            {{ $t("common.close") }}
                         </a-button>
                     </a-form-item>
                 </a-form>

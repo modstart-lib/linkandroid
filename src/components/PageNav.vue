@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {computed} from "vue";
 import {useRouter} from "vue-router";
-import {useUserStore} from "../store/modules/user";
 import {t} from "../lang";
 import {useSettingStore} from "../store/modules/setting";
+import {useUserStore} from "../store/modules/user";
 
 const route = useRouter();
 const user = useUserStore();
@@ -72,7 +72,7 @@ const doUser = async () => {
                 <div>
                     <icon-mobile class="text-xl"/>
                 </div>
-                <div class="text-sm">{{ $t("设备") }}</div>
+                <div class="text-sm">{{ $t("nav.device") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -83,7 +83,7 @@ const doUser = async () => {
                 <div>
                     <icon-code class="text-xl"/>
                 </div>
-                <div class="text-sm">{{ $t("脚本") }}</div>
+                <div class="text-sm">{{ $t("nav.script") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -94,7 +94,7 @@ const doUser = async () => {
                 <div>
                     <icon-settings class="text-xl"/>
                 </div>
-                <div class="text-sm">{{ $t("设置") }}</div>
+                <div class="text-sm">{{ $t("nav.setting") }}</div>
             </a>
         </div>
         <div></div>

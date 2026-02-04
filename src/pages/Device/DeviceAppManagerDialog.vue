@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
-import {Dialog} from "../../lib/dialog";
 import {t} from "../../lang";
+import {Dialog} from "../../lib/dialog";
 import {DeviceRecord, EnumDeviceStatus} from "../../types/Device";
-import DeviceAppInstallDialog from "./DeviceAppInstallDialog.vue";
-import DeviceAppIcon from "./DeviceAppIcon.vue";
 import NameInfo from "./App/NameInfo.json";
+import DeviceAppIcon from "./DeviceAppIcon.vue";
+import DeviceAppInstallDialog from "./DeviceAppInstallDialog.vue";
 
 const appInstallDialog = ref<InstanceType<typeof DeviceAppInstallDialog> | null>(null);
 
@@ -15,7 +15,7 @@ const appRecords = ref([] as any[]);
 const searchKeywords = ref("");
 const show = (d: DeviceRecord) => {
     if (d.status !== EnumDeviceStatus.CONNECTED) {
-        Dialog.tipError(t("设备未连接"));
+        Dialog.tipError(t("device.notConnected"));
         return;
     }
     device.value = d;
@@ -42,15 +42,15 @@ const doRefresh = async (isManual?: boolean) => {
         };
     });
     if (isManual) {
-        Dialog.tipSuccess(t("刷新成功"));
+        Dialog.tipSuccess(t("common.refresh") + t("common.success"));
     }
 };
 
 const doUninstall = async (app: any) => {
-    await Dialog.confirm(t("确认卸载应用 {name} ？", {name: app.name}));
+    await Dialog.confirm(t("common.deleteConfirm"));
     await window.$mapi.adb.uninstall(device.value.id, app.id);
     await doRefresh();
-    Dialog.tipSuccess(t("卸载成功"));
+    Dialog.tipSuccess(t("device.uninstallSuccess"));
 };
 
 defineExpose({
@@ -61,7 +61,7 @@ defineExpose({
 <template>
     <a-modal v-model:visible="visible" width="80vw" :footer="false" title-align="start">
         <template #title>
-            {{ $t("管理应用") }}
+            {{ $t("device.appManagement") }}
         </template>
         <div style="height: 60vh; margin: -0.5rem" class="">
             <div class="flex flex-col h-full">
@@ -71,17 +71,17 @@ defineExpose({
                             <template #icon>
                                 <icon-plus />
                             </template>
-                            {{ $t("安装应用") }}
+                            {{ $t("device.installApp") }}
                         </a-button>
                         <a-button @click="doRefresh(true)">
                             <template #icon>
                                 <icon-refresh />
                             </template>
-                            {{ $t("刷新") }}
+                            {{ $t("common.refresh") }}
                         </a-button>
                     </div>
                     <div>
-                        <a-input v-model="searchKeywords" :placeholder="$t('输入关键词过滤')" />
+                        <a-input v-model="searchKeywords" :placeholder="$t('device.filterPlaceholder')" />
                     </div>
                 </div>
                 <div class="flex-grow overflow-auto border border-solid border-gray-200 rounded p-2">
@@ -98,7 +98,7 @@ defineExpose({
                             </div>
                             <div>
                                 <a-button @click="doUninstall(a)">
-                                    {{ $t("卸载") }}
+                                    {{ $t("device.uninstall") }}
                                 </a-button>
                             </div>
                         </div>

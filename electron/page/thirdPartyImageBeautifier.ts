@@ -1,14 +1,13 @@
-import {preloadDefault} from "../lib/env-main";
-import {AppRuntime} from "../mapi/env";
 import {BrowserWindow} from "electron";
-import {Page} from "./index";
 import {t} from "../config/lang";
+import {preloadDefault} from "../lib/env-main";
+import {Page} from "./index";
 
 export const PageThirdPartyImageBeautifier = {
     NAME: "thirdPartyImageBeautifier",
     open: (option: any) => {
         const win = new BrowserWindow({
-            title: t("截图编辑"),
+            title: t("page.screenshot.title"),
             parent: null,
             minWidth: 900,
             minHeight: 700,

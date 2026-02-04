@@ -9,7 +9,7 @@ export const useBasicCommand = ({loading, vueCommand, history, commands}) => {
 
     const helpCommand = () => {
         const commandList = Object.keys(commands.value);
-        return createStdout(listFormatter(t("支持的命令:"), ...commandList));
+        return createStdout(listFormatter(t("shell.supportedCommands"), ...commandList));
     };
 
     return {

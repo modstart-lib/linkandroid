@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import {onMounted, onBeforeUnmount, ref} from "vue";
 import QRCode from "qrcode";
-import {Dialog} from "../../lib/dialog";
+import {onBeforeUnmount, ref} from "vue";
 import {t} from "../../lang";
+import {Dialog} from "../../lib/dialog";
 import {mapError} from "../../lib/error";
 
 const visible = ref(false);
@@ -33,13 +33,13 @@ const hide = () => {
 
 const startPairingService = async () => {
     try {
-        Dialog.loadingOn(t("正在生成二维码"));
+        Dialog.loadingOn(t("device.generatingQrcode"));
 
         // Get local IP address
         const networkInterfaces = await window.$mapi.misc.getNetworkInterfaces();
 
         if (!networkInterfaces || networkInterfaces.length === 0) {
-            Dialog.tipError(t("没有获取到局域网连接地址，请检查网络"));
+            Dialog.tipError(t("device.noNetworkAddress"));
             hide();
             return;
         }
@@ -77,7 +77,7 @@ const startPairingService = async () => {
         try {
             await window.$mapi.adb.pair(`${localIP}:${port}`, pairingCode, {
                 success: (data) => {
-                    Dialog.tipSuccess(t("配对成功"));
+                    Dialog.tipSuccess(t("device.pairingSuccess"));
                     emit("update");
                     hide();
                 },
@@ -91,7 +91,7 @@ const startPairingService = async () => {
             // Continue even if service start fails, user can manually pair
         }
 
-        Dialog.tipSuccess(t("二维码生成成功"));
+        Dialog.tipSuccess(t("device.qrcodeGeneratedSuccess"));
         startCountDown();
 
     } catch (error) {
@@ -109,7 +109,7 @@ const startCountDown = () => {
         countDown.value--;
         if (countDown.value <= 0) {
             stopCountDown();
-            Dialog.tipWarning(t("配对码已过期，请重新生成"));
+            Dialog.tipWarning(t("device.pairingExpired"));
             hide();
         }
     }, 1000);
@@ -124,9 +124,9 @@ const stopCountDown = () => {
 
 const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-        Dialog.tipSuccess(t("复制成功"));
+        Dialog.tipSuccess(t("device.copySuccess"));
     }).catch(() => {
-        Dialog.tipError(t("复制失败"));
+        Dialog.tipError(t("device.copyFailed"));
     });
 };
 
@@ -148,17 +148,17 @@ defineExpose({
 <template>
     <a-modal v-model:visible="visible" width="54rem" title-align="start" @cancel="hide" :closable="false">
         <template #title>
-            {{ $t("无线调试配对") }}
+            {{ $t("device.wirelessPairing") }}
         </template>
         <template #footer>
             <a-button @click="regenerate" type="outline">
                 <template #icon>
                     <icon-refresh/>
                 </template>
-                {{ $t("重新生成") }}
+                {{ $t("device.regenerate") }}
             </a-button>
             <a-button @click="hide">
-                {{ $t("关闭") }}
+                {{ $t("common.close") }}
             </a-button>
         </template>
         <div style="max-height:calc(100vh - 15rem);" class="-mx-2 -my-4">
@@ -176,7 +176,7 @@ defineExpose({
                                 {{ countDown }}s
                             </span>
                             <span class="text-sm text-gray-600 dark:text-gray-400">
-                                {{ $t("配对码有效时间") }}
+                                {{ $t("device.pairingCodeValid") }}
                             </span>
                         </div>
                     </div>
@@ -192,12 +192,12 @@ defineExpose({
                             <div class="text-xl font-bold font-mono text-blue-600 dark:text-blue-400 tracking-wider">
                                 {{ pairingInfo.pairingCode }}
                             </div>
-                            <div class="text-xs text-gray-500 mt-1">{{ $t("配对码") }}</div>
+                            <div class="text-xs text-gray-500 mt-1">{{ $t("device.pairingCode") }}</div>
                         </div>
 
                         <div class="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-2 text-sm">
                             <div class="space-y-1">
-                                <div class="text-gray-600 dark:text-gray-400">{{ $t("电脑IP地址") }}</div>
+                                <div class="text-gray-600 dark:text-gray-400">{{ $t("device.computerIP") }}</div>
                                 <div class="flex items-center gap-2">
                                     <span class="font-mono font-semibold flex-grow">{{ pairingInfo.ip }}</span>
                                     <a-button size="mini" @click="copyToClipboard(pairingInfo.ip)">
@@ -208,7 +208,7 @@ defineExpose({
                                 </div>
                             </div>
                             <div class="space-y-1">
-                                <div class="text-gray-600 dark:text-gray-400">{{ $t("配对端口") }}</div>
+                                <div class="text-gray-600 dark:text-gray-400">{{ $t("device.pairingPort") }}</div>
                                 <div class="flex items-center gap-2">
                                     <span class="font-mono font-semibold flex-grow">{{ pairingInfo.port }}</span>
                                     <a-button size="mini" @click="copyToClipboard(pairingInfo.port.toString())">
@@ -229,14 +229,14 @@ defineExpose({
                         <div class="text-sm text-blue-800 dark:text-blue-200">
                             <div class="font-semibold mb-3 flex items-center gap-2 text-base">
                                 <icon-info-circle/>
-                                {{ $t("使用说明：") }}
+                                {{ $t("device.usageInstructions") }}
                             </div>
                             <ol class="list-decimal list-inside space-y-2 text-blue-700 dark:text-blue-300">
-                                <li>{{ $t("打开手机【设置】→【开发者选项】→【无线调试】") }}</li>
-                                <li>{{ $t("点击【使用配对码配对设备】") }}</li>
-                                <li>{{ $t("使用手机扫描此二维码") }}</li>
-                                <li>{{ $t("或手动输入配对码和IP地址") }}</li>
-                                <li>{{ $t("配对成功后设备将自动出现在列表中") }}</li>
+                                <li>{{ $t("device.step1") }}</li>
+                                <li>{{ $t("device.step2") }}</li>
+                                <li>{{ $t("device.step3") }}</li>
+                                <li>{{ $t("device.step4") }}</li>
+                                <li>{{ $t("device.step5") }}</li>
                             </ol>
                         </div>
                     </div>
@@ -246,13 +246,13 @@ defineExpose({
                         <div class="text-sm text-amber-700 dark:text-amber-300">
                             <div class="font-semibold mb-3 flex items-center gap-2 text-base">
                                 <icon-exclamation-circle/>
-                                {{ $t("注意事项：") }}
+                                {{ $t("device.notes") }}
                             </div>
                             <ul class="list-disc list-inside space-y-1.5">
-                                <li>{{ $t("确保手机和电脑在同一局域网") }}</li>
-                                <li>{{ $t("需要Android 11或更高版本") }}</li>
-                                <li>{{ $t("配对码60秒内有效") }}</li>
-                                <li>{{ $t("首次使用需要在手机上启用【开发者选项】和【无线调试】") }}</li>
+                                <li>{{ $t("device.note1") }}</li>
+                                <li>{{ $t("device.note2") }}</li>
+                                <li>{{ $t("device.note3") }}</li>
+                                <li>{{ $t("device.note4") }}</li>
                             </ul>
                         </div>
                     </div>

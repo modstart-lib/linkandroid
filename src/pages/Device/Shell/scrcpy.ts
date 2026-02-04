@@ -1,7 +1,7 @@
 import {debounce} from "lodash-es";
 import {createStderr, createStdout, textFormatter} from "vue-command";
-import {useFixCursor} from "./index";
 import {t} from "../../../lang";
+import {useFixCursor} from "./index";
 
 export const useScrcpyCommand = ({loading, vueCommand, history}) => {
     const scrcpyCommand = async (args) => {
@@ -24,7 +24,7 @@ export const useScrcpyCommand = ({loading, vueCommand, history}) => {
             },
             success() {
                 if (!stdoutText) {
-                    stdoutText += t("执行成功");
+                    stdoutText += t("shell.executeSuccess");
                 }
                 useFixCursor(history);
                 appendToHistory(createStderr(stdoutText));
@@ -32,7 +32,7 @@ export const useScrcpyCommand = ({loading, vueCommand, history}) => {
             },
             error() {
                 if (!stdoutText) {
-                    stdoutText += t("执行失败");
+                    stdoutText += t("shell.executeFailed");
                 }
                 useFixCursor(history);
                 appendToHistory(createStderr(stdoutText));

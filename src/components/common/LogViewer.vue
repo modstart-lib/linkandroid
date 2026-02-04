@@ -23,7 +23,7 @@ const props = withDefaults(
                 <i class="iconfont icon-empty-box text-4xl"></i>
             </div>
             <div class="text-xs mt-3">
-                {{ $t("暂无日志") }}
+                {{ $t("empty.noLog") }}
             </div>
         </div>
         <div v-for="log in logs" class="text-white text-sm font-mono leading-6">
