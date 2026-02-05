@@ -1,4 +1,4 @@
-## v1.1.0 Lib Management, Side Toolbar Optimization
+## v1.1.0 Side Toolbar Optimization
 
 - Feature: Screen mirroring side toolbar, supporting shortcuts for Back, Home, Recent, Volume, and Screenshot
 - Feature: Device connection dropdown menu, supporting quick network device connection and wireless debugging pairing
@@ -6,8 +6,11 @@
 - Optimization: Multilingual translation optimization, enhancing UI consistency
 - Optimization: Pro version feature guidance and upgrade prompt workflow optimization
 - Fix: Fixed the issue where mirroring might fail when the installation path contains Chinese characters
+- Optimization: Updated .gitignore to exclude only root AGENTS.md instead of all .md files
+- Fix: Added force quit functionality in tray configuration
+- Optimization: Adjusted splash screen layout, removed shadow and updated padding
 
-## v1.1.0 库管理支持，投屏操作栏优化
+## v1.1.0 投屏操作栏优化
 
 - 新增：投屏侧边操作栏，支持返回、首页、最近任务、音量调节、截图等快捷操作
 - 新增：设备连接下拉菜单，支持快速连接网络设备及无线调试配对
@@ -15,7 +18,8 @@
 - 优化：多语言翻译优化，提升中英文界面一致性
 - 优化：Pro 版本功能引导与升级提示流程优化
 - 修复：修复安装路径包含中文时可能导致的投屏启动失败问题
-
+- 修复：在托盘配置中添加强制退出功能
+- 优化：调整启动画面布局，移除阴影并更新内边距
 
 
 ## v1.0.0 正式版发布，布局调整设计，内置依赖，支持设备搜索
