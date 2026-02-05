@@ -5,15 +5,10 @@ set -euo pipefail
 REPO_URL="https://github.com/modstart-lib/share-binary"
 REPO_DIR="share-binary"
 
-if [ ! -d "$REPO_DIR/.git" ]; then
-    echo "🔹 目录不存在，正在克隆仓库..."
-    git clone "$REPO_URL"
-else
-    echo "🔹 仓库已存在，进入目录并更新..."
-    cd "$REPO_DIR"
-    git pull origin main
-    cd ..
+if [ -d "$REPO_DIR/.git" ]; then
+    rm -rfv "$REPO_DIR"
 fi
+git clone "$REPO_URL" "$REPO_DIR"
 
 rm -rfv electron/resources/extra/osx-arm64
 mkdir -p electron/resources/extra/osx-arm64

@@ -1,6 +1,6 @@
 {
     "name": "linkandroid",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "main": "dist-electron/main/index.js",
     "description": "Link android to PC easily",
     "author": "ModStartLib",
@@ -79,6 +79,7 @@
         "iconv-lite": "^0.6.3",
         "js-base64": "^3.7.7",
         "lodash-es": "^4.17.21",
+        "lucide-vue-next": "^0.563.0",
         "nodejs-base64": "^2.0.0",
         "pinia": "^2.1.7",
         "qrcode": "^1.5.4",

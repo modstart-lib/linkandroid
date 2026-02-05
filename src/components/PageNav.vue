@@ -4,6 +4,7 @@ import {useRouter} from "vue-router";
 import {t} from "../lang";
 import {useSettingStore} from "../store/modules/setting";
 import {useUserStore} from "../store/modules/user";
+import {Package} from "lucide-vue-next";
 
 const route = useRouter();
 const user = useUserStore();
@@ -15,10 +16,12 @@ const activeTab = computed(() => {
             return "home";
         case "/device":
             return "device";
-        case "/setting":
-            return "setting";
         case "/script":
             return "script";
+        case "/lib":
+            return "lib";
+        case "/setting":
+            return "setting";
     }
 });
 
@@ -84,6 +87,18 @@ const doUser = async () => {
                     <icon-code class="text-xl"/>
                 </div>
                 <div class="text-sm">{{ $t("nav.script") }}</div>
+            </a>
+            <a
+                v-if="0"
+                class="page-nav-item block text-center py-3"
+                :class="activeTab === 'lib' ? 'active' : ''"
+                @click="$router.push('/lib')"
+                href="javascript:;"
+            >
+                <div>
+                    <Package class="w-5 h-5 mx-auto"/>
+                </div>
+                <div class="text-sm">{{ $t("nav.lib") }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
