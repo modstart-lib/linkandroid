@@ -38,6 +38,6 @@ rm -rfv electron/resources/extra/win-x86
 mkdir -p electron/resources/extra/win-x86
 cp -a share-binary/win-x86/scrcpy electron/resources/extra/win-x86/scrcpy
 cp -a share-binary/win-x86/ffmpeg.exe electron/resources/extra/win-x86/ffmpeg.exe
-cp -a share-binary/win-x86/ffprobe.exe electron/resources/extra/win-x86/ffprobe
+cp -a share-binary/win-x86/ffprobe.exe electron/resources/extra/win-x86/ffprobe.exe
 
 ls -R electron/resources/extra
