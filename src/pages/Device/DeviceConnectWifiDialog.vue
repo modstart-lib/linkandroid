@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {ref} from "vue";
-import {t} from "../../lang";
-import {Dialog} from "../../lib/dialog";
+import { ref } from "vue";
+import { t } from "../../lang";
+import { Dialog } from "../../lib/dialog";
 
 const visible = ref(false);
 const formData = ref({
@@ -46,7 +46,7 @@ defineExpose({
             <div class="px-2">
                 <a-form :model="formData" layout="vertical">
                     <a-form-item :label="$t('device.ipAddress')">
-                        <a-input v-model="formData.host" placeholder="192.168.x.x" />
+                        <a-input v-model="formData.host" :placeholder="$t('device.ipAddressPlaceholder')" />
                     </a-form-item>
                     <a-form-item :label="$t('device.port')">
                         <a-input v-model="formData.port" :placeholder="$t('device.defaultPort', {port: 5555})" />

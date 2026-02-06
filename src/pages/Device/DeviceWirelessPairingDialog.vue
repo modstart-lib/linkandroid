@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import QRCode from "qrcode";
 import { onBeforeUnmount, ref } from "vue";
+import { t } from "../../lang";
 import { Dialog } from "../../lib/dialog";
 import { mapError } from "../../lib/error";
 
@@ -32,7 +33,7 @@ const hide = () => {
 
 const startPairingService = async () => {
     try {
-        Dialog.loadingOn("生成配对二维码...");
+        Dialog.loadingOn(t("device.generatingQrcode"));
 
         // 生成 6 位随机密码
         const password = Math.floor(100000 + Math.random() * 900000).toString();
@@ -52,12 +53,12 @@ const startPairingService = async () => {
         });
 
         Dialog.loadingOff();
-        Dialog.tipSuccess("二维码生成成功");
+        Dialog.tipSuccess(t("device.qrcodeGenerateSuccess"));
         startCountDown();
 
         // 启动自动扫描和配对
         pairingStatus.value = "waiting";
-        statusMessage.value = "等待手机扫描二维码...";
+        statusMessage.value = t("device.waitingScanQRCode");
 
         console.log("开始扫描设备...", password);
 
@@ -66,38 +67,38 @@ const startPairingService = async () => {
                 console.log("配对状态更新:", status, error);
                 if (status === "pairing") {
                     pairingStatus.value = "pairing";
-                    statusMessage.value = "正在配对设备...";
+                    statusMessage.value = t("device.pairingDevice");
                 } else if (status === "connecting") {
                     pairingStatus.value = "connecting";
-                    statusMessage.value = "正在连接设备...";
+                    statusMessage.value = t("device.connectingDevice");
                 } else if (status === "connecting-fallback") {
                     pairingStatus.value = "connecting-fallback";
-                    statusMessage.value = "尝试备用连接方式...";
+                    statusMessage.value = t("device.connectingFallback");
                 } else if (status === "connected") {
                     pairingStatus.value = "connected";
-                    statusMessage.value = "设备连接成功！";
+                    statusMessage.value = t("device.deviceConnectSuccess");
                 } else if (status === "error") {
                     pairingStatus.value = "error";
-                    statusMessage.value = error || "配对失败";
+                    statusMessage.value = error || t("device.pairingFailedShort");
                 }
             });
 
             console.log("配对结果:", result);
 
             if (result.success) {
-                Dialog.tipSuccess("二维码配对成功");
+                Dialog.tipSuccess(t("device.qrcodePairingSuccess"));
                 emit("update");
                 setTimeout(() => {
                     hide();
                 }, 1000);
             } else {
-                Dialog.tipError(`配对失败: ${result.error}`);
+                Dialog.tipError(t("device.pairingFailedWithError", { error: result.error }));
             }
         } catch (connectError) {
             console.error("scannerConnect 调用异常:", connectError);
-            Dialog.tipError(`配对过程出错: ${connectError}`);
+            Dialog.tipError(t("device.pairingProcessError", { error: connectError }));
             pairingStatus.value = "error";
-            statusMessage.value = "配对过程出错";
+            statusMessage.value = t("device.pairingProcessErrorShort");
         }
 
     } catch (error) {
@@ -105,7 +106,7 @@ const startPairingService = async () => {
         Dialog.loadingOff();
         Dialog.tipError(mapError(error));
         pairingStatus.value = "error";
-        statusMessage.value = "生成二维码失败";
+        statusMessage.value = t("device.qrcodeGenerateFailed");
     }
 };
 
@@ -116,7 +117,7 @@ const startCountDown = () => {
         if (countDown.value <= 0) {
             stopCountDown();
             if (pairingStatus.value !== "connected") {
-                Dialog.tipError("配对超时");
+                Dialog.tipError(t("device.pairingTimeout"));
                 hide();
             }
         }
@@ -148,17 +149,17 @@ defineExpose({
 <template>
     <a-modal v-model:visible="visible" width="54rem" title-align="start" @cancel="hide" :closable="false">
         <template #title>
-            二维码配对
+            {{ $t("device.wirelessPairing") }}
         </template>
         <template #footer>
             <a-button @click="regenerate" type="outline">
                 <template #icon>
                     <icon-refresh/>
                 </template>
-                重新生成
+                {{ $t("device.regenerate") }}
             </a-button>
             <a-button @click="hide">
-                关闭
+                {{ $t("common.close") }}
             </a-button>
         </template>
         <div style="max-height:calc(100vh - 15rem);" class="-mx-2 -my-4">
@@ -176,7 +177,7 @@ defineExpose({
                                 {{ countDown }}s
                             </span>
                             <span class="text-sm text-gray-600 dark:text-gray-400">
-                                剩余时间
+                                {{ $t("device.timeRemaining") }}
                             </span>
                         </div>
                     </div>
@@ -192,7 +193,7 @@ defineExpose({
                             <div class="text-xl font-bold font-mono text-blue-600 dark:text-blue-400 tracking-wider">
                                 {{ pairingCode }}
                             </div>
-                            <div class="text-xs text-gray-500 mt-1">配对码</div>
+                            <div class="text-xs text-gray-500 mt-1">{{ $t("device.pairingCode") }}</div>
                         </div>
 
                         <!-- Status Display -->
@@ -221,14 +222,14 @@ defineExpose({
                         <div class="text-sm text-blue-800 dark:text-blue-200">
                             <div class="font-semibold mb-3 flex items-center gap-2 text-base">
                                 <icon-info-circle/>
-                                使用说明
+                                {{ $t("device.usageInstructions") }}
                             </div>
                             <ol class="list-decimal list-inside space-y-2 text-blue-700 dark:text-blue-300">
-                                <li>在手机上打开"开发者选项"</li>
-                                <li>启用"无线调试"功能</li>
-                                <li>点击"使用配对码配对设备"</li>
-                                <li>使用手机扫描左侧二维码即可自动配对</li>
-                                <li>配对成功后，设备将自动连接</li>
+                                <li>{{ $t("device.qrcodePairingInstructions1") }}</li>
+                                <li>{{ $t("device.qrcodePairingInstructions2") }}</li>
+                                <li>{{ $t("device.qrcodePairingInstructions3") }}</li>
+                                <li>{{ $t("device.qrcodePairingInstructions4") }}</li>
+                                <li>{{ $t("device.qrcodePairingInstructions5") }}</li>
                             </ol>
                         </div>
                     </div>
@@ -238,13 +239,13 @@ defineExpose({
                         <div class="text-sm text-amber-700 dark:text-amber-300">
                             <div class="font-semibold mb-3 flex items-center gap-2 text-base">
                                 <icon-exclamation-circle/>
-                                注意事项
+                                {{ $t("device.notes") }}
                             </div>
                             <ul class="list-disc list-inside space-y-1.5">
-                                <li>确保手机和电脑在同一局域网内</li>
-                                <li>需要 Android 11 及以上版本</li>
-                                <li>配对码有效期为 60 秒</li>
-                                <li>如果配对失败，请点击"重新生成"按钮</li>
+                                <li>{{ $t("device.qrcodePairingNote1") }}</li>
+                                <li>{{ $t("device.qrcodePairingNote2") }}</li>
+                                <li>{{ $t("device.qrcodePairingNote3") }}</li>
+                                <li>{{ $t("device.qrcodePairingNote4") }}</li>
                             </ul>
                         </div>
                     </div>

@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import {useDeviceStore} from "../../store/modules/device";
-import {DeviceRecord, EnumDeviceStatus, EnumDeviceType} from "../../types/Device";
-import DeviceStatus from "./DeviceStatus.vue";
-import {Dialog} from "../../lib/dialog";
-import {mapError} from "../../lib/error";
+import { computed, ref } from "vue";
 import InputInlineEditor from "../../components/common/InputInlineEditor.vue";
-import {computed, ref} from "vue";
-import {t} from "../../lang";
+import { t } from "../../lang";
+import { Dialog } from "../../lib/dialog";
+import { mapError } from "../../lib/error";
+import { useDeviceStore } from "../../store/modules/device";
+import { DeviceRecord, EnumDeviceStatus, EnumDeviceType } from "../../types/Device";
 import DeviceActionApp from "./DeviceActionApp.vue";
-import DeviceActionRecord from "./DeviceActionRecord.vue";
-import DeviceActionScreenshot from "./DeviceActionScreenshot.vue";
-import DeviceActionWifiOn from "./DeviceActionWifiOn.vue";
+import DeviceActionConnect from "./DeviceActionConnect.vue";
+import DeviceActionDisconnect from "./DeviceActionDisconnect.vue";
+import DeviceActionMirror from "./DeviceActionMirror.vue";
 import DeviceActionMirrorCamera from "./DeviceActionMirrorCamera.vue";
 import DeviceActionMirrorOTG from "./DeviceActionMirrorOTG.vue";
-import DeviceActionMirror from "./DeviceActionMirror.vue";
-import DeviceActionDisconnect from "./DeviceActionDisconnect.vue";
-import DeviceType from "./DeviceType.vue";
-import DeviceActionConnect from "./DeviceActionConnect.vue";
+import DeviceActionRecord from "./DeviceActionRecord.vue";
+import DeviceActionScreenshot from "./DeviceActionScreenshot.vue";
 import DeviceActionWifiOff from "./DeviceActionWifiOff.vue";
+import DeviceActionWifiOn from "./DeviceActionWifiOn.vue";
+import DeviceStatus from "./DeviceStatus.vue";
+import DeviceType from "./DeviceType.vue";
 
 const props = defineProps<{
     record: DeviceRecord
@@ -27,7 +27,6 @@ const emit = defineEmits<{
     (e: "setting"): void,
     (e: "file-manager"): void,
     (e: "adbShell"): void,
-    (e: "wifi-qrcode"): void,
 }>();
 
 const actionMirror = ref<InstanceType<typeof DeviceActionMirror> | null>(null);
@@ -133,15 +132,6 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                         />
                         <DeviceActionWifiOn v-if="record.type === EnumDeviceType.USB" :device="record"/>
                         <DeviceActionWifiOff v-if="record.type === EnumDeviceType.WIFI" :device="record"/>
-                        <a-doption
-                            v-if="record.status === EnumDeviceStatus.CONNECTED"
-                            @click="emit('wifi-qrcode')"
-                        >
-                            <template #icon>
-                                <icon-qrcode/>
-                            </template>
-                            {{ $t("device.qrcode") }}
-                        </a-doption>
                         <DeviceActionMirrorCamera :device="record"/>
                         <DeviceActionMirrorOTG v-if="record.type === EnumDeviceType.USB" :device="record"/>
                         <a-doption @click="emit('adbShell')">
