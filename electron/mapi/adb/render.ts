@@ -1,11 +1,11 @@
-import {Adb} from "@devicefarmer/adbkit";
-import {extraResolveBin} from "../../lib/env";
-import Config from "../config/render";
-import {FileUtil, TimeUtil} from "../../lib/util";
-import dayjs from "dayjs";
-import fs from "node:fs";
+import { Adb } from "@devicefarmer/adbkit";
 import Client from "@devicefarmer/adbkit/dist/src/adb/client";
-import {Apps} from "../app";
+import dayjs from "dayjs";
+import { ipcRenderer } from "electron";
+import fs from "node:fs";
+import { extraResolveBin } from "../../lib/env";
+import { FileUtil, TimeUtil } from "../../lib/util";
+import { Apps } from "../app";
 
 let client = null;
 window.addEventListener("beforeunload", () => {
@@ -19,7 +19,7 @@ const destroy = () => {
     }
 };
 
-const getBinPath = async (): Promise<string> => {
+export const getBinPath = async (): Promise<string> => {
     return extraResolveBin("scrcpy/adb");
 };
 
@@ -313,6 +313,49 @@ const pair = async (
     return controller;
 };
 
+const scannerConnect = async (
+    password: string,
+    onStatus?: (status: string, error?: string) => void
+) => {
+    // 生成唯一的回调 ID
+    const callbackId = Math.random().toString(36).substring(2);
+
+    console.log("[Render] scannerConnect 开始, callbackId:", callbackId);
+
+    // 监听状态更新
+    const statusListener = (_event: any, data: {status: string, error?: string}) => {
+        console.log("[Render] 收到状态更新:", data);
+        try {
+            if (onStatus) {
+                onStatus(data.status, data.error);
+            }
+        } catch (error) {
+            console.error("[Render] 状态回调执行失败:", error);
+        }
+    };
+
+    const channelName = `adb-scanner-status-${callbackId}`;
+    ipcRenderer.on(channelName, statusListener);
+
+    try {
+        console.log("[Render] 调用 Main 进程 adb:scannerConnect");
+        const result = await ipcRenderer.invoke("adb:scannerConnect", password, callbackId);
+        console.log("[Render] 收到结果:", result);
+
+        // 等待一小段时间确保所有状态消息都已接收
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        return result;
+    } catch (error) {
+        console.error("[Render] scannerConnect 调用失败:", error);
+        throw error;
+    } finally {
+        // 清理监听器
+        console.log("[Render] 清理监听器:", channelName);
+        ipcRenderer.removeAllListeners(channelName);
+    }
+};
+
 export default {
     getBinPath,
     spawnShell,
@@ -337,6 +380,7 @@ export default {
     listApps,
     info,
     pair,
+    scannerConnect,
 };
 
 export const ADB = {

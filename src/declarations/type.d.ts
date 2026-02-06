@@ -414,6 +414,14 @@ type DefsMapi = {
                 error?: (msg: string) => void;
             }
         ) => Promise<any>;
+        scannerConnect: (
+            password: string,
+            onStatus?: (status: string, error?: string) => void
+        ) => Promise<{
+            success: boolean;
+            device?: any;
+            error?: string;
+        }>;
     };
     scrcpy: {
         getBinPath: (returnEmptyWhenDefault: boolean = false) => Promise<string>;

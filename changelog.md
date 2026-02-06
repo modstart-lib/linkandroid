@@ -1,43 +1,82 @@
 ## [Unreleased]
 
-- Feature: Added follow mode and top mode for device mirroring, allowing synchronized operations across multiple devices
-- Feature: Added network interface detection for wireless pairing
-- Optimization: Simplified ADB and Scrcpy path management, using default paths
-- Optimization: Improved wireless pairing dialog with better user experience
-- Optimization: Added loading animation to home page
-- Update: Updated internationalization with new translation keys
+## v1.1.0 Enhanced Wireless Pairing & Side Toolbar
 
-## [Unreleased]
+### Release Summary
+**LinkAndroid v1.1.0** brings revolutionary wireless pairing capabilities and enhanced mirroring controls. Experience seamless device connections with QR code auto-pairing, automatic mDNS discovery, and an intuitive side toolbar for screen mirroring operations. This update significantly improves the wireless debugging workflow and user experience across all platforms.
 
-- 新增：设备投屏随动模式和置顶模式，支持多设备同步操作
-- 新增：网络接口检测，用于无线配对
-- 优化：简化ADB和Scrcpy路径管理，直接使用默认路径
-- 优化：改进无线配对对话框，提升用户体验
-- 优化：为主页添加加载动画
-- 更新：更新国际化翻译键
+**Key Highlights:**
+- **One-Scan Connection**: QR code pairing with automatic device discovery
+- **Mirroring Toolbar**: Quick access controls during screen mirroring
+- **Smart Discovery**: Bonjour-based mDNS for effortless device finding
+- **Multi-Device Sync**: Follow and top modes for synchronized operations
 
-## v1.1.0 Side Toolbar Optimization
+---
 
-- Feature: Screen mirroring side toolbar, supporting shortcuts for Back, Home, Recent, Volume, and Screenshot
-- Feature: Device connection dropdown menu, supporting quick network device connection and wireless debugging pairing
-- Update: scrcpy core component upgraded to v3.3.4, improving mirroring stability
-- Optimization: Multilingual translation optimization, enhancing UI consistency
-- Optimization: Pro version feature guidance and upgrade prompt workflow optimization
-- Fix: Fixed the issue where mirroring might fail when the installation path contains Chinese characters
-- Optimization: Updated .gitignore to exclude only root AGENTS.md instead of all .md files
-- Fix: Added force quit functionality in tray configuration
-- Optimization: Adjusted splash screen layout, removed shadow and updated padding
+### Major Features
+- **Enhanced Wireless Pairing**: Complete overhaul of wireless debugging with QR code auto-pairing and manual pairing code input
+- **mDNS Service Discovery**: Automatic device discovery using Bonjour for seamless ADB connections
+- **Side Toolbar for Mirroring**: Quick access toolbar during screen mirroring with Back, Home, Recent, Volume, and Screenshot controls
+- **Device Connection Menu**: Dropdown menu for rapid network device connections and wireless debugging pairing
 
-## v1.1.0 投屏操作栏优化
+### Technical Improvements
+- **Core Upgrade**: scrcpy upgraded to v3.3.4 for enhanced mirroring stability
+- **Path Management**: Simplified ADB and Scrcpy binary path handling with intelligent defaults
+- **UI/UX Enhancements**: Improved wireless pairing dialogs, loading animations, and multilingual consistency
+- **Network Detection**: Automatic network interface detection for wireless pairing
 
-- 新增：投屏侧边操作栏，支持返回、首页、最近任务、音量调节、截图等快捷操作
-- 新增：设备连接下拉菜单，支持快速连接网络设备及无线调试配对
-- 升级：scrcpy 核心组件升级至 v3.3.4，提升投屏稳定性
-- 优化：多语言翻译优化，提升中英文界面一致性
-- 优化：Pro 版本功能引导与升级提示流程优化
-- 修复：修复安装路径包含中文时可能导致的投屏启动失败问题
-- 修复：在托盘配置中添加强制退出功能
-- 优化：调整启动画面布局，移除阴影并更新内边距
+### Bug Fixes & Optimizations
+- Fixed mirroring failures when installation paths contain Chinese characters
+- Added force quit functionality in tray configuration
+- Optimized splash screen layout and transparency settings
+- Enhanced Pro version feature guidance and upgrade prompts
+- Improved internationalization with comprehensive translation updates
+
+### Device Features
+- Follow mode and top mode for synchronized multi-device mirroring operations
+- Automatic device scanning and connection after QR code pairing
+- Enhanced device search and connection workflows
+
+---
+
+## v1.1.0 增强无线配对与投屏操作栏
+
+### 版本概要
+**LinkAndroid v1.1.0** 带来革命性的无线配对能力和增强的投屏控制体验。通过二维码自动配对、自动mDNS发现和直观的投屏侧边操作栏，实现无缝设备连接。本次更新显著提升了无线调试工作流和跨平台用户体验。
+
+**主要亮点：**
+- **一扫即连**：二维码配对配合自动设备发现
+- **投屏工具栏**：投屏时快捷操作控制
+- **智能发现**：基于Bonjour的mDNS轻松发现设备
+- **多设备同步**：随动和置顶模式实现同步操作
+
+### 主要功能
+- **增强无线配对**：全新无线调试体验，支持二维码自动配对和手动配对码输入
+- **mDNS服务发现**：使用Bonjour自动发现设备，实现ADB无缝连接
+- **投屏侧边操作栏**：投屏时快捷操作栏，支持返回、首页、最近任务、音量调节、截图等操作
+- **设备连接菜单**：下拉菜单支持快速网络设备连接及无线调试配对
+
+### 技术改进
+- **核心升级**：scrcpy升级至v3.3.4，提升投屏稳定性
+- **路径管理**：简化ADB和Scrcpy二进制路径处理，智能默认路径
+- **界面优化**：改进无线配对对话框、加载动画、多语言一致性
+- **网络检测**：自动网络接口检测，用于无线配对
+
+### 修复与优化
+- 修复安装路径包含中文时投屏可能失败的问题
+- 在托盘配置中添加强制退出功能
+- 优化启动画面布局和透明度设置
+- 增强Pro版本功能引导与升级提示流程
+- 完善国际化翻译更新
+
+### 设备功能
+- 设备投屏随动模式和置顶模式，支持多设备同步操作
+- 二维码配对后自动扫描和连接设备
+- 增强设备搜索和连接工作流
+
+---
+
+## v1.0.0 正式版发布，布局调整设计，内置依赖，支持设备搜索
 
 
 ## v1.0.0 正式版发布，布局调整设计，内置依赖，支持设备搜索

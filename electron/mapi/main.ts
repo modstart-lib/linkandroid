@@ -11,6 +11,7 @@ import user from "./user/main";
 import misc from "./misc/main";
 import updater from "./updater/main";
 import serve from "./serve/main";
+import adb from "./adb/main";
 
 const $mapi = {
     app,
@@ -26,6 +27,7 @@ const $mapi = {
     misc,
     updater,
     serve,
+    adb,
 };
 
 export const MAPI = {

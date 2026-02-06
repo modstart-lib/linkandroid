@@ -11,6 +11,7 @@ import DeviceEmpty from "./Device/DeviceEmpty.vue";
 import DeviceFileManagerDialog from "./Device/DeviceFileManagerDialog.vue";
 import DeviceFilterEmpty from "./Device/DeviceFilterEmpty.vue";
 import DeviceItem from "./Device/DeviceItem.vue";
+import DevicePairingCodeDialog from "./Device/DevicePairingCodeDialog.vue";
 import DeviceSettingDialog from "./Device/DeviceSettingDialog.vue";
 import DeviceShellDialog from "./Device/DeviceShellDialog.vue";
 import DeviceWirelessPairingDialog from "./Device/DeviceWirelessPairingDialog.vue";
@@ -21,6 +22,7 @@ const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null);
 const adbShellDialog = ref<InstanceType<typeof DeviceAdbShellDialog> | null>(null);
 const connectWifiDialog = ref<InstanceType<typeof DeviceConnectWifiDialog> | null>(null);
 const wirelessPairingDialog = ref<InstanceType<typeof DeviceWirelessPairingDialog> | null>(null);
+const pairingCodeDialog = ref<InstanceType<typeof DevicePairingCodeDialog> | null>(null);
 const defaultSettingDialog = ref<InstanceType<typeof DeviceDefaultSettingDialog> | null>(null);
 
 const deviceStore = useDeviceStore();
@@ -102,6 +104,12 @@ const doRefresh = async () => {
                             </template>
                             {{ $t("device.wirelessPairing") }}
                         </a-doption>
+                        <a-doption @click="pairingCodeDialog?.show()">
+                            <template #icon>
+                                <icon-safe/>
+                            </template>
+                            {{ $t("device.pairingCodePairing") }}
+                        </a-doption>
                     </template>
                 </a-dropdown>
                 <a-dropdown trigger="hover">
@@ -134,6 +142,7 @@ const doRefresh = async () => {
     </div>
     <DeviceConnectWifiDialog ref="connectWifiDialog" @update="doRefresh"/>
     <DeviceWirelessPairingDialog ref="wirelessPairingDialog" @update="doRefresh"/>
+    <DevicePairingCodeDialog ref="pairingCodeDialog" @update="doRefresh"/>
     <DeviceSettingDialog ref="settingDialog"/>
     <DeviceFileManagerDialog ref="fileManagerDialog"/>
     <DeviceAdbShellDialog ref="adbShellDialog"/>

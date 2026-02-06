@@ -98,7 +98,7 @@ async function createWindow() {
             title: AppConfig.title,
             width: 600,
             height: 350,
-            transparent: true,
+            transparent: false,
             frame: false,
             alwaysOnTop: true,
             hasShadow: true,
