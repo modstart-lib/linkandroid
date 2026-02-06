@@ -1,4 +1,4 @@
-import {ipcRenderer} from "electron";
+import { ipcRenderer } from "electron";
 
 const start = async (): Promise<number> => {
     return await ipcRenderer.invoke("serve:start");

@@ -1,3 +1,21 @@
+## [Unreleased]
+
+- Feature: Added follow mode and top mode for device mirroring, allowing synchronized operations across multiple devices
+- Feature: Added network interface detection for wireless pairing
+- Optimization: Simplified ADB and Scrcpy path management, using default paths
+- Optimization: Improved wireless pairing dialog with better user experience
+- Optimization: Added loading animation to home page
+- Update: Updated internationalization with new translation keys
+
+## [Unreleased]
+
+- 新增：设备投屏随动模式和置顶模式，支持多设备同步操作
+- 新增：网络接口检测，用于无线配对
+- 优化：简化ADB和Scrcpy路径管理，直接使用默认路径
+- 优化：改进无线配对对话框，提升用户体验
+- 优化：为主页添加加载动画
+- 更新：更新国际化翻译键
+
 ## v1.1.0 Side Toolbar Optimization
 
 - Feature: Screen mirroring side toolbar, supporting shortcuts for Back, Home, Recent, Volume, and Screenshot

@@ -19,26 +19,8 @@ const destroy = () => {
     }
 };
 
-const getBinPath = async (returnEmptyWhenDefault: boolean = false): Promise<string> => {
-    const binPath = await Config.get("common.adbPath");
-    const binPathDefault = extraResolveBin("scrcpy/adb");
-    if (returnEmptyWhenDefault && (!binPath || binPath === binPathDefault)) {
-        return '';
-    }
-    if (binPath) {
-        return binPath;
-    }
-    return binPathDefault;
-};
-
-const setBinPath = async (binPath: string) => {
-    const binPathOld = await Config.get("common.adbPath");
-    if (binPath === binPathOld) {
-        return false;
-    }
-    await Config.set("common.adbPath", binPath);
-    destroy();
-    return true;
+const getBinPath = async (): Promise<string> => {
+    return extraResolveBin("scrcpy/adb");
 };
 
 const getClient = async (): Promise<Client> => {
@@ -333,7 +315,6 @@ const pair = async (
 
 export default {
     getBinPath,
-    setBinPath,
     spawnShell,
     devices,
     shell,

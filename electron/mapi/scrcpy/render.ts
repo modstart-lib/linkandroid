@@ -1,29 +1,12 @@
-import Config from "../config/render";
-import {extraResolveBin, extraResolveWithPlatform, isWin} from "../../lib/env";
-import {Apps} from "../app";
-import {ADB} from "../adb/render";
-import {Log} from "../log";
+import { extraResolveBin, extraResolveWithPlatform, isWin } from "../../lib/env";
+import { ADB } from "../adb/render";
+import { Apps } from "../app";
+import { Log } from "../log";
 
-const getBinPath = async (returnEmptyWhenDefault: boolean = false): Promise<string> => {
-    const binPath = await Config.get("common.scrcpyPath");
-    const binPathDefault = extraResolveBin("scrcpy/scrcpy");
-    if (returnEmptyWhenDefault && (!binPath || binPath === binPathDefault)) {
-        return '';
-    }
-    if (binPath) {
-        return binPath;
-    }
-    return binPathDefault
+const getBinPath = async (): Promise<string> => {
+    return extraResolveBin("scrcpy/scrcpy");
 };
 
-const setBinPath = async (binPath: string) => {
-    const binPathOld = await Config.get("common.scrcpyPath");
-    if (binPath === binPathOld) {
-        return false;
-    }
-    await Config.set("common.scrcpyPath", binPath);
-    return true;
-};
 
 const spawnShell = async (
     args: string[],
@@ -42,6 +25,7 @@ const spawnShell = async (
         args: [],
     }, option);
     option.env["ADB"] = await ADB.getBinPath();
+    option.env['SCRCPY_FONT_PATH'] = await extraResolveWithPlatform('scrcpy/font.ttf');
     option.env['SCRCPY_SERVER_PATH'] = await extraResolveWithPlatform('scrcpy/scrcpy-server');
     if (isWin) {
         // option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");
@@ -94,7 +78,6 @@ const mirror = async (
 
 export default {
     getBinPath,
-    setBinPath,
     spawnShell,
     mirror,
 };

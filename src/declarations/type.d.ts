@@ -346,11 +346,15 @@ type DefsMapi = {
             headers?: any;
             data?: any;
         }) => Promise<any>;
+        getNetworkInterfaces: () => Promise<Array<{
+            name: string;
+            address: string;
+            family: string;
+            internal: boolean;
+        }>>;
     };
 
     adb: {
-        getBinPath: (returnEmptyWhenDefault: boolean = false) => Promise<string>;
-        setBinPath: (binPath: string) => Promise<boolean>;
         spawnShell: (
             args: string[],
             option?: {
@@ -402,10 +406,17 @@ type DefsMapi = {
         info: (serial: string) => Promise<{
             version: number;
         }>;
+        pair: (
+            host: string,
+            pairingCode: string,
+            option?: {
+                success?: (data: any) => void;
+                error?: (msg: string) => void;
+            }
+        ) => Promise<any>;
     };
     scrcpy: {
         getBinPath: (returnEmptyWhenDefault: boolean = false) => Promise<string>;
-        setBinPath: (binPath: string) => Promise<boolean>;
         spawnShell: (
             args: string[],
             option?: {

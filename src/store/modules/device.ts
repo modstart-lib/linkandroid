@@ -1,13 +1,13 @@
-import {cloneDeep} from "lodash-es";
-import {defineStore} from "pinia";
-import {computed, ComputedRef, ref, toRaw} from "vue";
-import {t} from "../../lang";
-import {Dialog} from "../../lib/dialog";
-import {mapError} from "../../lib/error";
-import {isIPWithPort} from "../../lib/linkandroid";
-import {DeviceRecord, DeviceRuntime, EnumDeviceStatus, EnumDeviceType} from "../../types/Device";
+import { cloneDeep } from "lodash-es";
+import { defineStore } from "pinia";
+import { computed, ComputedRef, ref, toRaw } from "vue";
+import { t } from "../../lang";
+import { Dialog } from "../../lib/dialog";
+import { mapError } from "../../lib/error";
+import { isIPWithPort } from "../../lib/linkandroid";
+import { DeviceRecord, DeviceRuntime, EnumDeviceStatus, EnumDeviceType } from "../../types/Device";
 import store from "../index";
-import {useSettingStore} from "./setting";
+import { useSettingStore } from "./setting";
 
 const getEmptySetting = () => {
     return JSON.parse(
@@ -95,6 +95,7 @@ const connectWebSocket = async () => {
         };
 
         ws.onmessage = (event) => {
+            // console.log('WebSocket message received:', event.data);
             try {
                 const data = JSON.parse(event.data);
 
@@ -203,6 +204,9 @@ const handlePanelButtonClick = async (deviceId: string, buttonId: string) => {
             args = ["shell", "input", "keyevent", "KEYCODE_SYSRQ"];
             await $mapi.adb.spawnShell(args, {}, deviceId);
             break;
+        case "close":
+            await stopDeviceManage(deviceId);
+            break;
         default:
             console.log(`Unknown button: ${buttonId}`);
             break;
@@ -222,6 +226,7 @@ const startDeviceManage = async (deviceId: string) => {
         // 启动 debug_manage (管理模式：预览+无视频音频播放)
         const wsUrl = `${wsAddress}/server?type=DeviceManage&deviceId=${deviceId}`;
         const controller = await $mapi.scrcpy.spawnShell([
+            // "-V","debug",
             "--serial", deviceId,
             "--linkandroid-server", wsUrl,
             "--linkandroid-preview-interval", "1000",
@@ -231,20 +236,18 @@ const startDeviceManage = async (deviceId: string) => {
             "--linkandroid-skip-taskbar",
         ], {
             stdout: (data: string) => {
-                console.log("debug_manage.stdout", deviceId, data);
+                window.$mapi.log.info("Render.DeviceManage.stdout", {deviceId, data});
             },
             stderr: (data: string) => {
-                console.error("debug_manage.stderr", deviceId, data);
+                window.$mapi.log.error("Render.DeviceManage.stderr", {deviceId, data});
             },
             success: () => {
-                console.log("debug_manage.success", deviceId);
+                window.$mapi.log.info("Render.DeviceManage.success", {deviceId});
                 deviceControllers.delete(deviceId);
             },
             error: (msg: string, exitCode: number) => {
-                console.error("debug_manage.error", deviceId, msg, exitCode);
+                window.$mapi.log.error("Render.DeviceManage.error", {deviceId, msg, exitCode});
                 deviceControllers.delete(deviceId);
-
-                // 自动重启
                 setTimeout(() => {
                     const device = deviceStore().records.find(r => r.id === deviceId);
                     if (device && device.status === EnumDeviceStatus.CONNECTED) {
@@ -253,11 +256,9 @@ const startDeviceManage = async (deviceId: string) => {
                 }, 5000);
             },
         });
-
         deviceControllers.set(deviceId, controller);
-        console.log("debug_manage started for device:", deviceId);
     } catch (error) {
-        console.error("Failed to start debug_manage:", deviceId, error);
+        window.$mapi.log.error("Failed to start debug_manage:", {deviceId, error});
     }
 };
 
@@ -474,6 +475,7 @@ export const deviceStore = defineStore("device", {
             // 添加 WebSocket 服务器和面板参数
             const wsAddress = await $mapi.serve.getAddress();
             const wsUrl = `${wsAddress}/server?type=DeviceMirror&deviceId=${device.id}`;
+            args.push("-V","debug");
             args.push("--linkandroid-server", wsUrl);
             args.push("--linkandroid-panel-show");
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import QRCode from "qrcode";
-import {onBeforeUnmount, ref} from "vue";
-import {t} from "../../lang";
-import {Dialog} from "../../lib/dialog";
-import {mapError} from "../../lib/error";
+import { onBeforeUnmount, ref } from "vue";
+import { t } from "../../lang";
+import { Dialog } from "../../lib/dialog";
+import { mapError } from "../../lib/error";
 
 const visible = ref(false);
 const qrcodeUrl = ref("");
@@ -12,7 +12,7 @@ const pairingInfo = ref<{
     port: number;
     pairingCode: string;
 } | null>(null);
-const countDown = ref(60); // Pairing code valid for 60 seconds
+const countDown = ref(60);
 let countDownTimer: any = null;
 
 const emit = defineEmits({
@@ -35,7 +35,6 @@ const startPairingService = async () => {
     try {
         Dialog.loadingOn(t("device.generatingQrcode"));
 
-        // Get local IP address
         const networkInterfaces = await window.$mapi.misc.getNetworkInterfaces();
 
         if (!networkInterfaces || networkInterfaces.length === 0) {
@@ -44,13 +43,8 @@ const startPairingService = async () => {
             return;
         }
 
-        // Use the first available non-internal IPv4 address
         const localIP = networkInterfaces[0].address;
-
-        // Generate 6-digit pairing code
         const pairingCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-        // Use a random port in the range 37000-44000 (typical Android pairing port range)
         const port = Math.floor(37000 + Math.random() * 7000);
 
         pairingInfo.value = {
@@ -59,8 +53,7 @@ const startPairingService = async () => {
             pairingCode: pairingCode
         };
 
-        // Generate QR code in Android Wireless Debugging format
-        // Format: WIFI:T:ADB;S:<ip>:<port>;P:<pairing_code>;;
+        // 生成Android无线调试二维码格式
         const qrData = `WIFI:T:ADB;S:${localIP}:${port};P:${pairingCode};;`;
 
         qrcodeUrl.value = await QRCode.toDataURL(qrData, {
@@ -73,7 +66,7 @@ const startPairingService = async () => {
             }
         });
 
-        // Start ADB pairing server
+        // 启动ADB配对服务
         try {
             await window.$mapi.adb.pair(`${localIP}:${port}`, pairingCode, {
                 success: (data) => {
@@ -82,13 +75,11 @@ const startPairingService = async () => {
                     hide();
                 },
                 error: (msg) => {
-                    console.warn("ADB pairing failed:", msg);
-                    // Don't close dialog on error - user might try again
+                    window.$mapi.log.error("ADB pairing failed:", msg);
                 }
             });
         } catch (error) {
-            console.warn("ADB pairing service start warning:", error);
-            // Continue even if service start fails, user can manually pair
+            window.$mapi.log.error("ADB pairing service start warning:", error+'');
         }
 
         Dialog.tipSuccess(t("device.qrcodeGeneratedSuccess"));
@@ -109,7 +100,7 @@ const startCountDown = () => {
         countDown.value--;
         if (countDown.value <= 0) {
             stopCountDown();
-            Dialog.tipWarning(t("device.pairingExpired"));
+            Dialog.tipError(t("device.pairingExpired"));
             hide();
         }
     }, 1000);
@@ -232,11 +223,10 @@ defineExpose({
                                 {{ $t("device.usageInstructions") }}
                             </div>
                             <ol class="list-decimal list-inside space-y-2 text-blue-700 dark:text-blue-300">
-                                <li>{{ $t("device.step1") }}</li>
-                                <li>{{ $t("device.step2") }}</li>
-                                <li>{{ $t("device.step3") }}</li>
-                                <li>{{ $t("device.step4") }}</li>
-                                <li>{{ $t("device.step5") }}</li>
+                                <li>{{ $t("device.step1QR") }}</li>
+                                <li>{{ $t("device.step2QR") }}</li>
+                                <li>{{ $t("device.step3QR") }}</li>
+                                <li>{{ $t("device.step4QR") }}</li>
                             </ol>
                         </div>
                     </div>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
-import {t} from "../lang";
-import {Dialog} from "../lib/dialog";
-import {mapError} from "../lib/error";
-import {useDeviceStore} from "../store/modules/device";
+import { computed, ref } from "vue";
+import { t } from "../lang";
+import { Dialog } from "../lib/dialog";
+import { mapError } from "../lib/error";
+import { useDeviceStore } from "../store/modules/device";
 import DeviceAdbShellDialog from "./Device/DeviceAdbShellDialog.vue";
 import DeviceConnectWifiDialog from "./Device/DeviceConnectWifiDialog.vue";
 import DeviceDefaultSettingDialog from "./Device/DeviceDefaultSettingDialog.vue";
