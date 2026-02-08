@@ -26,6 +26,7 @@ const spawnShell = async (
     }, option);
     option.env["ADB"] = await ADB.getBinPath();
     option.env['SCRCPY_FONT_PATH'] = await extraResolveWithPlatform('scrcpy/font.ttf');
+    option.env['SCRCPY_ICON_ROOT_PATH'] = await extraResolveWithPlatform('scrcpy');
     option.env['SCRCPY_SERVER_PATH'] = await extraResolveWithPlatform('scrcpy/scrcpy-server');
     if (isWin) {
         // option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");

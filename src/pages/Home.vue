@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { AppConfig } from "../config";
 import Router from "../router";
 
 const loading = ref(true);
 
 onMounted(async () => {
     // 模拟加载延迟，展示加载界面
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // await new Promise(resolve => setTimeout(resolve, 1000));
     loading.value = false;
     Router.push("/device");
 });
@@ -16,18 +15,18 @@ onMounted(async () => {
 <template>
     <div class="page-narrow-container p-8">
         <!-- Loading State -->
-        <div class="loading-section" v-if="loading">
+        <div class="loading-section">
             <a-spin />
-            <div class="loading-text">正在加载…</div>
+            <div class="loading-text">{{ $t('common.loadingDots') }}</div>
         </div>
 
         <!-- Content State -->
-        <div class="content-section" v-else>
-            <div class="text-3xl font-bold mb-4">欢迎使用 {{ AppConfig.name }} !</div>
-            <div class="empty-state">
-                <p class="text-gray-400">主页内容区域</p>
-            </div>
-        </div>
+<!--        <div class="content-section" v-else>-->
+<!--            <div class="text-3xl font-bold mb-4">欢迎使用 {{ AppConfig.name }} !</div>-->
+<!--            <div class="empty-state">-->
+<!--                <p class="text-gray-400">主页内容区域</p>-->
+<!--            </div>-->
+<!--        </div>-->
     </div>
 </template>
 

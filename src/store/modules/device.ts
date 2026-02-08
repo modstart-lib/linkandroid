@@ -34,7 +34,6 @@ let wsReconnectAttempts = 0;
 const wsMaxReconnectAttempts = 10;
 const wsReconnectDelay = 3000;
 
-// debug_manage 控制器管理
 const deviceControllers = new Map<string, any>();
 
 const createDeviceStatus = (record: DeviceRecord): ComputedRef<EnumDeviceStatus> => {
@@ -262,7 +261,6 @@ const startDeviceManage = async (deviceId: string) => {
     }
 };
 
-// 停止 debug_manage
 const stopDeviceManage = async (deviceId: string) => {
     const controller = deviceControllers.get(deviceId);
     if (controller) {
@@ -475,7 +473,7 @@ export const deviceStore = defineStore("device", {
             // 添加 WebSocket 服务器和面板参数
             const wsAddress = await $mapi.serve.getAddress();
             const wsUrl = `${wsAddress}/server?type=DeviceMirror&deviceId=${device.id}`;
-            args.push("-V","debug");
+            // args.push("-V","debug");
             args.push("--linkandroid-server", wsUrl);
             args.push("--linkandroid-panel-show");
 

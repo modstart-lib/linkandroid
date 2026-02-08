@@ -1,5 +1,21 @@
 ## [Unreleased]
 
+### Technical Improvements
+- Added timezone support for build ID generation using dayjs plugins
+- 添加了dayjs插件以支持构建ID生成的时区
+
+### UI Improvements
+- Updated panel buttons to use icons instead of text for better visual consistency
+- 将面板按钮更新为使用图标而不是文本，以提高视觉一致性
+
+### Internationalization
+- Localized loading text on home page using translation keys
+- 使用翻译键本地化主页上的加载文本
+
+### Code Cleanup
+- Commented out debug logging in device store
+- 在设备存储中注释掉调试日志
+
 ## v1.1.0 Enhanced Wireless Pairing & Side Toolbar
 
 ### Release Summary
