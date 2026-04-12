@@ -1,5 +1,17 @@
 const common = require("./common.cjs");
 
+// electron-builder Arch enum values
+const ARCH_X64 = 1;
+const ARCH_ARM64 = 3;
+
+const archFromContext = (contextArch) => {
+    switch (contextArch) {
+        case ARCH_X64: return "x86";    // x64 -> x86 (matches directory naming convention)
+        case ARCH_ARM64: return "arm64";
+        default: return common.platformArch();
+    }
+};
+
 console.log("BuildOptimize", {
     name: common.platformName(),
     arch: common.platformArch(),
@@ -12,7 +24,9 @@ exports.default = async function (context) {
     });
     // copy extra electron/resources/extra/[name]-[arch] to extra
     const platformName = common.platformName();
-    const platformArch = common.platformArch();
+    // Use target architecture from context to support cross-arch builds
+    // (e.g. building x64 and arm64 on the same ARM64 machine)
+    const platformArch = archFromContext(context.arch);
     const name = platformName + "-" + platformArch;
 
     const srcDir = `electron/resources/extra/${name}`;
