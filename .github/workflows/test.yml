@@ -125,12 +125,12 @@ jobs:
             region: ${{ secrets.OSS_2_REGION }}
             bucket: ${{ secrets.OSS_2_BUCKET }}
             callbackUrlSign: ${{ secrets.OSS_2_CALLBACK_URL_SIGN }}
-            callback: ${{ secrets.OSS_2_CALLBACK }}
+            callback: ${{ github.event_name == 'workflow_dispatch' && secrets.REPORT_URL || secrets.REPORT_URL_ME }}
             assets: |
-                dist-release/*.exe:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
-                dist-release/*.dmg:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
-                dist-release/*.AppImage:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
-                dist-release/*.deb:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
+                dist-release/*.exe:apps/{random}.bin:{name}
+                dist-release/*.dmg:apps/{random}.bin:{name}
+                dist-release/*.AppImage:apps/{random}.bin:{name}
+                dist-release/*.deb:apps/{random}.bin:{name}
 
       - name: Upload Artifact Windows
         if: runner.os == 'Windows'

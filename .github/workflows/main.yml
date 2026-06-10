@@ -181,12 +181,12 @@ jobs:
           region: ${{ secrets.OSS_2_REGION }}
           bucket: ${{ secrets.OSS_2_BUCKET }}
           callbackTitle: ✅LinkAndroid-${{ runner.os }}-打包成功
-          callback: ${{ secrets.OSS_2_CALLBACK }}
+          callback: ${{ github.event_name == 'workflow_dispatch' && secrets.REPORT_URL || secrets.REPORT_URL_ME }}
           assets: |
-              code/dist-release/*.exe:apps/linkandroid-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
-              code/dist-release/*.dmg:apps/linkandroid-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
-              code/dist-release/*.AppImage:apps/linkandroid-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
-              code/dist-release/*.deb:apps/linkandroid-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
+              code/dist-release/*.exe:apps/{random}.bin:{name}
+              code/dist-release/*.dmg:apps/{random}.bin:{name}
+              code/dist-release/*.AppImage:apps/{random}.bin:{name}
+              code/dist-release/*.deb:apps/{random}.bin:{name}
 
       - name: Release Assets
         if: github.event_name == 'push'
