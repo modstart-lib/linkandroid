@@ -1,9 +1,7 @@
-name: Build
+name: Main
 
 on:
   push:
-    tags:
-      - v*.*.*
     branches:
       - main
   workflow_dispatch:
