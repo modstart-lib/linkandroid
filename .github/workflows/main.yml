@@ -183,10 +183,10 @@ jobs:
           callbackTitle: ✅LinkAndroid-${{ runner.os }}-打包成功
           callback: ${{ secrets.OSS_2_CALLBACK }}
           assets: |
-            code/dist-release/*.exe:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
-            code/dist-release/*.dmg:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
-            code/dist-release/*.AppImage:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
-            code/dist-release/*.deb:apps/linkandroid-${{ env.DIST_FILE_NAME }}/
+              code/dist-release/*.exe:apps/linkandroid-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
+              code/dist-release/*.dmg:apps/linkandroid-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
+              code/dist-release/*.AppImage:apps/linkandroid-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
+              code/dist-release/*.deb:apps/linkandroid-${{ env.DIST_FILE_NAME }}/{random}.bin:{name}
 
       - name: Release Assets
         if: github.event_name == 'push'
@@ -203,3 +203,20 @@ jobs:
             code/dist-release/*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  # ── Notify ────────────────────────────────────────────────────────────────────
+  notify:
+    name: Notify
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - uses: actions/checkout@v4
+      - name: Notify Webhook
+        run: |
+          NAME="${{ github.event.repository.name }}"
+          TYPE=$(echo "${{ github.workflow }}" | tr '[:upper:]' '[:lower:]')
+          VERSION=$(node -p "require('./package.json').version")
+          curl -X POST "${{ secrets.HOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"event\":\"${NAME}\",\"param\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"},\"data\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"}}"

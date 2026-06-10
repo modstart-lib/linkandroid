@@ -3,7 +3,7 @@ name: Test
 on:
     push:
         branches:
-            - mainx
+            - main
 
 jobs:
   build:
@@ -156,4 +156,21 @@ jobs:
             path: |
                 dist-release/*.AppImage
                 dist-release/*.deb
+
+  # ── Notify ────────────────────────────────────────────────────────────────────
+  notify:
+    name: Notify
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - uses: actions/checkout@v4
+      - name: Notify Webhook
+        run: |
+            NAME="${{ github.event.repository.name }}"
+            TYPE=$(echo "${{ github.workflow }}" | tr '[:upper:]' '[:lower:]')
+            VERSION=$(node -p "require('./package.json').version")
+            curl -X POST "${{ secrets.HOOK_URL }}" \
+              -H "Content-Type: application/json" \
+              -d "{\"event\":\"${NAME}\",\"param\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"},\"data\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"}}"
 
