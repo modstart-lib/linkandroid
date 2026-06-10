@@ -34,3 +34,4 @@ database.db
 /build/
 .vscode
 dist-cli/
+_temp/
