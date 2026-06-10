@@ -1,34 +1,31 @@
-import { computed, ref, type Ref, type ComputedRef } from "vue";
+import {computed, ref, type Ref, type ComputedRef} from 'vue'
 
 export const ToggleUtil = {
-    cachePool: new Map<string, { expire: number; value: Ref<boolean> }>(),
+    cachePool: new Map<string, {expire: number; value: Ref<boolean>}>(),
     gc() {
-        const now = Date.now();
-        for (const [key, { expire }] of this.cachePool) {
+        const now = Date.now()
+        for (const [key, {expire}] of this.cachePool) {
             if (expire < now) {
-                this.cachePool.delete(key);
+                this.cachePool.delete(key)
             }
         }
     },
     get(biz: string, bizId: string | number, defaultValue: boolean = false) {
-        const key = `Toggle:${biz}:${bizId}`;
+        const key = `Toggle:${biz}:${bizId}`
         if (!this.cachePool.has(key)) {
-            const refValue = ref(defaultValue);
-            this.cachePool.set(key, {
-                expire: Date.now() + 3600 * 1000,
-                value: refValue,
-            });
-            return refValue;
+            const refValue = ref(defaultValue)
+            this.cachePool.set(key, {expire: Date.now() + 3600 * 1000, value: refValue})
+            return refValue
         }
-        const cached = this.cachePool.get(key)!;
-        cached.expire = Date.now() + 3600 * 1000;
-        ToggleUtil.gc();
-        return cached.value;
+        const cached = this.cachePool.get(key)!
+        cached.expire = Date.now() + 3600 * 1000
+        ToggleUtil.gc()
+        return cached.value
     },
 
     toggle(biz: string, bizId: string | number) {
-        const refValue = this.get(biz, bizId);
-        refValue.value = !refValue.value;
-        return refValue.value;
+        const refValue = this.get(biz, bizId)
+        refValue.value = !refValue.value
+        return refValue.value
     },
-};
+}

@@ -1,17 +1,17 @@
-import fs from "node:fs";
-import {defineConfig} from "vite";
 import vue from "@vitejs/plugin-vue";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import fs from "node:fs";
+import path from "node:path";
+import IconsResolver from "unplugin-icons/resolver";
+import Icons from "unplugin-icons/vite";
+import Components from "unplugin-vue-components/vite";
+import { defineConfig } from "vite";
 import electron from "vite-plugin-electron";
 import renderer from "vite-plugin-electron-renderer";
 import pkg from "./package.json";
-import path from "node:path";
-import {AppConfig} from "./src/config";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import Icons from "unplugin-icons/vite";
-import Components from "unplugin-vue-components/vite";
-import IconsResolver from "unplugin-icons/resolver";
+import { AppConfig } from "./src/config";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -178,13 +178,16 @@ export default defineConfig(({command}) => {
             __BUILD_ID__: JSON.stringify(buildId),
         },
         server:
-            process.env.VSCODE_DEBUG &&
-            (() => {
-                const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL);
-                return {
-                    host: url.hostname,
-                    port: +url.port,
-                };
-            })(),
+            process.env.VSCODE_DEBUG
+                ? (() => {
+                      const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL);
+                      return {
+                          host: url.hostname,
+                          port: +url.port,
+                      };
+                  })()
+                : {
+                      port: 53032,
+                  },
     };
 });

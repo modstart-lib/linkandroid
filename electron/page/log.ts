@@ -1,18 +1,18 @@
-import { BrowserWindow } from "electron";
-import { t } from "../config/lang";
-import { WindowConfig } from "../config/window";
-import { preloadDefault } from "../lib/env-main";
-import { AppRuntime } from "../mapi/env";
-import { Page } from "./index";
+import {BrowserWindow} from 'electron'
+import {t} from '../config/lang'
+import {WindowConfig} from '../config/window'
+import {preloadDefault} from '../lib/env-main'
+import {AppRuntime} from '../mapi/env'
+import {Page} from './index'
 
 export const PageLog = {
-    NAME: "log",
-    open: async (option: { log: string }) => {
+    NAME: 'log',
+    open: async (option: {log: string}) => {
         if (AppRuntime.windows[PageLog.NAME]) {
-            AppRuntime.windows[PageLog.NAME].close();
+            AppRuntime.windows[PageLog.NAME].close()
         }
         const win = new BrowserWindow({
-            title: t("page.log.title"),
+            title: t('page.log.title'),
             parent: null,
             minWidth: WindowConfig.logWidth,
             minHeight: WindowConfig.logHeight,
@@ -31,11 +31,11 @@ export const PageLog = {
             show: true,
             frame: false,
             transparent: false,
-        });
-        await Page.openWindow(PageLog.NAME, win, "page/log.html");
+        })
+        await Page.openWindow(PageLog.NAME, win, 'page/log.html')
         const logInit = {
             log: option.log,
-        };
+        }
         win.webContents.executeJavaScript(`
         const logInit = ()=>{
             if(!window.__logInit){
@@ -44,6 +44,6 @@ export const PageLog = {
             }
             window.__logInit(${JSON.stringify(logInit)});
         };logInit();
-        `);
+        `)
     },
-};
+}

@@ -1,14 +1,14 @@
-import { BrowserWindow } from "electron";
-import { t } from "../config/lang";
-import { WindowConfig } from "../config/window";
-import { preloadDefault } from "../lib/env-main";
-import { Page } from "./index";
+import {BrowserWindow} from 'electron'
+import {t} from '../config/lang'
+import {WindowConfig} from '../config/window'
+import {preloadDefault} from '../lib/env-main'
+import {Page} from './index'
 
 export const PageFeedback = {
-    NAME: "feedback",
+    NAME: 'feedback',
     open: async (option: any) => {
         const win = new BrowserWindow({
-            title: t("page.feedback.title"),
+            title: t('page.feedback.title'),
             parent: null,
             minWidth: WindowConfig.feedbackWidth,
             minHeight: WindowConfig.feedbackHeight,
@@ -27,7 +27,7 @@ export const PageFeedback = {
             show: true,
             frame: false,
             transparent: false,
-        });
-        return Page.openWindow(PageFeedback.NAME, win, "page/feedback.html");
+        })
+        return Page.openWindow(PageFeedback.NAME, win, 'page/feedback.html')
     },
-};
+}

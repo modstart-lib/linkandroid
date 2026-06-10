@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { EnumDeviceStatus } from "../../types/Device";
+import {EnumDeviceStatus} from '../../types/Device'
 
 interface Props {
-    status: EnumDeviceStatus | null;
+    status: EnumDeviceStatus | null
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 </script>
 
 <template>
@@ -19,13 +19,13 @@ const props = defineProps<Props>();
     >
         <div class="w-2 h-2 rounded-full bg-white mr-1"></div>
         <div v-if="props.status === EnumDeviceStatus.WAIT_CONNECTING">
-            {{ $t("device.statusConnecting") }}
+            {{ $t('device.statusConnecting') }}
         </div>
         <div v-else-if="props.status === EnumDeviceStatus.CONNECTED">
-            {{ $t("device.statusConnected") }}
+            {{ $t('device.statusConnected') }}
         </div>
         <div v-else-if="props.status === EnumDeviceStatus.DISCONNECTED">
-            {{ $t("device.statusDisconnected") }}
+            {{ $t('device.statusDisconnected') }}
         </div>
     </div>
 </template>

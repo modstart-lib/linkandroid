@@ -1,4 +1,4 @@
-import logIndex from "./index";
+import logIndex from './index'
 
 export default {
     root: logIndex.root,
@@ -7,4 +7,4 @@ export default {
     appInfo: logIndex.appInfoRenderOrMain,
     appError: logIndex.appErrorRenderOrMain,
     collect: logIndex.collectRenderOrMain,
-};
+}

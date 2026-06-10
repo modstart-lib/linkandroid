@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import Router from "../router";
+import {onMounted, ref} from 'vue'
+import Router from '../router'
 
-const loading = ref(true);
+const loading = ref(true)
 
 onMounted(async () => {
     // 模拟加载延迟，展示加载界面
     // await new Promise(resolve => setTimeout(resolve, 1000));
-    loading.value = false;
-    Router.push("/device");
-});
+    loading.value = false
+    Router.push('/device')
+})
 </script>
 
 <template>
@@ -17,7 +17,7 @@ onMounted(async () => {
         <!-- Loading State -->
         <div class="loading-section">
             <a-spin />
-            <div class="loading-text">{{ $t("common.loadingDots") }}</div>
+            <div class="loading-text">{{ $t('common.loadingDots') }}</div>
         </div>
 
         <!-- Content State -->

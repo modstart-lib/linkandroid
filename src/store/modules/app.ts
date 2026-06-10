@@ -1,18 +1,18 @@
-import { defineStore } from "pinia";
-import store from "../index";
+import {defineStore} from 'pinia'
+import store from '../index'
 
-export const appStore = defineStore("app", {
+export const appStore = defineStore('app', {
     state() {
-        return {};
+        return {}
     },
     actions: {
         async init() {},
     },
-});
+})
 
-export const app = appStore(store);
-app.init().then(() => {});
+export const app = appStore(store)
+app.init().then(() => {})
 
 export const useAppStore = () => {
-    return app;
-};
+    return app
+}

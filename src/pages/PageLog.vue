@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import FileLogViewer from "../components/common/FileLogViewer.vue";
-import { ref } from "vue";
+import FileLogViewer from '../components/common/FileLogViewer.vue'
+import {ref} from 'vue'
 
-const file = ref("");
-const autoScroll = ref(true);
+const file = ref('')
+const autoScroll = ref(true)
 const doOpen = async () => {
-    window.$mapi.app.showItemInFolder(file.value);
-};
-window["__logInit"] = (option: { log: string }) => {
-    file.value = option.log;
-};
+    window.$mapi.app.showItemInFolder(file.value)
+}
+window['__logInit'] = (option: {log: string}) => {
+    file.value = option.log
+}
 </script>
 
 <template>
@@ -17,14 +17,14 @@ window["__logInit"] = (option: { log: string }) => {
         <div class="flex p-2 items-center">
             <div class="mr-2">
                 <a-checkbox v-model="autoScroll" />
-                {{ $t("page.log.autoScroll") }}
+                {{ $t('page.log.autoScroll') }}
             </div>
             <div class="mr-1">
                 <a-button @click="doOpen" size="mini">
                     <template #icon>
                         <icon-file />
                     </template>
-                    {{ $t("page.log.openFile") }}
+                    {{ $t('page.log.openFile') }}
                 </a-button>
             </div>
             <div class="text-gray-400 text-xs">
@@ -32,19 +32,14 @@ window["__logInit"] = (option: { log: string }) => {
             </div>
         </div>
         <div class="flex-grow overflow-hidden relative bg-black">
-            <FileLogViewer
-                v-if="!!file"
-                :file="file"
-                :is-data-path="false"
-                :auto-scroll="autoScroll"
-            />
+            <FileLogViewer v-if="!!file" :file="file" :is-data-path="false" :auto-scroll="autoScroll" />
             <div v-else>
                 <div class="text-center py-20 text-gray-300">
                     <div>
                         <icon-info-circle class="text-5xl" />
                     </div>
                     <div>
-                        {{ $t("page.log.noLogFile") }}
+                        {{ $t('page.log.noLogFile') }}
                     </div>
                 </div>
             </div>

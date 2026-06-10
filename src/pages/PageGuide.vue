@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import { nextTick, onBeforeMount, onMounted, ref } from "vue";
-import { AppConfig } from "../config";
-import PageWebviewStatus from "../components/common/PageWebviewStatus.vue";
+import {nextTick, onBeforeMount, onMounted, ref} from 'vue'
+import {AppConfig} from '../config'
+import PageWebviewStatus from '../components/common/PageWebviewStatus.vue'
 
-const status = ref<InstanceType<typeof PageWebviewStatus> | null>(null);
-const web = ref<any | null>(null);
-const webPreload = ref("");
-const webUrl = ref("");
-const webUserAgent = window.$mapi.app.getUserAgent();
+const status = ref<InstanceType<typeof PageWebviewStatus> | null>(null)
+const web = ref<any | null>(null)
+const webPreload = ref('')
+const webUrl = ref('')
+const webUserAgent = window.$mapi.app.getUserAgent()
 
 onMounted(async () => {
-    webPreload.value = await window.$mapi.app.getPreload();
+    webPreload.value = await window.$mapi.app.getPreload()
     nextTick(() => {
-        web.value.addEventListener("did-fail-load", (event: any) => {
-            status.value?.setStatus("fail");
-        });
-        web.value.addEventListener("dom-ready", () => {
+        web.value.addEventListener('did-fail-load', (event: any) => {
+            status.value?.setStatus('fail')
+        })
+        web.value.addEventListener('dom-ready', () => {
             // web.value.openDevTools()
-            status.value?.setStatus("success");
-        });
-        status.value?.setStatus("loading");
-        webUrl.value = AppConfig.guideUrl;
-    });
-});
+            status.value?.setStatus('success')
+        })
+        status.value?.setStatus('loading')
+        webUrl.value = AppConfig.guideUrl
+    })
+})
 </script>
 
 <template>

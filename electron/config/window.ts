@@ -16,4 +16,4 @@ export const WindowConfig = {
     feedbackHeight: 600,
     setupWidth: 800,
     setupHeight: 540,
-};
+}

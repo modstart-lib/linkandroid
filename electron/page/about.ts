@@ -1,14 +1,14 @@
-import { BrowserWindow } from "electron";
-import { t } from "../config/lang";
-import { WindowConfig } from "../config/window";
-import { preloadDefault } from "../lib/env-main";
-import { Page } from "./index";
+import {BrowserWindow} from 'electron'
+import {t} from '../config/lang'
+import {WindowConfig} from '../config/window'
+import {preloadDefault} from '../lib/env-main'
+import {Page} from './index'
 
 export const PageAbout = {
-    NAME: "about",
+    NAME: 'about',
     open: async (option: any) => {
         const win = new BrowserWindow({
-            title: t("page.about.title"),
+            title: t('page.about.title'),
             parent: null,
             minWidth: WindowConfig.aboutWidth,
             minHeight: WindowConfig.aboutHeight,
@@ -27,7 +27,7 @@ export const PageAbout = {
             show: true,
             frame: false,
             transparent: false,
-        });
-        return Page.openWindow(PageAbout.NAME, win, "page/about.html");
+        })
+        return Page.openWindow(PageAbout.NAME, win, 'page/about.html')
     },
-};
+}

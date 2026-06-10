@@ -1,379 +1,348 @@
-import { Adb } from "@devicefarmer/adbkit";
-import Client from "@devicefarmer/adbkit/dist/src/adb/client";
-import dayjs from "dayjs";
-import { ipcRenderer } from "electron";
-import fs from "node:fs";
-import { extraResolveBin } from "../../lib/env";
-import { FileUtil, TimeUtil } from "../../lib/util";
-import { Apps } from "../app";
+import {Adb} from '@devicefarmer/adbkit'
+import Client from '@devicefarmer/adbkit/dist/src/adb/client'
+import dayjs from 'dayjs'
+import {ipcRenderer} from 'electron'
+import fs from 'node:fs'
+import {extraResolveBin} from '../../lib/env'
+import {FileUtil, TimeUtil} from '../../lib/util'
+import {Apps} from '../app'
 
-let client = null;
-window.addEventListener("beforeunload", () => {
+let client = null
+window.addEventListener('beforeunload', () => {
     // destroy()
-});
+})
 
 const destroy = () => {
     if (client) {
-        client.kill();
-        client = null;
+        client.kill()
+        client = null
     }
-};
+}
 
 export const getBinPath = async (): Promise<string> => {
-    return extraResolveBin("scrcpy/adb");
-};
+    return extraResolveBin('scrcpy/adb')
+}
 
 const getClient = async (): Promise<Client> => {
     if (!client) {
         client = Adb.createClient({
             bin: await getBinPath(),
-        });
+        })
     }
-    return client;
-};
+    return client
+}
 
 const adbShell = async (args: string[], deviceId?: string) => {
-    const controller = await spawnShell(args, {}, deviceId);
-    return await controller.result();
-};
+    const controller = await spawnShell(args, {}, deviceId)
+    return await controller.result()
+}
 
 const spawnShell = async (
     args: string[],
     option?: {
-        stdout?: (data: string, process: any) => void;
-        stderr?: (data: string, process: any) => void;
-        success?: (process: any) => void;
-        error?: (msg: string, exitCode: number, process: any) => void;
+        stdout?: (data: string, process: any) => void
+        stderr?: (data: string, process: any) => void
+        success?: (process: any) => void
+        error?: (msg: string, exitCode: number, process: any) => void
     } | null,
     deviceId?: string,
 ) => {
-    const adbPath = await getBinPath();
+    const adbPath = await getBinPath()
     if (deviceId) {
-        args = ["-s", deviceId, ...args];
+        args = ['-s', deviceId, ...args]
     }
     return await Apps.spawnShell([adbPath, ...args], {
         ...option,
         shell: false,
-    });
-};
+    })
+}
 
 const devices = async () => {
-    return (await getClient()).listDevicesWithPaths();
-};
+    return (await getClient()).listDevicesWithPaths()
+}
 
 const shell = async (id: string, command: string) => {
-    const client = await getClient();
-    const res = await client
-        .getDevice(id)
-        .shell(command)
-        .then(Adb.util.readAll);
-    return res.toString();
-};
+    const client = await getClient()
+    const res = await client.getDevice(id).shell(command).then(Adb.util.readAll)
+    return res.toString()
+}
 
 const connect = async (host: string, port?: number) => {
-    await (await getClient()).connect(host, port);
-};
+    await (await getClient()).connect(host, port)
+}
 
 const disconnect = async (host: string, port?: number) => {
-    await (await getClient()).disconnect(host, port);
-};
+    await (await getClient()).disconnect(host, port)
+}
 
 const getDeviceIP = async (id: string) => {
     try {
-        const stdout = await adbShell([
-            "-s",
-            id,
-            "shell",
-            "ip",
-            "-f",
-            "inet",
-            "addr",
-            "show",
-            "wlan0",
-        ]);
-        const reg = /inet ([0-9.]+)\/\d+/;
-        const match = stdout.toString().match(reg);
-        const value = match[1];
-        return value;
+        const stdout = await adbShell(['-s', id, 'shell', 'ip', '-f', 'inet', 'addr', 'show', 'wlan0'])
+        const reg = /inet ([0-9.]+)\/\d+/
+        const match = stdout.toString().match(reg)
+        const value = match[1]
+        return value
     } catch (error) {
-        console.warn("adb.getDeviceIP.error", error.message);
+        console.warn('adb.getDeviceIP.error', error.message)
     }
-    return null;
-};
+    return null
+}
 
 const tcpip = async (id, port = 5555) => {
-    return (await getClient()).getDevice(id).tcpip(port);
-};
+    return (await getClient()).getDevice(id).tcpip(port)
+}
 
 const usb = async (id) => {
-    return (await getClient()).getDevice(id).usb();
-};
+    return (await getClient()).getDevice(id).usb()
+}
 
 const screencap = async (deviceId: string) => {
-    let fileStream = null;
+    let fileStream = null
     try {
-        const device = (await getClient()).getDevice(deviceId);
-        fileStream = await device.screencap();
+        const device = (await getClient()).getDevice(deviceId)
+        fileStream = await device.screencap()
     } catch (error) {
-        return null;
+        return null
     }
     if (!fileStream) {
-        return null;
+        return null
     }
-    return await FileUtil.streamToBase64(fileStream);
-};
+    return await FileUtil.streamToBase64(fileStream)
+}
 
 const screenrecord = async (
     deviceId: string,
     option?: {
-        progress: (type: "error" | "success", data: any) => {} | null;
+        progress: (type: 'error' | 'success', data: any) => {} | null
     },
 ) => {
-    option = option || ({} as any);
+    option = option || ({} as any)
     const controller = {
         stop: null as Function | null,
         devicePath: null as string | null,
-    };
-    controller.devicePath =
-        "/sdcard/LinkAndroid_screenshot_" + TimeUtil.timestampInMs() + ".mp4";
-    const shellControl = await spawnShell(
-        ["-s", deviceId, "shell", "screenrecord", controller.devicePath],
-        {
-            stdout: (data) => {
-                // console.log('screenrecord.stdout', data)
-            },
-            stderr: (data) => {
-                // console.log('screenrecord.stderr', data)
-            },
-            success: (data) => {
-                // console.log('screenrecord.success', data)
-                option.progress?.("success", {});
-            },
-            error: (err) => {
-                // console.log('screenrecord.error', err)
-                option.progress?.("error", err);
-            },
+    }
+    controller.devicePath = '/sdcard/LinkAndroid_screenshot_' + TimeUtil.timestampInMs() + '.mp4'
+    const shellControl = await spawnShell(['-s', deviceId, 'shell', 'screenrecord', controller.devicePath], {
+        stdout: (data) => {
+            // console.log('screenrecord.stdout', data)
         },
-    );
+        stderr: (data) => {
+            // console.log('screenrecord.stderr', data)
+        },
+        success: (data) => {
+            // console.log('screenrecord.success', data)
+            option.progress?.('success', {})
+        },
+        error: (err) => {
+            // console.log('screenrecord.error', err)
+            option.progress?.('error', err)
+        },
+    })
     controller.stop = () => {
-        shellControl.stop();
-    };
-    return controller;
-};
+        shellControl.stop()
+    }
+    return controller
+}
 
 const install = async (id: string, path: string) => {
-    return (await getClient()).getDevice(id).install(path);
-};
+    return (await getClient()).getDevice(id).install(path)
+}
 
 const uninstall = async (id: string, pkg: string) => {
-    return (await getClient()).getDevice(id).uninstall(pkg);
-};
+    return (await getClient()).getDevice(id).uninstall(pkg)
+}
 
 const isInstalled = async (id: string, pkg: string) => {
-    return (await getClient()).getDevice(id).isInstalled(pkg);
-};
+    return (await getClient()).getDevice(id).isInstalled(pkg)
+}
 
 const version = async () => {
-    return (await getClient()).version();
-};
+    return (await getClient()).version()
+}
 
 const watch = async (callback: Function) => {
-    const tracker = await (await getClient()).trackDevices();
-    tracker.on("add", async (device) => {
-        callback("add", device);
-    });
-    tracker.on("remove", (device) => {
-        callback("remove", device);
-    });
-    tracker.on("end", (ret) => {
-        callback("end", ret);
-    });
-    tracker.on("error", (err) => {
-        callback("error", err);
-    });
-    const close = () => tracker.end();
-    return close;
-};
+    const tracker = await (await getClient()).trackDevices()
+    tracker.on('add', async (device) => {
+        callback('add', device)
+    })
+    tracker.on('remove', (device) => {
+        callback('remove', device)
+    })
+    tracker.on('end', (ret) => {
+        callback('end', ret)
+    })
+    tracker.on('error', (err) => {
+        callback('error', err)
+    })
+    const close = () => tracker.end()
+    return close
+}
 
 const fileList = async (id: string, filePath: string) => {
-    const value = await (await getClient()).getDevice(id).readdir(filePath);
+    const value = await (await getClient()).getDevice(id).readdir(filePath)
     return value.map((item) => ({
         ...item,
-        id: [filePath, item.name].join("/"),
-        type: item.isFile() ? "file" : "directory",
+        id: [filePath, item.name].join('/'),
+        type: item.isFile() ? 'file' : 'directory',
         name: item.name,
         size: FileUtil.formatSize(item.size),
-        updateTime: dayjs(item.mtimeMs).format("YYYY-MM-DD HH:mm:ss"),
-    }));
-};
+        updateTime: dayjs(item.mtimeMs).format('YYYY-MM-DD HH:mm:ss'),
+    }))
+}
 
 const filePush = async (
     id: string,
     localPath: string,
     devicePath: string,
     options: {
-        progress: Function | null;
+        progress: Function | null
     } = null,
 ) => {
-    const { progress } = options || {};
-    const transfer = await (await getClient())
-        .getDevice(id)
-        .push(localPath, devicePath);
+    const {progress} = options || {}
+    const transfer = await (await getClient()).getDevice(id).push(localPath, devicePath)
     return new Promise((resolve, reject) => {
-        transfer.on("progress", (stats) => {
-            progress?.(stats);
-        });
-        transfer.on("end", () => {
+        transfer.on('progress', (stats) => {
+            progress?.(stats)
+        })
+        transfer.on('end', () => {
             resolve({
                 localPath,
                 devicePath,
-            });
-        });
-        transfer.on("error", (err) => {
-            reject(err);
-        });
-    });
-};
+            })
+        })
+        transfer.on('error', (err) => {
+            reject(err)
+        })
+    })
+}
 
 const filePull = async (
     id: string,
     devicePath: string,
     localPath: string,
     option: {
-        progress: Function | null;
+        progress: Function | null
     } = null,
 ) => {
-    const { progress } = option || {};
-    const transfer = await (await getClient()).getDevice(id).pull(devicePath);
-    transfer.on("progress", (stats) => {
+    const {progress} = option || {}
+    const transfer = await (await getClient()).getDevice(id).pull(devicePath)
+    transfer.on('progress', (stats) => {
         // console.log('filePull.progress', stats)
-        progress?.(stats);
-    });
+        progress?.(stats)
+    })
     return new Promise((resolve, reject) => {
-        transfer.on("end", () => {
+        transfer.on('end', () => {
             // console.log('filePull.end')
             resolve({
                 devicePath,
                 localPath,
-            });
-        });
-        transfer.on("error", (err) => {
+            })
+        })
+        transfer.on('error', (err) => {
             // console.log('filePull.error', err)
-            reject(err);
-        });
-        transfer.pipe(fs.createWriteStream(localPath));
-    });
-};
+            reject(err)
+        })
+        transfer.pipe(fs.createWriteStream(localPath))
+    })
+}
 
 const fileDelete = async (id: string, devicePath: string) => {
-    await adbShell(["-s", id, "shell", "rm", "-rf", `${devicePath}`]);
-};
+    await adbShell(['-s', id, 'shell', 'rm', '-rf', `${devicePath}`])
+}
 
 const listApps = async (id: string) => {
-    const res = await shell(id, "pm list packages -3");
+    const res = await shell(id, 'pm list packages -3')
     const records = res
-        .split("\n")
+        .split('\n')
         .filter((item) => item)
-        .map((item) => item.replace("package:", ""))
+        .map((item) => item.replace('package:', ''))
         .map((item) => ({
             id: item,
             name: item,
-        }));
-    return records;
-};
+        }))
+    return records
+}
 
 const info = async (id: string) => {
-    const result = {};
+    const result = {}
     // get android version : adb shell getprop ro.build.version.release
-    result["version"] = parseInt(
-        await shell(id, "getprop ro.build.version.release"),
-    );
-    return result;
-};
+    result['version'] = parseInt(await shell(id, 'getprop ro.build.version.release'))
+    return result
+}
 
 const pair = async (
     host: string,
     pairingCode: string,
     option?: {
-        success?: (data: any) => void;
-        error?: (msg: string) => void;
+        success?: (data: any) => void
+        error?: (msg: string) => void
     },
 ) => {
-    const controller = await spawnShell(["pair", `${host}`, `${pairingCode}`], {
+    const controller = await spawnShell(['pair', `${host}`, `${pairingCode}`], {
         stdout: (data, process) => {
             // Check if pairing succeeded
-            if (data.includes("Successfully paired")) {
-                option?.success?.({ message: data });
+            if (data.includes('Successfully paired')) {
+                option?.success?.({message: data})
             }
         },
         stderr: (data, process) => {
             // ADB sometimes outputs success messages to stderr
-            if (data.includes("Successfully paired")) {
-                option?.success?.({ message: data });
-            } else if (data.includes("failed") || data.includes("error")) {
-                option?.error?.(data);
+            if (data.includes('Successfully paired')) {
+                option?.success?.({message: data})
+            } else if (data.includes('failed') || data.includes('error')) {
+                option?.error?.(data)
             }
         },
         success: (process) => {
             // Process completed successfully
         },
         error: (msg, exitCode, process) => {
-            option?.error?.(msg);
+            option?.error?.(msg)
         },
-    });
+    })
 
-    return controller;
-};
+    return controller
+}
 
-const scannerConnect = async (
-    password: string,
-    onStatus?: (status: string, error?: string) => void,
-) => {
+const scannerConnect = async (password: string, onStatus?: (status: string, error?: string) => void) => {
     // 生成唯一的回调 ID
-    const callbackId = Math.random().toString(36).substring(2);
+    const callbackId = Math.random().toString(36).substring(2)
 
-    console.log("[Render] scannerConnect start, callbackId:", callbackId);
+    console.log('[Render] scannerConnect start, callbackId:', callbackId)
 
     // 监听状态更新
-    const statusListener = (
-        _event: any,
-        data: { status: string; error?: string },
-    ) => {
-        console.log("[Render] Status update received:", data);
+    const statusListener = (_event: any, data: {status: string; error?: string}) => {
+        console.log('[Render] Status update received:', data)
         try {
             if (onStatus) {
-                onStatus(data.status, data.error);
+                onStatus(data.status, data.error)
             }
         } catch (error) {
-            console.error("[Render] Status callback failed:", error);
+            console.error('[Render] Status callback failed:', error)
         }
-    };
+    }
 
-    const channelName = `adb-scanner-status-${callbackId}`;
-    ipcRenderer.on(channelName, statusListener);
+    const channelName = `adb-scanner-status-${callbackId}`
+    ipcRenderer.on(channelName, statusListener)
 
     try {
-        console.log("[Render] Calling Main process adb:scannerConnect");
-        const result = await ipcRenderer.invoke(
-            "adb:scannerConnect",
-            password,
-            callbackId,
-        );
-        console.log("[Render] Result received:", result);
+        console.log('[Render] Calling Main process adb:scannerConnect')
+        const result = await ipcRenderer.invoke('adb:scannerConnect', password, callbackId)
+        console.log('[Render] Result received:', result)
 
         // 等待一小段时间确保所有状态消息都已接收
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100))
 
-        return result;
+        return result
     } catch (error) {
-        console.error("[Render] scannerConnect call failed:", error);
-        throw error;
+        console.error('[Render] scannerConnect call failed:', error)
+        throw error
     } finally {
         // 清理监听器
-        console.log("[Render] Cleaning up listener:", channelName);
-        ipcRenderer.removeAllListeners(channelName);
+        console.log('[Render] Cleaning up listener:', channelName)
+        ipcRenderer.removeAllListeners(channelName)
     }
-};
+}
 
 export default {
     getBinPath,
@@ -400,8 +369,8 @@ export default {
     info,
     pair,
     scannerConnect,
-};
+}
 
 export const ADB = {
     getBinPath,
-};
+}

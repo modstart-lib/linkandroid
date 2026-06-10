@@ -1,75 +1,75 @@
-import { app, Menu, Tray } from "electron";
-import { AppConfig } from "../../src/config";
-import { isMac, isWin } from "../lib/env";
-import { AppRuntime } from "../mapi/env";
-import { trayPath } from "./icon";
-import { t } from "./lang";
+import {app, Menu, Tray} from 'electron'
+import {AppConfig} from '../../src/config'
+import {isMac, isWin} from '../lib/env'
+import {AppRuntime} from '../mapi/env'
+import {trayPath} from './icon'
+import {t} from './lang'
 
-let tray = null;
+let tray = null
 
 const showApp = () => {
     if (isMac) {
-        app.dock.show();
+        app.dock.show()
     }
-    AppRuntime.mainWindow.show();
-};
+    AppRuntime.mainWindow.show()
+}
 
 const hideApp = () => {
     if (isMac) {
-        app.dock.hide();
+        app.dock.hide()
     }
-    AppRuntime.mainWindow.hide();
-};
+    AppRuntime.mainWindow.hide()
+}
 
 const quitApp = () => {
     // @ts-ignore
-    app.quitForce = true;
-    app.quit();
-};
+    app.quitForce = true
+    app.quit()
+}
 
 const ready = () => {
-    tray = new Tray(trayPath);
+    tray = new Tray(trayPath)
 
-    tray.setToolTip(AppConfig.title);
+    tray.setToolTip(AppConfig.title)
 
     if (isWin) {
-        tray.on("click", () => {
-            showApp();
-        });
+        tray.on('click', () => {
+            showApp()
+        })
     }
 
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: t("tray.showMain"),
+            label: t('tray.showMain'),
             click: () => {
-                showApp();
+                showApp()
             },
         },
         {
-            label: t("tray.restart"),
+            label: t('tray.restart'),
             click: () => {
-                app.relaunch();
-                quitApp();
+                app.relaunch()
+                quitApp()
             },
         },
         {
-            label: t("menu.quit"),
+            label: t('menu.quit'),
             click: () => {
-                quitApp();
+                quitApp()
             },
         },
-    ]);
+    ])
 
-    tray.setContextMenu(contextMenu);
-};
+    tray.setContextMenu(contextMenu)
+}
 
 const show = () => {
     if (tray) {
-        tray.destroy();
-        tray = null;
+        tray.destroy()
+        tray = null
     }
-};
+}
 
 export const ConfigTray = {
     ready,
-};
+}

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { doCopy } from "./common/util";
+import {computed, ref} from 'vue'
+import {doCopy} from './common/util'
 
 const props = defineProps({
     text: {
@@ -19,32 +19,29 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
-});
-const isTruncate = ref(props.autoTruncate);
-const showToggle = computed(() => props.text.length > props.maxLength);
+})
+const isTruncate = ref(props.autoTruncate)
+const showToggle = computed(() => props.text.length > props.maxLength)
 const displayText = computed(() => {
     if (isTruncate.value && showToggle.value) {
-        return props.text.slice(0, props.maxLength) + "...";
+        return props.text.slice(0, props.maxLength) + '...'
     }
-    return props.text;
-});
+    return props.text
+})
 
 const handleToggle = () => {
-    isTruncate.value = !isTruncate.value;
-};
+    isTruncate.value = !isTruncate.value
+}
 
 const handleCopy = async () => {
-    await doCopy(props.text);
-};
+    await doCopy(props.text)
+}
 </script>
 
 <template>
-    <div :class="{ 'cursor-pointer': copyable !== false }">
+    <div :class="{'cursor-pointer': copyable !== false}">
         {{ displayText }}
-        <a-tooltip
-            :content="isTruncate ? $t('common.more') : $t('common.collapse')"
-            mini
-        >
+        <a-tooltip :content="isTruncate ? $t('common.more') : $t('common.collapse')" mini>
             <a-button size="mini" v-if="showToggle" @click="handleToggle">
                 <icon-double-down v-if="isTruncate" />
                 <icon-double-up v-else />

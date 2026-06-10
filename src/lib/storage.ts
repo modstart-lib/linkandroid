@@ -4,7 +4,7 @@ export const StorageUtil = {
      * @param key String 键
      */
     remove: function (key: string): void {
-        window.localStorage.removeItem(key);
+        window.localStorage.removeItem(key)
     },
     /**
      * @Util 存储数据
@@ -12,7 +12,7 @@ export const StorageUtil = {
      * @param value String|Object|Array 值
      */
     set: function (key: string, value: any): void {
-        window.localStorage.setItem(key, JSON.stringify(value));
+        window.localStorage.setItem(key, JSON.stringify(value))
     },
     /**
      * @Util 获取数据
@@ -21,14 +21,14 @@ export const StorageUtil = {
      * @return String|Object|Array 返回值
      */
     get: function (key: string, defaultValue: any): any {
-        let value = window.localStorage.getItem(key);
+        let value = window.localStorage.getItem(key)
         if (null === value) {
-            return defaultValue;
+            return defaultValue
         }
         try {
-            return JSON.parse(value);
+            return JSON.parse(value)
         } catch (e) {}
-        return defaultValue;
+        return defaultValue
     },
     /**
      * @Util 获取数组数据
@@ -37,19 +37,19 @@ export const StorageUtil = {
      * @return Array 返回值
      */
     getArray: function (key: string, defaultValue?: any): any {
-        defaultValue = defaultValue || [];
-        let value = window.localStorage.getItem(key);
+        defaultValue = defaultValue || []
+        let value = window.localStorage.getItem(key)
         if (!value) {
-            return defaultValue;
+            return defaultValue
         }
         try {
-            value = JSON.parse(value);
+            value = JSON.parse(value)
             if (!Array.isArray(value)) {
-                return defaultValue;
+                return defaultValue
             }
-            return value;
+            return value
         } catch (e) {}
-        return defaultValue;
+        return defaultValue
     },
     /**
      * @Util 获取对象数据
@@ -58,21 +58,21 @@ export const StorageUtil = {
      * @return Array 返回值
      */
     getObject: function (key: string, defaultValue?: any): any {
-        defaultValue = defaultValue || {};
-        let value = window.localStorage.getItem(key);
+        defaultValue = defaultValue || {}
+        let value = window.localStorage.getItem(key)
         if (!value) {
-            return defaultValue;
+            return defaultValue
         }
         try {
-            value = JSON.parse(value);
+            value = JSON.parse(value)
             if (null === value) {
-                return defaultValue;
+                return defaultValue
             }
-            if (!Array.isArray(value) && typeof value === "object") {
-                return value;
+            if (!Array.isArray(value) && typeof value === 'object') {
+                return value
             }
-            return defaultValue;
+            return defaultValue
         } catch (e) {}
-        return defaultValue;
+        return defaultValue
     },
-};
+}

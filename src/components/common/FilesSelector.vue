@@ -1,53 +1,46 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { t } from "../../lang";
-import { Dialog } from "../../lib/dialog";
-import { FileUtil } from "../../lib/file";
-import { doOpenFile } from "./util";
+import {computed} from 'vue'
+import {t} from '../../lang'
+import {Dialog} from '../../lib/dialog'
+import {FileUtil} from '../../lib/file'
+import {doOpenFile} from './util'
 
 const props = defineProps<{
-    modelValue: string[];
-    extensions: string[];
-}>();
+    modelValue: string[]
+    extensions: string[]
+}>()
 const emit = defineEmits<{
-    "update:modelValue": [string[]];
-}>();
+    'update:modelValue': [string[]]
+}>()
 
 const doSelectFile = async () => {
-    const result = await doOpenFile({
-        extensions: props.extensions,
-        multiple: true,
-    });
+    const result = await doOpenFile({extensions: props.extensions, multiple: true})
     if (!result) {
-        return;
+        return
     }
-    console.log("result", result);
-    const files = Array.isArray(result) ? result : [result];
-    const validFiles: string[] = [];
+    console.log('result', result)
+    const files = Array.isArray(result) ? result : [result]
+    const validFiles: string[] = []
     for (const file of files) {
-        const ext = FileUtil.getExt(file);
+        const ext = FileUtil.getExt(file)
         if (!props.extensions.includes(ext)) {
-            Dialog.tipError(
-                t("hint.selectFileFormat", {
-                    extensions: props.extensions.join(","),
-                }),
-            );
-            return;
+            Dialog.tipError(t('hint.selectFileFormat', {extensions: props.extensions.join(',')}))
+            return
         }
-        validFiles.push(file);
+        validFiles.push(file)
     }
-    emit("update:modelValue", [...props.modelValue, ...validFiles]);
-};
+    emit('update:modelValue', [...props.modelValue, ...validFiles])
+}
 
 const removeFile = (index: number) => {
-    const newValue = [...props.modelValue];
-    newValue.splice(index, 1);
-    emit("update:modelValue", newValue);
-};
+    const newValue = [...props.modelValue]
+    newValue.splice(index, 1)
+    emit('update:modelValue', newValue)
+}
 
 const names = computed(() => {
-    return props.modelValue.map((path) => FileUtil.getBaseName(path, true));
-});
+    return props.modelValue.map((path) => FileUtil.getBaseName(path, true))
+})
 </script>
 
 <template>
@@ -69,10 +62,8 @@ const names = computed(() => {
         </div>
         <a-button @click="doSelectFile">
             <icon-plus />
-            {{ t("common.addFile") }}
-            ({{
-                t("common.extensions", { extensions: extensions.join(", ") })
-            }})
+            {{ t('common.addFile') }}
+            ({{ t('common.extensions', {extensions: extensions.join(', ')}) }})
         </a-button>
     </div>
 </template>

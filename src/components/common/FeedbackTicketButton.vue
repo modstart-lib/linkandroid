@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { AppConfig } from "../../config";
+import {AppConfig} from '../../config'
 
 const doShow = () => {
-    window.$mapi.app.windowOpen("feedback");
-};
+    window.$mapi.app.windowOpen('feedback')
+}
 </script>
 
 <template>
@@ -11,6 +11,6 @@ const doShow = () => {
         <template #icon>
             <icon-customer-service />
         </template>
-        {{ $t("nav.feedback") }}
+        {{ $t('nav.feedback') }}
     </a-button>
 </template>

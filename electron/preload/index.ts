@@ -1,180 +1,167 @@
-import { ipcRenderer } from "electron";
-import { MAPI } from "../mapi/render";
+import {ipcRenderer} from 'electron'
+import {MAPI} from '../mapi/render'
 
-process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = "true";
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
-MAPI.init();
+// 检测是否在自动化测试模式（测试时 Electron 必然带 --remote-debugging-port 参数）
+const isTestMode = process.argv.some((arg) => arg.startsWith('--remote-debugging-port'))
+if (isTestMode) {
+    window['__TEST_MODE__'] = true
+}
 
-window["__page"] = {
+MAPI.init()
+
+window['__page'] = {
     hooks: {},
     onShow: (cb: Function) => {
-        window["__page"].hooks.onShow = cb;
+        window['__page'].hooks.onShow = cb
     },
     onHide: (cb: Function) => {
-        window["__page"].hooks.onHide = cb;
+        window['__page'].hooks.onHide = cb
     },
     onMaximize: (cb: Function) => {
-        window["__page"].hooks.onMaximize = cb;
+        window['__page'].hooks.onMaximize = cb
     },
     onUnmaximize: (cb: Function) => {
-        window["__page"].hooks.onUnmaximize = cb;
+        window['__page'].hooks.onUnmaximize = cb
     },
     onEnterFullScreen: (cb: Function) => {
-        window["__page"].hooks.onEnterFullScreen = cb;
+        window['__page'].hooks.onEnterFullScreen = cb
     },
     onLeaveFullScreen: (cb: Function) => {
-        window["__page"].hooks.onLeaveFullScreen = cb;
+        window['__page'].hooks.onLeaveFullScreen = cb
     },
     onShowQuitConfirmDialog: (cb: Function) => {
-        window["__page"].hooks.onShowQuitConfirmDialog = cb;
+        window['__page'].hooks.onShowQuitConfirmDialog = cb
     },
     broadcastListeners: {},
     onBroadcast: (type: string, cb: (data: any) => void) => {
-        if (!(type in window["__page"].broadcastListeners)) {
-            window["__page"].broadcastListeners[type] = [];
+        if (!(type in window['__page'].broadcastListeners)) {
+            window['__page'].broadcastListeners[type] = []
         }
-        window["__page"].broadcastListeners[type].push(cb);
+        window['__page'].broadcastListeners[type].push(cb)
     },
     offBroadcast: (type: string, cb: (data: any) => void) => {
-        if (!(type in window["__page"].broadcastListeners)) {
-            return;
+        if (!(type in window['__page'].broadcastListeners)) {
+            return
         }
-        window["__page"].broadcastListeners[type] = window[
-            "__page"
-        ].broadcastListeners[type].filter((c) => c !== cb);
+        window['__page'].broadcastListeners[type] = window['__page'].broadcastListeners[type].filter((c) => c !== cb)
     },
     callPage: {},
     registerCallPage: (
         name: string,
-        cb: (
-            resolve: (data: any) => void,
-            reject: (error: string) => void,
-            data: any,
-        ) => void,
+        cb: (resolve: (data: any) => void, reject: (error: string) => void, data: any) => void,
     ) => {
-        window["__page"].callPage[name] = cb;
+        window['__page'].callPage[name] = cb
     },
     channel: {},
     createChannel: (cb: (data: any) => void) => {
-        const channel = Math.random().toString(36).substring(2);
-        window["__page"].channel[channel] = cb;
-        return channel;
+        const channel = Math.random().toString(36).substring(2)
+        window['__page'].channel[channel] = cb
+        return channel
     },
     destroyChannel: (channel: string) => {
-        delete window["__page"].channel[channel];
+        delete window['__page'].channel[channel]
     },
     ipcSendToHost: (channel: string, type: string, data?: any) => {
         ipcRenderer.sendToHost(channel, {
             type,
             data,
-        });
+        })
     },
     ipcSend: (channel: string, type: string, data?: any) => {
         ipcRenderer.send(channel, {
             type,
             data,
-        });
+        })
     },
-};
+}
 
-ipcRenderer.removeAllListeners("MAIN_PROCESS_MESSAGE");
-ipcRenderer.on("MAIN_PROCESS_MESSAGE", (_event: any, payload: any) => {
-    if ("APP_READY" === payload.type) {
-        MAPI.init(payload.data.AppEnv);
-    } else if ("CALL_PAGE" === payload.type) {
-        let { type, data, option } = payload.data;
+ipcRenderer.removeAllListeners('MAIN_PROCESS_MESSAGE')
+ipcRenderer.on('MAIN_PROCESS_MESSAGE', (_event: any, payload: any) => {
+    if ('APP_READY' === payload.type) {
+        MAPI.init(payload.data.AppEnv)
+    } else if ('CALL_PAGE' === payload.type) {
+        let {type, data, option} = payload.data
         option = Object.assign(
             {
                 waitReadyTimeout: 10 * 1000,
             },
             option,
-        );
+        )
         // console.log('CALL_PAGE', type, {type, data, option})
-        const resultEventName = `event:callPage:${payload.id}`;
+        const resultEventName = `event:callPage:${payload.id}`
         const send = (code: number, msg: string, data?: any) => {
-            ipcRenderer.send(resultEventName, { code, msg, data });
-        };
-        if (!window["__page"].callPage) {
-            console.warn("CALL_PAGE.Failed", JSON.stringify(payload));
-            send(-1, "error");
-            return;
+            ipcRenderer.send(resultEventName, {code, msg, data})
+        }
+        if (!window['__page'].callPage) {
+            console.warn('CALL_PAGE.Failed', JSON.stringify(payload))
+            send(-1, 'error')
+            return
         }
         const callPageExecute = () => {
             try {
-                const maybePromise = window["__page"].callPage[type](
+                const maybePromise = window['__page'].callPage[type](
                     (resultData: any) => {
-                        send(0, "ok", resultData);
+                        send(0, 'ok', resultData)
                     },
                     (error: string) => {
-                        send(-1, error);
+                        send(-1, error)
                     },
                     data,
-                );
-                if (maybePromise && typeof maybePromise.then === "function") {
+                )
+                if (maybePromise && typeof maybePromise.then === 'function') {
                     maybePromise.catch((e: any) => {
-                        console.error("CallPage.Error", e);
-                        send(
-                            -1,
-                            "CallPageExecuteError: " +
-                                (e?.message || e.toString()),
-                        );
-                    });
+                        console.error('CallPage.Error', e)
+                        send(-1, 'CallPageExecuteError: ' + (e?.message || e.toString()))
+                    })
                 }
             } catch (e) {
-                console.error("CallPage.Error", e);
-                send(
-                    -1,
-                    "CallPageExecuteError: " + (e?.message || e.toString()),
-                );
+                console.error('CallPage.Error', e)
+                send(-1, 'CallPageExecuteError: ' + (e?.message || e.toString()))
             }
-        };
-        if (!window["__page"].callPage[type]) {
+        }
+        if (!window['__page'].callPage[type]) {
             if (option.waitReadyTimeout > 0) {
-                const start = Date.now();
+                const start = Date.now()
                 const monitor = () => {
                     setTimeout(() => {
-                        if (!window["__page"].callPage[type]) {
+                        if (!window['__page'].callPage[type]) {
                             if (Date.now() - start > option.waitReadyTimeout) {
-                                console.warn("CALL_PAGE.Timeout", type, {
-                                    type,
-                                    data,
-                                    option,
-                                });
-                                send(-1, "timeout");
-                                return;
+                                console.warn('CALL_PAGE.Timeout', type, {type, data, option})
+                                send(-1, 'timeout')
+                                return
                             } else {
-                                monitor();
-                                return;
+                                monitor()
+                                return
                             }
                         } else {
-                            callPageExecute();
+                            callPageExecute()
                         }
-                    }, 10);
-                };
-                monitor();
-                return;
+                    }, 10)
+                }
+                monitor()
+                return
             }
-            console.warn("CALL_PAGE.NotFound", type, { type, data, option });
-            send(-1, "event not found");
-            return;
+            console.warn('CALL_PAGE.NotFound', type, {type, data, option})
+            send(-1, 'event not found')
+            return
         }
-        callPageExecute();
-    } else if ("CHANNEL" === payload.type) {
-        const { channel, data } = payload.data;
-        if (!window["__page"].channel || !window["__page"].channel[channel]) {
-            return;
+        callPageExecute()
+    } else if ('CHANNEL' === payload.type) {
+        const {channel, data} = payload.data
+        if (!window['__page'].channel || !window['__page'].channel[channel]) {
+            return
         }
-        window["__page"].channel[channel](data);
-    } else if ("BROADCAST" === payload.type) {
-        const { type, data } = payload.data;
-        if (window["__page"].broadcastListeners[type]) {
-            window["__page"].broadcastListeners[type].forEach(
-                (cb: Function) => {
-                    cb(data);
-                },
-            );
+        window['__page'].channel[channel](data)
+    } else if ('BROADCAST' === payload.type) {
+        const {type, data} = payload.data
+        if (window['__page'].broadcastListeners[type]) {
+            window['__page'].broadcastListeners[type].forEach((cb: Function) => {
+                cb(data)
+            })
         }
     } else {
-        console.warn("UnknownMainProcessMessage", JSON.stringify(payload));
+        console.warn('UnknownMainProcessMessage', JSON.stringify(payload))
     }
-});
+})

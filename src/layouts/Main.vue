@@ -1,62 +1,62 @@
 <script setup lang="ts">
-import { onBeforeMount, ref } from "vue";
-import { useRouter } from "vue-router";
-import PageNav from "./../components/PageNav.vue";
-import { AppConfig } from "../config";
-import AppQuitConfirm from "../components/AppQuitConfirm.vue";
-import { useDragWindow } from "../components/common/dragWindow";
-import { isDev } from "../lib/env";
-import { t } from "../lang";
+import {onBeforeMount, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import PageNav from './../components/PageNav.vue'
+import {AppConfig} from '../config'
+import AppQuitConfirm from '../components/AppQuitConfirm.vue'
+import {useDragWindow} from '../components/common/dragWindow'
+import {isDev} from '../lib/env'
+import {t} from '../lang'
 
-const router = useRouter();
-const appQuitConfirm = ref<InstanceType<typeof AppQuitConfirm> | null>(null);
-const isOsx = ref(false);
-const isFullscreen = ref(false);
+const router = useRouter()
+const appQuitConfirm = ref<InstanceType<typeof AppQuitConfirm> | null>(null)
+const isOsx = ref(false)
+const isFullscreen = ref(false)
 window.__page.onEnterFullScreen(() => {
-    isFullscreen.value = true;
-});
+    isFullscreen.value = true
+})
 window.__page.onLeaveFullScreen(() => {
-    isFullscreen.value = false;
-});
+    isFullscreen.value = false
+})
 window.__page.onShowQuitConfirmDialog(() => {
-    appQuitConfirm.value?.show();
-});
+    appQuitConfirm.value?.show()
+})
 
-const { onDragWindowMouseDown } = useDragWindow({
-    name: "main",
+const {onDragWindowMouseDown} = useDragWindow({
+    name: 'main',
     ignore: (e) => {
-        return !!(e.target && (e.target as HTMLElement).tagName === "INPUT");
+        return !!(e.target && (e.target as HTMLElement).tagName === 'INPUT')
     },
-});
+})
 const onDbClick = async () => {
-    await window.$mapi.app.windowMax();
-};
+    await window.$mapi.app.windowMax()
+}
 
 onBeforeMount(async () => {
-    isOsx.value = window.$mapi.app.isPlatform("osx");
-});
+    isOsx.value = window.$mapi.app.isPlatform('osx')
+})
 
 const doQuit = async () => {
-    await appQuitConfirm.value?.show();
-};
+    await appQuitConfirm.value?.show()
+}
 
-const debugVisible = ref(false);
-const currentRoute = ref("");
+const debugVisible = ref(false)
+const currentRoute = ref('')
 const doDebugCopyRoute = async () => {
-    currentRoute.value = router.currentRoute.value.fullPath;
-    await window.$mapi.app.setClipboardText(currentRoute.value);
-    window.$mapi.app.toast(t("common.copySuccess"), "success");
-};
+    currentRoute.value = router.currentRoute.value.fullPath
+    await window.$mapi.app.setClipboardText(currentRoute.value)
+    window.$mapi.app.toast(t('common.copySuccess'), 'success')
+}
 const doDebugToggle = () => {
-    currentRoute.value = router.currentRoute.value.fullPath;
-    debugVisible.value = !debugVisible.value;
-};
+    currentRoute.value = router.currentRoute.value.fullPath
+    debugVisible.value = !debugVisible.value
+}
 </script>
 <template>
     <div class="window-container">
         <div
             class="window-header flex h-10 items-center border-b border-solid border-gray-200 dark:border-gray-800"
-            :class="{ osx: isOsx, fullscreen: isFullscreen }"
+            :class="{osx: isOsx, fullscreen: isFullscreen}"
         >
             <div
                 class="window-header-title no-drag flex-grow flex items-center"
@@ -83,20 +83,14 @@ const doDebugToggle = () => {
                 >
                     <icon-fullscreen class="text-sm" />
                 </div>
-                <div
-                    class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-red-500"
-                    @click="doQuit"
-                >
+                <div class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-red-500" @click="doQuit">
                     <icon-close class="text-sm" />
                 </div>
             </div>
         </div>
         <div class="window-body">
             <div class="page-container flex">
-                <div
-                    class="w-16 flex-shrink-0 h-full text-white"
-                    style="background-color: var(--color-bg-page-nav)"
-                >
+                <div class="w-16 flex-shrink-0 h-full text-white" style="background-color: var(--color-bg-page-nav)">
                     <PageNav />
                 </div>
                 <div class="flex-grow overflow-y-auto">
@@ -109,12 +103,7 @@ const doDebugToggle = () => {
     <!-- 调试弹窗 -->
     <template v-if="isDev">
         <div class="fixed top-10 left-0 z-50">
-            <a-button
-                shape="circle"
-                size="mini"
-                class="opacity-50 hover:opacity-100"
-                @click="doDebugToggle"
-            >
+            <a-button shape="circle" size="mini" class="opacity-50 hover:opacity-100" @click="doDebugToggle">
                 <template #icon><icon-bug /></template>
             </a-button>
         </div>
@@ -122,16 +111,12 @@ const doDebugToggle = () => {
             v-if="debugVisible"
             class="fixed top-14 left-4 z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-3 w-80"
         >
-            <div class="font-bold text-sm mb-2">
-                {{ $t("common.debugInfo") }}
-            </div>
+            <div class="font-bold text-sm mb-2">{{ $t('common.debugInfo') }}</div>
             <div class="flex items-center gap-2">
-                <div class="text-xs text-gray-500 flex-grow truncate">
-                    {{ currentRoute }}
-                </div>
+                <div class="text-xs text-gray-500 flex-grow truncate">{{ currentRoute }}</div>
                 <a-button size="mini" @click="doDebugCopyRoute">
                     <template #icon><icon-copy /></template>
-                    {{ $t("common.copyRoute") }}
+                    {{ $t('common.copyRoute') }}
                 </a-button>
             </div>
         </div>

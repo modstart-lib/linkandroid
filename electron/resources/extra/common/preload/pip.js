@@ -1,11 +1,11 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener(
-        "click",
+        'click',
         function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
+            e.preventDefault()
+            e.stopPropagation()
+            return false
         },
         true,
-    );
-});
+    )
+})

@@ -1,13 +1,13 @@
-import { BrowserWindow } from "electron";
-import { t } from "../config/lang";
-import { preloadDefault } from "../lib/env-main";
-import { Page } from "./index";
+import {BrowserWindow} from 'electron'
+import {t} from '../config/lang'
+import {preloadDefault} from '../lib/env-main'
+import {Page} from './index'
 
 export const PageThirdPartyImageBeautifier = {
-    NAME: "thirdPartyImageBeautifier",
+    NAME: 'thirdPartyImageBeautifier',
     open: (option: any) => {
         const win = new BrowserWindow({
-            title: t("page.screenshot.title"),
+            title: t('page.screenshot.title'),
             parent: null,
             minWidth: 900,
             minHeight: 700,
@@ -25,12 +25,8 @@ export const PageThirdPartyImageBeautifier = {
             },
             show: true,
             frame: true,
-        });
+        })
         // win.maximize();
-        return Page.openWindow(
-            PageThirdPartyImageBeautifier.NAME,
-            win,
-            "third-party/image-beautifier/index.html",
-        );
+        return Page.openWindow(PageThirdPartyImageBeautifier.NAME, win, 'third-party/image-beautifier/index.html')
     },
-};
+}

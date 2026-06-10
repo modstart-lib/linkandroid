@@ -1,17 +1,17 @@
-import { BrowserWindow } from "electron";
-import { icons } from "./icons";
-import { AppsMain } from "./main";
+import {BrowserWindow} from 'electron'
+import {icons} from './icons'
+import {AppsMain} from './main'
 
-let win = null;
-let winCloseTimer = null;
-let winShowTime = null;
-const toastMsgQueue: { msg: string; options: any }[] = [];
+let win = null
+let winCloseTimer = null
+let winShowTime = null
+const toastMsgQueue: {msg: string; options: any}[] = []
 
 export const makeToast = async (
     msg: string,
     options?: {
-        duration?: number;
-        status?: "success" | "error" | "info";
+        duration?: number
+        status?: 'success' | 'error' | 'info'
     },
 ) => {
     if (win) {
@@ -19,42 +19,38 @@ export const makeToast = async (
             // make previous toast last at least 1 second
             if (toastMsgQueue.length > 0) {
                 toastMsgQueue.forEach((item) => {
-                    item.options = Object.assign({}, item.options, {
-                        duration: 1000,
-                    });
-                });
+                    item.options = Object.assign({}, item.options, {duration: 1000})
+                })
             }
-            toastMsgQueue.push({ msg, options });
-            await new Promise((resolve) =>
-                setTimeout(resolve, 1000 - (Date.now() - winShowTime)),
-            );
+            toastMsgQueue.push({msg, options})
+            await new Promise((resolve) => setTimeout(resolve, 1000 - (Date.now() - winShowTime)))
             if (win) {
-                win.close();
+                win.close()
             }
-            return;
+            return
         }
-        win.close();
+        win.close()
     }
-    winShowTime = Date.now();
+    winShowTime = Date.now()
 
     options = Object.assign(
         {
-            status: "info",
+            status: 'info',
             duration: 0,
         },
         options,
-    );
+    )
 
     if (options.duration === 0) {
-        options.duration = Math.max(msg.length * 400, 3000);
+        options.duration = Math.max(msg.length * 400, 3000)
     }
     // console.log('toast', msg, options)
 
-    const display = AppsMain.getCurrentScreenDisplay();
+    const display = AppsMain.getCurrentScreenDisplay()
     // console.log('xxxx', primaryDisplay);
-    const width = display.workArea.width;
-    const height = 60;
-    const icon = icons[options.status] || icons.success;
+    const width = display.workArea.width
+    const height = 60
+    const icon = icons[options.status] || icons.success
 
     win = new BrowserWindow({
         height,
@@ -72,7 +68,7 @@ export const makeToast = async (
         show: false,
         focusable: false,
         skipTaskbar: true,
-    });
+    })
     const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -123,48 +119,45 @@ export const makeToast = async (
             </div>
         </body>
     </html>
-`;
+`
 
-    const encodedHTML = encodeURIComponent(htmlContent);
-    win.loadURL(`data:text/html;charset=UTF-8,${encodedHTML}`);
-    win.on("ready-to-show", async () => {
-        if (!win) return;
+    const encodedHTML = encodeURIComponent(htmlContent)
+    win.loadURL(`data:text/html;charset=UTF-8,${encodedHTML}`)
+    win.on('ready-to-show', async () => {
+        if (!win) return
         const containerSize = await win.webContents.executeJavaScript(`(()=>{
             const message = document.getElementById('message');
             const width = message.scrollWidth;
             const height = message.scrollHeight;
             return {width:width,height:height};
-        })()`);
+        })()`)
         // console.log('containerSize', containerSize);
-        const containerWidth = containerSize.width + 20;
-        const containerHeight = containerSize.height + 20;
-        win.setSize(containerWidth, containerHeight);
-        const x =
-            display.workArea.x +
-            display.workArea.width / 2 -
-            containerWidth / 2;
-        const y = display.workArea.y + (display.workArea.height * 1) / 4;
-        win.setPosition(Math.floor(x), Math.floor(y));
-        win.showInactive();
+        const containerWidth = containerSize.width + 20
+        const containerHeight = containerSize.height + 20
+        win.setSize(containerWidth, containerHeight)
+        const x = display.workArea.x + display.workArea.width / 2 - containerWidth / 2
+        const y = display.workArea.y + (display.workArea.height * 1) / 4
+        win.setPosition(Math.floor(x), Math.floor(y))
+        win.showInactive()
         // win.webContents.openDevTools({
         //     mode: 'detach'
         // })
-    });
-    win.on("closed", () => {
-        win = null;
+    })
+    win.on('closed', () => {
+        win = null
         if (winCloseTimer) {
-            clearTimeout(winCloseTimer);
+            clearTimeout(winCloseTimer)
         }
         setTimeout(() => {
             if (toastMsgQueue.length > 0) {
-                const item = toastMsgQueue.shift();
-                makeToast(item.msg, item.options);
+                const item = toastMsgQueue.shift()
+                makeToast(item.msg, item.options)
             }
-        }, 0);
-    });
+        }, 0)
+    })
     winCloseTimer = setTimeout(() => {
-        winCloseTimer = null;
-        if (!win) return;
-        win.close();
-    }, options.duration);
-};
+        winCloseTimer = null
+        if (!win) return
+        win.close()
+    }, options.duration)
+}

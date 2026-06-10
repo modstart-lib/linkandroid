@@ -1,19 +1,17 @@
 <script setup lang="ts">
-import { AppConfig } from "../../config";
-import { t } from "../../lang";
+import {AppConfig} from '../../config'
+import {t} from '../../lang'
 
 const props = defineProps({
     desc: {
         type: String,
-        default: "",
+        default: '',
     },
-});
+})
 </script>
 
 <template>
-    <div
-        class="pro-upgrade-container h-full w-full flex items-center justify-center p-4"
-    >
+    <div class="pro-upgrade-container h-full w-full flex items-center justify-center p-4">
         <div
             class="text-center py-16 px-12 bg-white rounded-xl shadow-sm border border-gray-100 max-w-md w-full transition-all hover:shadow-md"
         >
@@ -41,12 +39,8 @@ const props = defineProps({
                     ></path>
                 </svg>
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-3">
-                {{ $t("proUpgrade.title") }}
-            </h3>
-            <p class="text-gray-500 mb-8 leading-relaxed">
-                {{ desc || $t("proUpgrade.defaultDesc") }}
-            </p>
+            <h3 class="text-xl font-bold text-gray-800 mb-3">{{ $t('proUpgrade.title') }}</h3>
+            <p class="text-gray-500 mb-8 leading-relaxed">{{ desc || $t('proUpgrade.defaultDesc') }}</p>
             <div>
                 <a
                     class="arco-btn arco-btn-size-large arco-btn-primary px-8 rounded-full shadow-blue-200 shadow-lg hover:shadow-xl transition-all"
@@ -54,9 +48,7 @@ const props = defineProps({
                     target="_blank"
                 >
                     <icon-link />
-                    <span class="ml-2">{{
-                        $t("proUpgrade.downloadButton")
-                    }}</span>
+                    <span class="ml-2">{{ $t('proUpgrade.downloadButton') }}</span>
                 </a>
             </div>
         </div>

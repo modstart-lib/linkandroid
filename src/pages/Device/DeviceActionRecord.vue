@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { DeviceRecord } from "../../types/Device";
-import DeviceRecordDialog from "./DeviceRecordDialog.vue";
-import { ref } from "vue";
+import {DeviceRecord} from '../../types/Device'
+import DeviceRecordDialog from './DeviceRecordDialog.vue'
+import {ref} from 'vue'
 
-const recordDialog = ref<InstanceType<typeof DeviceRecordDialog>>();
+const recordDialog = ref<InstanceType<typeof DeviceRecordDialog>>()
 const props = defineProps<{
-    device: DeviceRecord;
-}>();
+    device: DeviceRecord
+}>()
 </script>
 
 <template>

@@ -1,43 +1,35 @@
 <script setup lang="ts">
-import { DeviceRecord } from "../../types/Device";
-import { useDeviceStore } from "../../store/modules/device";
-import { Dialog } from "../../lib/dialog";
-import { t } from "../../lang";
+import {DeviceRecord} from '../../types/Device'
+import {useDeviceStore} from '../../store/modules/device'
+import {Dialog} from '../../lib/dialog'
+import {t} from '../../lang'
 
 const props = defineProps<{
-    device: DeviceRecord;
-}>();
+    device: DeviceRecord
+}>()
 
-const deviceStore = useDeviceStore();
+const deviceStore = useDeviceStore()
 
 const doMirror = async () => {
-    await deviceStore.doMirror(props.device);
-};
+    await deviceStore.doMirror(props.device)
+}
 const start = () => {
     if (props.device.runtime?.mirrorController) {
-        Dialog.tipError(t("device.alreadyMirroring"));
-        return;
+        Dialog.tipError(t('device.alreadyMirroring'))
+        return
     }
-    doMirror().then();
-};
+    doMirror().then()
+}
 defineExpose({
     start,
-});
+})
 </script>
 
 <template>
     <a-tooltip :content="$t('device.mirrorToComputer')">
-        <a-button
-            class="ml-1"
-            :type="device.runtime?.mirrorController ? 'primary' : undefined"
-            @click="doMirror()"
-        >
+        <a-button class="ml-1" :type="device.runtime?.mirrorController ? 'primary' : undefined" @click="doMirror()">
             <template #icon>
-                <i-mdi-cast
-                    :class="
-                        device.runtime?.mirrorController ? '' : 'text-gray-400'
-                    "
-                />
+                <i-mdi-cast :class="device.runtime?.mirrorController ? '' : 'text-gray-400'" />
             </template>
         </a-button>
     </a-tooltip>

@@ -1,28 +1,28 @@
-import { t } from "../lang";
+import {t} from '../lang'
 
 export function mapError(msg: unknown) {
-    if (typeof msg !== "string") {
-        msg = String(msg);
+    if (typeof msg !== 'string') {
+        msg = String(msg)
     }
     const map = {
-        FileAlreadyExists: t("error.fileExists"),
-        FileNotFound: t("error.fileNotFound"),
-        ProcessTimeout: t("error.processTimeout"),
-        RequestError: t("error.requestError"),
-        "Could not find any ADB device": t("error.adbDeviceNotFound"),
-        DeviceNotConnected: t("device.notConnected"),
-    };
+        FileAlreadyExists: t('error.fileExists'),
+        FileNotFound: t('error.fileNotFound'),
+        ProcessTimeout: t('error.processTimeout'),
+        RequestError: t('error.requestError'),
+        'Could not find any ADB device': t('error.adbDeviceNotFound'),
+        DeviceNotConnected: t('device.notConnected'),
+    }
     for (let key in map) {
         if (msg.includes(key)) {
-            let error = map[key];
+            let error = map[key]
             // regex PluginReleaseDocFormatError:-11
-            const regex = new RegExp(`${key}:(-?\\d+)`);
-            const match = msg.match(regex);
+            const regex = new RegExp(`${key}:(-?\\d+)`)
+            const match = msg.match(regex)
             if (match) {
-                error += `(${match[1]})`;
+                error += `(${match[1]})`
             }
-            return error;
+            return error
         }
     }
-    return msg;
+    return msg
 }

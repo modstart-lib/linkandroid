@@ -30,8 +30,26 @@ pnpm-lock.yaml
 yarn.lock
 database.db
 
+/cli/linkandroid*
 /data
 /build/
+/data-*
+.github/copilot-instructions.md
 .vscode
+/share-binary/
+
+/electron/resources/extra/linux-arm64/
+/electron/resources/extra/linux-x86/
+/electron/resources/extra/osx-arm64/
+/electron/resources/extra/osx-x86/
+/electron/resources/extra/win-x86/
+
+/AGENTS.md
+/.agents
 dist-cli/
-_temp/
+/cli/linkandroid-cli
+test-results/
+/_temp/
+
+/storage/screenshot/image/
+/storage/screenshot-last/image/

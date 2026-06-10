@@ -8,8 +8,8 @@ const versions = [
             // console.log('db.first', await db.first(`SELECT * FROM users`));
         },
     },
-];
+]
 
 export default {
     versions,
-};
+}

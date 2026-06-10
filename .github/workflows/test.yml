@@ -100,37 +100,16 @@ jobs:
             APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
             APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      - name: Set Build Name ( Linux / macOS )
+      - name: Rename output files (Linux/macOS)
         if: runner.os == 'Linux' || runner.os == 'macOS'
         run: |
-            DIST_FILE_NAME=${{ runner.os }}-${{ runner.arch }}-v$(date +%Y%m%d_%H%M%S)-${RANDOM}
-            echo ::add-mask::$DIST_FILE_NAME
-            echo DIST_FILE_NAME=$DIST_FILE_NAME >> $GITHUB_ENV
+            find dist-release/ -type f -name 'LinkAndroidPro-*' -exec bash -c 'f="{}"; mv "$f" "${f/LinkAndroidPro-/LinkAndroid-}"' \;
 
-      - name: Set Build Name ( Windows )
+      - name: Rename output files (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-            $randomNumber = Get-Random -Minimum 10000 -Maximum 99999
-            $DIST_FILE_NAME = "Windows-X64-v$(Get-Date -Format 'yyyyMMdd_HHmmss')-$randomNumber"
-            Write-Host "::add-mask::$DIST_FILE_NAME"
-            echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
-
-      - name: Upload
-        uses: modstart/github-oss-action@master
-        with:
-            title: ${{ github.event.head_commit.message }}
-            key-id: ${{ secrets.OSS_2_KEY_ID }}
-            key-secret: ${{ secrets.OSS_2_KEY_SECRET }}
-            region: ${{ secrets.OSS_2_REGION }}
-            bucket: ${{ secrets.OSS_2_BUCKET }}
-            callbackUrlSign: ${{ secrets.OSS_2_CALLBACK_URL_SIGN }}
-            callback: ${{ github.event_name == 'workflow_dispatch' && secrets.REPORT_URL || secrets.REPORT_URL_ME }}
-            assets: |
-                dist-release/*.exe:apps/{random}.bin:{name}
-                dist-release/*.dmg:apps/{random}.bin:{name}
-                dist-release/*.AppImage:apps/{random}.bin:{name}
-                dist-release/*.deb:apps/{random}.bin:{name}
+            Get-ChildItem dist-release\LinkAndroidPro-* | Rename-Item -NewName { $_.Name -replace 'LinkAndroidPro-','LinkAndroid-' }
 
       - name: Upload Artifact Windows
         if: runner.os == 'Windows'

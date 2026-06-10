@@ -18,4 +18,4 @@ export const icons = {
       <animate attributeName="y" calcMode="linear" values="21.5;53.5;53.5;53.5;53.5;21.5;21.5;21.5;21.5" keyTimes="0;0.083;0.25;0.333;0.5;0.583;0.75;0.833;1" dur="1.5" begin="0s" repeatCount="indefinite"></animate>
     </rect>
   </svg>`,
-};
+}

@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import FeedbackTicketButton from "../components/common/FeedbackTicketButton.vue";
-import UpdaterButton from "../components/common/UpdaterButton.vue";
-import { AppConfig } from "../config";
-import { t } from "../lang";
-import { useSettingStore } from "../store/modules/setting";
+import {ref} from 'vue'
+import FeedbackTicketButton from '../components/common/FeedbackTicketButton.vue'
+import UpdaterButton from '../components/common/UpdaterButton.vue'
+import {AppConfig} from '../config'
+import {t} from '../lang'
+import {useSettingStore} from '../store/modules/setting'
 
-const setting = useSettingStore();
-const licenseYear = new Date().getFullYear();
-const devSettingVisible = ref(false);
+const setting = useSettingStore()
+const licenseYear = new Date().getFullYear()
+const devSettingVisible = ref(false)
 
 const doOpenLog = async () => {
-    await window.$mapi.app.openPath(window.$mapi.log.root());
-};
-let clickTimes = 0;
-let clickLastTime = 0;
+    await window.$mapi.app.openPath(window.$mapi.log.root())
+}
+let clickTimes = 0
+let clickLastTime = 0
 const doDevSettingTriggerClick = () => {
     // click more than 5 times in 3 seconds
-    const now = new Date().getTime();
+    const now = new Date().getTime()
     if (0 === clickLastTime) {
-        clickLastTime = now;
+        clickLastTime = now
     }
     if (now - clickLastTime < 3000) {
-        clickTimes++;
+        clickTimes++
         if (clickTimes >= 5) {
-            devSettingVisible.value = true;
-            clickTimes = 0;
+            devSettingVisible.value = true
+            clickTimes = 0
         }
     } else {
-        clickTimes = 0;
+        clickTimes = 0
     }
-};
+}
 </script>
 
 <template>
@@ -39,10 +39,7 @@ const doDevSettingTriggerClick = () => {
             <div class="flex pb-6">
                 <div class="m-auto">
                     <div>
-                        <img
-                            class="w-14 h-14 mx-auto"
-                            src="./../assets/image/logo.svg"
-                        />
+                        <img class="w-14 h-14 mx-auto" src="./../assets/image/logo.svg" />
                     </div>
                     <div class="text-xl pt-2 font-bold">
                         {{ AppConfig.title }}
@@ -50,25 +47,18 @@ const doDevSettingTriggerClick = () => {
                 </div>
             </div>
             <div class="flex mb-3 items-center">
-                <div class="w-20">{{ t("page.about.version") }}</div>
+                <div class="w-20">{{ t('page.about.version') }}</div>
                 <div class="flex-grow">
-                    <div class="inline-block">
-                        v{{ AppConfig.version }} Build
-                        {{ setting.buildInfo.buildId }}
-                    </div>
+                    <div class="inline-block">v{{ AppConfig.version }} Build {{ setting.buildInfo.buildId }}</div>
                 </div>
                 <div class="inline-block ml-3">
                     <UpdaterButton />
                 </div>
             </div>
             <div class="flex mb-3 items-center">
-                <div class="w-20">{{ t("page.about.website") }}</div>
+                <div class="w-20">{{ t('page.about.website') }}</div>
                 <div class="flex-grow">
-                    <a
-                        :href="AppConfig.website"
-                        target="_blank"
-                        class="text-link"
-                    >
+                    <a :href="AppConfig.website" target="_blank" class="text-link">
                         {{ AppConfig.website }}
                     </a>
                 </div>
@@ -80,14 +70,14 @@ const doDevSettingTriggerClick = () => {
                         <template #icon>
                             <icon-file />
                         </template>
-                        {{ t("page.about.log") }}
+                        {{ t('page.about.log') }}
                     </a-button>
                 </div>
             </div>
             <div class="flex mb-3 items-center">
-                <div class="w-20">{{ t("page.about.disclaimer") }}</div>
+                <div class="w-20">{{ t('page.about.disclaimer') }}</div>
                 <div class="flex-grow">
-                    {{ t("page.about.license") }}
+                    {{ t('page.about.license') }}
                 </div>
             </div>
             <div class="mb-3 mt-6 flex items-center">
@@ -96,10 +86,7 @@ const doDevSettingTriggerClick = () => {
                     target="_blank"
                     class="bg-gray-100 dark:bg-gray-700 w-0 flex-grow mr-1 rounded-lg py-2 px-8 inline-flex items-center hover:shadow-lg"
                 >
-                    <img
-                        src="./../assets/image/github.svg"
-                        class="w-6 h-6 mr-2 object-contain"
-                    />
+                    <img src="./../assets/image/github.svg" class="w-6 h-6 mr-2 object-contain" />
                     <div class="flex-grow">Github</div>
                 </a>
                 <a
@@ -107,25 +94,20 @@ const doDevSettingTriggerClick = () => {
                     target="_blank"
                     class="bg-gray-100 dark:bg-gray-700 w-0 flex-grow mr-1 rounded-lg py-2 px-8 inline-flex items-center hover:shadow-lg"
                 >
-                    <img
-                        src="./../assets/image/gitee.svg"
-                        class="w-6 h-6 mr-2 object-contain"
-                    />
+                    <img src="./../assets/image/gitee.svg" class="w-6 h-6 mr-2 object-contain" />
                     <div class="flex-grow">Gitee</div>
                 </a>
             </div>
             <div v-if="devSettingVisible" class="bg-gray-100 p-3 rounded-lg">
                 <div class="flex mb-4 items-center">
                     <icon-code class="mr-2" />
-                    {{ t("common.developerSettings") }}
+                    {{ t('common.developerSettings') }}
                 </div>
                 <div class="flex mb-4">
                     <div class="flex-grow">Test</div>
                     <div>
                         <a-radio-group
-                            :model-value="
-                                setting.configEnvGet('test', 'auto').value
-                            "
+                            :model-value="setting.configEnvGet('test', 'auto').value"
                             @change="setting.onConfigEnvChange('test', $event)"
                         >
                             <a-radio value="light">ON</a-radio>
@@ -134,10 +116,7 @@ const doDevSettingTriggerClick = () => {
                     </div>
                 </div>
             </div>
-            <div
-                class="text-gray-400 text-center select-none"
-                @click="doDevSettingTriggerClick"
-            >
+            <div class="text-gray-400 text-center select-none" @click="doDevSettingTriggerClick">
                 &copy; {{ licenseYear }} {{ AppConfig.title }}
             </div>
         </div>

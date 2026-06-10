@@ -1,57 +1,46 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { useRouter } from "vue-router";
-import { t } from "../lang";
-import { useSettingStore } from "../store/modules/setting";
-import { useUserStore } from "../store/modules/user";
-import { Package } from "lucide-vue-next";
+import {computed} from 'vue'
+import {useRouter} from 'vue-router'
+import {t} from '../lang'
+import {useSettingStore} from '../store/modules/setting'
+import {useUserStore} from '../store/modules/user'
+import {Package} from 'lucide-vue-next'
 
-const route = useRouter();
-const user = useUserStore();
-const setting = useSettingStore();
+const route = useRouter()
+const user = useUserStore()
+const setting = useSettingStore()
 
 const activeTab = computed(() => {
     switch (route.currentRoute.value.path) {
-        case "/home":
-            return "home";
-        case "/device":
-            return "device";
-        case "/script":
-            return "script";
-        case "/lib":
-            return "lib";
-        case "/setting":
-            return "setting";
+        case '/home':
+            return 'home'
+        case '/device':
+            return 'device'
+        case '/script':
+            return 'script'
+        case '/lib':
+            return 'lib'
+        case '/setting':
+            return 'setting'
     }
-});
+})
 
 const userTip = computed(() => {
-    return user.user.id ? user.user.name : t("common.notLoggedIn");
-});
+    return user.user.id ? user.user.name : t('common.notLoggedIn')
+})
 
 const doUser = async () => {
     if (!setting.basic.userEnable) {
-        return;
+        return
     }
-    await window.$mapi.user.open();
-};
+    await window.$mapi.user.open()
+}
 </script>
 
 <template>
-    <div
-        class="flex flex-col h-full border-r border-gray-200 dark:border-gray-800"
-    >
-        <div
-            class="py-4 px-3"
-            :class="setting.basic.userEnable ? 'cursor-pointer' : ''"
-            @click="doUser"
-        >
-            <a-tooltip
-                v-if="setting.basic.userEnable"
-                :content="userTip as string"
-                position="right"
-                mini
-            >
+    <div class="flex flex-col h-full border-r border-gray-200 dark:border-gray-800">
+        <div class="py-4 px-3" :class="setting.basic.userEnable ? 'cursor-pointer' : ''" @click="doUser">
+            <a-tooltip v-if="setting.basic.userEnable" :content="userTip as string" position="right" mini>
                 <img
                     v-if="!user.isInit || !user.user.id"
                     class="rounded-full border border-solid border-gray-200"
@@ -86,7 +75,7 @@ const doUser = async () => {
                 <div>
                     <icon-mobile class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("nav.device") }}</div>
+                <div class="text-sm">{{ $t('nav.device') }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -97,7 +86,7 @@ const doUser = async () => {
                 <div>
                     <icon-code class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("nav.script") }}</div>
+                <div class="text-sm">{{ $t('nav.script') }}</div>
             </a>
             <a
                 v-if="0"
@@ -109,7 +98,7 @@ const doUser = async () => {
                 <div>
                     <Package class="w-5 h-5 mx-auto" />
                 </div>
-                <div class="text-sm">{{ $t("nav.lib") }}</div>
+                <div class="text-sm">{{ $t('nav.lib') }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -120,7 +109,7 @@ const doUser = async () => {
                 <div>
                     <icon-settings class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t("nav.setting") }}</div>
+                <div class="text-sm">{{ $t('nav.setting') }}</div>
             </a>
         </div>
         <div></div>

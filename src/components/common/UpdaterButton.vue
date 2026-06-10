@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { AppConfig } from "../../config";
-import { doCheckForUpdate } from "./util";
+import {onMounted, ref} from 'vue'
+import {AppConfig} from '../../config'
+import {doCheckForUpdate} from './util'
 
-const updaterCheckLoading = ref(false);
-const checkAtLaunch = ref<"yes" | "no">("no");
+const updaterCheckLoading = ref(false)
+const checkAtLaunch = ref<'yes' | 'no'>('no')
 
 onMounted(() => {
-    loadCheckAtLaunch();
-});
+    loadCheckAtLaunch()
+})
 
 const loadCheckAtLaunch = async () => {
-    checkAtLaunch.value = await window.$mapi.updater.getCheckAtLaunch();
-};
+    checkAtLaunch.value = await window.$mapi.updater.getCheckAtLaunch()
+}
 
 const onCheckAtLaunchChange = async (value: boolean) => {
-    await window.$mapi.updater.setCheckAtLaunch(value ? "yes" : "no");
-    await loadCheckAtLaunch();
-};
+    await window.$mapi.updater.setCheckAtLaunch(value ? 'yes' : 'no')
+    await loadCheckAtLaunch()
+}
 
 const doVersionCheck = async () => {
-    updaterCheckLoading.value = true;
-    await doCheckForUpdate(true);
-    updaterCheckLoading.value = false;
-};
+    updaterCheckLoading.value = true
+    await doCheckForUpdate(true)
+    updaterCheckLoading.value = false
+}
 </script>
 
 <template>
@@ -35,13 +35,10 @@ const doVersionCheck = async () => {
             :loading="updaterCheckLoading"
             @click="doVersionCheck()"
         >
-            {{ $t("update.check") }}
+            {{ $t('update.check') }}
         </a-button>
-        <a-checkbox
-            :model-value="checkAtLaunch === 'yes'"
-            @change="onCheckAtLaunchChange as any"
-        >
-            {{ $t("setting.autoUpdate") }}
+        <a-checkbox :model-value="checkAtLaunch === 'yes'" @change="onCheckAtLaunchChange as any">
+            {{ $t('setting.autoUpdate') }}
         </a-checkbox>
     </div>
 </template>

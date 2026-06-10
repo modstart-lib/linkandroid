@@ -1,49 +1,45 @@
-import { Permissions } from "../../lib/permission";
+import {Permissions} from '../../lib/permission'
 
 export const SetupMain = {
     async isOk() {
-        return true;
+        return true
     },
     async list() {
         return [
             {
-                name: "accessibility",
-                title: t("setup.accessibility.title"),
-                status: (await Permissions.checkAccessibilityAccess())
-                    ? "success"
-                    : "fail",
-                desc: t("setup.accessibility.desc"),
+                name: 'accessibility',
+                title: t('setup.accessibility.title'),
+                status: (await Permissions.checkAccessibilityAccess()) ? 'success' : 'fail',
+                desc: t('setup.accessibility.desc'),
                 steps: [
                     {
-                        title: t("setup.accessibility.step"),
-                        image: "/setup/accessibility.png",
+                        title: t('setup.accessibility.step'),
+                        image: '/setup/accessibility.png',
                     },
                 ],
             },
             {
-                name: "screen",
-                title: t("setup.screen.title"),
-                status: (await Permissions.checkScreenCaptureAccess())
-                    ? "success"
-                    : "fail",
-                desc: t("setup.screen.desc"),
+                name: 'screen',
+                title: t('setup.screen.title'),
+                status: (await Permissions.checkScreenCaptureAccess()) ? 'success' : 'fail',
+                desc: t('setup.screen.desc'),
                 steps: [
                     {
-                        title: t("setup.screen.step"),
-                        image: "/setup/screen.png",
+                        title: t('setup.screen.step'),
+                        image: '/setup/screen.png',
                     },
                 ],
             },
-        ];
+        ]
     },
     async open(name: string) {
         switch (name) {
-            case "accessibility":
-                Permissions.askAccessibilityAccess().then();
-                break;
-            case "screen":
-                Permissions.askScreenCaptureAccess().then();
-                break;
+            case 'accessibility':
+                Permissions.askAccessibilityAccess().then()
+                break
+            case 'screen':
+                Permissions.askScreenCaptureAccess().then()
+                break
         }
     },
-};
+}
