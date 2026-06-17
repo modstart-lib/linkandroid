@@ -1,4 +1,6 @@
 import {app, BrowserWindow, clipboard, ipcMain, nativeImage, nativeTheme, screen, shell} from 'electron'
+import {existsSync} from 'node:fs'
+import {resolve} from 'node:path'
 import {AppConfig} from '../../../src/config'
 import {CommonConfig} from '../../config/common'
 import {WindowConfig} from '../../config/window'
@@ -402,6 +404,51 @@ const getAutoLaunch = async (options?: {}) => {
 
 ipcMain.handle('app:getAutoLaunch', async (event, options?: {}) => {
     return getAutoLaunch(options)
+})
+
+/**
+ * Ensure _aienv Python virtual environment exists.
+ * Checks if _aienv/bin/python exists; if not, runs the platform init script.
+ * Used by AI phone preview (TaskRuntime.ts) on first refresh.
+ */
+ipcMain.handle('app:ensureAienv', async () => {
+    const basePath = isDev ? process.env.APP_ROOT || resolve(__dirname, '../../..') : process.resourcesPath
+    const plat = platformName()
+
+    let pythonRel: string
+    let scriptName: string
+    if (plat === 'osx') {
+        pythonRel = '_aienv/bin/python'
+        scriptName = 'init-osx.sh'
+    } else if (plat === 'linux') {
+        pythonRel = '_aienv/bin/python'
+        scriptName = 'init-linux.sh'
+    } else if (plat === 'win') {
+        pythonRel = '_aienv/Scripts/python.exe'
+        scriptName = 'init-windows.sh'
+    } else {
+        return {ok: false, error: `不支持的平台: ${plat}`}
+    }
+
+    const pythonPath = resolve(basePath, 'env/task', pythonRel)
+    if (existsSync(pythonPath)) {
+        return {ok: true}
+    }
+
+    const scriptPath = resolve(basePath, 'env/task', scriptName)
+    if (!existsSync(scriptPath)) {
+        return {ok: false, error: `初始化脚本未找到: ${scriptPath}`}
+    }
+
+    try {
+        const cmd = plat === 'win' ? `"${scriptPath}"` : `bash "${scriptPath}"`
+        const taskDir = resolve(basePath, 'env/task')
+        await Apps.shell(cmd, {cwd: taskDir})
+        const ok = existsSync(pythonPath)
+        return {ok, error: ok ? undefined : 'Python 环境初始化后仍不可用，请尝试手动运行 env/task/init-*.sh'}
+    } catch (e: any) {
+        return {ok: false, error: `初始化 Python 环境失败: ${e.message}`}
+    }
 })
 
 export default {

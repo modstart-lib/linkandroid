@@ -26,6 +26,8 @@ export const PageFeedback = {
             },
             show: true,
             frame: false,
+            titleBarStyle: 'hidden',
+            trafficLightPosition: {x: 10, y: 11},
             transparent: false,
         })
         return Page.openWindow(PageFeedback.NAME, win, 'page/feedback.html')

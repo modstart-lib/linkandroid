@@ -16,7 +16,7 @@ const props = defineProps<Props>()
 
 <template>
     <a-tooltip :content="tipText">
-        <div class="h-6 w-6 text-center text-gray-500 leading-6 rounded text-sm inline-block mr-1">
+        <div class="h-6 w-6 flex items-center justify-center text-gray-500 rounded text-sm">
             <i-mdi-usb v-if="props.type === EnumDeviceType.USB" />
             <i-mdi-wifi v-else-if="props.type === EnumDeviceType.WIFI" />
         </div>

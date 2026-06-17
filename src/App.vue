@@ -19,7 +19,7 @@ const locales = {
 
 const locale = ref(zhCN)
 onLocaleChange((newLocale) => {
-    locale.value = locales[newLocale]
+    locale.value = locales[newLocale] ?? zhCN
 })
 
 onMounted(() => {

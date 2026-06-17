@@ -15,19 +15,42 @@ const stringDatetime = () => {
     return date.format(new Date(), 'YYYYMMDD')
 }
 
+const MAX_LOG_STRING_LENGTH = 1000
+
+const truncateStringIfBase64 = (str: string): string => {
+    // Hard cap: any string exceeding max length gets truncated
+    if (str.length > MAX_LOG_STRING_LENGTH) {
+        return str.substring(0, 200) + '...(length=' + str.length + ')' + str.substring(str.length - 50)
+    }
+    // Base64/data-URI detection for moderately long strings
+    if (str.length > 200) {
+        const sample = str.substring(0, 200)
+        // data: URI scheme
+        if (sample.startsWith('data:')) {
+            return str.substring(0, 60) + '...(length=' + str.length + ')' + str.substring(str.length - 20)
+        }
+        // Base64 density check: if >90% of non-whitespace chars belong to base64 alphabet,
+        // it's almost certainly encoded data rather than human-readable text.
+        const nonBase64 = sample.replace(/[a-zA-Z0-9+/=\s]/g, '').length
+        const nonWhitespace = sample.replace(/\s/g, '').length
+        if (nonWhitespace > 0 && nonBase64 / nonWhitespace < 0.1) {
+            return str.substring(0, 60) + '...(length=' + str.length + ')' + str.substring(str.length - 20)
+        }
+    }
+    return str
+}
+
 const jsonStringifyLogData = (data: any) => {
     return JSON.stringify(data, (key, value) => {
-        if (typeof value === 'string' && value.length > 200) {
-            if (value.startsWith('data:') || value.substring(0, 190).match(/^[a-zA-Z0-9+/=]+\s*$/)) {
-                return value.substring(0, 100) + '...(length=' + value.length + ')'
-            }
+        if (typeof value === 'string') {
+            return truncateStringIfBase64(value)
         }
         return value
     })
 }
 
 const logsDir = () => {
-    return path.join(AppEnv.userData, 'logs')
+    return path.join(AppEnv.dataRoot, 'logs')
 }
 
 const appLogsDir = () => {
@@ -108,6 +131,8 @@ const log = (level: 'INFO' | 'ERROR', label: string, data: any = null) => {
     if (data) {
         if (!['number', 'string'].includes(typeof data)) {
             data = jsonStringifyLogData(data)
+        } else if (typeof data === 'string') {
+            data = truncateStringIfBase64(data)
         }
         line.push(data)
     }
@@ -144,7 +169,9 @@ const appLog = (name: string, level: 'INFO' | 'ERROR', label: string, data: any 
     line.push(label)
     if (data) {
         if (!['number', 'string'].includes(typeof data)) {
-            data = JSON.stringify(data)
+            data = jsonStringifyLogData(data)
+        } else if (typeof data === 'string') {
+            data = truncateStringIfBase64(data)
         }
         line.push(data)
     }

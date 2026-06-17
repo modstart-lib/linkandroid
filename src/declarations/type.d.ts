@@ -53,6 +53,8 @@ type DefsMapi = {
         openExternal: (url: string) => Promise<void>
         openPath: (url: string) => Promise<void>
         showItemInFolder: (url: string) => Promise<void>
+        resourcePathResolve: (filePath: string) => Promise<string>
+        platformName: () => 'win' | 'osx' | 'linux'
         appEnv: () => Promise<any>
         setRenderAppEnv: (env: any) => Promise<void>
         isDarkMode: () => Promise<boolean>
@@ -129,6 +131,7 @@ type DefsMapi = {
         collect: (options?: {}) => Promise<any>
         setAutoLaunch: (enable: boolean, options?: {}) => Promise<boolean>
         getAutoLaunch: (options?: {}) => Promise<boolean>
+        ensureAienv: () => Promise<{ok: boolean; error?: string}>
     }
     config: {
         get: (key: string, defaultValue: any = null) => Promise<any>
@@ -371,6 +374,8 @@ type DefsMapi = {
     }
 
     adb: {
+        getBinPath: () => Promise<string>
+        shell: (id: string, command: string) => Promise<string>
         spawnShell: (
             args: string[],
             option?: {
@@ -468,6 +473,27 @@ type DefsMapi = {
         stop: () => Promise<void>
         getPort: () => Promise<number>
         getAddress: () => Promise<string>
+    }
+    power: {
+        start: (reason?: 'prevent-app-suspension' | 'prevent-display-sleep') => Promise<number>
+        stop: () => Promise<boolean>
+        isStarted: () => Promise<boolean>
+    }
+    task: {
+        startScheduler: () => Promise<void>
+        stopScheduler: () => Promise<void>
+        isSchedulerRunning: () => Promise<boolean>
+        getSchedulerStatus: () => Promise<
+            Array<{
+                id: number
+                name: string
+                cronExpression: string
+                nextRun: string | null
+                lastTriggeredAt: string | null
+            }>
+        >
+        getNextRunTime: (cronExpression: string) => Promise<string | null>
+        resetTaskTrigger: (taskId: number) => Promise<void>
     }
 }
 

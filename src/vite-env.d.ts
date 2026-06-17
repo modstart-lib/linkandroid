@@ -8,6 +8,11 @@ declare module '*.vue' {
     export default component
 }
 
+declare module '*?raw' {
+    const content: string
+    export default content
+}
+
 declare module '@vue/runtime-core' {
     interface ComponentCustomProperties {
         $router: Router

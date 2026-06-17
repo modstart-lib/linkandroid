@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {onMounted, onUnmounted, ref} from 'vue'
 import {t} from '../../lang'
+import {testActionSet, testActionUnset} from '../../utils/test'
 import {Dialog} from '../../lib/dialog'
 
 const visible = ref(false)
@@ -31,6 +32,18 @@ const fillForm = (data: {host?: string; port?: string}) => {
     if (data.host !== undefined) formData.value.host = data.host
     if (data.port !== undefined) formData.value.port = data.port
 }
+onMounted(() => {
+    testActionSet('device.connectWifi.show', () => show())
+    testActionSet('device.connectWifi.fill', (data: any) => fillForm(data))
+    testActionSet('device.connectWifi.submit', () => doSubmit())
+})
+
+onUnmounted(() => {
+    testActionUnset('device.connectWifi.show')
+    testActionUnset('device.connectWifi.fill')
+    testActionUnset('device.connectWifi.submit')
+})
+
 defineExpose({
     show,
     fillForm,

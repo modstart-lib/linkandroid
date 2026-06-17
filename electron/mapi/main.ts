@@ -13,6 +13,8 @@ import updater from './updater/main'
 import serve from './serve/main'
 import adb from './adb/main'
 import httpserver from './httpserver/main'
+import power from './power/main'
+import task from './task/main'
 
 const $mapi = {
     app,
@@ -30,6 +32,8 @@ const $mapi = {
     serve,
     adb,
     httpserver,
+    power,
+    task,
 }
 
 export const MAPI = {
@@ -42,9 +46,12 @@ export const MAPI = {
     },
     ready() {
         $mapi.keys.ready()
+        // 启动定时任务调度器
+        $mapi.task.start()
     },
     destroy() {
         $mapi.keys.destroy()
+        $mapi.task.stop()
         $mapi.serve.stop()
         $mapi.httpserver.stop()
     },

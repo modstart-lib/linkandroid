@@ -26,6 +26,9 @@ export type DeviceSetting = {
     videoBitRate?: string
     maxFps?: string
     scrcpyArgs?: string
+    panelShow?: string
+    powerSaveBlock?: string
+    windowBorderless?: string
 }
 
 export type ShellController = {
@@ -51,4 +54,10 @@ export type DeviceRuntime = {
     mirrorController: ShellController | null
     screenBrightness?: number
     previewImage: string
+}
+
+export type DeviceGroup = {
+    id: string
+    name: string
+    deviceIds: string[]
 }

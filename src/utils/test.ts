@@ -17,52 +17,20 @@
  *     testActionUnset('list.add')
  *   })
  *
- * prod 构建时函数体内的 #if DEV 块被移除，函数变为空操作，零开销。
+ * prod 构建时函数体内的 #if TYPE_PRO 块被移除，函数变为空操作，零开销。
  */
 
-export type TestAction = (arg?: any) => Promise<void> | void
+export type TestAction = (arg?: any) => Promise<any> | any
 
 export interface TestRegistry {
     setAction(name: string, fn: TestAction): void
     unsetAction(name: string): void
-    callAction(name: string, arg?: any): Promise<void>
+    callAction(name: string, arg?: any): Promise<any>
     listActions(): string[]
     navigateTo(path: string): Promise<void>
 }
 
-// #if DEV
-let _actions: Map<string, TestAction> | null = null
-let _navigateFn: ((path: string) => Promise<void>) | null = null
 
-function getActions(): Map<string, TestAction> {
-    if (!_actions) _actions = new Map()
-    return _actions
-}
-
-export const testRegistry: TestRegistry = {
-    setAction(name, fn) {
-        getActions().set(name, fn)
-    },
-    unsetAction(name) {
-        getActions().delete(name)
-    },
-    async callAction(name, arg) {
-        const fn = getActions().get(name)
-        if (!fn) throw new Error(`[__test] action "${name}" 未注册`)
-        await fn(arg)
-    },
-    listActions() {
-        return Array.from(getActions().keys())
-    },
-    async navigateTo(path: string) {
-        if (_navigateFn) {
-            await _navigateFn(path)
-        } else {
-            window.location.hash = path
-        }
-    },
-}
-// #endif
 
 /**
  * 设置一个 test action。在 onMounted 中调用。
@@ -70,9 +38,7 @@ export const testRegistry: TestRegistry = {
  * prod 构建时函数体为空，零开销。
  */
 export function testActionSet(name: string, fn: TestAction): void {
-    // #if DEV
-    testRegistry.setAction(name, fn)
-    // #endif
+    
 }
 
 /**
@@ -80,24 +46,15 @@ export function testActionSet(name: string, fn: TestAction): void {
  * prod 构建时函数体为空，零开销。
  */
 export function testActionUnset(name: string): void {
-    // #if DEV
-    testRegistry.unsetAction(name)
-    // #endif
+    
 }
-
-/** @deprecated 请使用 testActionSet */
-export const testSetAction = testActionSet
-/** @deprecated 请使用 testActionUnset */
-export const testUnsetAction = testActionUnset
 
 /**
  * 注册 Vue Router 导航函数，在 main.ts 中调用。
  * prod 构建时函数体为空。
  */
 export function registerNavigate(fn: (path: string) => Promise<void>): void {
-    // #if DEV
-    _navigateFn = fn
-    // #endif
+    
 }
 
 /**
@@ -107,26 +64,5 @@ export function registerNavigate(fn: (path: string) => Promise<void>): void {
  * 将 Vue 组件警告升级为 console.error，确保测试侧 assertNoConsoleErrors 能感知。
  */
 export function initTestRegistry(): void {
-    // #if DEV
-    window.__test = testRegistry
-
-    // 只在自动化测试模式下激活 warn 升级（由 preload 通过 --remote-debugging-port 检测注入）
-    if ((window as any).__TEST_MODE__) {
-        const _origWarn = console.warn.bind(console)
-        console.warn = (...args: any[]) => {
-            _origWarn(...args)
-            const msg = args.map((a) => (typeof a === 'string' ? a : String(a))).join(' ')
-            // Vue 组件警告（如 title 为空、prop 校验失败等）升级为 error
-            if (
-                msg.includes('[Vue warn]') ||
-                msg.includes('Missing required prop') ||
-                msg.includes('Invalid prop') ||
-                msg.includes('Component emitted event') ||
-                msg.includes('Extraneous non-emits event')
-            ) {
-                console.error('[test:warn-as-error]', msg)
-            }
-        }
-    }
-    // #endif
+    
 }

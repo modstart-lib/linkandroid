@@ -2,10 +2,12 @@
 import {FitAddon} from '@xterm/addon-fit'
 import {Terminal} from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
-import {nextTick, ref, watch} from 'vue'
+import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {t} from '../../lang'
+import {testActionSet, testActionUnset} from '../../utils/test'
 import {Dialog} from '../../lib/dialog'
 import {DeviceRecord, EnumDeviceStatus} from '../../types/Device'
+import {useDeviceStore} from '../../store/modules/device'
 
 const visible = ref(false)
 const device = ref<DeviceRecord | null>(null)
@@ -69,6 +71,19 @@ watch(
         }
     },
 )
+const deviceStore = useDeviceStore()
+
+onMounted(() => {
+    testActionSet('device.adbShell.show', () => {
+        const record = deviceStore.records[0]
+        if (record) show(record)
+    })
+})
+
+onUnmounted(() => {
+    testActionUnset('device.adbShell.show')
+})
+
 const show = (d: DeviceRecord) => {
     if (d.status !== EnumDeviceStatus.CONNECTED) {
         Dialog.tipError(t('device.notConnected'))

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import {onBeforeUnmount, onMounted} from 'vue'
 import {AppConfig} from '../../config'
 import {t} from '../../lang'
 import {useSettingStore} from '../../store/modules/setting'
+import {testActionSet, testActionUnset} from '../../utils/test'
 import FeedbackTicketButton from '../common/FeedbackTicketButton.vue'
 import UpdaterButton from '../common/UpdaterButton.vue'
 
@@ -11,6 +13,14 @@ const licenseYear = new Date().getFullYear()
 const doOpenLog = async () => {
     await window.$mapi.app.openPath(window.$mapi.log.root())
 }
+
+onMounted(() => {
+    testActionSet('setting.about.openLog', () => doOpenLog())
+})
+
+onBeforeUnmount(() => {
+    testActionUnset('setting.about.openLog')
+})
 </script>
 
 <template>
@@ -34,7 +44,7 @@ const doOpenLog = async () => {
             </div>
             <a-button class="ml-3" size="mini" @click="doOpenLog">
                 <template #icon>
-                    <icon-file />
+                    <i-lucide-file />
                 </template>
                 {{ t('nav.log') }}
             </a-button>

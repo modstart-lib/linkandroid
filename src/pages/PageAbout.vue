@@ -104,14 +104,14 @@ const doDevSettingTriggerClick = () => {
                     {{ t('common.developerSettings') }}
                 </div>
                 <div class="flex mb-4">
-                    <div class="flex-grow">Test</div>
+                    <div class="flex-grow">{{ $t('page.about.devTest') }}</div>
                     <div>
                         <a-radio-group
                             :model-value="setting.configEnvGet('test', 'auto').value"
                             @change="setting.onConfigEnvChange('test', $event)"
                         >
-                            <a-radio value="light">ON</a-radio>
-                            <a-radio value="dark">OFF</a-radio>
+                            <a-radio value="light">{{ $t('page.about.devOn') }}</a-radio>
+                            <a-radio value="dark">{{ $t('page.about.devOff') }}</a-radio>
                         </a-radio-group>
                     </div>
                 </div>

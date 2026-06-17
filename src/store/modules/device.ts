@@ -5,7 +5,9 @@ import {t} from '../../lang'
 import {Dialog} from '../../lib/dialog'
 import {mapError} from '../../lib/error'
 import {isIPWithPort} from '../../lib/linkandroid'
+
 import {
+    DeviceGroup,
     DeviceRecord,
     DeviceRuntime,
     DeviceSetting,
@@ -15,6 +17,10 @@ import {
 } from '../../types/Device'
 import store from '../index'
 import {useSettingStore} from './setting'
+
+function escapeHtml(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
 
 const getEmptySetting = () => {
     return JSON.parse(
@@ -26,6 +32,9 @@ const getEmptySetting = () => {
             videoBitRate: '',
             maxFps: '',
             scrcpyArgs: '',
+            panelShow: '',
+            powerSaveBlock: '',
+            windowBorderless: '',
         }),
     )
 }
@@ -42,6 +51,10 @@ const wsMaxReconnectAttempts = 10
 const wsReconnectDelay = 3000
 
 const deviceControllers = new Map<string, ShellController>()
+
+const shouldStartDeviceManage = (record: DeviceRecord) => {
+    return !window.__TEST_MODE__ && !isSeedConnectedDevice(record)
+}
 
 const createDeviceStatus = (record: DeviceRecord): ComputedRef<EnumDeviceStatus> => {
     const id = record.id
@@ -80,6 +93,10 @@ const updateDeviceRuntime = (record: DeviceRecord) => {
 
 const deleteDeviceRuntime = (record: DeviceRecord) => {
     deviceRuntime.value?.delete(record.id)
+}
+
+const isSeedConnectedDevice = (record: DeviceRecord) => {
+    return record.raw?.seedConnected === true
 }
 
 // 连接 WebSocket
@@ -257,7 +274,7 @@ const startDeviceManage = async (deviceId: string) => {
                     window.$mapi.log.info('Render.DeviceManage.stdout', {deviceId, data})
                 },
                 stderr: (data: string) => {
-                    window.$mapi.log.error('Render.DeviceManage.stderr', {deviceId, data})
+                    window.$mapi.log.info('Render.DeviceManage.stderr', {deviceId, data})
                 },
                 success: () => {
                     window.$mapi.log.info('Render.DeviceManage.success', {deviceId})
@@ -296,6 +313,7 @@ const stopDeviceManage = async (deviceId: string) => {
 export const deviceStore = defineStore('device', {
     state: () => ({
         records: [] as DeviceRecord[],
+        groups: [] as DeviceGroup[],
     }),
     actions: {
         async init() {
@@ -308,6 +326,8 @@ export const deviceStore = defineStore('device', {
                 })
                 this.records = records
             })
+
+            await this.loadGroups()
 
             // 连接 WebSocket
             await connectWebSocket()
@@ -341,7 +361,14 @@ export const deviceStore = defineStore('device', {
             return data
         },
         async refresh() {
-            const connectedDevices = await this.connectedDevices()
+            let connectedDevices: DeviceRecord[] = []
+            try {
+                connectedDevices = await this.connectedDevices()
+            } catch (e) {
+                if (!this.records.some((record) => isSeedConnectedDevice(record))) {
+                    throw e
+                }
+            }
             let changed = false
             // 将新设备加入到列表中
             for (const device of connectedDevices) {
@@ -362,7 +389,10 @@ export const deviceStore = defineStore('device', {
                 }
             }
             // 设置已连接的设备状态
-            const connectedDeviceIds = connectedDevices.map((d) => d.id)
+            const connectedDeviceIds = [
+                ...connectedDevices.map((d) => d.id),
+                ...this.records.filter((d) => isSeedConnectedDevice(d)).map((d) => d.id),
+            ]
             for (const record of this.records) {
                 const runtime = getDeviceRuntime(record)
                 if (connectedDeviceIds.includes(record.id)) {
@@ -371,7 +401,9 @@ export const deviceStore = defineStore('device', {
                         changed = true
 
                         // 自动启动 debug_manage
-                        startDeviceManage(record.id)
+                        if (shouldStartDeviceManage(record)) {
+                            startDeviceManage(record.id)
+                        }
                     }
                 } else {
                     if (runtime.value.status !== EnumDeviceStatus.DISCONNECTED) {
@@ -453,6 +485,7 @@ export const deviceStore = defineStore('device', {
                 try {
                     runtime.value.mirrorController.stop()
                 } catch (e) {}
+                $mapi.power.stop()
                 return
             }
             Dialog.loadingOn(t('device.mirroring'))
@@ -463,6 +496,9 @@ export const deviceStore = defineStore('device', {
                 videoBitRate: await this.settingGet(device, 'videoBitRate', '8M'),
                 maxFps: await this.settingGet(device, 'maxFps', '60'),
                 scrcpyArgs: await this.settingGet(device, 'scrcpyArgs', ''),
+                panelShow: await this.settingGet(device, 'panelShow', 'no'),
+                powerSaveBlock: await this.settingGet(device, 'powerSaveBlock', 'yes'),
+                windowBorderless: await this.settingGet(device, 'windowBorderless', 'no'),
             }
 
             // 构建投屏参数
@@ -470,6 +506,9 @@ export const deviceStore = defineStore('device', {
             args.push('--stay-awake')
             if ('yes' === setting.alwaysTop) {
                 args.push('--always-on-top')
+            }
+            if ('yes' === setting.windowBorderless) {
+                args.push('--window-borderless')
             }
             if ('no' === setting.mirrorSound) {
                 args.push('--no-audio')
@@ -492,9 +531,13 @@ export const deviceStore = defineStore('device', {
             const wsUrl = `${wsAddress}/server?type=DeviceMirror&deviceId=${device.id}`
             // args.push("-V","debug");
             args.push('--linkandroid-server', wsUrl)
-            args.push('--linkandroid-panel-show')
+            if (setting.panelShow === 'yes') {
+                args.push('--linkandroid-panel-show')
+            }
 
             let successTimer: ReturnType<typeof setTimeout> | null = null
+            let successShown = false
+            const logs: string[] = []
             try {
                 runtime.value.mirrorController = await $mapi.scrcpy.mirror(device.id, {
                     title: device.name as string,
@@ -502,9 +545,11 @@ export const deviceStore = defineStore('device', {
                     stdout: (data: string) => {
                         console.log('mirror.stdout', data)
                         $mapi.log.info('Mirror.stdout', data)
+                        logs.push('[stdout] ' + data)
                         if (!successTimer) {
                             successTimer = setTimeout(() => {
                                 if (runtime.value.mirrorController) {
+                                    successShown = true
                                     Dialog.tipSuccess(t('device.mirrorSuccess'))
                                 }
                             }, 2000)
@@ -513,19 +558,33 @@ export const deviceStore = defineStore('device', {
                     stderr: (data: string) => {
                         console.log('mirror.stderr', data)
                         $mapi.log.error('Mirror.stderr', data)
+                        logs.push('[stderr] ' + data)
                     },
                     success: () => {
                         console.log('mirror.success')
-                        $mapi.log.info('Mirror.success')
+                        $mapi.log.info('Mirror.success', {successShown, logs})
                         runtime.value.mirrorController = null
+                        $mapi.power.stop()
+                        if (!successShown && !logs.some((l) => l.startsWith('[stdout]'))) {
+                            const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
+                            const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
+                            Dialog.alertError(t('device.mirrorFailed') + (detail ? ` : ${detail}` : ''))
+                        }
                     },
                     error: (msg: string, exitCode: number) => {
                         console.log('mirror.error', {msg, exitCode})
-                        $mapi.log.error('Mirror.error', {msg, exitCode})
+                        $mapi.log.error('Mirror.error', {msg, exitCode, logs})
                         runtime.value.mirrorController = null
-                        Dialog.alertError(t('device.mirrorFailed') + ` : <code>${msg}</code>`)
+                        $mapi.power.stop()
+                        const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
+                        const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
+                        Dialog.alertError(t('device.mirrorFailed') + ` : <code>${escapeHtml(msg)}</code>${detail}`)
                     },
                 })
+                // 根据用户设置决定是否阻止电脑休眠
+                if (setting.powerSaveBlock === 'yes') {
+                    $mapi.power.start('prevent-display-sleep')
+                }
             } catch (error) {
                 Dialog.tipError(mapError(error))
             } finally {
@@ -539,6 +598,43 @@ export const deviceStore = defineStore('device', {
                 }
             }
             return await $mapi.config.get(`Device.${name}`, defaultValue)
+        },
+        // ─── Group management ──────────────────────────────────────────
+        async loadGroups() {
+            this.groups = await $mapi.storage.get('device', 'groups', [])
+        },
+        async syncGroups() {
+            await $mapi.storage.set('device', 'groups', this.groups)
+        },
+        addGroup(name: string): string {
+            const id = 'group_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
+            this.groups.push({id, name, deviceIds: []})
+            this.syncGroups()
+            return id
+        },
+        updateGroup(id: string, update: Partial<DeviceGroup>) {
+            const group = this.groups.find((g) => g.id === id)
+            if (!group) return
+            Object.assign(group, update)
+            this.syncGroups()
+        },
+        deleteGroup(id: string) {
+            const idx = this.groups.findIndex((g) => g.id === id)
+            if (idx === -1) return
+            this.groups.splice(idx, 1)
+            this.syncGroups()
+        },
+        async setDeviceGroups(deviceId: string, groupIds: string[]) {
+            for (const group of this.groups) {
+                const hasDevice = group.deviceIds.includes(deviceId)
+                const shouldHave = groupIds.includes(group.id)
+                if (hasDevice && !shouldHave) {
+                    group.deviceIds = group.deviceIds.filter((id) => id !== deviceId)
+                } else if (!hasDevice && shouldHave) {
+                    group.deviceIds.push(deviceId)
+                }
+            }
+            await this.syncGroups()
         },
     },
 })

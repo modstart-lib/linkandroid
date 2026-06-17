@@ -145,6 +145,10 @@ const getAutoLaunch = async (options?: {}) => {
     return ipcRenderer.invoke('app:getAutoLaunch', options)
 }
 
+const ensureAienv = async (): Promise<{ok: boolean; error?: string}> => {
+    return ipcRenderer.invoke('app:ensureAienv')
+}
+
 export const AppsRender = {
     isDarkMode,
     resourcePathResolve,
@@ -179,6 +183,7 @@ export const AppsRender = {
     collect,
     setAutoLaunch,
     getAutoLaunch,
+    ensureAienv,
     shell: appIndex.shell,
     spawnShell: appIndex.spawnShell,
     spawnBinary: appIndex.spawnBinary,

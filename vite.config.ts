@@ -160,6 +160,7 @@ export default defineConfig(({command}) => {
         ],
         build: {
             sourcemap: sourcemap,
+            chunkSizeWarningLimit: 1500,
             rollupOptions: {
                 input: {
                     main: path.resolve(__dirname, "index.html"),

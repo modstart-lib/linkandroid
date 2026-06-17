@@ -2,13 +2,24 @@
 import {DeviceRecord} from '../../types/Device'
 import DeviceAppManagerDialog from './DeviceAppManagerDialog.vue'
 import DeviceAppInstallDialog from './DeviceAppInstallDialog.vue'
-import {ref} from 'vue'
+import {onBeforeUnmount, onMounted, ref} from 'vue'
+import {testActionSet, testActionUnset} from '../../utils/test'
 
 const appManagerDialog = ref<InstanceType<typeof DeviceAppManagerDialog> | null>(null)
 const appInstallDialog = ref<InstanceType<typeof DeviceAppInstallDialog> | null>(null)
 const props = defineProps<{
     device: DeviceRecord
 }>()
+
+onMounted(() => {
+    testActionSet('device.appManager.show', () => appManagerDialog.value?.show(props.device))
+    testActionSet('device.appInstall.show', () => appInstallDialog.value?.show(props.device))
+})
+
+onBeforeUnmount(() => {
+    testActionUnset('device.appManager.show')
+    testActionUnset('device.appInstall.show')
+})
 </script>
 
 <template>

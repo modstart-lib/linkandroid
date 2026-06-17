@@ -13,6 +13,7 @@ dist-ssr
 dist-electron
 dist-release
 *.local
+.env
 
 # Editor directories and files
 .vscode/.debug.env
@@ -35,8 +36,7 @@ database.db
 /build/
 /data-*
 .github/copilot-instructions.md
-.vscode
-/share-binary/
+
 
 /electron/resources/extra/linux-arm64/
 /electron/resources/extra/linux-x86/
@@ -50,6 +50,15 @@ dist-cli/
 /cli/linkandroid-cli
 test-results/
 /_temp/
+/DEV_QUEUE.md
+/DEV_DONE.md
+/DEV_BACKUP.md
+
+__pycache__/
+
 
 /storage/screenshot/image/
 /storage/screenshot-last/image/
+
+# Python 虚拟环境 (env/task 中的便携 Python)
+/env/task/_aienv/

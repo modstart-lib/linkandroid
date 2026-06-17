@@ -10,6 +10,7 @@ export const Dialog = {
         Message.success(msg)
     },
     tipError: (msg: string) => {
+        if (window.__TEST_MODE__) console.warn('[dialog:tipError]', msg)
         Message.error(msg)
     },
     confirm: (content: string, title: string | null = null): Promise<void> => {
@@ -48,6 +49,7 @@ export const Dialog = {
         })
     },
     alertError: (content: string, title: string | null = null): Promise<void> => {
+        if (window.__TEST_MODE__) console.warn('[dialog:alertError]', content)
         title = title || t('common.tip')
         return new Promise((resolve) => {
             Modal.confirm({

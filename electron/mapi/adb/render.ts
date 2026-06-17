@@ -110,6 +110,19 @@ const screencap = async (deviceId: string) => {
     return await FileUtil.streamToBase64(fileStream)
 }
 
+const getDisplaySize = async (deviceId: string): Promise<{width: number; height: number} | null> => {
+    try {
+        const stdout = await adbShell(['shell', 'wm', 'size'], deviceId)
+        const match = stdout.toString().match(/Physical size:\s*(\d+)x(\d+)/)
+        if (match) {
+            return {width: parseInt(match[1]), height: parseInt(match[2])}
+        }
+    } catch (error) {
+        console.warn('screenrecord.getDisplaySize.error', error.message)
+    }
+    return null
+}
+
 const screenrecord = async (
     deviceId: string,
     option?: {
@@ -120,14 +133,35 @@ const screenrecord = async (
     const controller = {
         stop: null as Function | null,
         devicePath: null as string | null,
+        errorMessage: null as string | null,
     }
     controller.devicePath = '/sdcard/LinkAndroid_screenshot_' + TimeUtil.timestampInMs() + '.mp4'
-    const shellControl = await spawnShell(['-s', deviceId, 'shell', 'screenrecord', controller.devicePath], {
+
+    const screenrecordArgs = ['-s', deviceId, 'shell', 'screenrecord']
+
+    // Query device display size and pass explicit --size for encoder compatibility
+    const displaySize = await getDisplaySize(deviceId)
+    if (displaySize) {
+        // Ensure even dimensions (required by most encoders)
+        const w = displaySize.width % 2 === 0 ? displaySize.width : displaySize.width - 1
+        const h = displaySize.height % 2 === 0 ? displaySize.height : displaySize.height - 1
+        screenrecordArgs.push('--size', `${w}x${h}`)
+    }
+
+    // Explicit bit-rate for better encoder compatibility (4Mbps default)
+    screenrecordArgs.push('--bit-rate', '4000000')
+
+    screenrecordArgs.push(controller.devicePath)
+
+    const shellControl = await spawnShell(screenrecordArgs, {
         stdout: (data) => {
             // console.log('screenrecord.stdout', data)
         },
         stderr: (data) => {
             // console.log('screenrecord.stderr', data)
+            if (data.includes('Encoder failed') || data.includes('err=-38')) {
+                controller.errorMessage = data.trim()
+            }
         },
         success: (data) => {
             // console.log('screenrecord.success', data)
@@ -135,7 +169,7 @@ const screenrecord = async (
         },
         error: (err) => {
             // console.log('screenrecord.error', err)
-            option.progress?.('error', err)
+            option.progress?.('error', {message: controller.errorMessage || err})
         },
     })
     controller.stop = () => {
@@ -179,15 +213,20 @@ const watch = async (callback: Function) => {
 }
 
 const fileList = async (id: string, filePath: string) => {
-    const value = await (await getClient()).getDevice(id).readdir(filePath)
-    return value.map((item) => ({
-        ...item,
-        id: [filePath, item.name].join('/'),
-        type: item.isFile() ? 'file' : 'directory',
-        name: item.name,
-        size: FileUtil.formatSize(item.size),
-        updateTime: dayjs(item.mtimeMs).format('YYYY-MM-DD HH:mm:ss'),
-    }))
+    try {
+        const value = await (await getClient()).getDevice(id).readdir(filePath)
+        return value.map((item) => ({
+            ...item,
+            id: [filePath, item.name].join('/'),
+            type: item.isFile() ? 'file' : 'directory',
+            name: item.name,
+            size: FileUtil.formatSize(item.size),
+            updateTime: dayjs(item.mtimeMs).format('YYYY-MM-DD HH:mm:ss'),
+        }))
+    } catch (error: any) {
+        console.error('adb.fileList.error', error.message)
+        return []
+    }
 }
 
 const filePush = async (

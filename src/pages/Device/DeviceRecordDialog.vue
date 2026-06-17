@@ -24,6 +24,7 @@ const recordData = ref({
     gifParam: {
         fps: 10,
     },
+    errorMessage: '',
 } as {
     status: 'idle' | 'recording' | 'converting' | 'done' | 'fail'
     format: 'mp4' | 'gif'
@@ -41,6 +42,7 @@ const recordData = ref({
     gifParam: {
         fps: number
     }
+    errorMessage: string
 })
 const recordTime = computed(() => {
     return TimeUtil.secondsToTime(recordData.value.duration)
@@ -54,6 +56,7 @@ const show = (d: DeviceRecord) => {
     recordData.value.status = 'idle'
     recordData.value.format = 'mp4'
     recordData.value.duration = 0
+    recordData.value.errorMessage = ''
     visible.value = true
 }
 
@@ -69,6 +72,7 @@ const doRecordStart = async () => {
     recordData.value.localTempMp4Path = null
     recordData.value.resultPath.mp4 = null
     recordData.value.resultPath.gif = null
+    recordData.value.errorMessage = ''
     // console.log('doRecordStart.start')
     recordController = await $mapi.adb.screenrecord(device.value.id, {
         progress: (type: string, data: any) => {
@@ -76,10 +80,12 @@ const doRecordStart = async () => {
                 doRecordProcess().then()
             } else if (type === 'error') {
                 recordData.value.status = 'fail'
+                recordData.value.errorMessage = data?.message || ''
             }
         },
     })
     recordData.value.devicePath = recordController.devicePath
+    recordData.value.errorMessage = recordController.errorMessage || ''
     // console.log('doRecordStart.end', recordController)
 }
 
@@ -197,8 +203,8 @@ defineExpose({
                 <a-form v-if="recordData.status === 'idle'" :model="recordData" layout="vertical">
                     <a-form-item>
                         <a-radio-group v-model="recordData.format" type="button">
-                            <a-radio value="mp4">MP4</a-radio>
-                            <a-radio value="gif">GIF</a-radio>
+                            <a-radio value="mp4">{{ $t('device.recordFormatMp4') }}</a-radio>
+                            <a-radio value="gif">{{ $t('device.recordFormatGif') }}</a-radio>
                         </a-radio-group>
                     </a-form-item>
                     <a-form-item>
@@ -220,7 +226,7 @@ defineExpose({
                     <a-form-item>
                         <a-button type="primary" class="mr-1" @click="doRecordStart">
                             <template #icon>
-                                <i class="iconfont icon-video text-white"></i>
+                                <i-mdi-video class="text-white" />
                             </template>
                             {{ $t('device.startRecord') }}
                         </a-button>
@@ -242,6 +248,13 @@ defineExpose({
                                 <a-tag color="red" size="large" v-else-if="recordData.status === 'fail'">
                                     {{ $t('device.recordFailed') }}
                                 </a-tag>
+                                <a-typography-text
+                                    v-if="recordData.status === 'fail' && recordData.errorMessage"
+                                    type="danger"
+                                    class="text-xs ml-2"
+                                >
+                                    {{ recordData.errorMessage }}
+                                </a-typography-text>
                                 <a-tag color="green" size="large" v-else-if="recordData.status === 'done'">
                                     {{ $t('device.recordSuccess') }}
                                 </a-tag>
@@ -277,7 +290,7 @@ defineExpose({
                             @click="doRecordStop"
                         >
                             <template #icon>
-                                <i class="iconfont icon-stop text-white"></i>
+                                <i-mdi-stop-circle class="text-white" />
                             </template>
                             {{ $t('device.stopRecord') }}
                         </a-button>
@@ -289,7 +302,7 @@ defineExpose({
                             @click="doRecordDownload"
                         >
                             <template #icon>
-                                <icon-down />
+                                <i-lucide-chevron-down />
                             </template>
                             {{ $t('device.downloadRecorded') }}
                         </a-button>

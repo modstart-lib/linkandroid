@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {testActionSet, testActionUnset} from '../../utils/test'
 import SettingItemYesNoDefault from '../../components/common/SettingItemYesNoDefault.vue'
 import {t} from '../../lang'
 import {useDeviceStore} from '../../store/modules/device'
@@ -15,6 +16,30 @@ const formData = ref({
     videoBitRate: '',
     maxFps: '',
     scrcpyArgs: '',
+    panelShow: '',
+    powerSaveBlock: '',
+    windowBorderless: '',
+})
+
+const bitratePresets = ['2M', '4M', '6M', '8M', '10M', '12M', '16M', '20M', '40M', '50M']
+const fpsPresets = ['30', '60', '90', '120', '144', '240']
+
+const videoBitRateOptions = computed(() => {
+    const current = formData.value.videoBitRate
+    const presets = bitratePresets.map((v) => ({label: v, value: v}))
+    if (current && !bitratePresets.includes(current)) {
+        presets.unshift({label: `${current} (${t('common.custom')})`, value: current})
+    }
+    return [{label: t('device.emptyConfigPlaceholder'), value: ''}, ...presets]
+})
+
+const maxFpsOptions = computed(() => {
+    const current = formData.value.maxFps
+    const presets = fpsPresets.map((v) => ({label: v, value: v}))
+    if (current && !fpsPresets.includes(current)) {
+        presets.unshift({label: `${current} (${t('common.custom')})`, value: current})
+    }
+    return [{label: t('device.emptyConfigPlaceholder'), value: ''}, ...presets]
 })
 const device = ref<DeviceRecord | null>(null)
 const infoColumns = [
@@ -43,6 +68,9 @@ const show = (record: DeviceRecord) => {
     formData.value.videoBitRate = record.setting?.videoBitRate || ''
     formData.value.maxFps = record.setting?.maxFps || ''
     formData.value.scrcpyArgs = record.setting?.scrcpyArgs || ''
+    formData.value.panelShow = record.setting?.panelShow || ''
+    formData.value.powerSaveBlock = record.setting?.powerSaveBlock || ''
+    formData.value.windowBorderless = record.setting?.windowBorderless || ''
     visible.value = true
 }
 
@@ -55,19 +83,44 @@ const doSubmit = async () => {
         videoBitRate: formData.value.videoBitRate,
         maxFps: formData.value.maxFps,
         scrcpyArgs: formData.value.scrcpyArgs,
+        panelShow: formData.value.panelShow,
+        powerSaveBlock: formData.value.powerSaveBlock,
+        windowBorderless: formData.value.windowBorderless,
     })
     visible.value = false
 }
 
+const fillForm = (data: Partial<typeof formData.value>) => {
+    formData.value = {...formData.value, ...data}
+}
+
+onMounted(() => {
+    testActionSet('device.setting.show', (data: any) => {
+        const deviceId = data?.deviceId
+        const record = deviceId ? deviceStore.records.find((r) => r.id === deviceId) : deviceStore.records[0]
+        if (record) show(record)
+    })
+    testActionSet('device.setting.fill', (data: any) => fillForm(data))
+    testActionSet('device.setting.submit', () => doSubmit())
+})
+
+onUnmounted(() => {
+    testActionUnset('device.setting.show')
+    testActionUnset('device.setting.fill')
+    testActionUnset('device.setting.submit')
+})
+
 defineExpose({
     show,
+    fillForm,
+    doSubmit,
 })
 </script>
 
 <template>
     <a-modal v-model:visible="visible" width="40rem" title-align="start">
         <template #title>
-            <icon-mobile />
+            <i-lucide-smartphone />
             {{ $t('device.settingsFor') }} {{ device?.id }}
         </template>
         <template #footer>
@@ -106,11 +159,35 @@ defineExpose({
                         </div>
                     </div>
                     <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t('device.videoBitRate') }}</div>
+                        <div class="flex-grow">{{ $t('device.panelShow') }}</div>
                         <div class="">
-                            <a-input
+                            <SettingItemYesNoDefault v-model="formData.panelShow" />
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('device.powerSaveBlock') }}</div>
+                        <div class="">
+                            <SettingItemYesNoDefault v-model="formData.powerSaveBlock" />
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('device.windowBorderless') }}</div>
+                        <div class="">
+                            <SettingItemYesNoDefault v-model="formData.windowBorderless" />
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">
+                            <div>{{ $t('device.videoBitRate') }}</div>
+                            <div class="text-gray-400 text-xs">{{ $t('device.videoBitRateHint') }}</div>
+                        </div>
+                        <div class="">
+                            <a-select
                                 v-model="formData.videoBitRate"
+                                style="width: 16rem"
                                 size="small"
+                                allow-search
+                                :options="videoBitRateOptions"
                                 :placeholder="$t('device.emptyConfigPlaceholder')"
                             />
                         </div>
@@ -118,25 +195,26 @@ defineExpose({
                     <div class="flex mb-3">
                         <div class="flex-grow">{{ $t('device.maxFps') }}</div>
                         <div class="">
-                            <a-input
+                            <a-select
                                 v-model="formData.maxFps"
+                                style="width: 16rem"
                                 size="small"
+                                allow-search
+                                :options="maxFpsOptions"
                                 :placeholder="$t('device.emptyConfigPlaceholder')"
                             />
                         </div>
                     </div>
                     <div class="flex mb-3">
                         <div class="flex-grow">
-                            {{ $t('device.customArgs') }}
-                            <a-tooltip :content="$t('device.customArgsHint')">
-                                <icon-info-circle />
-                            </a-tooltip>
+                            <div>{{ $t('device.customArgs') }}</div>
+                            <div class="text-gray-400 text-xs">{{ $t('device.customArgsHint') }}</div>
                         </div>
                         <div class="">
                             <a-input
                                 v-model="formData.scrcpyArgs"
                                 size="small"
-                                :placeholder="$t('device.emptyConfigPlaceholder')"
+                                :placeholder="'--lock-video-orientation=0 --crop 720:1280:0:0'"
                             />
                         </div>
                     </div>

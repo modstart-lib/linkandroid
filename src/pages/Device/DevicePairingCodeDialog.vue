@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {onMounted, onUnmounted, ref} from 'vue'
 import {Dialog} from '../../lib/dialog'
 import {mapError} from '../../lib/error'
 import {t} from '../../lang'
+import {testActionSet, testActionUnset} from '../../utils/test'
 
 const visible = ref(false)
 const ipAddress = ref('')
@@ -94,9 +95,30 @@ const doConnect = async () => {
     }
 }
 
+const fillForm = (data: {ipAddress?: string; pairingPort?: string; connectPort?: string; pairingCode?: string}) => {
+    if (data.ipAddress !== undefined) ipAddress.value = data.ipAddress
+    if (data.pairingPort !== undefined) pairingPort.value = data.pairingPort
+    if (data.connectPort !== undefined) connectPort.value = data.connectPort
+    if (data.pairingCode !== undefined) pairingCode.value = data.pairingCode
+}
+
+onMounted(() => {
+    testActionSet('device.pairingCode.show', () => show())
+    testActionSet('device.pairingCode.fill', (data: any) => fillForm(data))
+    testActionSet('device.pairingCode.submit', () => doConnect())
+})
+
+onUnmounted(() => {
+    testActionUnset('device.pairingCode.show')
+    testActionUnset('device.pairingCode.fill')
+    testActionUnset('device.pairingCode.submit')
+})
+
 defineExpose({
     show,
     hide,
+    fillForm,
+    doConnect,
 })
 </script>
 
@@ -123,7 +145,7 @@ defineExpose({
                             allow-clear
                         >
                             <template #prefix>
-                                <icon-computer />
+                                <i-lucide-monitor />
                             </template>
                         </a-input>
                     </div>
@@ -141,7 +163,7 @@ defineExpose({
                             allow-clear
                         >
                             <template #prefix>
-                                <icon-import />
+                                <i-lucide-import />
                             </template>
                         </a-input>
                     </div>
@@ -159,7 +181,7 @@ defineExpose({
                             allow-clear
                         >
                             <template #prefix>
-                                <icon-export />
+                                <i-lucide-square-arrow-out-up-right />
                             </template>
                         </a-input>
                     </div>
@@ -174,7 +196,7 @@ defineExpose({
                             allow-clear
                         >
                             <template #prefix>
-                                <icon-lock />
+                                <i-lucide-lock />
                             </template>
                         </a-input>
                     </div>
@@ -182,7 +204,7 @@ defineExpose({
                     <!-- Connection Status (if connecting) -->
                     <div v-if="isConnecting" class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                         <div class="flex items-center gap-2 text-sm">
-                            <icon-loading class="animate-spin text-blue-600" />
+                            <i-lucide-loader class="animate-spin text-blue-600" />
                             <span class="font-medium text-blue-600">{{ $t('device.pairingConnecting') }}</span>
                         </div>
                     </div>
@@ -194,7 +216,7 @@ defineExpose({
                     <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <div class="text-sm text-blue-800 dark:text-blue-200">
                             <div class="font-semibold mb-3 flex items-center gap-2 text-base">
-                                <icon-info-circle />
+                                <i-lucide-info />
                                 {{ $t('device.pairingInstructions') }}
                             </div>
                             <ol class="list-decimal list-inside space-y-2 text-blue-700 dark:text-blue-300">
@@ -212,7 +234,7 @@ defineExpose({
                     <div class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                         <div class="text-sm text-amber-700 dark:text-amber-300">
                             <div class="font-semibold mb-3 flex items-center gap-2 text-base">
-                                <icon-exclamation-circle />
+                                <i-lucide-circle-alert />
                                 {{ $t('device.pairingNotice') }}
                             </div>
                             <ul class="list-disc list-inside space-y-1.5">

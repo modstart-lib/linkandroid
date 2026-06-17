@@ -14,12 +14,11 @@ export const AppConfig = {
     apiBaseUrl: `${BASE_URL}/api`,
     updaterUrl: `${BASE_URL}/app_manager/updater`,
     downloadUrl: `${BASE_URL}/app_manager/download`,
-    libUrl: `${BASE_URL}/app_manager/lib`,
     feedbackUrl: `${BASE_URL}/feedback_ticket`,
     statisticsUrl: `${BASE_URL}/app_manager/collect`,
     guideUrl: `${BASE_URL}/app_manager/guide`,
     helpUrl: `${BASE_URL}/app_manager/help`,
     basic: {
-        userEnable: false,
+        userEnable: true,
     },
 }

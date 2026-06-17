@@ -32,6 +32,8 @@ export const PageMonitor = {
             },
             show: true,
             frame: false,
+            titleBarStyle: 'hidden',
+            trafficLightPosition: {x: 10, y: 11},
             center: true,
             transparent: false,
             focusable: true,

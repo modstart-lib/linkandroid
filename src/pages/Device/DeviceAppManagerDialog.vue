@@ -6,6 +6,7 @@ import {DeviceRecord, EnumDeviceStatus} from '../../types/Device'
 import NameInfo from './App/NameInfo.json'
 import DeviceAppIcon from './DeviceAppIcon.vue'
 import DeviceAppInstallDialog from './DeviceAppInstallDialog.vue'
+import ListerTop from '../../components/common/ListerTop.vue'
 
 type AppRecord = {
     id: string
@@ -18,6 +19,8 @@ const visible = ref(false)
 const device = ref({} as DeviceRecord)
 const appRecords = ref<AppRecord[]>([])
 const searchKeywords = ref('')
+const loading = ref(false)
+
 const show = (d: DeviceRecord) => {
     if (d.status !== EnumDeviceStatus.CONNECTED) {
         Dialog.tipError(t('device.notConnected'))
@@ -38,16 +41,19 @@ const filterAppRecords = computed(() => {
     })
 })
 
-const doRefresh = async (isManual?: boolean) => {
-    const records = await window.$mapi.adb.listApps(device.value.id)
-    appRecords.value = records.map((r) => {
-        return {
-            id: r.id,
-            name: NameInfo[r.id] || r.name,
-        }
-    })
-    if (isManual) {
+const doRefresh = async () => {
+    loading.value = true
+    try {
+        const records = await window.$mapi.adb.listApps(device.value.id)
+        appRecords.value = records.map((r) => {
+            return {
+                id: r.id,
+                name: NameInfo[r.id] || r.name,
+            }
+        })
         Dialog.tipSuccess(t('common.refresh') + t('common.success'))
+    } finally {
+        loading.value = false
     }
 }
 
@@ -70,24 +76,18 @@ defineExpose({
         </template>
         <div style="height: 60vh; margin: -0.5rem" class="">
             <div class="flex flex-col h-full">
-                <div class="py-2 flex items-center">
-                    <div class="flex-grow">
-                        <a-button class="mr-1" @click="appInstallDialog?.show(device)">
-                            <template #icon>
-                                <icon-plus />
-                            </template>
-                            {{ $t('device.installApp') }}
-                        </a-button>
-                        <a-button @click="doRefresh(true)">
-                            <template #icon>
-                                <icon-refresh />
-                            </template>
-                            {{ $t('common.refresh') }}
-                        </a-button>
-                    </div>
-                    <div>
+                <div class="py-2">
+                    <ListerTop :loading="loading" @refresh="doRefresh">
                         <a-input v-model="searchKeywords" :placeholder="$t('device.filterPlaceholder')" />
-                    </div>
+                        <template #actions>
+                            <a-button @click="appInstallDialog?.show(device)">
+                                <template #icon>
+                                    <i-lucide-plus />
+                                </template>
+                                {{ $t('device.installApp') }}
+                            </a-button>
+                        </template>
+                    </ListerTop>
                 </div>
                 <div class="flex-grow overflow-auto border border-solid border-gray-200 rounded p-2">
                     <div v-for="a in filterAppRecords">

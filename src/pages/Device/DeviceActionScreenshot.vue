@@ -17,8 +17,7 @@ const doScreenshot = async () => {
         const image = await window.$mapi.adb.screencap(props.device.id)
         const base64 = 'data:image/png;base64,' + image
         await window.$mapi.app.windowOpen('thirdPartyImageBeautifier')
-        const res = await window.$mapi.event.callPage('thirdPartyImageBeautifier', 'doSetImage', base64)
-        console.log('res', res)
+        await window.$mapi.event.callPage('thirdPartyImageBeautifier', 'doSetImage', base64)
     } catch (error) {
         Dialog.tipError(mapError(error))
     }
@@ -29,7 +28,7 @@ const doScreenshot = async () => {
     <a-tooltip :content="$t('device.screenshot')">
         <a-button class="ml-1" @click="doScreenshot()">
             <template #icon>
-                <i class="iconfont icon-camera text-gray-400"></i>
+                <i-mdi-camera class="text-gray-400" />
             </template>
         </a-button>
     </a-tooltip>

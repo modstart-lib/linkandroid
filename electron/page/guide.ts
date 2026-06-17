@@ -22,6 +22,8 @@ export const PageGuide = {
             title: AppConfig.title,
             ...(!isPackaged ? {icon} : {}),
             frame: false,
+            titleBarStyle: 'hidden',
+            trafficLightPosition: {x: 10, y: 11},
             transparent: false,
             hasShadow: true,
             center: true,

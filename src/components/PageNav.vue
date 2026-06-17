@@ -2,13 +2,10 @@
 import {computed} from 'vue'
 import {useRouter} from 'vue-router'
 import {t} from '../lang'
-import {useSettingStore} from '../store/modules/setting'
-import {useUserStore} from '../store/modules/user'
-import {Package} from 'lucide-vue-next'
+
 
 const route = useRouter()
-const user = useUserStore()
-const setting = useSettingStore()
+
 
 const activeTab = computed(() => {
     switch (route.currentRoute.value.path) {
@@ -16,55 +13,19 @@ const activeTab = computed(() => {
             return 'home'
         case '/device':
             return 'device'
-        case '/script':
-            return 'script'
-        case '/lib':
-            return 'lib'
+        case '/task':
+            return 'task'
         case '/setting':
             return 'setting'
     }
 })
 
-const userTip = computed(() => {
-    return user.user.id ? user.user.name : t('common.notLoggedIn')
-})
 
-const doUser = async () => {
-    if (!setting.basic.userEnable) {
-        return
-    }
-    await window.$mapi.user.open()
-}
 </script>
 
 <template>
     <div class="flex flex-col h-full border-r border-gray-200 dark:border-gray-800">
-        <div class="py-4 px-3" :class="setting.basic.userEnable ? 'cursor-pointer' : ''" @click="doUser">
-            <a-tooltip v-if="setting.basic.userEnable" :content="userTip as string" position="right" mini>
-                <img
-                    v-if="!user.isInit || !user.user.id"
-                    class="rounded-full border border-solid border-gray-200"
-                    src="./../assets/image/avatar.svg"
-                />
-                <img
-                    v-else
-                    :src="user.user.avatar as string"
-                    class="rounded-full border border-solid border-gray-200"
-                />
-            </a-tooltip>
-            <div v-else>
-                <img
-                    v-if="!user.isInit || !user.user.id"
-                    class="rounded-full border border-solid border-gray-200"
-                    src="./../assets/image/avatar.svg"
-                />
-                <img
-                    v-else
-                    :src="user.user.avatar as string"
-                    class="rounded-full border border-solid border-gray-200"
-                />
-            </div>
-        </div>
+        
         <div class="flex-grow mt-2">
             <a
                 class="page-nav-item block text-center py-3"
@@ -72,33 +33,21 @@ const doUser = async () => {
                 @click="$router.push('/device')"
                 href="javascript:;"
             >
-                <div>
-                    <icon-mobile class="text-xl" />
+                <div class="flex justify-center">
+                    <i-lucide-smartphone class="text-xl" />
                 </div>
                 <div class="text-sm">{{ $t('nav.device') }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
-                :class="activeTab === 'script' ? 'active' : ''"
-                @click="$router.push('/script')"
+                :class="activeTab === 'task' ? 'active' : ''"
+                @click="$router.push('/task')"
                 href="javascript:;"
             >
-                <div>
-                    <icon-code class="text-xl" />
+                <div class="flex justify-center">
+                    <i-lucide-workflow class="text-xl" />
                 </div>
-                <div class="text-sm">{{ $t('nav.script') }}</div>
-            </a>
-            <a
-                v-if="0"
-                class="page-nav-item block text-center py-3"
-                :class="activeTab === 'lib' ? 'active' : ''"
-                @click="$router.push('/lib')"
-                href="javascript:;"
-            >
-                <div>
-                    <Package class="w-5 h-5 mx-auto" />
-                </div>
-                <div class="text-sm">{{ $t('nav.lib') }}</div>
+                <div class="text-sm">{{ $t('nav.task') }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"
@@ -106,8 +55,8 @@ const doUser = async () => {
                 @click="$router.push('/setting')"
                 href="javascript:;"
             >
-                <div>
-                    <icon-settings class="text-xl" />
+                <div class="flex justify-center">
+                    <i-lucide-settings class="text-xl" />
                 </div>
                 <div class="text-sm">{{ $t('nav.setting') }}</div>
             </a>

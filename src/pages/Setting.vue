@@ -1,36 +1,45 @@
 <script setup lang="ts">
 import {onBeforeUnmount, onMounted, ref} from 'vue'
-import {t} from '../lang'
-import {TabContentScroller} from '../lib/ui'
-import SettingBasic from '../components/Setting/SettingBasic.vue'
-import SettingEnv from '../components/Setting/SettingEnv.vue'
 import SettingAbout from '../components/Setting/SettingAbout.vue'
+import SettingBasic from '../components/Setting/SettingBasic.vue'
+import SettingCli from '../components/Setting/SettingCli.vue'
+import {t} from '../lang'
 
-let tabContentScroller: TabContentScroller | null = null
-const contentContainer = ref<HTMLElement | null>(null)
-const tabContainer = ref<HTMLElement | null>(null)
+import {testActionSet, testActionUnset} from '../utils/test'
+
+const activeTab = ref('basic')
+
 onMounted(() => {
-    tabContentScroller = new TabContentScroller(
-        tabContainer.value as HTMLElement,
-        contentContainer.value as HTMLElement,
-        {
-            activeClass: 'menu-active',
-        },
-    )
+    testActionSet('setting.ready', async () => {})
+    testActionSet('setting.tab.basic', () => {
+        activeTab.value = 'basic'
+    })
+    
+    testActionSet('setting.tab.cli', () => {
+        activeTab.value = 'cli'
+    })
+    testActionSet('setting.tab.about', () => {
+        activeTab.value = 'about'
+    })
 })
+
 onBeforeUnmount(() => {
-    tabContentScroller?.destroy()
+    testActionUnset('setting.ready')
+    testActionUnset('setting.tab.basic')
+    
+    testActionUnset('setting.tab.cli')
+    testActionUnset('setting.tab.about')
 })
 </script>
 
 <style lang="less" scoped>
-.menu-active {
+.tab-active {
     --tw-bg-opacity: 1;
     background-color: rgb(243 244 246 / var(--tw-bg-opacity));
 }
 
 [data-theme='dark'] {
-    .menu-active {
+    .tab-active {
         background-color: var(--color-bg-page-nav-active);
     }
 }
@@ -38,56 +47,66 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="flex select-none">
-        <div
-            ref="tabContainer"
-            class="p-6 w-56 flex-shrink-0 border-r border-solid border-gray-100 dark:border-gray-800"
-        >
-            <div data-section="basic" class="p-2 rounded-lg mb-4 cursor-pointer menu-active">
-                <div class="text-base">
-                    <icon-settings />
+        <div class="p-6 w-48 flex-shrink-0 border-r border-solid border-gray-100 dark:border-gray-800">
+            <div
+                class="p-2 rounded-lg mb-4 cursor-pointer"
+                :class="activeTab === 'basic' ? 'tab-active' : ''"
+                @click="activeTab = 'basic'"
+            >
+                <div class="text-base flex items-center gap-2 whitespace-nowrap">
+                    <i-lucide-settings />
                     {{ t('page.setting.basic') }}
                 </div>
             </div>
-            <div v-if="0" data-section="env" class="p-2 rounded-lg mb-4 cursor-pointer">
-                <div class="text-base">
-                    <icon-code />
-                    {{ t('page.setting.env') }}
+            
+            <div
+                class="p-2 rounded-lg mb-4 cursor-pointer"
+                :class="activeTab === 'cli' ? 'tab-active' : ''"
+                @click="activeTab = 'cli'"
+            >
+                <div class="text-base flex items-center gap-2 whitespace-nowrap">
+                    <i-lucide-code />
+                    {{ t('page.setting.cli') }}
                 </div>
             </div>
-            <div data-section="about" class="p-2 rounded-lg mb-4 cursor-pointer">
-                <div class="text-base">
-                    <icon-user />
+            <div
+                class="p-2 rounded-lg mb-4 cursor-pointer"
+                :class="activeTab === 'about' ? 'tab-active' : ''"
+                @click="activeTab = 'about'"
+            >
+                <div class="text-base flex items-center gap-2 whitespace-nowrap">
+                    <i-lucide-user />
                     {{ t('page.setting.about') }}
                 </div>
             </div>
         </div>
-        <div class="flex-grow">
-            <div
-                ref="contentContainer"
-                class="overflow-y-auto p-8 leading-8"
-                style="height: calc(100vh - var(--window-header-height))"
-            >
-                <div data-section="basic" class="scroll-mt-4">
-                    <div class="text-base font-bold mb-4">{{ t('page.setting.basic') }}</div>
-                    <div>
-                        <SettingBasic />
+        <div class="flex-grow overflow-y-auto" style="height: calc(100vh - var(--window-header-height))">
+            <div v-show="activeTab === 'basic'">
+                <div class="p-6">
+                    <div class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <i-lucide-settings class="text-2xl" />
+                        <span>{{ t('page.setting.basic') }}</span>
                     </div>
+                    <SettingBasic />
                 </div>
-                <div v-if="0" class="border-b border-solid border-gray-200 dark:border-gray-800 my-6"></div>
-                <div v-if="0" data-section="env" class="scroll-mt-4">
-                    <div class="text-base font-bold mb-4">{{ t('page.setting.env') }}</div>
-                    <div>
-                        <SettingEnv />
+            </div>
+            
+            <div v-show="activeTab === 'cli'">
+                <div class="p-6">
+                    <div class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <i-lucide-code class="text-2xl" />
+                        <span>{{ t('page.setting.cli') }}</span>
                     </div>
+                    <SettingCli />
                 </div>
-                <div class="border-b border-solid border-gray-200 dark:border-gray-800 my-6"></div>
-                <div data-section="about" class="scroll-mt-4">
-                    <div class="text-base font-bold mb-4">
-                        {{ t('page.setting.about') }}
+            </div>
+            <div v-show="activeTab === 'about'">
+                <div class="p-6">
+                    <div class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <i-lucide-user class="text-2xl" />
+                        <span>{{ t('page.setting.about') }}</span>
                     </div>
-                    <div class="">
-                        <SettingAbout />
-                    </div>
+                    <SettingAbout />
                 </div>
             </div>
         </div>

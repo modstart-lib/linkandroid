@@ -21,6 +21,7 @@
 
     --window-header-height: 2.5rem;
     --page-nav-width: 4rem;
+    --modal-height-lg: calc(100vh - 150px);
 
     //--color-primary: #5154E0;
     --color-primary: #ea0056;
@@ -216,6 +217,14 @@ body[data-theme="dark"] {
 
     .arco-modal-footer {
         border-top: none;
+    }
+}
+
+// 修复 Modal mask 在 Electron 中嵌套 position: fixed → absolute 时
+// 不能完全覆盖视口顶部的问题（Chromium 渲染边缘情况）
+.arco-modal-container {
+    .arco-modal-mask {
+        position: fixed;
     }
 }
 

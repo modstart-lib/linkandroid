@@ -356,12 +356,12 @@ defineExpose({
                 </a-tooltip>
                 <a-tooltip :content="$t('voice.rerecord')" mini v-if="recordUrl && !isTrimming">
                     <div @click="doRecordClean" class="cursor-pointer w-8 h-8 inline-flex">
-                        <i class="iconfont icon-refresh-circle m-auto text-gray-700 hover:text-primary text-2xl"></i>
+                        <i-mdi-refresh-circle class="m-auto text-gray-700 hover:text-primary text-2xl" />
                     </div>
                 </a-tooltip>
                 <a-tooltip :content="$t('media.cropAudio')" mini v-if="!isTrimming && props.trimEnable">
                     <div @click="doTrim" class="cursor-pointer w-8 h-8 inline-flex">
-                        <i class="iconfont icon-cut m-auto text-gray-700 hover:text-primary text-2xl"></i>
+                        <i-mdi-content-cut class="m-auto text-gray-700 hover:text-primary text-2xl" />
                     </div>
                 </a-tooltip>
                 <a-tooltip :content="$t('media.cropConfirm')" mini v-if="isTrimming && props.trimEnable">
@@ -376,7 +376,7 @@ defineExpose({
                 </a-tooltip>
                 <a-tooltip :content="$t('voice.record')" mini v-if="props.recordEnable && !isTrimming && !recordUrl">
                     <div @click="doRecord" class="cursor-pointer w-8 h-8 inline-flex">
-                        <i class="iconfont icon-mic m-auto text-gray-700 hover:text-primary text-2xl"></i>
+                        <i-mdi-microphone class="m-auto text-gray-700 hover:text-primary text-2xl" />
                     </div>
                 </a-tooltip>
             </div>

@@ -26,6 +26,8 @@ export const PageAbout = {
             },
             show: true,
             frame: false,
+            titleBarStyle: 'hidden',
+            trafficLightPosition: {x: 10, y: 11},
             transparent: false,
         })
         return Page.openWindow(PageAbout.NAME, win, 'page/about.html')

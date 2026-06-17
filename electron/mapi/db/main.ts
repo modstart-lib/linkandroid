@@ -144,10 +144,23 @@ const migrate = async () => {
  * @returns {Promise<void>}
  */
 const init = async () => {
-    dbPath = path.join(AppEnv.dataRoot, 'database.db')
+    dbPath = path.join(AppEnv.dataRoot, 'db', 'database.db')
+    const oldDbPath = path.join(AppEnv.dataRoot, 'database.db')
     const userDbPath = path.join(AppEnv.userData, 'database.db')
-    if (fs.existsSync(userDbPath)) {
-        dbPath = userDbPath
+
+    // 确保 db/ 目录存在
+    const dbDir = path.dirname(dbPath)
+    if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, {recursive: true})
+    }
+
+    // 迁移：从旧 ~/.linkandroid/data/database.db 到 db/ 子目录
+    if (!fs.existsSync(dbPath) && fs.existsSync(oldDbPath)) {
+        fs.copyFileSync(oldDbPath, dbPath)
+    }
+    // 迁移：从旧 userData/database.db 到 db/ 子目录
+    if (!fs.existsSync(dbPath) && fs.existsSync(userDbPath)) {
+        fs.copyFileSync(userDbPath, dbPath)
     }
     try {
         dbConn = new sqlite3(dbPath)

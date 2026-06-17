@@ -30,6 +30,8 @@ export const PageLog = {
             },
             show: true,
             frame: false,
+            titleBarStyle: 'hidden',
+            trafficLightPosition: {x: 10, y: 11},
             transparent: false,
         })
         await Page.openWindow(PageLog.NAME, win, 'page/log.html')

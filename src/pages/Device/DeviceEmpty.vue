@@ -20,7 +20,7 @@ const doHelp = () => {
         <div class="mt-10 text-center">
             <a-button class="mx-1" @click="helpShow = true">
                 <template #icon>
-                    <icon-book class="mr-1" />
+                    <i-lucide-book-open class="mr-1" />
                 </template>
                 {{ $t('device.howToConnect') }}
             </a-button>
@@ -32,7 +32,7 @@ const doHelp = () => {
                 <div class="pt-3">
                     {{ $t('device.seeMoreDocs') }}
                     <a href="javascript:;" class="text-link" @click="doHelp">
-                        <icon-book />
+                        <i-lucide-book-open />
                         {{ $t('device.onlineDocs') }}
                     </a>
                 </div>

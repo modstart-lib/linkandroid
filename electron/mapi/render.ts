@@ -17,6 +17,8 @@ import misc from './misc/render'
 import adb from './adb/render'
 import scrcpy from './scrcpy/render'
 import serve from './serve/render'
+import power from './power/render'
+import task from './task/render'
 
 export const MAPI = {
     init(env: typeof AppEnv = null) {
@@ -39,6 +41,8 @@ export const MAPI = {
                 adb,
                 scrcpy,
                 serve,
+                power,
+                task,
             })
             db.init()
             event.init()

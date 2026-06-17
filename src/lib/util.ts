@@ -232,6 +232,120 @@ export const ObjectUtil = {
     },
 }
 
+/**
+ * 递归截断对象中所有 base64 图片数据，保留头尾避免日志过大
+ * @param value 任意值
+ * @param maxLen 截断后保留的最大长度（默认120字符）
+ * @param keepHead 保留头部字符数
+ * @param keepTail 保留尾部字符数
+ */
+export const truncateBase64InObject = (
+    value: any,
+    maxLen: number = 120,
+    keepHead: number = 40,
+    keepTail: number = 20,
+): any => {
+    if (typeof value === 'string') {
+        // 匹配 data:image/xxx;base64,... 格式
+        if (value.length > maxLen) {
+            const base64Match = value.match(/^data:image\/(\w+);base64,/)
+            if (base64Match) {
+                const prefix = value.substring(0, base64Match[0].length + keepHead)
+                const suffix = value.substring(value.length - keepTail)
+                return `${prefix}...(length=${value.length})${suffix}`
+            }
+            // 纯 base64 字符长串
+            if (/^[A-Za-z0-9+/=]+$/.test(value.substring(0, 100))) {
+                return (
+                    value.substring(0, keepHead) +
+                    `...(length=${value.length})` +
+                    value.substring(value.length - keepTail)
+                )
+            }
+        }
+        return value
+    }
+    if (Array.isArray(value)) {
+        return value.map((v) => truncateBase64InObject(v, maxLen, keepHead, keepTail))
+    }
+    if (value && typeof value === 'object') {
+        const result: Record<string, any> = {}
+        for (const key in value) {
+            if (Object.prototype.hasOwnProperty.call(value, key)) {
+                result[key] = truncateBase64InObject(value[key], maxLen, keepHead, keepTail)
+            }
+        }
+        return result
+    }
+    return value
+}
+
+/**
+ * 记录 AI 对话的完整请求/响应日志，方便问题排查
+ * 自动截断 base64 图片数据、脱敏 API Key
+ */
+export const logAiChat = (
+    type: 'request' | 'response' | 'error',
+    data: {
+        url?: string
+        headers?: Record<string, string>
+        body?: any
+        status?: number
+        statusText?: string
+        duration?: number
+        requestId?: string
+        error?: any
+    },
+) => {
+    const label = `[AI-Chat:${type}]`
+    const logData: Record<string, any> = {
+        requestId: data.requestId || '',
+        ts: Date.now(),
+    }
+    if (data.url) logData.url = data.url
+    if (data.headers) {
+        logData.headers = {...data.headers}
+        // 脱敏 API Key
+        if (logData.headers.authorization) {
+            const auth = logData.headers.authorization
+            if (auth.startsWith('Bearer ')) {
+                const key = auth.substring(7)
+                logData.headers.authorization = `Bearer ${key.substring(0, 8)}...${key.substring(key.length - 4)}`
+            }
+        }
+        if (logData.headers['Authorization']) {
+            const auth = logData.headers['Authorization']
+            if (auth.startsWith('Bearer ')) {
+                const key = auth.substring(7)
+                logData.headers['Authorization'] = `Bearer ${key.substring(0, 8)}...${key.substring(key.length - 4)}`
+            }
+        }
+    }
+    if (data.body) {
+        logData.body = truncateBase64InObject(data.body)
+    }
+    if (data.status !== undefined) logData.status = data.status
+    if (data.statusText) logData.statusText = data.statusText
+    if (data.duration !== undefined) logData.duration = data.duration
+    if (data.error) logData.error = data.error
+
+    const mapi = typeof window !== 'undefined' ? (window as any).$mapi : undefined
+    if (mapi?.log) {
+        if (type === 'error') {
+            mapi.log.error(label, logData)
+        } else {
+            mapi.log.info(label, logData)
+        }
+    } else {
+        // fallback to console when $mapi is not available (e.g., test environment)
+        if (type === 'error') {
+            console.error(label, JSON.stringify(logData, null, 2))
+        } else {
+            console.log(label, JSON.stringify(logData, null, 2))
+        }
+    }
+}
+
 export const DownloadUtil = {
     downloadFile(content: string, filename?: string) {
         const blob = new Blob([content], {type: 'application/octet-stream'})

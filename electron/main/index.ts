@@ -5,6 +5,7 @@ import path from 'node:path'
 
 /** process.js 必须位于非依赖项的顶部 */
 import {isDummy} from '../lib/process'
+import {ensureClientConfig} from '../lib/client-config'
 import {AppEnv, AppRuntime} from '../mapi/env'
 import {MAPI} from '../mapi/main'
 
@@ -78,12 +79,15 @@ const hasSplashWindow = true
 AppEnv.appRoot = process.env.APP_ROOT
 AppEnv.appData = app.getPath('appData')
 AppEnv.userData = app.getPath('userData')
-AppEnv.dataRoot = path.join(AppEnv.userData, 'data')
+
+// ~/.linkandroid/client.json → dataPath（默认 ~/.linkandroid/data）
+const clientConfig = ensureClientConfig()
+AppEnv.dataRoot = clientConfig.dataPath
 
 if (!fs.existsSync(AppEnv.dataRoot)) {
     fs.mkdirSync(AppEnv.dataRoot, {recursive: true})
 }
-for (const dir of ['logs', 'storage']) {
+for (const dir of ['db', 'logs', 'storage']) {
     if (!fs.existsSync(path.join(AppEnv.dataRoot, dir))) {
         fs.mkdirSync(path.join(AppEnv.dataRoot, dir), {recursive: true})
     }
@@ -142,6 +146,7 @@ async function createWindow() {
             nodeIntegration: true,
             webSecurity: false,
             webviewTag: true,
+            backgroundThrottling: false,
             // Consider using contextBridge.exposeInMainWorld
             // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
             contextIsolation: false,

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import {ref, shallowRef} from 'vue'
+import {onMounted, onUnmounted, ref, shallowRef} from 'vue'
 import VueCommand, {createQuery} from 'vue-command'
 import 'vue-command/dist/vue-command.css'
+import {testActionSet, testActionUnset} from '../../utils/test'
 import {useAdbCommand} from './Shell/adb'
 import {useBasicCommand} from './Shell/basic'
 import {useScrcpyCommand} from './Shell/scrcpy'
@@ -28,6 +29,14 @@ commands.value['exit'] = () => {
 const show = () => {
     visible.value = true
 }
+onMounted(() => {
+    testActionSet('device.shell.show', () => show())
+})
+
+onUnmounted(() => {
+    testActionUnset('device.shell.show')
+})
+
 defineExpose({
     show,
 })

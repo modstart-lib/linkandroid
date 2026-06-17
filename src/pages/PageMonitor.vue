@@ -69,13 +69,10 @@ watch(web, (newVal) => {
     if (!newVal) {
         return
     }
-    console.log('webview.listen', newVal)
     web.value.addEventListener('did-fail-load', (event: any) => {
         status.value?.setStatus('fail')
     })
-    web.value.addEventListener('did-finish-load', (event: any) => {
-        console.log('did-finish-load', event)
-    })
+    web.value.addEventListener('did-finish-load', () => {})
     web.value.addEventListener('close', (event: any) => {
         if (web.value.isDevToolsOpened()) {
             web.value.closeDevTools()
@@ -102,7 +99,6 @@ watch(web, (newVal) => {
     web.value.addEventListener('ipc-message', (event) => {
         if ('data' === event.channel) {
             const {type, data} = event.args[0]
-            console.log('message', {type, data})
             if ('status' === type) {
                 pageStatusType.value = data.type
                 pageStatusMsg.value = data.msg

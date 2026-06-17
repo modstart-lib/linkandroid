@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import QRCode from 'qrcode'
-import {onBeforeUnmount, ref} from 'vue'
+import {onBeforeUnmount, onMounted, onUnmounted, ref} from 'vue'
 import {t} from '../../lang'
+import {testActionSet, testActionUnset} from '../../utils/test'
 import {Dialog} from '../../lib/dialog'
 import {mapError} from '../../lib/error'
 
@@ -137,6 +138,14 @@ const regenerate = () => {
     startPairingService()
 }
 
+onMounted(() => {
+    testActionSet('device.wirelessPairing.show', () => show())
+})
+
+onUnmounted(() => {
+    testActionUnset('device.wirelessPairing.show')
+})
+
 onBeforeUnmount(() => {
     stopCountDown()
 })
@@ -155,7 +164,7 @@ defineExpose({
         <template #footer>
             <a-button @click="regenerate" type="outline">
                 <template #icon>
-                    <icon-refresh />
+                    <i-lucide-refresh-cw />
                 </template>
                 {{ $t('device.regenerate') }}
             </a-button>
@@ -173,7 +182,7 @@ defineExpose({
                         :class="countDown > 10 ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-red-50 dark:bg-red-900/20'"
                     >
                         <div class="flex items-center justify-center gap-2">
-                            <icon-clock-circle
+                            <i-lucide-clock
                                 class="text-xl"
                                 :class="
                                     countDown > 10
@@ -214,7 +223,7 @@ defineExpose({
                         <!-- Status Display -->
                         <div class="border-t border-gray-200 dark:border-gray-700 pt-3">
                             <div class="flex items-center gap-2 text-sm">
-                                <icon-loading
+                                <i-lucide-loader
                                     v-if="
                                         pairingStatus === 'waiting' ||
                                         pairingStatus === 'pairing' ||
@@ -223,8 +232,11 @@ defineExpose({
                                     "
                                     class="animate-spin text-blue-600"
                                 />
-                                <icon-check-circle v-else-if="pairingStatus === 'connected'" class="text-green-600" />
-                                <icon-close-circle v-else-if="pairingStatus === 'error'" class="text-red-600" />
+                                <i-lucide-circle-check
+                                    v-else-if="pairingStatus === 'connected'"
+                                    class="text-green-600"
+                                />
+                                <i-lucide-circle-x v-else-if="pairingStatus === 'error'" class="text-red-600" />
                                 <span
                                     class="font-medium"
                                     :class="{
@@ -250,7 +262,7 @@ defineExpose({
                     <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <div class="text-sm text-blue-800 dark:text-blue-200">
                             <div class="font-semibold mb-3 flex items-center gap-2 text-base">
-                                <icon-info-circle />
+                                <i-lucide-info />
                                 {{ $t('device.usageInstructions') }}
                             </div>
                             <ol class="list-decimal list-inside space-y-2 text-blue-700 dark:text-blue-300">
@@ -267,7 +279,7 @@ defineExpose({
                     <div class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                         <div class="text-sm text-amber-700 dark:text-amber-300">
                             <div class="font-semibold mb-3 flex items-center gap-2 text-base">
-                                <icon-exclamation-circle />
+                                <i-lucide-circle-alert />
                                 {{ $t('device.notes') }}
                             </div>
                             <ul class="list-disc list-inside space-y-1.5">

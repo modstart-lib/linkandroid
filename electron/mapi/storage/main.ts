@@ -14,19 +14,30 @@ const dataRoot = () => {
 }
 
 const filePath = (group: string) => {
-    let p = nodePath.join(userDataRoot(), `${group}.json`)
+    return nodePath.join(dataRoot(), `${group}.json`)
+}
+
+const loadPath = (group: string) => {
+    const p = filePath(group)
     if (fs.existsSync(p)) {
         return p
     }
-    return nodePath.join(dataRoot(), `${group}.json`)
+    const legacyPath = nodePath.join(userDataRoot(), `${group}.json`)
+    if (fs.existsSync(legacyPath)) {
+        return legacyPath
+    }
+    return p
 }
 
 const load = (group: string) => {
     try {
-        const p = filePath(group)
+        const p = loadPath(group)
         let json = fs.readFileSync(p).toString()
         json = JSON.parse(json)
         data[group] = json || {}
+        if (p !== filePath(group)) {
+            save(group)
+        }
     } catch (e) {
         data[group] = {}
     }

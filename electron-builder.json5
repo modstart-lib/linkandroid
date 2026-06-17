@@ -33,7 +33,7 @@
                 "to": "extra",
                 "filter": [
                     "common",
-                    "win"
+                    "win-*"
                 ]
             }
         ]
@@ -80,7 +80,7 @@
                 "to": "extra",
                 "filter": [
                     "common",
-                    "osx"
+                    "osx-*"
                 ]
             }
         ],
@@ -93,8 +93,8 @@
         "type": "development",
         "notarize": false,
         "darkModeSupport": true,
-        "hardenedRuntime": true,
-        "identity": "Xi'an Yanyi Information Technology Co., Ltd (Q96H3H33RK)"
+        "hardenedRuntime": false,
+        "identity": null
     },
     "linux": {
         "icon": "logo.icns",
@@ -123,7 +123,7 @@
                 "to": "extra",
                 "filter": [
                     "common",
-                    "linux"
+                    "linux-*"
                 ]
             }
         ]

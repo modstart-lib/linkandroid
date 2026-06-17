@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import {computed, nextTick, ref} from 'vue'
+import {computed, nextTick, onMounted, onUnmounted, ref} from 'vue'
+import {testActionSet, testActionUnset} from '../../utils/test'
 import FileExt from '../../components/common/FileExt.vue'
 import {t} from '../../lang'
 import {Dialog} from '../../lib/dialog'
 import {DeviceRecord, EnumDeviceStatus} from '../../types/Device'
+import {useDeviceStore} from '../../store/modules/device'
 
 type FileRecord = {
     checked: boolean
@@ -20,25 +22,51 @@ const filePath = ref('')
 const filePathEditing = ref('')
 const fileRecords = ref<FileRecord[]>([])
 const isListView = ref(true) // 默认显示列表视图
-const sortOrderName = ref('asc') // 默认按文件名升序
-const sortOrderModifiedTime = ref('asc') // 默认按修改时间升序
-const currentSortField = ref('name') // 当前排序字段
 const inputRef = ref<HTMLInputElement | null>(null) // 输入框引用
+
+// 排序状态：field=name|updateTime|size, order=asc|desc
+type SortState = {field: string; order: 'asc' | 'desc'}
+const currentSort = ref<SortState>({field: 'name', order: 'asc'})
+
+const SORT_OPTIONS: {field: string; order: 'asc' | 'desc'; labelKey: string}[] = [
+    {field: 'name', order: 'asc', labelKey: 'common.sortByName'},
+    {field: 'name', order: 'desc', labelKey: 'common.sortByName'},
+    {field: 'updateTime', order: 'asc', labelKey: 'common.sortByTime'},
+    {field: 'updateTime', order: 'desc', labelKey: 'common.sortByTime'},
+    {field: 'size', order: 'asc', labelKey: 'common.sortBySize'},
+    {field: 'size', order: 'desc', labelKey: 'common.sortBySize'},
+]
+
+const getSortFieldLabelKey = (field: string) => {
+    if (field === 'updateTime') return 'common.sortByTime'
+    if (field === 'size') return 'common.sortBySize'
+    return 'common.sortByName'
+}
+
+const setSort = (field: string, order: 'asc' | 'desc') => {
+    currentSort.value = {field, order}
+}
 
 const show = (d: DeviceRecord) => {
     if (d.status !== EnumDeviceStatus.CONNECTED) {
         Dialog.tipError(t('device.notConnected'))
         return
     }
+    if (d.raw?.seedConnected) {
+        Dialog.tipError(t('device.seedDeviceUnsupported'))
+        return
+    }
     visible.value = true
     device.value = d
-    filePath.value = ''
+    filePath.value = '/sdcard'
     doRefresh().then()
 }
 
 const filePathSeg = computed(() => {
     return filePath.value.split('/').filter((s) => s)
 })
+
+const isRootPath = computed(() => filePathSeg.value.length === 0)
 
 const checkedFileRecords = computed(() => {
     return fileRecords.value.filter((f) => f.checked)
@@ -49,39 +77,43 @@ const checkedFileOnlyRecords = computed(() => {
 })
 
 const sortedFileRecords = computed(() => {
-    // 根据当前的排序条件选择排序字段和方向
-    const sortField = currentSortField.value
-    const sortOrder = sortField === 'updateTime' ? sortOrderModifiedTime.value : sortOrderName.value
-
+    const {field, order} = currentSort.value
     return [...fileRecords.value].sort((a, b) => {
-        if (sortField === 'updateTime') {
+        if (field === 'updateTime') {
             const timeA = new Date(a.updateTime).getTime()
             const timeB = new Date(b.updateTime).getTime()
-            return sortOrder === 'asc' ? timeA - timeB : timeB - timeA
+            return order === 'asc' ? timeA - timeB : timeB - timeA
+        } else if (field === 'size') {
+            return order === 'asc' ? a.size - b.size : b.size - a.size
         } else {
-            return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+            return order === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
         }
     })
 })
 
 const doRefresh = async () => {
     Dialog.loadingOn()
-    const files = await window.$mapi.adb.fileList(device.value.id, filePath.value || '/')
-    Dialog.loadingOff()
-    fileRecords.value = files.map((f) => {
-        return {
-            checked: false,
-            name: f.name,
-            size: f.size,
-            isDirectory: f.type === 'directory',
-            updateTime: f.updateTime,
-        }
-    })
+    try {
+        const files = await window.$mapi.adb.fileList(device.value.id, filePath.value || '/')
+        fileRecords.value = files.map((f) => {
+            return {
+                checked: false,
+                name: f.name,
+                size: f.size,
+                isDirectory: f.type === 'directory',
+                updateTime: f.updateTime,
+            }
+        })
+    } catch (e: any) {
+        Dialog.tipError(e.message || t('device.fileListError'))
+    } finally {
+        Dialog.loadingOff()
+    }
 }
 
 const doOpen = (f: FileRecord) => {
     if (f.isDirectory) {
-        filePath.value = filePath.value + '/' + f.name
+        filePath.value = (filePath.value.endsWith('/') ? filePath.value : filePath.value + '/') + f.name
         doRefresh().then()
     }
 }
@@ -166,32 +198,122 @@ const downloadDirectory = async (deviceId: string, sourcePath: string, targetPat
         const newSourcePath = sourcePath + '/' + f.name
         const newTargetPath = targetPath + '/' + f.name
         if (f.type === 'directory') {
-            console.log('download directory:', sourcePath, targetPath)
             await downloadDirectory(deviceId, newSourcePath, newTargetPath)
         } else {
-            console.log('download file:', sourcePath, targetPath)
             await window.$mapi.adb.filePull(deviceId, newSourcePath, newTargetPath)
         }
     }
 }
-
-defineExpose({
-    show,
-})
 
 const toggleView = () => {
     isListView.value = !isListView.value
 }
 
 const toggleSortByName = () => {
-    currentSortField.value = 'name'
-    sortOrderName.value = sortOrderName.value === 'asc' ? 'desc' : 'asc'
+    const {field, order} = currentSort.value
+    if (field === 'name') {
+        currentSort.value = {field: 'name', order: order === 'asc' ? 'desc' : 'asc'}
+    } else {
+        currentSort.value = {field: 'name', order: 'asc'}
+    }
 }
 
 const toggleSortByModifiedTime = () => {
-    currentSortField.value = 'updateTime'
-    sortOrderModifiedTime.value = sortOrderModifiedTime.value === 'asc' ? 'desc' : 'asc'
+    const {field, order} = currentSort.value
+    if (field === 'updateTime') {
+        currentSort.value = {field: 'updateTime', order: order === 'asc' ? 'desc' : 'asc'}
+    } else {
+        currentSort.value = {field: 'updateTime', order: 'desc'}
+    }
 }
+
+function testSeed() {
+    visible.value = true
+    isEditPath.value = false
+    device.value = {
+        id: 'test-device',
+        name: t('device.testDevice'),
+        type: 'usb',
+        status: EnumDeviceStatus.CONNECTED,
+    } as DeviceRecord
+    filePath.value = '/sdcard'
+    filePathEditing.value = ''
+    fileRecords.value = [
+        {
+            checked: false,
+            name: 'Download',
+            size: 0,
+            isDirectory: true,
+            updateTime: '2024-01-01 10:00:00',
+        },
+        {
+            checked: false,
+            name: 'demo.txt',
+            size: 12,
+            isDirectory: false,
+            updateTime: '2024-01-02 10:00:00',
+        },
+    ]
+}
+
+function selectFirst() {
+    if (fileRecords.value[0]) fileRecords.value[0].checked = true
+}
+
+function testEditPath(path: string) {
+    isEditPath.value = true
+    filePathEditing.value = path
+    filePath.value = path
+    isEditPath.value = false
+}
+
+const deviceStore = useDeviceStore()
+
+onMounted(() => {
+    testActionSet('device.fileManager.show', () => {
+        const record = deviceStore.records[0]
+        if (record) show(record)
+    })
+    testActionSet('device.fileManager.seed', () => testSeed())
+    testActionSet('device.fileManager.toggleView', () => toggleView())
+    testActionSet('device.fileManager.sortByName', () => toggleSortByName())
+    testActionSet('device.fileManager.sortByModifiedTime', () => toggleSortByModifiedTime())
+    testActionSet('device.fileManager.sortBySizeAsc', () => setSort('size', 'asc'))
+    testActionSet('device.fileManager.sortBySizeDesc', () => setSort('size', 'desc'))
+    testActionSet('device.fileManager.sortByTimeAsc', () => setSort('updateTime', 'asc'))
+    testActionSet('device.fileManager.editPath', (path: string) => testEditPath(path))
+    testActionSet('device.fileManager.up', () => testEditPath(''))
+    testActionSet('device.fileManager.selectFirst', () => selectFirst())
+})
+
+onUnmounted(() => {
+    testActionUnset('device.fileManager.show')
+    testActionUnset('device.fileManager.seed')
+    testActionUnset('device.fileManager.toggleView')
+    testActionUnset('device.fileManager.sortByName')
+    testActionUnset('device.fileManager.sortByModifiedTime')
+    testActionUnset('device.fileManager.sortBySizeAsc')
+    testActionUnset('device.fileManager.sortBySizeDesc')
+    testActionUnset('device.fileManager.sortByTimeAsc')
+    testActionUnset('device.fileManager.editPath')
+    testActionUnset('device.fileManager.up')
+    testActionUnset('device.fileManager.selectFirst')
+})
+
+defineExpose({
+    show,
+    testSeed,
+    doOpen,
+    doUp,
+    doEditPath,
+    doEditPathConfirm,
+    toggleView,
+    toggleSortByName,
+    toggleSortByModifiedTime,
+    setSort,
+    selectFirst,
+    testEditPath,
+})
 </script>
 
 <template>
@@ -208,10 +330,11 @@ const toggleSortByModifiedTime = () => {
                     >
                         <a-button type="text" style="color: #999">
                             <template #icon>
-                                <icon-home />
+                                <i-lucide-house />
                             </template>
                         </a-button>
                         <a-breadcrumb :max-count="4" class="flex-grow min-h-10" @click="doEditPath">
+                            <a-breadcrumb-item v-if="isRootPath">/</a-breadcrumb-item>
                             <a-breadcrumb-item v-for="s in filePathSeg" :key="s">
                                 {{ s }}
                             </a-breadcrumb-item>
@@ -227,12 +350,12 @@ const toggleSortByModifiedTime = () => {
                         >
                             <template #prepend>
                                 <div class="cursor-pointer" @click="isEditPath = false">
-                                    <icon-close />
+                                    <i-lucide-x />
                                 </div>
                             </template>
                             <template #append>
                                 <div class="cursor-pointer" @click="doEditPathConfirm">
-                                    <icon-check />
+                                    <i-lucide-check />
                                 </div>
                             </template>
                         </a-input>
@@ -241,50 +364,59 @@ const toggleSortByModifiedTime = () => {
                 <div class="py-2 flex items-center">
                     <a-button class="mr-1" @click="doUp" :disabled="filePathSeg.length === 0">
                         <template #icon>
-                            <icon-left />
+                            <i-lucide-chevron-left />
                         </template>
                     </a-button>
                     <a-button class="mr-1" @click="doUpload">
                         <template #icon>
-                            <icon-upload />
+                            <i-lucide-upload />
                         </template>
                         {{ $t('common.addFile') }}
                     </a-button>
                     <a-button class="mr-1" @click="doDownload">
                         <template #icon>
-                            <icon-download />
+                            <i-lucide-download />
                         </template>
                         {{ $t('common.download') }}
                     </a-button>
                     <a-button class="mr-1" @click="doDelete" :disabled="checkedFileRecords.length === 0">
                         <template #icon>
-                            <icon-delete />
+                            <i-lucide-trash-2 />
                         </template>
                         {{ $t('common.delete') }}
                     </a-button>
                     <a-button class="mr-1" @click="toggleView">
                         <template #icon>
-                            <icon-list v-if="isListView" />
-                            <icon-apps v-else />
+                            <i-lucide-list v-if="isListView" />
+                            <i-lucide-layout-grid v-else />
                         </template>
                         {{ isListView ? $t('common.viewGrid') : $t('common.viewList') }}
                     </a-button>
-                    <a-button class="mr-1" @click="toggleSortByName">
-                        <template #icon>
-                            <component :is="sortOrderName === 'asc' ? 'icon-down' : 'icon-up'" />
+                    <a-dropdown trigger="click">
+                        <a-button class="mr-1">
+                            <template #icon>
+                                <i-lucide-chevron-up v-if="currentSort.order === 'asc'" />
+                                <i-lucide-chevron-down v-else />
+                            </template>
+                            {{ $t(getSortFieldLabelKey(currentSort.field)) }}
+                        </a-button>
+                        <template #content>
+                            <a-doption
+                                v-for="opt in SORT_OPTIONS"
+                                :key="opt.field + '-' + opt.order"
+                                @click="setSort(opt.field, opt.order)"
+                            >
+                                <template #icon>
+                                    <i-lucide-check
+                                        v-if="currentSort.field === opt.field && currentSort.order === opt.order"
+                                    />
+                                </template>
+                                {{ $t(opt.labelKey) }}
+                                <span v-if="opt.order === 'asc'">↑</span>
+                                <span v-else>↓</span>
+                            </a-doption>
                         </template>
-                        {{ $t('common.sortByName') }} ({{
-                            sortOrderName === 'asc' ? $t('common.sortDesc') : $t('common.sortAsc')
-                        }})
-                    </a-button>
-                    <a-button class="mr-1" @click="toggleSortByModifiedTime">
-                        <template #icon>
-                            <component :is="sortOrderModifiedTime === 'asc' ? 'icon-down' : 'icon-up'" />
-                        </template>
-                        {{ $t('common.sortByTime') }} ({{
-                            sortOrderModifiedTime === 'asc' ? $t('common.sortDesc') : $t('common.sortAsc')
-                        }})
-                    </a-button>
+                    </a-dropdown>
                 </div>
                 <div class="flex-grow overflow-auto border border-solid border-gray-200 rounded p-2">
                     <div v-if="isListView" class="flex flex-col">

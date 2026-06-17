@@ -1,7 +1,10 @@
 <template>
     <a-config-provider :locale="locale" :global="true">
         <div class="window-container">
-            <div class="window-header flex h-10 items-center border-b border-solid border-gray-200">
+            <div
+                class="window-header flex h-10 items-center border-b border-solid border-gray-200 dark:border-gray-800"
+                :class="{osx: isOsx}"
+            >
                 <div class="window-header-title flex-grow flex items-center">
                     <div class="pl-2 py-2">
                         <img src="/logo.svg" class="w-4 t-4" />
@@ -10,7 +13,7 @@
                         {{ pageTitle }}
                     </div>
                 </div>
-                <div class="p-1 leading-4">
+                <div v-if="!isOsx" class="p-1 leading-4">
                     <div class="inline-block w-6 h-6 leading-6 cursor-pointer hover:text-red-500" @click="doClose">
                         <icon-close class="text-sm" />
                     </div>
@@ -24,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref} from 'vue'
+import {computed, onBeforeMount, ref} from 'vue'
 import type {Component} from 'vue'
 import {onLocaleChange} from '../lang'
 
@@ -41,6 +44,16 @@ const props = defineProps<{
     title: string
     page: Component
 }>()
+
+const isOsx = ref(false)
+
+onBeforeMount(async () => {
+    if (window.$mapi?.app?.isPlatform) {
+        isOsx.value = window.$mapi.app.isPlatform('osx')
+    } else {
+        isOsx.value = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+    }
+})
 
 const pageTitleCustom = ref<string>('')
 const pageTitle = computed(() => {
@@ -63,6 +76,6 @@ const doClose = async () => {
 
 const locale = ref(zhCN)
 onLocaleChange((newLocale) => {
-    locale.value = locales[newLocale]
+    locale.value = locales[newLocale] ?? zhCN
 })
 </script>

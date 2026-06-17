@@ -1,12 +1,22 @@
 <script setup lang="ts">
-import {onMounted, ref} from 'vue'
+import {onBeforeUnmount, onMounted, ref} from 'vue'
 import {changeLocale, getLocale, listLocales, t} from '../../lang'
 import {useSettingStore} from '../../store/modules/setting'
+import {testActionSet, testActionUnset} from '../../utils/test'
 
 const locale = ref('')
 
 onMounted(async () => {
     locale.value = await getLocale()
+    testActionSet('setting.basic.locale', (value: string) => onLocaleChange(value))
+    testActionSet('setting.basic.theme', (value: string) => setting.onConfigChange('darkMode', value))
+    testActionSet('setting.basic.exitMode', (value: string) => setting.onConfigChange('exitMode', value))
+})
+
+onBeforeUnmount(() => {
+    testActionUnset('setting.basic.locale')
+    testActionUnset('setting.basic.theme')
+    testActionUnset('setting.basic.exitMode')
 })
 
 const setting = useSettingStore()

@@ -16,6 +16,13 @@ const dataRoot = () => {
 }
 
 const filePath = () => {
+    return dataRoot()
+}
+
+const loadPath = () => {
+    if (fs.existsSync(dataRoot())) {
+        return dataRoot()
+    }
     if (fs.existsSync(userDataRoot())) {
         return userDataRoot()
     }
@@ -24,9 +31,13 @@ const filePath = () => {
 
 const load = () => {
     try {
-        let json = fs.readFileSync(filePath()).toString()
+        const p = loadPath()
+        let json = fs.readFileSync(p).toString()
         json = JSON.parse(json)
         data = json || {}
+        if (p !== dataRoot()) {
+            save()
+        }
     } catch (e) {
         data = {}
     }
@@ -39,7 +50,12 @@ const loadIfNeed = () => {
 }
 
 const save = () => {
-    fs.writeFileSync(filePath(), JSON.stringify(data, null, 4))
+    const p = filePath()
+    const dir = path.dirname(p)
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, {recursive: true})
+    }
+    fs.writeFileSync(p, JSON.stringify(data, null, 4))
 }
 
 const all = async () => {
