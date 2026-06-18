@@ -93,7 +93,7 @@
         "type": "development",
         "notarize": false,
         "darkModeSupport": true,
-        "hardenedRuntime": false,
+        "hardenedRuntime": true,
         "identity": null
     },
     "linux": {

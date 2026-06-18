@@ -147,7 +147,7 @@ watch(
             <div class="py-20" v-if="!provider">
                 <a-empty :description="$t('hint.selectPlatform')" />
             </div>
-            <!-- 
+            
             <div v-else class="p-3">
                 <div class="flex items-center border-b pb-3 mb-3">
                     <div class="font-bold mr-2">

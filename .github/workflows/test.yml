@@ -10,14 +10,24 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
           include:
-              - os: ubuntu-latest
-                arch: [arm64, amd64]
-              - os: macos-latest
-                arch: [arm64, amd64]
-              - os: windows-latest
-                arch: [arm64, amd64]
+              - name: linux-x64
+                os: ubuntu-latest
+                arch: x64
+              - name: linux-arm64
+                os: ubuntu-24.04-arm
+                arch: arm64
+              - name: mac-arm64
+                os: macos-latest
+                arch: arm64
+              - name: win-x64
+                os: windows-latest
+                arch: x64
+              - name: win-arm64
+                os: windows-11-arm
+                arch: arm64
 
     steps:
       - name: Checkout Code
@@ -27,6 +37,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
 
       - name: Build Prepare (Linux)
         if: runner.os == 'Linux'
@@ -38,6 +53,20 @@ jobs:
         if: runner.os == 'macOS'
         run: |
             brew install python-setuptools
+
+      - name: Install fpm (Linux arm64)
+        if: runner.os == 'Linux' && runner.arch == 'ARM64'
+        run: |
+          sudo apt-get install -y ruby ruby-dev rubygems
+          sudo gem install fpm
+          # Replace cached x86 fpm with symlink to native arm64 system fpm
+          # (electron-builder always uses cached fpm, so we override it)
+          FPM_PATH=$(which fpm)
+          echo "System fpm: $FPM_PATH"
+          CACHE_DIR="$HOME/.cache/electron-builder/fpm/fpm-1.9.3-2.3.1-linux-x86"
+          rm -rf "$CACHE_DIR"
+          mkdir -p "$CACHE_DIR"
+          ln -sf "$FPM_PATH" "$CACHE_DIR/fpm"
 
       - name: Cert Prepare (macOS)
         if: runner.os == 'macOS'
@@ -51,6 +80,7 @@ jobs:
             security create-keychain -p "" build.keychain
             security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
             security list-keychains -s build.keychain
+            security default-keychain -s build.keychain
             security set-keychain-settings -t 3600 -u build.keychain
             security unlock-keychain -p "" build.keychain
             echo "find-identity"
@@ -58,7 +88,7 @@ jobs:
             echo "find-identity"
             security find-identity -p codesigning
             echo "set-key-partition-list"
-            security set-key-partition-list -S apple-tool:,apple: -s -k "" -l "Mac Developer ID Application: Xi'an Yanyi Information Technology Co., Ltd" -t private build.keychain
+            security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" -t private build.keychain
             echo "export"
             security export -k build.keychain -t certs -f x509 -p -o certificate.cer
             echo "add-trusted-cert"
@@ -68,27 +98,35 @@ jobs:
 
       - name: Install Dependencies (Linux/macOS)
         if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: npm install
+
+      - name: Configure Windows build environment
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-            npm install --ignore-scripts
-            rm -rf node_modules/canvas
-            npx electron-builder install-app-deps
+          "GYP_MSVS_VERSION=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "npm_config_msvs_version=2022" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Install Visual Studio Build Tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $params = @(
+            "--add", "Microsoft.VisualStudio.Workload.VCTools",
+            "--includeRecommended"
+          )
+          if ($env:RUNNER_ARCH -eq 'ARM64') {
+            $params += @(
+              "--add", "Microsoft.VisualStudio.Component.VC.ARM64",
+              "--add", "Microsoft.VisualStudio.Component.VC.Tools.ARM64"
+            )
+          }
+          choco install visualstudio2022buildtools --params ($params -join ' ') -y
 
       - name: Install Dependencies (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: |
-            npm install --ignore-scripts
-            if (Test-Path node_modules\canvas) { Remove-Item -Recurse -Force node_modules\canvas }
-            npx electron-builder install-app-deps
-
-      - name: init ( Windows )
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: bash ./scripts/init.sh
-
-      - name: init ( Linux/osx )
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-        run: bash ./scripts/init.sh
+        run: npm install
 
       - name: Build Release Files
         run: npm run build
@@ -140,16 +178,16 @@ jobs:
   notify:
     name: Notify
     needs: [build]
-    runs-on: ubuntu-latest
     if: success()
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Notify Webhook
         run: |
             NAME="${{ github.event.repository.name }}"
             TYPE=$(echo "${{ github.workflow }}" | tr '[:upper:]' '[:lower:]')
             VERSION=$(node -p "require('./package.json').version")
-            curl -X POST "${{ secrets.HOOK_URL }}" \
+            curl -X POST "${{ github.event_name == 'workflow_dispatch' && secrets.REPORT_URL || secrets.REPORT_URL_ME }}" \
               -H "Content-Type: application/json" \
               -d "{\"event\":\"${NAME}\",\"param\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"},\"data\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"}}"
 

@@ -27,9 +27,15 @@ const PLAT_MAP = {
   linux:  {dir: 'linux', goos: 'linux', initScript: 'env/task/init-linux.sh'},
 };
 
-function run(cmd) {
+function run(cmd, extraEnv = {}) {
   console.log(`  + ${cmd}`);
-  execSync(cmd, {cwd: rootDir, stdio: 'inherit', shell: true});
+  try {
+    execSync(cmd, {cwd: rootDir, stdio: ['inherit', 'inherit', 'pipe'], shell: true, env: {...process.env, ...extraEnv}});
+  } catch (e) {
+    const stderr = (e.stderr && e.stderr.toString().trim()) || '(no stderr)';
+    process.stderr.write(stderr + '\n');
+    throw new Error(`Command failed (exit ${e.status}): ${cmd}\n${stderr}`);
+  }
 }
 
 function getVersion() {
@@ -120,8 +126,10 @@ for (const arch of arches) {
   // Build to dist-cli/ (for electron-builder packaging).
   // Go cross-compiles natively — no Rosetta needed.
   mkdirSync('dist-cli', {recursive: true});
-  const buildCliCmd = `cd cli && GOOS=${info.goos} GOARCH=${goa} go build -ldflags="${versionArg}" -o ../dist-cli/${cliFile}${cliSfx} .`;
-  run(buildCliCmd);
+  // Use extraEnv for GOOS/GOARCH instead of inline shell syntax,
+  // which is not portable to Windows cmd.exe.
+  const buildCliCmd = `cd cli && go build -ldflags="${versionArg}" -o ../dist-cli/${cliFile}${cliSfx} .`;
+  run(buildCliCmd, {GOOS: info.goos, GOARCH: goa});
 
   // Also copy to electron/resources/extra/{plat}-{arch}/ (unified source)
   mkdirSync(extraPath, {recursive: true});

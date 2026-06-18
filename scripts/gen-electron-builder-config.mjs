@@ -69,6 +69,12 @@ nativeConfig[info.name].extraResources = [
   },
 ];
 
+// 3. On macOS, allow code signing (CI has cert in keychain; base config has identity=null for local dev)
+if (platform === 'darwin') {
+  delete nativeConfig.mac.identity;
+  nativeConfig.mac.type = 'distribution';
+}
+
 // ── Write output ──────────────────────────────────────────────────
 const outDir = resolve(rootDir, '_temp');
 mkdirSync(outDir, { recursive: true });
