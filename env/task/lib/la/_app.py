@@ -8,25 +8,25 @@ from ._state import _require_device
 
 
 @_require_device
-def app_start(package_name: str, activity: Optional[str] = None) -> None:
+def appStart(package_name: str, activity: Optional[str] = None) -> None:
     """启动应用."""
     _la_state._device.app_start(package_name, activity=activity)
 
 
 @_require_device
-def app_stop(package_name: str) -> None:
+def appStop(package_name: str) -> None:
     """停止应用."""
     _la_state._device.app_stop(package_name)
 
 
 @_require_device
-def app_clear(package_name: str) -> None:
+def appClear(package_name: str) -> None:
     """清除应用数据."""
     _la_state._device.app_clear(package_name)
 
 
 @_require_device
-def app_current() -> dict:
+def appCurrent() -> dict:
     """获取当前前台应用信息.
 
     Returns:
@@ -36,18 +36,27 @@ def app_current() -> dict:
 
 
 @_require_device
-def app_list() -> list:
+def appList() -> list:
     """列出正在运行的应用包名列表."""
     return _la_state._device.app_list()
 
 
 @_require_device
-def app_install(url_or_path: str) -> None:
+def appInstall(url_or_path: str) -> None:
     """安装 APK."""
     _la_state._device.app_install(url_or_path)
 
 
 @_require_device
-def app_uninstall(package_name: str) -> None:
+def appUninstall(package_name: str) -> None:
     """卸载应用."""
     _la_state._device.app_uninstall(package_name)
+
+
+app_start = appStart
+app_stop = appStop
+app_clear = appClear
+app_current = appCurrent
+app_list = appList
+app_install = appInstall
+app_uninstall = appUninstall

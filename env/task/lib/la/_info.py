@@ -37,7 +37,7 @@ def size() -> Tuple[int, int]:
 # ---------------------------------------------------------------------------
 
 @_require_device
-def device_info() -> dict:
+def deviceInfo() -> dict:
     """获取完整的设备信息."""
     return _la_state._device.info
 
@@ -49,7 +49,7 @@ def serial() -> str:
 
 
 @_require_device
-def wlan_ip() -> str:
+def wlanIp() -> str:
     """获取设备 WLAN IP 地址."""
     return _la_state._device.wlan_ip
 
@@ -61,7 +61,7 @@ def battery() -> dict:
 
 
 @_require_device
-def current_package() -> str:
+def currentPackage() -> str:
     """获取当前前台应用的包名.
 
     Returns:
@@ -71,10 +71,16 @@ def current_package() -> str:
 
 
 @_require_device
-def current_activity() -> str:
+def currentActivity() -> str:
     """获取当前前台 Activity 名称.
 
     Returns:
         Activity 名称字符串
     """
     return _la_state._device.app_current().get("activity", "")
+
+
+device_info = deviceInfo
+wlan_ip = wlanIp
+current_package = currentPackage
+current_activity = currentActivity

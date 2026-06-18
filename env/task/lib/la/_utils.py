@@ -15,7 +15,7 @@ from ._state import _require_device
 # ---------------------------------------------------------------------------
 
 @_require_device
-def open_url(url: str) -> None:
+def openUrl(url: str) -> None:
     """通过浏览器打开 URL."""
     _la_state._device.open_url(url)
 
@@ -27,7 +27,7 @@ def toast(message: str, duration: float = 1.0) -> None:
 
 
 @_require_device
-def set_fast_input_ime(enable: bool = True) -> bool:
+def setFastInputIme(enable: bool = True) -> bool:
     """启用/关闭快速输入法 (绕过输入法直接填文字)."""
     if enable:
         return _la_state._device.set_fastinput_ime(True)
@@ -40,19 +40,19 @@ def set_fast_input_ime(enable: bool = True) -> bool:
 # ---------------------------------------------------------------------------
 
 @_require_device
-def is_screen_on() -> bool:
+def isScreenOn() -> bool:
     """判断屏幕是否亮着."""
     return _la_state._device.info.get("screenOn", False)
 
 
 @_require_device
-def screen_on() -> None:
+def screenOn() -> None:
     """点亮屏幕."""
     _la_state._device.screen_on()
 
 
 @_require_device
-def screen_off() -> None:
+def screenOff() -> None:
     """熄灭屏幕."""
     _la_state._device.screen_off()
 
@@ -68,13 +68,13 @@ def unlock() -> None:
 # ---------------------------------------------------------------------------
 
 @_require_device
-def open_notification() -> None:
+def openNotification() -> None:
     """打开通知栏."""
     _la_state._device.open_notification()
 
 
 @_require_device
-def open_quick_settings() -> None:
+def openQuickSettings() -> None:
     """打开快捷设置面板."""
     _la_state._device.open_quick_settings()
 
@@ -84,7 +84,7 @@ def open_quick_settings() -> None:
 # ---------------------------------------------------------------------------
 
 @_require_device
-def set_clipboard(text: str) -> None:
+def setClipboard(text: str) -> None:
     """设置设备剪贴板内容.
 
     Args:
@@ -94,7 +94,7 @@ def set_clipboard(text: str) -> None:
 
 
 @_require_device
-def get_clipboard() -> str:
+def getClipboard() -> str:
     """获取设备剪贴板内容.
 
     Returns:
@@ -108,7 +108,7 @@ def get_clipboard() -> str:
 # ---------------------------------------------------------------------------
 
 @_require_device
-def start_screen_record(path: str = "/sdcard/screen_record.mp4") -> None:
+def startScreenRecord(path: str = "/sdcard/screen_record.mp4") -> None:
     """开始屏幕录制 (保存到设备).
 
     Args:
@@ -118,7 +118,7 @@ def start_screen_record(path: str = "/sdcard/screen_record.mp4") -> None:
 
 
 @_require_device
-def stop_screen_record() -> None:
+def stopScreenRecord() -> None:
     """停止屏幕录制."""
     _la_state._device.screenrecord.stop()
 
@@ -128,7 +128,7 @@ def stop_screen_record() -> None:
 # ---------------------------------------------------------------------------
 
 @_require_device
-def memory_info() -> dict:
+def memoryInfo() -> dict:
     """获取设备内存信息.
 
     Returns:
@@ -138,7 +138,7 @@ def memory_info() -> dict:
 
 
 @_require_device
-def cpu_info() -> str:
+def cpuInfo() -> str:
     """获取设备 CPU 信息.
 
     Returns:
@@ -160,7 +160,7 @@ def sleep(seconds: float) -> None:
     time.sleep(seconds)
 
 
-def wait_idle(timeout: float = 5) -> None:
+def waitIdle(timeout: float = 5) -> None:
     """等待设备空闲.
 
     Args:
@@ -171,7 +171,7 @@ def wait_idle(timeout: float = 5) -> None:
 
 
 @_require_device
-def wait_activity(activity: str, timeout: float = 10) -> bool:
+def waitActivity(activity: str, timeout: float = 10) -> bool:
     """等待指定 Activity 出现.
 
     Args:
@@ -182,13 +182,13 @@ def wait_activity(activity: str, timeout: float = 10) -> bool:
         是否在超时内出现
 
     Examples:
-        la.wait_activity(".Settings", timeout=15)
-        la.wait_activity(r"com\\.android\\..*", timeout=30)
+        la.waitActivity(".Settings", timeout=15)
+        la.waitActivity(r"com\\.android\\..*", timeout=30)
     """
     return _la_state._device.wait_activity(activity, timeout=timeout)
 
 
-def wait_until(predicate, timeout: float = 10, interval: float = 0.5) -> bool:
+def waitUntil(predicate, timeout: float = 10, interval: float = 0.5) -> bool:
     """等待自定义条件成立.
 
     Args:
@@ -200,7 +200,7 @@ def wait_until(predicate, timeout: float = 10, interval: float = 0.5) -> bool:
         是否在超时内成立
 
     Examples:
-        la.wait_until(lambda: la.exists(text="设置"), timeout=10)
+        la.waitUntil(lambda: la.exists(text="设置"), timeout=10)
     """
     deadline = time.time() + timeout
     while time.time() <= deadline:
@@ -211,7 +211,7 @@ def wait_until(predicate, timeout: float = 10, interval: float = 0.5) -> bool:
 
 
 @_require_device
-def wait_until_gone(
+def waitUntilGone(
     text: Optional[str] = None,
     *,
     className: Optional[str] = None,
@@ -227,3 +227,22 @@ def wait_until_gone(
     from ._selector import _build_selector  # avoid circular
     selector = _build_selector(text, className, resourceId, description)
     return _la_state._device(**selector).wait_gone(timeout=timeout)
+
+
+open_url = openUrl
+set_fast_input_ime = setFastInputIme
+is_screen_on = isScreenOn
+screen_on = screenOn
+screen_off = screenOff
+open_notification = openNotification
+open_quick_settings = openQuickSettings
+set_clipboard = setClipboard
+get_clipboard = getClipboard
+start_screen_record = startScreenRecord
+stop_screen_record = stopScreenRecord
+memory_info = memoryInfo
+cpu_info = cpuInfo
+wait_idle = waitIdle
+wait_activity = waitActivity
+wait_until = waitUntil
+wait_until_gone = waitUntilGone

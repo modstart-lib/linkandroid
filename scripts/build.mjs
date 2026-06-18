@@ -12,7 +12,7 @@
 
 import {execSync} from 'node:child_process';
 import {readFileSync, mkdirSync, rmSync, cpSync, existsSync, statSync, readdirSync} from 'node:fs';
-import {resolve, dirname, join} from 'node:path';
+import {resolve, dirname, join, basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -132,8 +132,9 @@ for (const arch of arches) {
   run(buildCliCmd, {GOOS: info.goos, GOARCH: goa});
 
   // Also copy to electron/resources/extra/{plat}-{arch}/ (unified source)
+  // Use plain name (linkandroid) without arch suffix; afterPack moves it to cli/
   mkdirSync(extraPath, {recursive: true});
-  cpSync(`dist-cli/${cliFile}${cliSfx}`, `${extraPath}/${cliFile}${cliSfx}`);
+  cpSync(`dist-cli/${cliFile}${cliSfx}`, `${extraPath}/linkandroid${cliSfx}`);
 
   // ---- 1b. Python env ----
   console.log(`\n─── Build Python env (${eName}) ───`);
@@ -148,6 +149,9 @@ for (const arch of arches) {
   cpSync('env/task/_aienv', `${extraPath}/_aienv`, {recursive: true});
   rmSync(`${extraPath}/lib`, {recursive: true, force: true});
   cpSync('env/task/lib', `${extraPath}/lib`, {recursive: true});
+  // Copy platform init script (e.g. init-osx.sh) into extra dir so afterPack can move it to env/task/
+  rmSync(`${extraPath}/${basename(info.initScript)}`, {recursive: true, force: true});
+  cpSync(info.initScript, `${extraPath}/${basename(info.initScript)}`);
 }
 
 // ---- Ensure primary arch's Python env is in env/task/ ----

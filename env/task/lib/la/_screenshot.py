@@ -28,13 +28,13 @@ def screenshot(
 
 
 @_require_device
-def dump_hierarchy() -> str:
+def dumpHierarchy() -> str:
     """获取当前界面 UI 层次 XML."""
     return _la_state._device.dump_hierarchy()
 
 
 @_require_device
-def dump_xml_to_file(path: str = "ui_hierarchy.xml") -> str:
+def dumpXmlToFile(path: str = "ui_hierarchy.xml") -> str:
     """获取 UI 层次 XML 并保存到文件.
 
     Args:
@@ -47,3 +47,7 @@ def dump_xml_to_file(path: str = "ui_hierarchy.xml") -> str:
     with open(path, "w", encoding="utf-8") as f:
         f.write(xml)
     return xml
+
+
+dump_hierarchy = dumpHierarchy
+dump_xml_to_file = dumpXmlToFile

@@ -58,24 +58,24 @@ exports.default = async function (context) {
   })();
   const name = platformName + "-" + platformArch;
 
-  const goos = platformName === "osx" ? "darwin" : platformName === "win" ? "windows" : "linux";
-  const cliArch = platformArch === "x86" ? "x64" : "arm64";
   const cliSfx = platformName === "win" ? ".exe" : "";
 
   const extraDir = resolveApp(context, "extra", name);
   const resRootDir = resolveApp(context);
 
   // ── 1. Extract CLI from extra/ → cli/ ────────────────────────
-  const cliFile = `linkandroid-${goos}-${cliArch}${cliSfx}`;
+  const cliFile = `linkandroid${cliSfx}`;
   const cliSrc = path.join(extraDir, cliFile);
   const cliDestDir = path.join(resRootDir, "cli");
   fs.mkdirSync(cliDestDir, {recursive: true});
   move(cliSrc, path.join(cliDestDir, cliFile), "CLI");
 
-  // ── 2. Extract Python env from extra/ → env/task/ ────────────
+  // ── 2. Extract Python env + init script from extra/ → env/task/ ──
   const taskDir = path.join(resRootDir, "env", "task");
   fs.mkdirSync(taskDir, {recursive: true});
 
+  const initScriptName = platformName === "osx" ? "init-osx.sh" : platformName === "win" ? "init-windows.sh" : "init-linux.sh";
   move(path.join(extraDir, "_aienv"), path.join(taskDir, "_aienv"), "Python _aienv");
   move(path.join(extraDir, "lib"), path.join(taskDir, "lib"), "Python lib");
+  move(path.join(extraDir, initScriptName), path.join(taskDir, initScriptName), "Init script");
 };

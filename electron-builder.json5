@@ -10,7 +10,7 @@
         "output": "dist-release",
         "buildResources": "electron/resources/build"
     },
-    "afterPack": "./scripts/build_optimize.cjs",
+    "afterPack": "./scripts/build-optimize.cjs",
     "files": [
         "dist",
         "dist-electron"

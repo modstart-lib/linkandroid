@@ -34,13 +34,13 @@ def tap(x: int, y: int, *, timeout: float = 0) -> None:
 
 
 @_require_device
-def double_click(x: int, y: int, duration: float = 0.1) -> None:
+def doubleClick(x: int, y: int, duration: float = 0.1) -> None:
     """双击屏幕坐标."""
     _la_state._device.double_click(x, y, duration)
 
 
 @_require_device
-def long_click(x: int, y: int, duration: float = 0.5) -> None:
+def longClick(x: int, y: int, duration: float = 0.5) -> None:
     """长按屏幕坐标."""
     _la_state._device.long_click(x, y, duration)
 
@@ -62,7 +62,7 @@ def drag(fx: int, fy: int, tx: int, ty: int, duration: float = 0.5) -> None:
 
 
 @_require_device
-def scroll_forward() -> bool:
+def scrollForward() -> bool:
     """向前滚动 (列表/WebView 向下翻).
 
     Returns:
@@ -72,7 +72,7 @@ def scroll_forward() -> bool:
 
 
 @_require_device
-def scroll_backward() -> bool:
+def scrollBackward() -> bool:
     """向后滚动 (列表/WebView 向上翻).
 
     Returns:
@@ -106,7 +106,7 @@ def swipe(
 
 
 @_require_device
-def swipe_ext(
+def swipeExt(
     direction: str,
     scale: float = 0.9,
     duration: float = 0.1,
@@ -133,7 +133,7 @@ def swipe_ext(
 
 
 @_require_device
-def swipe_to(
+def swipeTo(
     direction: str,
     *,
     scale: float = 0.9,
@@ -152,6 +152,14 @@ def swipe_to(
         是否找到
 
     Examples:
-        la.swipe_to("up", text="设置", timeout=15)
+        la.swipeTo("up", text="设置", timeout=15)
     """
     return _la_state._device.swipe_to(direction, scale=scale, timeout=timeout, **kwargs)
+
+
+double_click = doubleClick
+long_click = longClick
+scroll_forward = scrollForward
+scroll_backward = scrollBackward
+swipe_ext = swipeExt
+swipe_to = swipeTo

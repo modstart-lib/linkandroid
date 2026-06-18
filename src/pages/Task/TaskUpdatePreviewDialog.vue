@@ -74,19 +74,20 @@ defineExpose({show})
             <a-button type="primary" @click="doConfirm">{{ $t('task.applyUpdate') }}</a-button>
         </template>
         <div
-            class="h-[60vh] overflow-auto rounded border border-gray-200 dark:border-gray-700 bg-gray-950 text-xs font-mono"
+            data-testid="task-update-diff"
+            class="h-[60vh] overflow-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs font-mono"
         >
             <div
                 v-for="(line, index) in diffLines"
                 :key="index"
                 class="min-h-5 whitespace-pre-wrap break-all px-3 py-0.5"
                 :class="{
-                    'bg-red-950 text-red-100': line.type === 'remove',
-                    'bg-green-950 text-green-100': line.type === 'add',
-                    'text-gray-300': line.type === 'same',
+                    'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-200': line.type === 'remove',
+                    'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-200': line.type === 'add',
+                    'text-gray-700 dark:text-gray-300': line.type === 'same',
                 }"
             >
-                <span class="inline-block w-5 select-none text-gray-500">
+                <span class="inline-block w-5 select-none text-gray-400 dark:text-gray-500">
                     {{ line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' ' }}
                 </span>
                 {{ line.text }}

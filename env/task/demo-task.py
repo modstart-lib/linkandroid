@@ -27,7 +27,7 @@ def main():
 
     # 2. 获取设备信息
     print("\n=== 设备信息 ===")
-    info = la.device_info()
+    info = la.deviceInfo()
     print(f"  品牌: {info.get('brand')}")
     print(f"  型号: {info.get('productName')}")
     print(f"  Android: {info.get('apiLevel')}")
@@ -40,7 +40,7 @@ def main():
 
     # 4. 打开设置应用 (com.android.settings)
     print("\n=== 打开设置 ===")
-    la.app_start("com.android.settings")
+    la.appStart("com.android.settings")
     la.sleep(2)
 
     # 5. 截屏
@@ -51,17 +51,17 @@ def main():
 
     # 6. 获取 UI 层次
     print("\n=== UI 层次 (前500字符) ===")
-    xml = la.dump_hierarchy()
+    xml = la.dumpHierarchy()
     print(f"  {xml[:500]}...")
 
     # 7. 滑动操作
     print("\n=== 上滑 ===")
-    la.swipe_ext("up", scale=0.6)
+    la.swipeExt("up", scale=0.6)
     la.sleep(1)
 
     # 8. 点击文本 (如果存在)
     print("\n=== 尝试点击 '关于手机' ===")
-    found = la.click_text("关于手机", timeout=3)
+    found = la.clickText("关于手机", timeout=3)
     print(f"  点击结果: {'成功' if found else '未找到'}")
 
     # 9. 返回

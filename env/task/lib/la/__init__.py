@@ -5,7 +5,7 @@ la.py — LinkAndroid UI Automator 2 便捷封装 (开发文档库)
     import la
     device = la.device()        # 调试时为当前调试设备, 运行时为第一个运行设备
     device.click(500, 1000)     # 点击坐标
-    device.tap_text("设置")      # 点击文本
+    device.tapText("设置")      # 点击文本
     devices = la.devices()      # 设备集合, 可循环或交给 la.multi 批量操作
     la.multi.click(devices, 500, 1000)
     d = la.raw()                 # 获取 uiautomator2 原生 Device
@@ -70,31 +70,31 @@ from . import _state as _la_state
 __all__ = [
     "connect", "device", "raw", "devices", "Device", "DeviceGroup", "multi", "util", "http", "u2", "disconnect",
     "llm",
-    "click", "tap", "double_click", "long_click",
-    "swipe", "swipe_ext", "swipe_to",
-    "drag", "scroll_forward", "scroll_backward",
-    "text", "input_text", "clear_text", "send_keys", "type_text",
-    "screenshot", "dump_hierarchy", "dump_xml_to_file",
-    "selector", "select", "find", "find_one", "find_all", "count", "exists", "wait",
-    "tap_text", "tap_desc", "tap_id", "tap_exists", "click_text", "click_if_exists",
-    "find_by_xpath",
-    "click_element", "click_center", "get_text", "get_bounds", "center", "info",
-    "app_start", "app_stop", "app_clear",
-    "app_current", "app_list", "app_install", "app_uninstall",
-    "press", "press_home", "press_back", "press_menu",
-    "press_recent", "press_power", "press_enter", "press_del",
+    "click", "tap", "doubleClick", "longClick",
+    "swipe", "swipeExt", "swipeTo",
+    "drag", "scrollForward", "scrollBackward",
+    "text", "inputText", "clearText", "sendKeys", "typeText",
+    "screenshot", "dumpHierarchy", "dumpXmlToFile",
+    "selector", "select", "find", "findOne", "findAll", "count", "exists", "wait",
+    "tapText", "tapDesc", "tapId", "tapExists", "clickText", "clickIfExists",
+    "findByXpath",
+    "clickElement", "clickCenter", "getText", "getBounds", "center", "info",
+    "appStart", "appStop", "appClear",
+    "appCurrent", "appList", "appInstall", "appUninstall",
+    "press", "pressHome", "pressBack", "pressMenu",
+    "pressRecent", "pressPower", "pressEnter", "pressDel",
     "home", "back", "menu", "recent", "power",
     "width", "height", "size",
-    "device_info", "serial", "wlan_ip", "battery",
-    "current_package", "current_activity",
-    "open_url", "toast", "set_fast_input_ime",
-    "is_screen_on", "screen_on", "screen_off", "unlock",
-    "open_notification", "open_quick_settings",
-    "set_clipboard", "get_clipboard",
-    "start_screen_record", "stop_screen_record",
-    "memory_info", "cpu_info",
-    "wait_activity", "wait_until", "wait_until_gone",
-    "sleep", "wait_idle",
+    "deviceInfo", "serial", "wlanIp", "battery",
+    "currentPackage", "currentActivity",
+    "openUrl", "toast", "setFastInputIme",
+    "isScreenOn", "screenOn", "screenOff", "unlock",
+    "openNotification", "openQuickSettings",
+    "setClipboard", "getClipboard",
+    "startScreenRecord", "stopScreenRecord",
+    "memoryInfo", "cpuInfo",
+    "waitActivity", "waitUntil", "waitUntilGone",
+    "sleep", "waitIdle",
     # 重导出的标准库
     "json", "re", "math", "random", "Path", "datetime", "timedelta", "requests",
     "error",
@@ -252,11 +252,11 @@ class Util:
         return datetime.now().isoformat()
 
     @staticmethod
-    def json_loads(text: str) -> Any:
+    def jsonLoads(text: str) -> Any:
         return json.loads(text)
 
     @staticmethod
-    def json_dumps(data: Any, **kwargs) -> str:
+    def jsonDumps(data: Any, **kwargs) -> str:
         return json.dumps(data, ensure_ascii=False, **kwargs)
 
     @staticmethod
@@ -294,6 +294,8 @@ class Http:
 
 
 util = Util()
+util.json_loads = util.jsonLoads
+util.json_dumps = util.jsonDumps
 http = Http()
 
 
@@ -306,41 +308,47 @@ from ._connect import connect, disconnect, device, raw  # noqa: E402, F811
 # 基础点击操作 / 拖拽 / 滚动 / 滑动
 # ---------------------------------------------------------------------------
 from ._click import (  # noqa: E402
-    click, tap, double_click, long_click,
-    drag, scroll_forward, scroll_backward,
-    swipe, swipe_ext, swipe_to,
+    click, tap, doubleClick, longClick,
+    drag, scrollForward, scrollBackward,
+    swipe, swipeExt, swipeTo,
+    double_click, long_click, scroll_forward, scroll_backward, swipe_ext, swipe_to,
 )
 
 # ---------------------------------------------------------------------------
 # 文字输入
 # ---------------------------------------------------------------------------
 from ._input import (  # noqa: E402
-    text, input_text, clear_text, send_keys, type_text,
+    text, inputText, clearText, sendKeys, typeText,
+    input_text, clear_text, send_keys, type_text,
 )
 
 # ---------------------------------------------------------------------------
 # 截图 & UI 层次
 # ---------------------------------------------------------------------------
 from ._screenshot import (  # noqa: E402
-    screenshot, dump_hierarchy, dump_xml_to_file,
+    screenshot, dumpHierarchy, dumpXmlToFile,
+    dump_hierarchy, dump_xml_to_file,
 )
 
 # ---------------------------------------------------------------------------
 # 元素查找
 # ---------------------------------------------------------------------------
 from ._selector import (  # noqa: E402
-    selector, select, find, find_one, find_all, count, exists, wait,
-    click_text, tap_text, tap_desc, tap_id, tap_exists, click_if_exists,
-    find_by_xpath,
-    click_element, click_center, get_text, get_bounds, info, center,
+    selector, select, find, findOne, findAll, count, exists, wait,
+    clickText, tapText, tapDesc, tapId, tapExists, clickIfExists,
+    findByXpath,
+    clickElement, clickCenter, getText, getBounds, info, center,
+    find_one, find_all, click_text, tap_text, tap_desc, tap_id, tap_exists, click_if_exists,
+    find_by_xpath, click_element, click_center, get_text, get_bounds,
 )
 
 # ---------------------------------------------------------------------------
 # 应用管理
 # ---------------------------------------------------------------------------
 from ._app import (  # noqa: E402
-    app_start, app_stop, app_clear,
-    app_current, app_list, app_install, app_uninstall,
+    appStart, appStop, appClear,
+    appCurrent, appList, appInstall, appUninstall,
+    app_start, app_stop, app_clear, app_current, app_list, app_install, app_uninstall,
 )
 
 # ---------------------------------------------------------------------------
@@ -348,8 +356,9 @@ from ._app import (  # noqa: E402
 # ---------------------------------------------------------------------------
 from ._key import (  # noqa: E402
     press, home, back, menu, recent, power,
-    press_home, press_back, press_menu, press_recent, press_power,
-    press_enter, press_del,
+    pressHome, pressBack, pressMenu, pressRecent, pressPower,
+    pressEnter, pressDel,
+    press_home, press_back, press_menu, press_recent, press_power, press_enter, press_del,
     KEY_MAP,
 )
 
@@ -358,21 +367,29 @@ from ._key import (  # noqa: E402
 # ---------------------------------------------------------------------------
 from ._info import (  # noqa: E402
     width, height, size,
-    device_info, serial, wlan_ip, battery,
-    current_package, current_activity,
+    deviceInfo, serial, wlanIp, battery,
+    currentPackage, currentActivity,
+    device_info, wlan_ip, current_package, current_activity,
 )
 
 # ---------------------------------------------------------------------------
 # 实用工具
 # ---------------------------------------------------------------------------
 from ._utils import (  # noqa: E402
-    open_url, toast, set_fast_input_ime,
-    is_screen_on, screen_on, screen_off, unlock,
+    openUrl, toast, setFastInputIme,
+    isScreenOn, screenOn, screenOff, unlock,
+    openNotification, openQuickSettings,
+    setClipboard, getClipboard,
+    startScreenRecord, stopScreenRecord,
+    memoryInfo, cpuInfo,
+    sleep, waitIdle, waitActivity, waitUntil, waitUntilGone,
+    open_url, set_fast_input_ime,
+    is_screen_on, screen_on, screen_off,
     open_notification, open_quick_settings,
     set_clipboard, get_clipboard,
     start_screen_record, stop_screen_record,
     memory_info, cpu_info,
-    sleep, wait_idle, wait_activity, wait_until, wait_until_gone,
+    wait_idle, wait_activity, wait_until, wait_until_gone,
 )
 
 # ---------------------------------------------------------------------------

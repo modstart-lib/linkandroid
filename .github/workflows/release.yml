@@ -199,6 +199,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG=${GITHUB_REF#refs/tags/}
+          # Delete any existing release for this tag (handles force-push)
+          gh release delete "$TAG" --yes 2>/dev/null || true
           # Create release (draft, idempotent)
           gh release create "$TAG" \
             --title "$TAG" \

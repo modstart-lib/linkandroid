@@ -65,42 +65,51 @@ def power() -> None:
 
 # 快捷键别名
 @_require_device
-def press_home() -> None:
+def pressHome() -> None:
     """按 HOME 键 (press('home') 的别名)."""
     _la_state._device.press("home")
 
 
 @_require_device
-def press_back() -> None:
+def pressBack() -> None:
     """按返回键 (press('back') 的别名)."""
     _la_state._device.press("back")
 
 
 @_require_device
-def press_menu() -> None:
+def pressMenu() -> None:
     """按菜单键 (press('menu') 的别名)."""
     _la_state._device.press("menu")
 
 
 @_require_device
-def press_recent() -> None:
+def pressRecent() -> None:
     """按最近任务键. (press('recent') 的别名)."""
     _la_state._device.press("recent")
 
 
 @_require_device
-def press_power() -> None:
+def pressPower() -> None:
     """按电源键. (press('power') 的别名)."""
     _la_state._device.press("power")
 
 
 @_require_device
-def press_enter() -> None:
+def pressEnter() -> None:
     """按回车键. (press('enter') 的别名)."""
     _la_state._device.press("enter")
 
 
 @_require_device
-def press_del() -> None:
+def pressDel() -> None:
     """按删除键. (press('delete') 的别名)."""
     _la_state._device.press("delete")
+
+
+press_home = pressHome
+press_back = pressBack
+press_menu = pressMenu
+press_recent = pressRecent
+press_power = pressPower
+press_enter = pressEnter
+press_del = pressDel

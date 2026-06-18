@@ -271,17 +271,14 @@ jobs:
             --notes "Latest build from main branch" \
             --prerelease \
             2>/dev/null || true
-          # Copy artifacts to temp dir with pre-release tag stripped from version
+          # Copy artifacts to temp dir with version replaced by "snapshot"
           tmpdir=$(mktemp -d)
           echo "=== Downloaded artifacts ==="
           find _artifacts/ -type f -print
           echo "=== Cleaning filenames ==="
-          # Strip pre-release suffix (e.g. 2.0.0-beta -> 2.0.0)
-          FULL_VERSION=$(node -p "require('./package.json').version")
-          CLEAN_VERSION=$(node -p "require('./package.json').version.replace(/-[a-zA-Z][a-zA-Z0-9.]*$/, '')")
           find _artifacts/ -type f | while read f; do
             base=$(basename "$f")
-            clean=$(echo "$base" | sed "s/$FULL_VERSION/$CLEAN_VERSION/")
+            clean=$(echo "$base" | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z][a-zA-Z0-9.]*)?/snapshot/')
             cp "$f" "$tmpdir/$clean"
             echo "Staged: $base -> $clean"
           done

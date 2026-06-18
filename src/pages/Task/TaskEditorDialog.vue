@@ -22,7 +22,19 @@ const formData = ref<{id: number; name: string; description: string; code: strin
     id: 0,
     name: '',
     description: '',
-    code: '# Write your Python task here\nprint("Hello from LinkAndroid!")',
+    code: `import la
+device = la.device()
+
+# 1. 返回首页
+device.home()
+la.sleep(1)
+
+# 2. 启动微信
+device.appStart("com.tencent.mm")
+la.sleep(3)
+
+# 3. 点开联系人
+device.tapText("联系人", timeout=5)`,
     language: 'python',
 })
 const isEditMode = computed(() => formData.value.id > 0)
@@ -70,7 +82,19 @@ const show = (record?: any) => {
             id: 0,
             name: '',
             description: '',
-            code: '# Write your Python task here\nprint("Hello from LinkAndroid!")',
+            code: `import la
+device = la.device()
+
+# 1. 返回首页
+device.home()
+la.sleep(1)
+
+# 2. 启动微信
+device.appStart("com.tencent.mm")
+la.sleep(3)
+
+# 3. 点开联系人
+device.tapText("联系人", timeout=5)`,
             language: 'python',
         }
     }

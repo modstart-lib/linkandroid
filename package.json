@@ -27,7 +27,7 @@
         "dev:win": "chcp 65001 && vite",
         "dev:win:pre": "chcp 65001 && set ELECTRON_ENV_PROD=1 && vite",
         "dev:debug": "vite --debug",
-        "build:preview": "npm run format && vite build",
+        "build:preview": "node scripts/build-preview.mjs",
         "build": "npm run format && node scripts/build.mjs",
         "build:win": "npm run format && cross-env VITE_RELEASE=1 vite build && electron-builder --win",
         "build:mac": "npm run format && cross-env VITE_RELEASE=1 vite build && electron-builder --mac",

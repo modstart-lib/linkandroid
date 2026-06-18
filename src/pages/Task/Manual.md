@@ -20,7 +20,7 @@ print(f"屏幕: {device.width()}x{device.height()}")
 
 # 常用操作
 device.home()                                  # 返回桌面
-device.app_start("com.android.settings")       # 打开设置
+device.appStart("com.android.settings")       # 打开设置
 la.sleep(2)                                    # 等待 2 秒
 device.screenshot("settings.png")              # 截屏
 ```
@@ -129,7 +129,7 @@ print("设备列表:", ",".join(devices.ids))
 import la
 d = la.raw()
 d(text="设置").click()
-print(d.app_current())
+print(d.appCurrent())
 ```
 
 ---
@@ -179,7 +179,7 @@ devices = la.devices()             # 多设备
 print("devices=" + ",".join(devices.ids))
 
 # 多设备同步操作
-la.multi.screen_on(devices)
+la.multi.screenOn(devices)
 la.multi.home(devices)
 la.multi.click(devices, 500, 1000)
 
@@ -231,7 +231,7 @@ print("当前时间:", now)
 
 ---
 
-### util.json_loads(text)
+### util.jsonLoads(text)
 
 **功能**：JSON 字符串转 Python 对象。
 
@@ -245,14 +245,14 @@ print("当前时间:", now)
 
 **示例**：
 ```python
-data = la.util.json_loads('{"ok": true, "count": 42}')
+data = la.util.jsonLoads('{"ok": true, "count": 42}')
 print(data["ok"])     # True
 print(data["count"])  # 42
 ```
 
 ---
 
-### util.json_dumps(data)
+### util.jsonDumps(data)
 
 **功能**：Python 对象转 JSON 字符串。
 
@@ -266,7 +266,7 @@ print(data["count"])  # 42
 
 **示例**：
 ```python
-text = la.util.json_dumps({"name": "test", "value": 123})
+text = la.util.jsonDumps({"name": "test", "value": 123})
 print(text)  # {"name": "test", "value": 123}
 ```
 
@@ -395,7 +395,7 @@ device.tap(500, 1000)
 
 ---
 
-### double_click(x, y, duration)
+### doubleClick(x, y, duration)
 
 **功能**：双击屏幕坐标。
 
@@ -409,7 +409,7 @@ device.tap(500, 1000)
 
 ---
 
-### long_click(x, y, duration)
+### longClick(x, y, duration)
 
 **功能**：长按屏幕坐标。
 
@@ -446,7 +446,7 @@ device.swipe(200, 800, 200, 400, 0.2)  # 从下往上滑动
 
 ---
 
-### swipe_ext(direction, scale)
+### swipeExt(direction, scale)
 
 **功能**：沿指定方向滑动屏幕。
 
@@ -459,13 +459,13 @@ device.swipe(200, 800, 200, 400, 0.2)  # 从下往上滑动
 
 **示例**：
 ```python
-device.swipe_ext("up", 0.5)     # 上滑半个屏幕
-device.swipe_ext("左")          # 向左滑动
+device.swipeExt("up", 0.5)     # 上滑半个屏幕
+device.swipeExt("左")          # 向左滑动
 ```
 
 ---
 
-### swipe_to(direction, text, timeout)
+### swipeTo(direction, text, timeout)
 
 **功能**：滑动直到找到目标文本元素。
 
@@ -473,7 +473,7 @@ device.swipe_ext("左")          # 向左滑动
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `direction` | str | - | 滑动方向（同 `swipe_ext`） |
+| `direction` | str | - | 滑动方向（同 `swipeExt`） |
 | `text` | str | `"..."` | 要查找的目标文本 |
 | `timeout` | int | `10` | 超时秒数 |
 
@@ -481,7 +481,7 @@ device.swipe_ext("左")          # 向左滑动
 
 **示例**：
 ```python
-elem = device.swipe_to("up", text="下一步", timeout=15)
+elem = device.swipeTo("up", text="下一步", timeout=15)
 if elem:
     elem.click()
 ```
@@ -504,7 +504,7 @@ if elem:
 
 ---
 
-### scroll_forward()
+### scrollForward()
 
 **功能**：向前滚动（列表/WebView 向下翻页）。
 
@@ -514,13 +514,13 @@ if elem:
 
 **示例**：
 ```python
-while device.scroll_forward():
+while device.scrollForward():
     pass  # 滚动到底部
 ```
 
 ---
 
-### scroll_backward()
+### scrollBackward()
 
 **功能**：向后滚动（列表/WebView 向上翻页）。
 
@@ -553,7 +553,7 @@ device.text("Hello", enter=True)            # 输入后回车
 
 ---
 
-### input_text(text, clear, enter)
+### inputText(text, clear, enter)
 
 **功能**：`text()` 的语义化别名，推荐 AI 生成任务使用。
 
@@ -561,7 +561,7 @@ device.text("Hello", enter=True)            # 输入后回车
 
 ---
 
-### clear_text()
+### clearText()
 
 **功能**：清空当前焦点输入框的内容。
 
@@ -569,7 +569,7 @@ device.text("Hello", enter=True)            # 输入后回车
 
 ---
 
-### send_keys(text)
+### sendKeys(text)
 
 **功能**：发送按键序列（同 `text()` 但无额外参数）。
 
@@ -581,7 +581,7 @@ device.text("Hello", enter=True)            # 输入后回车
 
 ---
 
-### type_text(text)
+### typeText(text)
 
 **功能**：`text()` 的别名，语义更清晰。
 
@@ -612,7 +612,7 @@ print(f"截图大小: {len(shot)} bytes")
 
 ---
 
-### dump_hierarchy()
+### dumpHierarchy()
 
 **功能**：获取当前界面的 UI 层次 XML 字符串。
 
@@ -622,13 +622,13 @@ print(f"截图大小: {len(shot)} bytes")
 
 **示例**：
 ```python
-xml = device.dump_hierarchy()
+xml = device.dumpHierarchy()
 print(f"XML 长度: {len(xml)}")
 ```
 
 ---
 
-### dump_xml_to_file(path)
+### dumpXmlToFile(path)
 
 **功能**：获取 UI 层次 XML 并保存到文件。
 
@@ -687,7 +687,7 @@ device.selector(id="com.android.settings:id/search").click()
 
 **返回值**：UI 元素对象，未找到时返回 None
 
-**别名**：`find_one()`
+**别名**：`findOne()`
 
 **示例**：
 ```python
@@ -698,7 +698,7 @@ if elem:
 
 ---
 
-### find_all(text, className, resourceId, description, packageName)
+### findAll(text, className, resourceId, description, packageName)
 
 **功能**：查找所有匹配的 UI 元素。
 
@@ -708,9 +708,9 @@ if elem:
 
 **示例**：
 ```python
-items = device.find_all(className="android.widget.TextView")
+items = device.findAll(className="android.widget.TextView")
 for item in items:
-    print(device.get_text(item))
+    print(device.getText(item))
 ```
 
 ---
@@ -771,7 +771,7 @@ if device.wait(text="设置", timeout=5):
 
 ---
 
-### click_text(text, timeout)
+### clickText(text, timeout)
 
 **功能**：点击包含指定文本的控件。
 
@@ -784,15 +784,15 @@ if device.wait(text="设置", timeout=5):
 
 ---
 
-### tap_text(text, timeout)
+### tapText(text, timeout)
 
 **功能**：点击指定文本控件。推荐 AI 生成任务使用。
 
-**参数**：同 `click_text()`
+**参数**：同 `clickText()`
 
 ---
 
-### tap_desc(description, timeout)
+### tapDesc(description, timeout)
 
 **功能**：点击指定 content-desc 描述的控件。
 
@@ -805,7 +805,7 @@ if device.wait(text="设置", timeout=5):
 
 ---
 
-### tap_id(resourceId, timeout)
+### tapId(resourceId, timeout)
 
 **功能**：点击指定 resource-id 的控件。
 
@@ -818,7 +818,7 @@ if device.wait(text="设置", timeout=5):
 
 ---
 
-### tap_exists(timeout, **selector)
+### tapExists(timeout, **selector)
 
 **功能**：元素存在则点击。
 
@@ -831,17 +831,17 @@ if device.wait(text="设置", timeout=5):
 
 **返回值**：bool — 是否已点击
 
-**别名**：`click_if_exists()`
+**别名**：`clickIfExists()`
 
 **示例**：
 ```python
-if device.tap_exists(text="允许", timeout=3):
+if device.tapExists(text="允许", timeout=3):
     print("已处理权限弹窗")
 ```
 
 ---
 
-### find_by_xpath(xpath)
+### findByXpath(xpath)
 
 **功能**：通过 XPath 查找 UI 元素。
 
@@ -855,14 +855,14 @@ if device.tap_exists(text="允许", timeout=3):
 
 **示例**：
 ```python
-elem = device.find_by_xpath("//android.widget.TextView[@text='设置']")
+elem = device.findByXpath("//android.widget.TextView[@text='设置']")
 ```
 
 ---
 
 ## 元素交互
 
-### click_element(element)
+### clickElement(element)
 
 **功能**：点击已获取的 UI 元素对象。
 
@@ -876,12 +876,12 @@ elem = device.find_by_xpath("//android.widget.TextView[@text='设置']")
 ```python
 elem = device.find(text="确定")
 if elem:
-    device.click_element(elem)
+    device.clickElement(elem)
 ```
 
 ---
 
-### click_center(element)
+### clickCenter(element)
 
 **功能**：点击 UI 元素的中心点。
 
@@ -893,7 +893,7 @@ if elem:
 
 ---
 
-### get_text(element)
+### getText(element)
 
 **功能**：获取 UI 元素的文本内容。
 
@@ -908,13 +908,13 @@ if elem:
 **示例**：
 ```python
 elem = device.find(className="android.widget.TextView")
-text = device.get_text(elem)
+text = device.getText(elem)
 print("元素文本:", text)
 ```
 
 ---
 
-### get_bounds(element)
+### getBounds(element)
 
 **功能**：获取 UI 元素的边界坐标。
 
@@ -928,7 +928,7 @@ print("元素文本:", text)
 
 **示例**：
 ```python
-bounds = device.get_bounds(elem)
+bounds = device.getBounds(elem)
 print(f"位置: {bounds}")
 ```
 
@@ -964,7 +964,7 @@ print(f"位置: {bounds}")
 
 ## 应用管理
 
-### app_start(package_name, activity)
+### appStart(package_name, activity)
 
 **功能**：启动应用。
 
@@ -977,12 +977,12 @@ print(f"位置: {bounds}")
 
 **示例**：
 ```python
-device.app_start("com.android.settings")
+device.appStart("com.android.settings")
 ```
 
 ---
 
-### app_stop(package_name)
+### appStop(package_name)
 
 **功能**：停止指定应用。
 
@@ -994,7 +994,7 @@ device.app_start("com.android.settings")
 
 ---
 
-### app_clear(package_name)
+### appClear(package_name)
 
 **功能**：清除应用数据（相当于「设置→应用→清除数据」）。
 
@@ -1006,7 +1006,7 @@ device.app_start("com.android.settings")
 
 ---
 
-### app_current()
+### appCurrent()
 
 **功能**：获取当前前台应用信息。
 
@@ -1016,14 +1016,14 @@ device.app_start("com.android.settings")
 
 **示例**：
 ```python
-info = device.app_current()
+info = device.appCurrent()
 print(f"当前应用: {info['package']}")
 print(f"当前 Activity: {info['activity']}")
 ```
 
 ---
 
-### app_list()
+### appList()
 
 **功能**：列出正在运行的应用包名列表。
 
@@ -1033,14 +1033,14 @@ print(f"当前 Activity: {info['activity']}")
 
 **示例**：
 ```python
-apps = device.app_list()
+apps = device.appList()
 for app in apps:
     print("运行中:", app)
 ```
 
 ---
 
-### app_install(url_or_path)
+### appInstall(url_or_path)
 
 **功能**：安装 APK。支持本地文件路径和远程 URL。
 
@@ -1052,7 +1052,7 @@ for app in apps:
 
 ---
 
-### app_uninstall(package_name)
+### appUninstall(package_name)
 
 **功能**：卸载指定应用。
 
@@ -1064,7 +1064,7 @@ for app in apps:
 
 ---
 
-### current_package()
+### currentPackage()
 
 **功能**：获取当前前台应用的包名。
 
@@ -1074,13 +1074,13 @@ for app in apps:
 
 **示例**：
 ```python
-pkg = device.current_package()
+pkg = device.currentPackage()
 print("当前包名:", pkg)
 ```
 
 ---
 
-### current_activity()
+### currentActivity()
 
 **功能**：获取当前前台 Activity 名称。
 
@@ -1090,7 +1090,7 @@ print("当前包名:", pkg)
 
 **示例**：
 ```python
-activity = device.current_activity()
+activity = device.currentActivity()
 print("当前 Activity:", activity)
 ```
 
@@ -1157,31 +1157,31 @@ device.press("enter")
 
 ---
 
-### press_home()
+### pressHome()
 
 **功能**：按 HOME 键的别名函数。
 
-### press_back()
+### pressBack()
 
 **功能**：按返回键的别名函数。
 
-### press_menu()
+### pressMenu()
 
 **功能**：按菜单键的别名函数。
 
-### press_recent()
+### pressRecent()
 
 **功能**：显示最近任务的别名函数。
 
-### press_power()
+### pressPower()
 
 **功能**：按电源键的别名函数。
 
-### press_enter()
+### pressEnter()
 
 **功能**：按回车键的别名函数。
 
-### press_del()
+### pressDel()
 
 **功能**：按删除键的别名函数。
 
@@ -1225,7 +1225,7 @@ print(f"屏幕分辨率: {w}x{h}")
 
 ---
 
-### is_screen_on()
+### isScreenOn()
 
 **功能**：判断屏幕是否亮着。
 
@@ -1235,7 +1235,7 @@ print(f"屏幕分辨率: {w}x{h}")
 
 ---
 
-### screen_on()
+### screenOn()
 
 **功能**：点亮屏幕。
 
@@ -1243,7 +1243,7 @@ print(f"屏幕分辨率: {w}x{h}")
 
 ---
 
-### screen_off()
+### screenOff()
 
 **功能**：熄灭屏幕。
 
@@ -1263,7 +1263,7 @@ print(f"屏幕分辨率: {w}x{h}")
 
 ## 设备信息
 
-### device_info()
+### deviceInfo()
 
 **功能**：获取完整的设备信息字典。
 
@@ -1283,7 +1283,7 @@ print(f"屏幕分辨率: {w}x{h}")
 
 ---
 
-### wlan_ip()
+### wlanIp()
 
 **功能**：获取设备 WLAN IP 地址。
 
@@ -1293,7 +1293,7 @@ print(f"屏幕分辨率: {w}x{h}")
 
 **示例**：
 ```python
-ip = device.wlan_ip()
+ip = device.wlanIp()
 print("设备 IP:", ip)
 ```
 
@@ -1316,7 +1316,7 @@ print(f"温度: {battery['temperature']}")
 
 ---
 
-### memory_info()
+### memoryInfo()
 
 **功能**：获取设备内存信息。
 
@@ -1326,7 +1326,7 @@ print(f"温度: {battery['temperature']}")
 
 ---
 
-### cpu_info()
+### cpuInfo()
 
 **功能**：获取设备 CPU 信息。
 
@@ -1338,7 +1338,7 @@ print(f"温度: {battery['temperature']}")
 
 ## 通知 & 快捷设置
 
-### open_notification()
+### openNotification()
 
 **功能**：打开通知栏。
 
@@ -1346,7 +1346,7 @@ print(f"温度: {battery['temperature']}")
 
 ---
 
-### open_quick_settings()
+### openQuickSettings()
 
 **功能**：打开快捷设置面板。
 
@@ -1356,7 +1356,7 @@ print(f"温度: {battery['temperature']}")
 
 ## 剪贴板
 
-### set_clipboard(text)
+### setClipboard(text)
 
 **功能**：设置设备剪贴板内容。
 
@@ -1368,7 +1368,7 @@ print(f"温度: {battery['temperature']}")
 
 ---
 
-### get_clipboard()
+### getClipboard()
 
 **功能**：获取设备剪贴板内容。
 
@@ -1378,7 +1378,7 @@ print(f"温度: {battery['temperature']}")
 
 **示例**：
 ```python
-text = device.get_clipboard()
+text = device.getClipboard()
 print("剪贴板:", text)
 ```
 
@@ -1386,7 +1386,7 @@ print("剪贴板:", text)
 
 ## 屏幕录制
 
-### start_screen_record(path)
+### startScreenRecord(path)
 
 **功能**：开始屏幕录制（保存到设备本地）。
 
@@ -1398,7 +1398,7 @@ print("剪贴板:", text)
 
 ---
 
-### stop_screen_record()
+### stopScreenRecord()
 
 **功能**：停止屏幕录制。
 
@@ -1410,7 +1410,7 @@ print("剪贴板:", text)
 
 ## 实用工具
 
-### open_url(url)
+### openUrl(url)
 
 **功能**：通过系统浏览器打开 URL。
 
@@ -1435,7 +1435,7 @@ print("剪贴板:", text)
 
 ---
 
-### set_fast_input_ime(enable)
+### setFastInputIme(enable)
 
 **功能**：启用/关闭快速输入法（绕过输入法直接填充文字，可大幅提升输入速度）。
 
@@ -1466,7 +1466,7 @@ la.sleep(1.5)    # 休眠 1.5 秒
 
 ---
 
-### wait_idle(timeout)
+### waitIdle(timeout)
 
 **功能**：等待设备空闲（无动画、无加载）。
 
@@ -1480,7 +1480,7 @@ la.sleep(1.5)    # 休眠 1.5 秒
 
 ---
 
-### wait_activity(activity, timeout)
+### waitActivity(activity, timeout)
 
 **功能**：等待指定 Activity 出现（支持正则匹配）。
 
@@ -1495,13 +1495,13 @@ la.sleep(1.5)    # 休眠 1.5 秒
 
 **示例**：
 ```python
-if device.wait_activity(r"\.Settings", timeout=5):
+if device.waitActivity(r"\.Settings", timeout=5):
     print("已进入设置界面")
 ```
 
 ---
 
-### wait_until(condition, timeout, interval)
+### waitUntil(condition, timeout, interval)
 
 **功能**：等待自定义条件成立。
 
@@ -1517,12 +1517,12 @@ if device.wait_activity(r"\.Settings", timeout=5):
 
 **示例**：
 ```python
-device.wait_until(lambda: device.exists(text="确定"), timeout=10)
+device.waitUntil(lambda: device.exists(text="确定"), timeout=10)
 ```
 
 ---
 
-### wait_until_gone(text, className, resourceId, description, timeout)
+### waitUntilGone(text, className, resourceId, description, timeout)
 
 **功能**：等待元素消失。
 
@@ -1537,7 +1537,7 @@ device.wait_until(lambda: device.exists(text="确定"), timeout=10)
 
 **示例**：
 ```python
-device.wait_until_gone(text="加载中", timeout=10)
+device.waitUntilGone(text="加载中", timeout=10)
 ```
 
 ---
@@ -1594,12 +1594,12 @@ device.home()
 la.sleep(1)
 
 # 打开设置应用
-device.app_start("com.android.settings")
+device.appStart("com.android.settings")
 
 # 等待元素出现
 if device.wait(text="设置", timeout=5):
     # 上滑
-    device.swipe_ext("up", scale=0.5)
+    device.swipeExt("up", scale=0.5)
     la.sleep(1)
 
     # 截图
@@ -1607,7 +1607,7 @@ if device.wait(text="设置", timeout=5):
     print(f"截图大小: {len(shot)} bytes")
 
     # 获取 UI 层次
-    xml = device.dump_hierarchy()
+    xml = device.dumpHierarchy()
     print(f"XML 长度: {len(xml)}")
 
 # 获取电池信息

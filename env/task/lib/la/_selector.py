@@ -118,7 +118,7 @@ def find(
     return elements[index] if index < count else None
 
 
-find_one = find
+findOne = find
 
 
 @_require_device
@@ -170,7 +170,7 @@ def wait(
 
 
 @_require_device
-def click_text(
+def clickText(
     text: str,
     *,
     timeout: float = 5,
@@ -183,42 +183,42 @@ def click_text(
     return _la_state._device(text=text).click_exists(timeout=timeout)
 
 
-def tap_text(text: str, *, timeout: float = 5) -> bool:
+def tapText(text: str, *, timeout: float = 5) -> bool:
     """点击指定文本元素."""
-    return click_text(text, timeout=timeout)
+    return clickText(text, timeout=timeout)
 
 
 @_require_device
-def tap_desc(description: str, *, timeout: float = 5) -> bool:
+def tapDesc(description: str, *, timeout: float = 5) -> bool:
     """点击指定 content-desc 元素."""
     return _la_state._device(description=description).click_exists(timeout=timeout)
 
 
 @_require_device
-def tap_id(resourceId: str, *, timeout: float = 5) -> bool:
+def tapId(resourceId: str, *, timeout: float = 5) -> bool:
     """点击指定 resource-id 元素."""
     return _la_state._device(resourceId=resourceId).click_exists(timeout=timeout)
 
 
 @_require_device
-def tap_exists(timeout: float = 5, **kwargs) -> bool:
+def tapExists(timeout: float = 5, **kwargs) -> bool:
     """如果元素存在则点击.
 
     Examples:
-        la.tap_exists(text="允许", timeout=3)
-        la.tap_exists(id="com.demo:id/submit")
-        la.tap_exists(desc="更多选项")
+        la.tapExists(text="允许", timeout=3)
+        la.tapExists(id="com.demo:id/submit")
+        la.tapExists(desc="更多选项")
     """
     return _normalize_selector_kwargs(kwargs) and _la_state._device(**_normalize_selector_kwargs(kwargs)).click_exists(timeout=timeout)
 
 
-def click_if_exists(timeout: float = 5, **kwargs) -> bool:
-    """tap_exists() 的语义化别名."""
-    return tap_exists(timeout=timeout, **kwargs)
+def clickIfExists(timeout: float = 5, **kwargs) -> bool:
+    """tapExists() 的语义化别名."""
+    return tapExists(timeout=timeout, **kwargs)
 
 
 @_require_device
-def find_all(
+def findAll(
     text: Optional[str] = None,
     *,
     className: Optional[str] = None,
@@ -267,21 +267,21 @@ def count(
 
 
 @_require_device
-def click_element(element: Any) -> None:
+def clickElement(element: Any) -> None:
     """点击一个已获取的 UI 元素对象.
 
     Args:
-        element: 由 find() / find_all() 返回的 UiObject
+        element: 由 find() / findAll() 返回的 UiObject
     """
     element.click()
 
 
 @_require_device
-def get_text(element: Any) -> str:
+def getText(element: Any) -> str:
     """获取 UI 元素的文本内容.
 
     Args:
-        element: 由 find() / find_all() 返回的 UiObject
+        element: 由 find() / findAll() 返回的 UiObject
 
     Returns:
         元素的 text 属性
@@ -290,11 +290,11 @@ def get_text(element: Any) -> str:
 
 
 @_require_device
-def get_bounds(element: Any) -> dict:
+def getBounds(element: Any) -> dict:
     """获取 UI 元素的边界坐标.
 
     Args:
-        element: 由 find() / find_all() 返回的 UiObject
+        element: 由 find() / findAll() 返回的 UiObject
 
     Returns:
         {"left": int, "top": int, "right": int, "bottom": int}
@@ -309,21 +309,21 @@ def info(element: Any) -> dict:
 
 def center(element: Any) -> Tuple[int, int]:
     """获取元素中心点坐标."""
-    bounds = get_bounds(element)
+    bounds = getBounds(element)
     return (
         int((bounds.get("left", 0) + bounds.get("right", 0)) / 2),
         int((bounds.get("top", 0) + bounds.get("bottom", 0)) / 2),
     )
 
 
-def click_center(element: Any) -> None:
+def clickCenter(element: Any) -> None:
     """点击元素中心点."""
     x, y = center(element)
     click(x, y)
 
 
 @_require_device
-def find_by_xpath(xpath: str) -> Optional[Any]:
+def findByXpath(xpath: str) -> Optional[Any]:
     """通过 XPath 查找 UI 元素.
 
     Args:
@@ -336,3 +336,18 @@ def find_by_xpath(xpath: str) -> Optional[Any]:
     if results is None:
         return None
     return results
+
+
+find_one = findOne
+find_all = findAll
+click_text = clickText
+tap_text = tapText
+tap_desc = tapDesc
+tap_id = tapId
+tap_exists = tapExists
+click_if_exists = clickIfExists
+find_by_xpath = findByXpath
+click_element = clickElement
+click_center = clickCenter
+get_text = getText
+get_bounds = getBounds

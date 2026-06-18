@@ -76,86 +76,86 @@ const LINKANDROID_TASK_API_PROMPT = [
     '===== 坐标点击/滑动 =====',
     'device.click(x, y)',
     'device.tap(x, y)             # click 别名',
-    'device.double_click(x, y)',
-    'device.long_click(x, y)',
+    'device.doubleClick(x, y)',
+    'device.longClick(x, y)',
     'device.swipe(fx, fy, tx, ty)',
-    'device.swipe_ext("up")       # down/left/right',
-    'device.swipe_to("up", text="设置")  # 滑动直到目标出现',
+    'device.swipeExt("up")       # down/left/right',
+    'device.swipeTo("up", text="设置")  # 滑动直到目标出现',
     'device.drag(fx, fy, tx, ty)',
     '',
     '===== 元素选择 =====',
     'device.selector(text="设置")                        # Selector 对象',
     'device.select(id="com.android.settings:id/search")  # selector 别名',
     'device.find(text="确定")                            # UIElement | None',
-    'device.find_all(text="确定", className="android.widget.Button")',
+    'device.findAll(text="确定", className="android.widget.Button")',
     'device.exists(text="确定")                          # bool',
     'device.count(text="确定")                           # int',
     'device.wait(text="确定", timeout=10)                # bool 等待元素出现',
     '',
     '===== 快捷点击 =====',
-    'device.tap_text("确定")              # 按 text 点击',
-    'device.tap_text("确定", timeout=5)   # 等待最多5秒后点击',
-    'device.tap_desc("更多", timeout=5)   # 按 content-desc 点击',
-    'device.tap_id("com.pkg:id/submit")   # 按 resource-id 点击',
-    'device.tap_exists(text="允许", timeout=3)            # 存在则点击, 返回 bool',
-    'device.click_if_exists(...)                         # tap_exists 别名',
+    'device.tapText("确定")              # 按 text 点击',
+    'device.tapText("确定", timeout=5)   # 等待最多5秒后点击',
+    'device.tapDesc("更多", timeout=5)   # 按 content-desc 点击',
+    'device.tapId("com.pkg:id/submit")   # 按 resource-id 点击',
+    'device.tapExists(text="允许", timeout=3)            # 存在则点击, 返回 bool',
+    'device.clickIfExists(...)                         # tapExists 别名',
     '',
     '===== 元素交互 =====',
-    'device.click_element(element)         # 点击元素对象',
-    'device.click_center(element)          # 点击元素中心',
-    'device.get_text(element)              # str 元素文本',
-    'device.get_bounds(element)            # dict {left, top, right, bottom}',
+    'device.clickElement(element)         # 点击元素对象',
+    'device.clickCenter(element)          # 点击元素中心',
+    'device.getText(element)              # str 元素文本',
+    'device.getBounds(element)            # dict {left, top, right, bottom}',
     'device.center(element)                # (x, y) 中心坐标',
     'device.info(element)                  # dict 元素全部属性',
     '',
     '===== 文字输入 =====',
-    'device.input_text("内容", clear=True)   # 先清除再输入',
+    'device.inputText("内容", clear=True)   # 先清除再输入',
     'device.text("内容")                     # 直接输入',
-    'device.clear_text()                     # 清除输入框',
-    'device.send_keys("内容")                # 逐字符发送',
+    'device.clearText()                     # 清除输入框',
+    'device.sendKeys("内容")                # 逐字符发送',
     '',
     '===== 截图和 XML =====',
     'device.screenshot("shot.png")          # 截图保存到文件',
-    'device.dump_hierarchy()                # str 当前界面 XML',
-    'device.dump_xml_to_file("ui.xml")      # 保存 XML 到文件',
+    'device.dumpHierarchy()                # str 当前界面 XML',
+    'device.dumpXmlToFile("ui.xml")      # 保存 XML 到文件',
     '',
     '===== 应用管理 =====',
-    'device.app_start("com.android.settings")',
-    'device.app_stop("com.android.settings")',
-    'device.app_clear("com.android.settings")',
-    'device.app_current()                    # {"package":"...", "activity":"..."}',
-    'device.app_list()                       # [str] 已安装应用包名列表',
-    'device.current_package()                # str 前台应用包名',
-    'device.current_activity()               # str 前台 Activity',
-    'device.app_install(url_or_path)',
-    'device.app_uninstall("com.pkg")',
+    'device.appStart("com.android.settings")',
+    'device.appStop("com.android.settings")',
+    'device.appClear("com.android.settings")',
+    'device.appCurrent()                    # {"package":"...", "activity":"..."}',
+    'device.appList()                       # [str] 已安装应用包名列表',
+    'device.currentPackage()                # str 前台应用包名',
+    'device.currentActivity()               # str 前台 Activity',
+    'device.appInstall(url_or_path)',
+    'device.appUninstall("com.pkg")',
     '',
     '===== 设备信息 =====',
     'device.width()      # int',
     'device.height()     # int',
     'device.size()       # (w, h)',
     'device.serial()     # str 序列号',
-    'device.wlan_ip()    # str WiFi IP',
+    'device.wlanIp()    # str WiFi IP',
     'device.battery()    # dict {level, temperature, status}',
     '',
     '===== 等待和休眠 =====',
     'device.wait(timeout=5)                            # 等待设备空闲',
     'device.wait(text="设置", timeout=10)              # 等待元素出现',
-    'device.wait_until(lambda: device.exists(text="x"), timeout=10)',
-    'device.wait_until_gone(text="加载中", timeout=10) # 等待元素消失',
-    'device.wait_activity(".Settings", timeout=10)     # bool',
+    'device.waitUntil(lambda: device.exists(text="x"), timeout=10)',
+    'device.waitUntilGone(text="加载中", timeout=10) # 等待元素消失',
+    'device.waitActivity(".Settings", timeout=10)     # bool',
     'la.sleep(1)                    # 线程休眠 1 秒',
     'la.util.sleep(1)',
     '',
     '===== 屏幕操作 =====',
-    'device.is_screen_on()    # bool',
-    'device.screen_on()       # 点亮屏幕',
-    'device.screen_off()      # 关闭屏幕',
+    'device.isScreenOn()    # bool',
+    'device.screenOn()       # 点亮屏幕',
+    'device.screenOff()      # 关闭屏幕',
     'device.unlock()          # 解锁',
     '',
     '===== 工具和网络 =====',
     'la.util.now()                                         # ISO 时间',
-    'la.util.json_loads(\'{"a":1}\') / la.util.json_dumps({"a":1})',
+    'la.util.jsonLoads(\'{"a":1}\') / la.util.jsonDumps({"a":1})',
     'la.util.retry(lambda: device.exists(text="确定"), times=3, interval=1)',
     'la.http.get("https://example.com", params={"k":"v"})',
     'la.http.post("https://example.com", json={"k":"v"})',
@@ -179,11 +179,11 @@ const LINKANDROID_TASK_API_PROMPT = [
     '===== 🔥 完整示例 1：遍历应用列表，按名称查找并打开 =====',
     'import la',
     'device = la.device()',
-    'apps = device.app_list()',
+    'apps = device.appList()',
     'found = False',
     'for pkg in apps:',
     '    if "相册" in pkg or "gallery" in pkg or "照片" in pkg:',
-    '        device.app_start(pkg)',
+    '        device.appStart(pkg)',
     '        print("opened: " + pkg)',
     '        found = True',
     '        break',
@@ -193,21 +193,21 @@ const LINKANDROID_TASK_API_PROMPT = [
     '===== 🔥 完整示例 2：在当前界面查找文字并点击 =====',
     'import la',
     'device = la.device()',
-    'xml = device.dump_hierarchy()',
+    'xml = device.dumpHierarchy()',
     'if device.exists(text="确定"):',
-    '    device.tap_text("确定")',
+    '    device.tapText("确定")',
     '    print("clicked 确定")',
     'elif device.exists(text="取消"):',
-    '    device.tap_text("取消")',
+    '    device.tapText("取消")',
     'else:',
     '    print("no dialog found")',
     '',
     '===== 🔥 完整示例 3：滑动列表直到找到目标 =====',
     'import la',
     'device = la.device()',
-    'found = device.swipe_to("up", text="蓝牙")',
+    'found = device.swipeTo("up", text="蓝牙")',
     'if found:',
-    '    device.tap_text("蓝牙")',
+    '    device.tapText("蓝牙")',
     '    print("bluetooth clicked")',
     'else:',
     '    device.back()',
@@ -218,7 +218,7 @@ const LINKANDROID_TASK_API_PROMPT = [
     'device = la.device()',
     'if device.wait(text="进度", timeout=5):',
     '    elem = device.find(text="进度")',
-    '    val = device.get_text(elem)',
+    '    val = device.getText(elem)',
     '    print("progress=" + val)',
     '',
     '===== 🔥 完整示例 5：列出当前界面所有可点击的文字/图标按钮，然后点击指定项 =====',
@@ -226,7 +226,7 @@ const LINKANDROID_TASK_API_PROMPT = [
     'import re',
     'device = la.device()',
     'device.home()',
-    'xml = device.dump_hierarchy()',
+    'xml = device.dumpHierarchy()',
     '# 提取所有可点击且有 text 的节点',
     'buttons = re.findall(r\'text="([^"]+)"[^>]*clickable="true"\', xml)',
     'if not buttons:',
@@ -236,7 +236,7 @@ const LINKANDROID_TASK_API_PROMPT = [
     'buttons = sorted(set(b for b in buttons if b.strip()))',
     'print("all_buttons=" + ", ".join(buttons))',
     'if "相册" in buttons:',
-    '    device.tap_text("相册")',
+    '    device.tapText("相册")',
     '    print("clicked 相册")',
     'else:',
     '    print("相册 not found")',
@@ -246,16 +246,16 @@ const LINKANDROID_TASK_API_PROMPT = [
     'import re',
     'device = la.device()',
     '# 查找应用商店包名',
-    'apps = device.app_list()',
+    'apps = device.appList()',
     'store_pkg = None',
     'for pkg in apps:',
     '    if "market" in pkg or "store" in pkg or "应用商店" in pkg:',
     '        store_pkg = pkg',
     '        break',
     'if store_pkg:',
-    '    device.app_start(store_pkg)',
+    '    device.appStart(store_pkg)',
     '    la.sleep(3)',
-    '    xml = device.dump_hierarchy()',
+    '    xml = device.dumpHierarchy()',
     '    texts = re.findall(r\'text="([^"]+)"\', xml)',
     '    texts = sorted(set(t for t in texts if t.strip()))',
     '    print("recommended_apps=" + ", ".join(texts))',
@@ -271,7 +271,7 @@ const LINKANDROID_TASK_API_PROMPT = [
     '6. 异常处理用 except Exception as e',
     '7. 必须返回完整可运行任务，不要引用未定义的 helper',
     '8. ⚠️ 代码必须始终以 `import la` 开头，紧接着写 `device = la.device()`。禁止省略。',
-    '9. ⚠️ 当用户要求"列出""显示""获取当前页面所有/有哪些"图标、按钮、文字时，必须用 `device.dump_hierarchy()` 动态解析 XML 提取 text/content-desc，禁止硬编码列表。',
+    '9. ⚠️ 当用户要求"列出""显示""获取当前页面所有/有哪些"图标、按钮、文字时，必须用 `device.dumpHierarchy()` 动态解析 XML 提取 text/content-desc，禁止硬编码列表。',
 ].join('\n')
 
 const modelOptions = computed<ModelOption[]>(() => {
@@ -408,13 +408,13 @@ const validateGeneratedTaskCode = (code: string) => {
         errors.push('代码包含不可用或禁止的 API')
     }
     const controlPatterns = [
-        /\b(?:device|la)\.(?:home|back|menu|recent|power|press|screen_on|screen_off|unlock)\s*\(/,
-        /\b(?:device|la)\.(?:click|tap|double_click|long_click|swipe|swipe_ext|swipe_to|drag)\s*\(/,
-        /\b(?:device|la)\.(?:tap_text|tap_desc|tap_id|tap_exists|click_text|click_if_exists)\s*\(/,
-        /\b(?:device|la)\.(?:app_start|app_stop|input_text|text|clear_text|send_keys)\s*\(/,
+        /\b(?:device|la)\.(?:home|back|menu|recent|power|press|screenOn|screenOff|unlock)\s*\(/,
+        /\b(?:device|la)\.(?:click|tap|doubleClick|longClick|swipe|swipeExt|swipeTo|drag)\s*\(/,
+        /\b(?:device|la)\.(?:tapText|tapDesc|tapId|tapExists|clickText|clickIfExists)\s*\(/,
+        /\b(?:device|la)\.(?:appStart|appStop|inputText|text|clearText|sendKeys)\s*\(/,
     ]
     if (!controlPatterns.some((pattern) => pattern.test(code))) {
-        errors.push('代码必须包含至少一个真实手机控制动作，例如 device.home()、device.tap_text() 或 device.app_start()')
+        errors.push('代码必须包含至少一个真实手机控制动作，例如 device.home()、device.tapText() 或 device.appStart()')
     }
     return errors
 }
@@ -423,17 +423,15 @@ const validateTaskCodeByRequirement = (code: string, requirement: string) => {
     const errors = validateGeneratedTaskCode(code)
     const countMatches = (patterns: RegExp[]) => patterns.filter((pattern) => pattern.test(code)).length
     if (/列出|显示|获取|枚举/.test(requirement) && /图标|按钮|文字|当前界面|首页/.test(requirement)) {
-        if (!/\b(?:device|la)\.(?:dump_hierarchy|find_all)\s*\(/.test(code)) {
-            errors.push(
-                '涉及当前界面图标/按钮/文字时，必须用 device.dump_hierarchy() 或 device.find_all() 动态读取界面',
-            )
+        if (!/\b(?:device|la)\.(?:dumpHierarchy|findAll)\s*\(/.test(code)) {
+            errors.push('涉及当前界面图标/按钮/文字时，必须用 device.dumpHierarchy() 或 device.findAll() 动态读取界面')
         }
     }
-    if (/应用列表|所有应用|app_list/.test(requirement) && !/\b(?:device|la)\.app_list\s*\(/.test(code)) {
-        errors.push('涉及应用列表时必须调用 device.app_list() 或 la.app_list()')
+    if (/应用列表|所有应用|appList/.test(requirement) && !/\b(?:device|la)\.appList\s*\(/.test(code)) {
+        errors.push('涉及应用列表时必须调用 device.appList() 或 la.appList()')
     }
-    if (/应用清单|应用列表|有哪些应用|手机里.*应用/.test(requirement) && !/\b(?:device|la)\.app_list\s*\(/.test(code)) {
-        errors.push('涉及手机应用清单时必须调用 device.app_list()')
+    if (/应用清单|应用列表|有哪些应用|手机里.*应用/.test(requirement) && !/\b(?:device|la)\.appList\s*\(/.test(code)) {
+        errors.push('涉及手机应用清单时必须调用 device.appList()')
     }
     if (/序列号|屏幕尺寸|电量|当前应用|设备状态/.test(requirement)) {
         const infoCount = countMatches([
@@ -441,9 +439,9 @@ const validateTaskCodeByRequirement = (code: string, requirement: string) => {
             /\b(?:device|la)\.width\s*\(/,
             /\b(?:device|la)\.height\s*\(/,
             /\b(?:device|la)\.battery\s*\(/,
-            /\b(?:device|la)\.app_current\s*\(/,
-            /\b(?:device|la)\.current_package\s*\(/,
-            /\b(?:device|la)\.current_activity\s*\(/,
+            /\b(?:device|la)\.appCurrent\s*\(/,
+            /\b(?:device|la)\.currentPackage\s*\(/,
+            /\b(?:device|la)\.currentActivity\s*\(/,
         ])
         if (infoCount < 4) {
             errors.push('设备状态任务必须读取序列号、屏幕尺寸、电量和当前应用等真实设备信息')
@@ -451,28 +449,28 @@ const validateTaskCodeByRequirement = (code: string, requirement: string) => {
     }
     if (/体检|品牌|型号|系统版本|内存/.test(requirement)) {
         const diagnoseCount = countMatches([
-            /\b(?:device|la)\.device_info\s*\(/,
+            /\b(?:device|la)\.deviceInfo\s*\(/,
             /\b(?:device|la)\.battery\s*\(/,
-            /\b(?:device|la)\.memory_info\s*\(/,
-            /\b(?:device|la)\.cpu_info\s*\(/,
+            /\b(?:device|la)\.memoryInfo\s*\(/,
+            /\b(?:device|la)\.cpuInfo\s*\(/,
             /\b(?:device|la)\.serial\s*\(/,
-            /\b(?:device|la)\.wlan_ip\s*\(/,
+            /\b(?:device|la)\.wlanIp\s*\(/,
         ])
         if (diagnoseCount < 3) {
-            errors.push('设备体检任务必须读取 device_info、battery、memory_info 等诊断信息')
+            errors.push('设备体检任务必须读取 deviceInfo、battery、memoryInfo 等诊断信息')
         }
     }
-    if (/相册|图库|照片/.test(requirement) && !/\b(?:device|la)\.(?:tap_text|tap_exists|app_start)\s*\(/.test(code)) {
-        errors.push('涉及打开相册时必须调用 device.tap_text/device.tap_exists/device.app_start 等真实操作')
+    if (/相册|图库|照片/.test(requirement) && !/\b(?:device|la)\.(?:tapText|tapExists|appStart)\s*\(/.test(code)) {
+        errors.push('涉及打开相册时必须调用 device.tapText/device.tapExists/device.appStart 等真实操作')
     }
     if (/相册|图库|照片/.test(requirement) && !/(相册|图库|照片|gallery|album)/i.test(code)) {
         errors.push('涉及打开相册时，代码必须明确定位相册/图库/照片或 gallery/album 应用')
     }
     if (/应用商店|应用市场|商店/.test(requirement)) {
-        if (!/\b(?:device|la)\.(?:dump_hierarchy|find_all)\s*\(/.test(code)) {
+        if (!/\b(?:device|la)\.(?:dumpHierarchy|findAll)\s*\(/.test(code)) {
             errors.push('应用商店任务必须打开后读取页面 XML 或控件内容')
         }
-        if (!/\b(?:device|la)\.(?:tap_text|tap_exists|app_start)\s*\(/.test(code)) {
+        if (!/\b(?:device|la)\.(?:tapText|tapExists|appStart)\s*\(/.test(code)) {
             errors.push('应用商店任务必须包含打开商店的真实操作')
         }
     }
@@ -497,7 +495,7 @@ const buildRequirementFallbackTaskCode = (requirement: string) => {
             'opened = False',
             'for name in ["应用商店", "应用市场", "商店", "应用商城"]:',
             '    try:',
-            '        if device.tap_text(name, timeout=3):',
+            '        if device.tapText(name, timeout=3):',
             '            print("store_opened=" + name)',
             '            opened = True',
             '            break',
@@ -506,7 +504,7 @@ const buildRequirementFallbackTaskCode = (requirement: string) => {
             'if not opened:',
             '    print("store_opened=false")',
             'la.sleep(2)',
-            'xml = device.dump_hierarchy()',
+            'xml = device.dumpHierarchy()',
             'texts = re.findall(r\'(?:text|content-desc)="([^"]+)"\', xml)',
             'for item in texts[:30]:',
             '    item = item.strip()',
@@ -521,14 +519,14 @@ const buildRequirementFallbackTaskCode = (requirement: string) => {
             'import re',
             '',
             'device.home()',
-            'xml = device.dump_hierarchy()',
+            'xml = device.dumpHierarchy()',
             'texts = re.findall(r\'(?:text|content-desc)="([^"]+)"\', xml)',
             'for item in texts:',
             '    item = item.strip()',
             '    if item:',
             '        print("icon_text=" + item)',
             'try:',
-            '    print("gallery_tap=" + str(device.tap_text("相册", timeout=3)))',
+            '    print("gallery_tap=" + str(device.tapText("相册", timeout=3)))',
             'except Exception as e:',
             '    print("gallery_tap_error=" + str(e))',
         ].join('\n')
@@ -539,13 +537,13 @@ const buildRequirementFallbackTaskCode = (requirement: string) => {
             'device = la.device()',
             '',
             'device.home()',
-            'info = device.device_info()',
+            'info = device.deviceInfo()',
             'print("brand=" + str(info.get("brand", "")))',
             'print("model=" + str(info.get("model", "")))',
             'print("android_version=" + str(info.get("version", info.get("android_version", ""))))',
             'battery = device.battery()',
             'print("battery_level=" + str(battery.get("level", "")))',
-            'memory = device.memory_info()',
+            'memory = device.memoryInfo()',
             'print("memory_total=" + str(memory.get("total", "")))',
             'print("serial=" + str(device.serial()))',
         ].join('\n')
@@ -561,9 +559,9 @@ const buildRequirementFallbackTaskCode = (requirement: string) => {
             'print("height=" + str(device.height()))',
             'battery = device.battery()',
             'print("battery_level=" + str(battery.get("level", "")))',
-            'current = device.app_current()',
-            'print("current_package=" + str(current.get("package", "")))',
-            'print("current_activity=" + str(current.get("activity", "")))',
+            'current = device.appCurrent()',
+            'print("currentPackage=" + str(current.get("package", "")))',
+            'print("currentActivity=" + str(current.get("activity", "")))',
         ].join('\n')
     }
     if (hasGallery || wantsAppList) {
@@ -572,20 +570,20 @@ const buildRequirementFallbackTaskCode = (requirement: string) => {
             'device = la.device()',
             '',
             'device.home()',
-            'apps = device.app_list()',
+            'apps = device.appList()',
             'print("app_count=" + str(len(apps)))',
             'for pkg in apps[:50]:',
             '    print("app_pkg=" + str(pkg))',
             ...(hasGallery
                 ? [
                       'try:',
-                      '    print("gallery_tap=" + str(device.tap_text("相册", timeout=3)))',
+                      '    print("gallery_tap=" + str(device.tapText("相册", timeout=3)))',
                       'except Exception as e:',
                       '    print("gallery_tap_error=" + str(e))',
                   ]
                 : [
                       'try:',
-                      '    print("settings_tap=" + str(device.tap_text("设置", timeout=3)))',
+                      '    print("settings_tap=" + str(device.tapText("设置", timeout=3)))',
                       'except Exception as e:',
                       '    print("settings_tap_error=" + str(e))',
                   ]),
@@ -640,6 +638,8 @@ const buildUserContent = (text: string, xmlInfo: string, screenshot: string) => 
                 '=== 开发约束 ===',
                 '用户需求可能是自然表达，你需要自行推导合适的 la API、界面观察步骤和输出内容。',
                 '不要要求用户提供 API 名称、输出格式或测试标记。',
+                '',
+                '⚠️ 重点：必须基于"当前任务代码"修改，保留已有操作步骤，在此基础上调整和扩展。禁止丢弃当前代码重写。',
             ].join('\n'),
         },
     ]
@@ -678,9 +678,9 @@ const buildDeviceContextScript = (prompt: string, xmlInfo: string, hasScreenshot
         `SCREENSHOT_INCLUDED = ${hasScreenshot ? 'True' : 'False'}`,
         `XML_PREVIEW = '''${pythonString(xmlPreview)}'''`,
         '',
-        'device.screen_on()',
+        'device.screenOn()',
         'device.home()',
-        'xml = device.dump_hierarchy()',
+        'xml = device.dumpHierarchy()',
         'shot_path = tempfile.mktemp(suffix=".png")',
         'device.screenshot(shot_path)',
         'print("xml automation context ok")',
@@ -760,6 +760,31 @@ const doSend = async () => {
     await sendPrompt(inputText.value)
 }
 
+const getDeviceBasicInfo = async () => {
+    try {
+        const controller = await runTaskPythonCode(
+            [
+                'import la',
+                'device = la.device()',
+                'print("serial=" + str(device.serial()))',
+                'print("currentPackage=" + str(device.currentPackage()))',
+                'print("currentActivity=" + str(device.currentActivity()))',
+                'current = device.appCurrent()',
+                'print("appCurrentPackage=" + str(current.get("package", "")))',
+                'print("appCurrentActivity=" + str(current.get("activity", "")))',
+                'print("screen_width=" + str(device.width()))',
+                'print("screen_height=" + str(device.height()))',
+                'battery = device.battery()',
+                'print("battery_level=" + str(battery.get("level", "")))',
+            ].join('\n'),
+            props.selectedDeviceId,
+        )
+        return await controller.result()
+    } catch (e: any) {
+        return `获取手机基本信息失败：${e.message || e}`
+    }
+}
+
 const sendPrompt = async (input: string, displayInput?: string) => {
     const text = input.trim()
     if (!text || loading.value) return
@@ -793,11 +818,14 @@ const sendPrompt = async (input: string, displayInput?: string) => {
         debugLog('XmlReady', {xmlLength: xmlInfo.length, duration: Date.now() - startedAt})
         const screenshot = await getScreenshot()
         debugLog('ScreenshotReady', {hasScreenshot: !!screenshot, duration: Date.now() - startedAt})
+        const deviceBasicInfo = await getDeviceBasicInfo()
+        debugLog('DeviceBasicInfoReady', {infoLength: deviceBasicInfo.length, duration: Date.now() - startedAt})
         const result = await runTaskCodeAgentCore({
             providerId,
             modelId,
             requirement: text,
             currentCode: props.currentCode,
+            deviceBasicInfo,
             xmlInfo,
             screenshot,
             selectedDeviceId: props.selectedDeviceId,
@@ -841,10 +869,10 @@ const sendPrompt = async (input: string, displayInput?: string) => {
     }
 }
 
-const doNewSession = () => {
+const doClearDialog = () => {
     messages.value = []
     inputText.value = ''
-    Dialog.tipSuccess(t('task.chatNewSessionDone'))
+    Dialog.tipSuccess(t('task.chatClearDialogDone'))
 }
 
 const doSubmitAsk = async (msg: ChatMessage) => {
@@ -858,7 +886,7 @@ const doSubmitAsk = async (msg: ChatMessage) => {
     await sendPrompt(prompt, answer)
 }
 
-const doSaveSessionLog = async () => {
+const doCopyDialogLog = async () => {
     const data = {
         timestamp: new Date().toISOString(),
         messageCount: messages.value.length,
@@ -869,12 +897,12 @@ const doSaveSessionLog = async () => {
         })),
     }
     try {
-        const filePath = await window.$mapi.file.temp('json', 'chat-session-')
+        const filePath = await window.$mapi.file.temp('json', 'chat-dialog-')
         await window.$mapi.file.write(filePath, JSON.stringify(data, null, 2), {isDataPath: false})
         await window.$mapi.app.setClipboardText(filePath)
         Dialog.tipSuccess(t('task.chatLogPathCopied'))
     } catch (e: any) {
-        Dialog.tipError(`保存会话日志失败: ${e.message || e}`)
+        Dialog.tipError(`复制对话日志失败: ${e.message || e}`)
     }
 }
 
@@ -925,8 +953,8 @@ defineExpose({
     clearMessages: () => {
         messages.value = []
     },
-    doNewSession,
-    doSaveSessionLog,
+    doClearDialog,
+    doCopyDialogLog,
 })
 
 const onPreviewConfirm = (code: string) => {
@@ -1119,13 +1147,13 @@ const onPreviewConfirm = (code: string) => {
                         <template #icon><i-lucide-ellipsis-vertical /></template>
                     </a-button>
                     <template #content>
-                        <a-doption @click="doNewSession">
-                            <template #icon><i-lucide-plus /></template>
-                            {{ $t('task.chatNewSession') }}
+                        <a-doption @click="doClearDialog">
+                            <template #icon><i-lucide-trash-2 /></template>
+                            {{ $t('task.chatClearDialog') }}
                         </a-doption>
-                        <a-doption @click="doSaveSessionLog">
+                        <a-doption @click="doCopyDialogLog">
                             <template #icon><i-lucide-file-text /></template>
-                            {{ $t('task.chatSessionLog') }}
+                            {{ $t('task.chatDialogLog') }}
                         </a-doption>
                     </template>
                 </a-dropdown>

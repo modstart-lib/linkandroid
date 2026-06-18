@@ -86,7 +86,7 @@ export const runTaskPythonCode = async (
 
 export const collectDeviceXmlByLa = async (deviceId: string) => {
     const controller = await runTaskPythonCode(
-        ['import sys', 'import la', 'la.connect()', 'sys.stdout.write(la.dump_hierarchy())'].join('\n'),
+        ['import sys', 'import la', 'la.connect()', 'sys.stdout.write(la.dumpHierarchy())'].join('\n'),
         deviceId,
     )
     return await controller.result()

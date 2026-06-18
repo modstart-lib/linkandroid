@@ -57,7 +57,7 @@ def raw() -> u2.Device:
     用于 LinkAndroid 便捷封装未覆盖的场景:
         d = la.raw()
         d(text="设置").click()
-        print(d.app_current())
+        print(d.appCurrent())
     """
     if _la_state._device is None:
         connect(_active_device_id())
