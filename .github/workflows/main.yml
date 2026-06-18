@@ -215,6 +215,29 @@ jobs:
         run: |
           Get-ChildItem code\dist-release\LinkAndroidPro-* | Rename-Item -NewName { $_.Name -replace 'LinkAndroidPro-','LinkAndroid-' }
 
+      - name: Upload Artifact (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linkandroid-win-${{ matrix.arch }}
+          path: code/dist-release/*.exe
+
+      - name: Upload Artifact (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linkandroid-mac-${{ matrix.arch }}
+          path: code/dist-release/*.dmg
+
+      - name: Upload Artifact (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linkandroid-linux-${{ matrix.arch }}
+          path: |
+            code/dist-release/*.AppImage
+            code/dist-release/*.deb
+
       - name: Upload
         if: github.event_name == 'workflow_dispatch'
         uses: modstart/github-oss-action@master
@@ -232,26 +255,51 @@ jobs:
               code/dist-release/*.AppImage:apps/{random}.bin:{name}
               code/dist-release/*.deb:apps/{random}.bin:{name}
 
-      - name: Release Assets
-        if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
+  # ── Snapshot Release (vsnapshot) ───────────────────────────────────────────────
+  vsnapshot-release:
+    name: Snapshot Release
+    needs: [build]
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
         with:
-          draft: true
-          prerelease: false
-          fail_on_unmatched_files: false
-          overwrite_files: true
-          files: |
-            code/dist-release/*.exe
-            code/dist-release/*.dmg
-            code/dist-release/*.AppImage
-            code/dist-release/*.deb
+          path: _artifacts
+          merge-multiple: false
+      - name: Upload to Snapshot Release (with overwrite)
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Ensure vsnapshot release exists (create if not)
+          gh release create vsnapshot \
+            --title "Snapshot" \
+            --notes "Latest build from main branch" \
+            --prerelease \
+            2>/dev/null || true
+          # Copy artifacts to temp dir with version number stripped from filenames
+          tmpdir=$(mktemp -d)
+          echo "=== Downloaded artifacts ==="
+          find _artifacts/ -type f -print
+          echo "=== Cleaning filenames ==="
+          find _artifacts/ -type f | while read f; do
+            base=$(basename "$f")
+            clean=$(echo "$base" | sed -E 's/-v?[0-9]+\.[0-9]+\.[0-9]+//')
+            cp "$f" "$tmpdir/$clean"
+            echo "Staged: $base -> $clean"
+          done
+          echo "=== Uploading to vsnapshot ==="
+          for f in "$tmpdir"/*; do
+            echo "Uploading: $(basename "$f")"
+            gh release upload vsnapshot "$f" --clobber
+          done
+          rm -rf "$tmpdir"
 
   # ── Notify ────────────────────────────────────────────────────────────────────
   notify:
     name: Notify
-    needs: [build]
+    needs: [build, vsnapshot-release]
     if: success()
     runs-on: ubuntu-latest
     steps:
