@@ -19,6 +19,9 @@ jobs:
               - name: linux-arm64
                 os: ubuntu-24.04-arm
                 arch: arm64
+              - name: mac-x64
+                os: macos-latest
+                arch: x64
               - name: mac-arm64
                 os: macos-latest
                 arch: arm64
@@ -133,21 +136,11 @@ jobs:
         env:
             DEBUG: "electron-notarize:*"
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            TARGET_ARCH: ${{ matrix.arch == 'x64' && 'x64' || '' }}
             APPLE_ID: ${{ secrets.APPLE_ID }}
             APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
             APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
             APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-
-      - name: Rename output files (Linux/macOS)
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-        run: |
-            find dist-release/ -type f -name 'LinkAndroidPro-*' -exec bash -c 'f="{}"; mv "$f" "${f/LinkAndroidPro-/LinkAndroid-}"' \;
-
-      - name: Rename output files (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-            Get-ChildItem dist-release\LinkAndroidPro-* | Rename-Item -NewName { $_.Name -replace 'LinkAndroidPro-','LinkAndroid-' }
 
       - name: Upload Artifact Windows
         if: runner.os == 'Windows'

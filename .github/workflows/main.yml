@@ -20,6 +20,9 @@ jobs:
           - name: linux-arm64
             os: ubuntu-24.04-arm
             arch: arm64
+          - name: mac-x64
+            os: macos-latest
+            arch: x64
           - name: mac-arm64
             os: macos-latest
             arch: arm64
@@ -160,6 +163,7 @@ jobs:
         env:
           DEBUG: "electron-notarize:*"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_ARCH: ${{ matrix.arch == 'x64' && 'x64' || '' }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
@@ -182,11 +186,6 @@ jobs:
           Write-Host "::add-mask::$DIST_FILE_NAME"
           echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
 
-      - name: Rename output files (Linux/macOS)
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-        run: |
-          find code/dist-release/ -type f -name 'LinkAndroidPro-*' -exec bash -c 'f="{}"; mv "$f" "${f/LinkAndroidPro-/LinkAndroid-}"' \;
-
       - name: Upload Sourcemaps
         if: runner.os == 'Linux'
         working-directory: code
@@ -208,12 +207,6 @@ jobs:
             echo "  response: ${RESP}"
           done
           echo "Sourcemap upload done."
-
-      - name: Rename output files (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Get-ChildItem code\dist-release\LinkAndroidPro-* | Rename-Item -NewName { $_.Name -replace 'LinkAndroidPro-','LinkAndroid-' }
 
       - name: Upload Artifact (Windows)
         if: runner.os == 'Windows'
@@ -278,14 +271,17 @@ jobs:
             --notes "Latest build from main branch" \
             --prerelease \
             2>/dev/null || true
-          # Copy artifacts to temp dir with version number stripped from filenames
+          # Copy artifacts to temp dir with pre-release tag stripped from version
           tmpdir=$(mktemp -d)
           echo "=== Downloaded artifacts ==="
           find _artifacts/ -type f -print
           echo "=== Cleaning filenames ==="
+          # Strip pre-release suffix (e.g. 2.0.0-beta -> 2.0.0)
+          FULL_VERSION=$(node -p "require('./package.json').version")
+          CLEAN_VERSION=$(node -p "require('./package.json').version.replace(/-[a-zA-Z][a-zA-Z0-9.]*$/, '')")
           find _artifacts/ -type f | while read f; do
             base=$(basename "$f")
-            clean=$(echo "$base" | sed -E 's/-v?[0-9]+\.[0-9]+\.[0-9]+//')
+            clean=$(echo "$base" | sed "s/$FULL_VERSION/$CLEAN_VERSION/")
             cp "$f" "$tmpdir/$clean"
             echo "Staged: $base -> $clean"
           done

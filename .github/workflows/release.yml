@@ -19,6 +19,9 @@ jobs:
               - name: linux-arm64
                 os: ubuntu-24.04-arm
                 arch: arm64
+              - name: mac-x64
+                os: macos-latest
+                arch: x64
               - name: mac-arm64
                 os: macos-latest
                 arch: arm64
@@ -133,6 +136,7 @@ jobs:
         env:
             DEBUG: "electron-notarize:*"
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            TARGET_ARCH: ${{ matrix.arch == 'x64' && 'x64' || '' }}
             APPLE_ID: ${{ secrets.APPLE_ID }}
             APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
             APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
@@ -155,10 +159,67 @@ jobs:
             Write-Host "::add-mask::$DIST_FILE_NAME"
             echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
 
+      - name: Upload Artifact (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linkandroid-win-${{ matrix.arch }}
+          path: dist-release/*.exe
+
+      - name: Upload Artifact (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linkandroid-mac-${{ matrix.arch }}
+          path: dist-release/*.dmg
+
+      - name: Upload Artifact (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linkandroid-linux-${{ matrix.arch }}
+          path: |
+            dist-release/*.AppImage
+            dist-release/*.deb
+
+  # ── Release ────────────────────────────────────────────────────────────────────
+  release:
+    name: Create Release
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: _artifacts
+          merge-multiple: false
+      - name: Create Release and Upload Assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          # Create release (draft, idempotent)
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --draft \
+            --prerelease=false \
+            --notes "" \
+            2>/dev/null || true
+          # Upload all artifacts (with pre-release tag stripped from version)
+          FULL_VERSION=$(node -p "require('./package.json').version")
+          CLEAN_VERSION=$(node -p "require('./package.json').version.replace(/-[a-zA-Z][a-zA-Z0-9.]*$/, '')")
+          find _artifacts/ -type f | while read f; do
+            base=$(basename "$f")
+            clean=$(echo "$base" | sed "s/$FULL_VERSION/$CLEAN_VERSION/")
+            echo "Uploading: $clean"
+            gh release upload "$TAG" "$f" --clobber
+          done
+
   # ── Notify ────────────────────────────────────────────────────────────────────
   notify:
     name: Notify
-    needs: [build]
+    needs: [release]
     if: success()
     runs-on: ubuntu-latest
     steps:
