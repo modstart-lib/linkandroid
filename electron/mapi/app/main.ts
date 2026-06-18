@@ -435,6 +435,12 @@ ipcMain.handle('app:ensureAienv', async () => {
         return {ok: true}
     }
 
+    // In packaged mode, the app bundle is read-only and the Python env must be pre-bundled.
+    // If _aienv is missing, the build is corrupted — don't attempt to run the init script.
+    if (!isDev) {
+        return {ok: false, error: 'Python 运行环境未找到，应用程序已损坏，请重新安装'}
+    }
+
     const scriptPath = resolve(basePath, 'env/task', scriptName)
     if (!existsSync(scriptPath)) {
         return {ok: false, error: `初始化脚本未找到: ${scriptPath}`}

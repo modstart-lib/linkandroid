@@ -1,9 +1,5 @@
-<script setup lang="ts">
-import {useModelStore} from './store/model'
-import {computed, ref} from 'vue'
-import {getModelLogo} from './models'
-
-type ModelRecord = {
+<script lang="ts">
+export interface ModelRecord {
     providerId: string
     providerTitle: string
     modelId: string
@@ -14,54 +10,69 @@ type ModelRecord = {
         tools?: boolean
     }
 }
+</script>
+
+<script setup lang="ts">
+import {useModelStore} from './store/model'
+import {computed} from 'vue'
+import {getModelLogo} from './models'
+
+const props = withDefaults(
+    defineProps<{
+        modelValue?: string
+        filter?: (model: ModelRecord) => boolean
+    }>(),
+    {
+        modelValue: '',
+    },
+)
+
+const emit = defineEmits<{
+    'update:modelValue': [value: string]
+}>()
+
 const model = useModelStore()
+
 const availableModels = computed(() => {
     const models: ModelRecord[] = []
     for (const p of model.providers) {
-        if (!p.data.enabled) {
-            continue
-        }
+        if (!p.data.enabled) continue
         for (const m of p.data.models) {
-            if (!m.enabled) {
-                continue
-            }
-            models.push({
+            if (!m.enabled) continue
+            const record: ModelRecord = {
                 providerId: p.id,
                 providerTitle: p.title,
                 modelId: m.id,
                 modelName: m.label || m.name,
                 rate: m.rate,
                 caps: m.caps,
-            } as ModelRecord)
+            }
+            if (props.filter && !props.filter(record)) continue
+            models.push(record)
         }
     }
     return models
 })
-const select = ref<any>(null)
+
+const localValue = computed({
+    get: () => props.modelValue,
+    set: (val) => emit('update:modelValue', val),
+})
+
 const selectedProvider = computed(() => {
-    if (select.value?.modelValue) {
-        const [providerId, modelId] = select.value.modelValue.split('|')
-        for (const p of model.providers) {
-            if (p.id === providerId) {
-                return p
-            }
-        }
-    } else {
-        return null
-    }
+    if (!props.modelValue) return null
+    const [providerId] = props.modelValue.split('|')
+    return model.providers.find((p) => p.id === providerId) || null
 })
+
 const selectedModel = computed(() => {
-    const [providerId, modelId] = select.value.modelValue.split('|')
-    if (!selectedProvider.value) {
-        return null
-    }
-    for (const m of selectedProvider.value.data.models) {
-        if (m.id === modelId) {
-            return m
-        }
-    }
-    return null
+    if (!props.modelValue) return null
+    const [providerId, modelId] = props.modelValue.split('|')
+    const provider = model.providers.find((p) => p.id === providerId)
+    if (!provider) return null
+    return provider.data.models.find((m) => m.id === modelId) || null
 })
+
 defineExpose({
     getInfo: () => {
         return {
@@ -74,7 +85,7 @@ defineExpose({
 </script>
 
 <template>
-    <a-select ref="select" style="min-width: 200px; width: auto" :placeholder="$t('model.select')">
+    <a-select v-model="localValue" style="min-width: 200px; width: auto" :placeholder="$t('model.select')">
         <template #label>
             <div class="flex items-center justify-between w-full" v-if="selectedProvider && selectedModel">
                 <div class="flex items-center">

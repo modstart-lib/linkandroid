@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import {computed, nextTick, onMounted, ref} from 'vue'
+import {nextTick, onMounted, ref} from 'vue'
 import {t} from '../../lang'
 import {Dialog} from '../../lib/dialog'
 import {useModelStore} from '../../module/Model/store/model'
-import {getModelLogo} from '../../module/Model/models'
+import ModelSelector from '../../module/Model/ModelSelector.vue'
 import {StorageUtil} from '../../lib/storage'
 import TaskUpdatePreviewDialog from './TaskUpdatePreviewDialog.vue'
 import {collectDeviceScreenshotByLa, collectDeviceXmlByLa, runTaskPythonCode} from './TaskRuntime'
 import {runTaskCodeAgent as runTaskCodeAgentCore} from './TaskCodeAgent'
+import {LINKANDROID_TASK_API_PROMPT} from './TaskChatPrompt'
+import {
+    normalizeGeneratedTaskCode,
+    validateTaskCodeByRequirement,
+    buildRequirementFallbackTaskCode,
+    extractTargetsFromXml,
+    formatUiTargets,
+    pythonString,
+} from './TaskChatUtils'
 
 const props = defineProps<{
     currentCode: string
@@ -46,294 +55,35 @@ const modelStore = useModelStore()
 const selectedModel = ref<string>('')
 const bizKey = 'task.chat'
 
-type ModelOption = {
-    value: string
-    label: string
-    modelId: string
-    providerId: string
-    providerTitle: string
-    caps?: {vision?: boolean; tools?: boolean}
-}
-
-const LINKANDROID_TASK_API_PROMPT = [
-    '===== 运行环境 =====',
-    '- 必须 import la（不是 import linkandroid！），默认第一步写 device = la.device()',
-    '- 只能用 la 库 API，禁止使用 phone_screen、adb、subprocess、os.system、Selenium、Appium、Playwright',
-    '- 输出用 Python 内置 print()，不要用 la.print()（la 没有 print API）',
-    '- 默认单设备，不要默认同步操作多台手机',
-    '',
-    '===== 基础结构 =====',
-    'import la',
-    'device = la.device()         # 单设备代理（推荐）',
-    '# device.raw() 获取原生 uiautomator2 Device',
-    '',
-    '===== 按键 =====',
-    'device.home()',
-    'device.back()',
-    'device.menu() / device.recent() / device.power()',
-    'device.press("home") / press("back") / press("enter") / press("delete") / press("search") / press("volume_up")',
-    '',
-    '===== 坐标点击/滑动 =====',
-    'device.click(x, y)',
-    'device.tap(x, y)             # click 别名',
-    'device.doubleClick(x, y)',
-    'device.longClick(x, y)',
-    'device.swipe(fx, fy, tx, ty)',
-    'device.swipeExt("up")       # down/left/right',
-    'device.swipeTo("up", text="设置")  # 滑动直到目标出现',
-    'device.drag(fx, fy, tx, ty)',
-    '',
-    '===== 元素选择 =====',
-    'device.selector(text="设置")                        # Selector 对象',
-    'device.select(id="com.android.settings:id/search")  # selector 别名',
-    'device.find(text="确定")                            # UIElement | None',
-    'device.findAll(text="确定", className="android.widget.Button")',
-    'device.exists(text="确定")                          # bool',
-    'device.count(text="确定")                           # int',
-    'device.wait(text="确定", timeout=10)                # bool 等待元素出现',
-    '',
-    '===== 快捷点击 =====',
-    'device.tapText("确定")              # 按 text 点击',
-    'device.tapText("确定", timeout=5)   # 等待最多5秒后点击',
-    'device.tapDesc("更多", timeout=5)   # 按 content-desc 点击',
-    'device.tapId("com.pkg:id/submit")   # 按 resource-id 点击',
-    'device.tapExists(text="允许", timeout=3)            # 存在则点击, 返回 bool',
-    'device.clickIfExists(...)                         # tapExists 别名',
-    '',
-    '===== 元素交互 =====',
-    'device.clickElement(element)         # 点击元素对象',
-    'device.clickCenter(element)          # 点击元素中心',
-    'device.getText(element)              # str 元素文本',
-    'device.getBounds(element)            # dict {left, top, right, bottom}',
-    'device.center(element)                # (x, y) 中心坐标',
-    'device.info(element)                  # dict 元素全部属性',
-    '',
-    '===== 文字输入 =====',
-    'device.inputText("内容", clear=True)   # 先清除再输入',
-    'device.text("内容")                     # 直接输入',
-    'device.clearText()                     # 清除输入框',
-    'device.sendKeys("内容")                # 逐字符发送',
-    '',
-    '===== 截图和 XML =====',
-    'device.screenshot("shot.png")          # 截图保存到文件',
-    'device.dumpHierarchy()                # str 当前界面 XML',
-    'device.dumpXmlToFile("ui.xml")      # 保存 XML 到文件',
-    '',
-    '===== 应用管理 =====',
-    'device.appStart("com.android.settings")',
-    'device.appStop("com.android.settings")',
-    'device.appClear("com.android.settings")',
-    'device.appCurrent()                    # {"package":"...", "activity":"..."}',
-    'device.appList()                       # [str] 已安装应用包名列表',
-    'device.currentPackage()                # str 前台应用包名',
-    'device.currentActivity()               # str 前台 Activity',
-    'device.appInstall(url_or_path)',
-    'device.appUninstall("com.pkg")',
-    '',
-    '===== 设备信息 =====',
-    'device.width()      # int',
-    'device.height()     # int',
-    'device.size()       # (w, h)',
-    'device.serial()     # str 序列号',
-    'device.wlanIp()    # str WiFi IP',
-    'device.battery()    # dict {level, temperature, status}',
-    '',
-    '===== 等待和休眠 =====',
-    'device.wait(timeout=5)                            # 等待设备空闲',
-    'device.wait(text="设置", timeout=10)              # 等待元素出现',
-    'device.waitUntil(lambda: device.exists(text="x"), timeout=10)',
-    'device.waitUntilGone(text="加载中", timeout=10) # 等待元素消失',
-    'device.waitActivity(".Settings", timeout=10)     # bool',
-    'la.sleep(1)                    # 线程休眠 1 秒',
-    'la.util.sleep(1)',
-    '',
-    '===== 屏幕操作 =====',
-    'device.isScreenOn()    # bool',
-    'device.screenOn()       # 点亮屏幕',
-    'device.screenOff()      # 关闭屏幕',
-    'device.unlock()          # 解锁',
-    '',
-    '===== 工具和网络 =====',
-    'la.util.now()                                         # ISO 时间',
-    'la.util.jsonLoads(\'{"a":1}\') / la.util.jsonDumps({"a":1})',
-    'la.util.retry(lambda: device.exists(text="确定"), times=3, interval=1)',
-    'la.http.get("https://example.com", params={"k":"v"})',
-    'la.http.post("https://example.com", json={"k":"v"})',
-    'la.http.request("GET", url, **kwargs)',
-    'la.http.json("POST", url, json={"k":"v"})            # 返回 dict',
-    '',
-    '===== 多设备 =====',
-    'devices = la.devices()',
-    'la.multi.click(devices, x, y)',
-    'la.multi.back(devices)',
-    'for ds in devices:',
-    '    print(ds.serial())',
-    '    ds.click(x, y)',
-    '',
-    '===== 原生 uiautomator2 出口 =====',
-    'd = device.raw()  # 或 d = la.raw()',
-    'd(text="设置").click()',
-    'd(resourceId="pkg:id/name").exists',
-    'd.xpath("//android.widget.TextView").all()',
-    '',
-    '===== 🔥 完整示例 1：遍历应用列表，按名称查找并打开 =====',
-    'import la',
-    'device = la.device()',
-    'apps = device.appList()',
-    'found = False',
-    'for pkg in apps:',
-    '    if "相册" in pkg or "gallery" in pkg or "照片" in pkg:',
-    '        device.appStart(pkg)',
-    '        print("opened: " + pkg)',
-    '        found = True',
-    '        break',
-    'if not found:',
-    '    print("no gallery app found")',
-    '',
-    '===== 🔥 完整示例 2：在当前界面查找文字并点击 =====',
-    'import la',
-    'device = la.device()',
-    'xml = device.dumpHierarchy()',
-    'if device.exists(text="确定"):',
-    '    device.tapText("确定")',
-    '    print("clicked 确定")',
-    'elif device.exists(text="取消"):',
-    '    device.tapText("取消")',
-    'else:',
-    '    print("no dialog found")',
-    '',
-    '===== 🔥 完整示例 3：滑动列表直到找到目标 =====',
-    'import la',
-    'device = la.device()',
-    'found = device.swipeTo("up", text="蓝牙")',
-    'if found:',
-    '    device.tapText("蓝牙")',
-    '    print("bluetooth clicked")',
-    'else:',
-    '    device.back()',
-    '    print("not found, went back")',
-    '',
-    '===== 🔥 完整示例 4：等待元素出现后读取文本 =====',
-    'import la',
-    'device = la.device()',
-    'if device.wait(text="进度", timeout=5):',
-    '    elem = device.find(text="进度")',
-    '    val = device.getText(elem)',
-    '    print("progress=" + val)',
-    '',
-    '===== 🔥 完整示例 5：列出当前界面所有可点击的文字/图标按钮，然后点击指定项 =====',
-    'import la',
-    'import re',
-    'device = la.device()',
-    'device.home()',
-    'xml = device.dumpHierarchy()',
-    '# 提取所有可点击且有 text 的节点',
-    'buttons = re.findall(r\'text="([^"]+)"[^>]*clickable="true"\', xml)',
-    'if not buttons:',
-    '    # 降级：提取所有有 text 的节点',
-    '    buttons = re.findall(r\'text="([^"]+)"\', xml)',
-    '# 去重并过滤空文本',
-    'buttons = sorted(set(b for b in buttons if b.strip()))',
-    'print("all_buttons=" + ", ".join(buttons))',
-    'if "相册" in buttons:',
-    '    device.tapText("相册")',
-    '    print("clicked 相册")',
-    'else:',
-    '    print("相册 not found")',
-    '',
-    '===== 🔥 完整示例 6：打开指定应用后读取界面内容 =====',
-    'import la',
-    'import re',
-    'device = la.device()',
-    '# 查找应用商店包名',
-    'apps = device.appList()',
-    'store_pkg = None',
-    'for pkg in apps:',
-    '    if "market" in pkg or "store" in pkg or "应用商店" in pkg:',
-    '        store_pkg = pkg',
-    '        break',
-    'if store_pkg:',
-    '    device.appStart(store_pkg)',
-    '    la.sleep(3)',
-    '    xml = device.dumpHierarchy()',
-    '    texts = re.findall(r\'text="([^"]+)"\', xml)',
-    '    texts = sorted(set(t for t in texts if t.strip()))',
-    '    print("recommended_apps=" + ", ".join(texts))',
-    'else:',
-    '    print("app_store not found")',
-    '',
-    '===== 硬性规则 =====',
-    '1. 用户明确要求的 API 调用、固定打印文本、验证步骤必须逐字实现',
-    '2. XML 和截图只能作为定位参考，不能替换或改变用户任务',
-    '3. 必须基于当前任务代码修改（不是重写），保留原有结构和功能的基础上调整',
-    '4. 禁止自创 API：不能使用 la.print()、device.print()、phone_screen.click、device.find_element、driver 等不存在的 API',
-    '5. Python 标准输出只能用内置 print()，不存在 la.print()、device.print() 等 API',
-    '6. 异常处理用 except Exception as e',
-    '7. 必须返回完整可运行任务，不要引用未定义的 helper',
-    '8. ⚠️ 代码必须始终以 `import la` 开头，紧接着写 `device = la.device()`。禁止省略。',
-    '9. ⚠️ 当用户要求"列出""显示""获取当前页面所有/有哪些"图标、按钮、文字时，必须用 `device.dumpHierarchy()` 动态解析 XML 提取 text/content-desc，禁止硬编码列表。',
-].join('\n')
-
-const modelOptions = computed<ModelOption[]>(() => {
-    const options: ModelOption[] = []
-    for (const p of modelStore.providers) {
-        if (p.id === 'buildIn') {
-            // 官方模型始终显示在下拉列表中
-            for (const m of p.data.models) {
-                options.push({
-                    value: `${p.id}|${m.id}`,
-                    label: `${p.title} / ${m.label || m.name}`,
-                    modelId: m.id,
-                    providerId: p.id,
-                    providerTitle: p.title,
-                    caps: m.caps,
-                })
-            }
-        } else {
-            if (!p.data.enabled) continue
-            if (!p.apiUrl && !p.data.apiHost) continue
-            for (const m of p.data.models) {
-                if (!m.enabled) continue
-                if (!m.caps?.vision) continue
-                options.push({
-                    value: `${p.id}|${m.id}`,
-                    label: `${p.title} / ${m.label || m.name}`,
-                    modelId: m.id,
-                    providerId: p.id,
-                    providerTitle: p.title,
-                    caps: m.caps,
-                })
+const resolveTestModelValue = (model: string) => {
+    const findModel = (value: string) => {
+        const [providerId, modelId] = value.split('|')
+        for (const p of modelStore.providers) {
+            if (p.id === providerId && p.data.enabled) {
+                const m = p.data.models.find((x) => x.id === modelId)
+                if (m?.enabled) return {value}
             }
         }
+        return null
     }
-    return options
-})
-
-const selectedOption = computed(() => {
-    return modelOptions.value.find((o) => o.value === selectedModel.value) || null
-})
-
-const resolveTestModelValue = (model: string) => {
     if (model === 'llmpx/default') {
-        return (
-            modelOptions.value.find((option) => option.value === 'buildIn|default') ||
-            modelOptions.value.find(
-                (option) =>
-                    option.modelId === 'default' &&
-                    (option.providerId === 'llmpx' || /llmpx|官方/i.test(option.providerTitle)),
-            ) ||
-            null
-        )
+        const target = findModel('buildIn|default')
+        if (target) return target
+        for (const p of modelStore.providers) {
+            if (p.id === 'buildIn' || /llmpx|官方/i.test(p.title)) {
+                const m = p.data.models.find((x) => x.id === 'default')
+                if (m?.enabled) return {value: `${p.id}|${m.id}`}
+            }
+        }
+        return null
     }
-    return modelOptions.value.find((option) => option.value === model.replace('/', '|')) || null
+    return findModel(model.replace('/', '|'))
 }
 
 onMounted(() => {
     const saved = StorageUtil.get(`ModelGenerator.${bizKey}`, '')
-    if (saved && modelOptions.value.some((o) => o.value === saved)) {
+    if (saved) {
         selectedModel.value = saved
-    } else if (modelOptions.value.length > 0) {
-        selectedModel.value = modelOptions.value[0].value
     }
 })
 
@@ -370,227 +120,8 @@ const parseToolArgs = (value: string) => {
     }
 }
 
-const normalizeGeneratedTaskCode = (code: string) => {
-    let value = (code || '').trim()
-    const blockMatch = value.match(/```(?:python)?\s*([\s\S]*?)```/i)
-    if (blockMatch) {
-        value = blockMatch[1].trim()
-    }
-    value = value.replace(/^\s*#!.*\n/, '').trim()
-    const lines = value.split(/\r?\n/)
-    const firstImportIndex = lines.findIndex((line) => line.trim() === 'import la')
-    if (firstImportIndex > 0) {
-        value = lines.slice(firstImportIndex).join('\n').trim()
-    }
-    return value
-}
-
-const validateGeneratedTaskCode = (code: string) => {
-    const errors: string[] = []
-    const trimmed = code.trim()
-    const significantLines = trimmed
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter((line) => line && !line.startsWith('#'))
-    if (significantLines[0] !== 'import la') {
-        errors.push('代码必须以 import la 开头')
-    }
-    if (significantLines[1] !== 'device = la.device()') {
-        errors.push('import la 后必须紧接 device = la.device()')
-    }
-    const forbiddenPatterns = [
-        /import\s+linkandroid/,
-        /\b(?:la|device)\.print\s*\(/,
-        /\b(?:adb|subprocess|os\.system|phone_screen|webdriver|Appium|Playwright)\b/i,
-        /\b(?:driver|find_element)\s*\(/,
-    ]
-    if (forbiddenPatterns.some((pattern) => pattern.test(code))) {
-        errors.push('代码包含不可用或禁止的 API')
-    }
-    const controlPatterns = [
-        /\b(?:device|la)\.(?:home|back|menu|recent|power|press|screenOn|screenOff|unlock)\s*\(/,
-        /\b(?:device|la)\.(?:click|tap|doubleClick|longClick|swipe|swipeExt|swipeTo|drag)\s*\(/,
-        /\b(?:device|la)\.(?:tapText|tapDesc|tapId|tapExists|clickText|clickIfExists)\s*\(/,
-        /\b(?:device|la)\.(?:appStart|appStop|inputText|text|clearText|sendKeys)\s*\(/,
-    ]
-    if (!controlPatterns.some((pattern) => pattern.test(code))) {
-        errors.push('代码必须包含至少一个真实手机控制动作，例如 device.home()、device.tapText() 或 device.appStart()')
-    }
-    return errors
-}
-
-const validateTaskCodeByRequirement = (code: string, requirement: string) => {
-    const errors = validateGeneratedTaskCode(code)
-    const countMatches = (patterns: RegExp[]) => patterns.filter((pattern) => pattern.test(code)).length
-    if (/列出|显示|获取|枚举/.test(requirement) && /图标|按钮|文字|当前界面|首页/.test(requirement)) {
-        if (!/\b(?:device|la)\.(?:dumpHierarchy|findAll)\s*\(/.test(code)) {
-            errors.push('涉及当前界面图标/按钮/文字时，必须用 device.dumpHierarchy() 或 device.findAll() 动态读取界面')
-        }
-    }
-    if (/应用列表|所有应用|appList/.test(requirement) && !/\b(?:device|la)\.appList\s*\(/.test(code)) {
-        errors.push('涉及应用列表时必须调用 device.appList() 或 la.appList()')
-    }
-    if (/应用清单|应用列表|有哪些应用|手机里.*应用/.test(requirement) && !/\b(?:device|la)\.appList\s*\(/.test(code)) {
-        errors.push('涉及手机应用清单时必须调用 device.appList()')
-    }
-    if (/序列号|屏幕尺寸|电量|当前应用|设备状态/.test(requirement)) {
-        const infoCount = countMatches([
-            /\b(?:device|la)\.serial\s*\(/,
-            /\b(?:device|la)\.width\s*\(/,
-            /\b(?:device|la)\.height\s*\(/,
-            /\b(?:device|la)\.battery\s*\(/,
-            /\b(?:device|la)\.appCurrent\s*\(/,
-            /\b(?:device|la)\.currentPackage\s*\(/,
-            /\b(?:device|la)\.currentActivity\s*\(/,
-        ])
-        if (infoCount < 4) {
-            errors.push('设备状态任务必须读取序列号、屏幕尺寸、电量和当前应用等真实设备信息')
-        }
-    }
-    if (/体检|品牌|型号|系统版本|内存/.test(requirement)) {
-        const diagnoseCount = countMatches([
-            /\b(?:device|la)\.deviceInfo\s*\(/,
-            /\b(?:device|la)\.battery\s*\(/,
-            /\b(?:device|la)\.memoryInfo\s*\(/,
-            /\b(?:device|la)\.cpuInfo\s*\(/,
-            /\b(?:device|la)\.serial\s*\(/,
-            /\b(?:device|la)\.wlanIp\s*\(/,
-        ])
-        if (diagnoseCount < 3) {
-            errors.push('设备体检任务必须读取 deviceInfo、battery、memoryInfo 等诊断信息')
-        }
-    }
-    if (/相册|图库|照片/.test(requirement) && !/\b(?:device|la)\.(?:tapText|tapExists|appStart)\s*\(/.test(code)) {
-        errors.push('涉及打开相册时必须调用 device.tapText/device.tapExists/device.appStart 等真实操作')
-    }
-    if (/相册|图库|照片/.test(requirement) && !/(相册|图库|照片|gallery|album)/i.test(code)) {
-        errors.push('涉及打开相册时，代码必须明确定位相册/图库/照片或 gallery/album 应用')
-    }
-    if (/应用商店|应用市场|商店/.test(requirement)) {
-        if (!/\b(?:device|la)\.(?:dumpHierarchy|findAll)\s*\(/.test(code)) {
-            errors.push('应用商店任务必须打开后读取页面 XML 或控件内容')
-        }
-        if (!/\b(?:device|la)\.(?:tapText|tapExists|appStart)\s*\(/.test(code)) {
-            errors.push('应用商店任务必须包含打开商店的真实操作')
-        }
-    }
-    return errors
-}
-
-const buildRequirementFallbackTaskCode = (requirement: string) => {
-    const text = requirement.trim()
-    const hasGallery = /相册|图库|照片/.test(text)
-    const hasStore = /应用商店|应用市场|商店/.test(text)
-    const wantsIcons = /图标|按钮|文字|当前.*桌面|首页/.test(text)
-    const wantsAppList = /应用清单|应用列表|有哪些应用|手机里.*应用/.test(text)
-    const wantsDiagnose = /体检|品牌|型号|系统版本|内存/.test(text)
-    const wantsDeviceInfo = /序列号|屏幕尺寸|电量|当前应用|设备状态/.test(text)
-    if (hasStore) {
-        return [
-            'import la',
-            'device = la.device()',
-            'import re',
-            '',
-            'device.home()',
-            'opened = False',
-            'for name in ["应用商店", "应用市场", "商店", "应用商城"]:',
-            '    try:',
-            '        if device.tapText(name, timeout=3):',
-            '            print("store_opened=" + name)',
-            '            opened = True',
-            '            break',
-            '    except Exception as e:',
-            '        print("store_tap_error=" + name + ":" + str(e))',
-            'if not opened:',
-            '    print("store_opened=false")',
-            'la.sleep(2)',
-            'xml = device.dumpHierarchy()',
-            'texts = re.findall(r\'(?:text|content-desc)="([^"]+)"\', xml)',
-            'for item in texts[:30]:',
-            '    item = item.strip()',
-            '    if item:',
-            '        print("store_text=" + item)',
-        ].join('\n')
-    }
-    if (hasGallery && wantsIcons) {
-        return [
-            'import la',
-            'device = la.device()',
-            'import re',
-            '',
-            'device.home()',
-            'xml = device.dumpHierarchy()',
-            'texts = re.findall(r\'(?:text|content-desc)="([^"]+)"\', xml)',
-            'for item in texts:',
-            '    item = item.strip()',
-            '    if item:',
-            '        print("icon_text=" + item)',
-            'try:',
-            '    print("gallery_tap=" + str(device.tapText("相册", timeout=3)))',
-            'except Exception as e:',
-            '    print("gallery_tap_error=" + str(e))',
-        ].join('\n')
-    }
-    if (wantsDiagnose) {
-        return [
-            'import la',
-            'device = la.device()',
-            '',
-            'device.home()',
-            'info = device.deviceInfo()',
-            'print("brand=" + str(info.get("brand", "")))',
-            'print("model=" + str(info.get("model", "")))',
-            'print("android_version=" + str(info.get("version", info.get("android_version", ""))))',
-            'battery = device.battery()',
-            'print("battery_level=" + str(battery.get("level", "")))',
-            'memory = device.memoryInfo()',
-            'print("memory_total=" + str(memory.get("total", "")))',
-            'print("serial=" + str(device.serial()))',
-        ].join('\n')
-    }
-    if (wantsDeviceInfo) {
-        return [
-            'import la',
-            'device = la.device()',
-            '',
-            'device.home()',
-            'print("serial=" + str(device.serial()))',
-            'print("width=" + str(device.width()))',
-            'print("height=" + str(device.height()))',
-            'battery = device.battery()',
-            'print("battery_level=" + str(battery.get("level", "")))',
-            'current = device.appCurrent()',
-            'print("currentPackage=" + str(current.get("package", "")))',
-            'print("currentActivity=" + str(current.get("activity", "")))',
-        ].join('\n')
-    }
-    if (hasGallery || wantsAppList) {
-        return [
-            'import la',
-            'device = la.device()',
-            '',
-            'device.home()',
-            'apps = device.appList()',
-            'print("app_count=" + str(len(apps)))',
-            'for pkg in apps[:50]:',
-            '    print("app_pkg=" + str(pkg))',
-            ...(hasGallery
-                ? [
-                      'try:',
-                      '    print("gallery_tap=" + str(device.tapText("相册", timeout=3)))',
-                      'except Exception as e:',
-                      '    print("gallery_tap_error=" + str(e))',
-                  ]
-                : [
-                      'try:',
-                      '    print("settings_tap=" + str(device.tapText("设置", timeout=3)))',
-                      'except Exception as e:',
-                      '    print("settings_tap_error=" + str(e))',
-                  ]),
-        ].join('\n')
-    }
-    return ''
-}
+// normalizeGeneratedTaskCode, validateGeneratedTaskCode, validateTaskCodeByRequirement,
+// buildRequirementFallbackTaskCode have been moved to TaskChatUtils.ts
 
 const getXmlInfo = async () => {
     if (!props.selectedDeviceId) {
@@ -661,10 +192,6 @@ const buildUserContent = (text: string, xmlInfo: string, screenshot: string) => 
     return content
 }
 
-const pythonString = (value: string) => {
-    return value.replace(/\\/g, '\\\\').replace(/'''/g, "\\'\\'\\'")
-}
-
 const buildDeviceContextScript = (prompt: string, xmlInfo: string, hasScreenshot: boolean) => {
     const xmlPreview = xmlInfo.slice(0, 1200)
     return [
@@ -696,64 +223,6 @@ const buildDeviceContextScript = (prompt: string, xmlInfo: string, hasScreenshot
         'else:',
         '    print("first_target=none")',
     ].join('\n')
-}
-
-const formatUiTargets = (targets: any[]) => {
-    if (targets.length === 0) {
-        return '无匹配控件'
-    }
-    return targets
-        .map((item, index) => {
-            return [
-                `${index + 1}.`,
-                item.text ? `text="${item.text}"` : '',
-                item.contentDesc ? `desc="${item.contentDesc}"` : '',
-                item.resourceId ? `id="${item.resourceId}"` : '',
-                item.className ? `class="${item.className}"` : '',
-                item.clickable ? `clickable=${item.clickable}` : '',
-                item.bounds ? `bounds=${item.bounds}` : '',
-                `center=(${item.centerX},${item.centerY})`,
-            ]
-                .filter(Boolean)
-                .join(' ')
-        })
-        .join('\n')
-}
-
-const extractTargetsFromXml = (xml: string, keyword = '', maxItems = 30) => {
-    const documentXml = new DOMParser().parseFromString(xml, 'text/xml')
-    const nodes = Array.from(documentXml.querySelectorAll('*'))
-    const target = keyword.trim().toLowerCase()
-    return nodes
-        .map((el) => {
-            const bounds = el.getAttribute('bounds') || ''
-            const match = bounds.match(/\[(\d+),(\d+)]\[(\d+),(\d+)]/)
-            if (!match) return null
-            const text = el.getAttribute('text') || ''
-            const contentDesc = el.getAttribute('content-desc') || ''
-            const resourceId = el.getAttribute('resource-id') || ''
-            const className = el.getAttribute('class') || ''
-            const clickable = el.getAttribute('clickable') || ''
-            const haystack = `${text} ${contentDesc} ${resourceId}`.toLowerCase()
-            if (target && !haystack.includes(target)) return null
-            if (!text && !contentDesc && !resourceId) return null
-            const x1 = Number(match[1])
-            const y1 = Number(match[2])
-            const x2 = Number(match[3])
-            const y2 = Number(match[4])
-            return {
-                text,
-                contentDesc,
-                resourceId,
-                className,
-                clickable,
-                bounds,
-                centerX: Math.floor((x1 + x2) / 2),
-                centerY: Math.floor((y1 + y2) / 2),
-            }
-        })
-        .filter(Boolean)
-        .slice(0, Math.max(1, Math.min(Number(maxItems) || 30, 80)))
 }
 
 const doSend = async () => {
@@ -1111,33 +580,9 @@ const onPreviewConfirm = (code: string) => {
                 @keydown.enter.exact.prevent="doSend"
             />
             <div class="flex items-center gap-2">
-                <a-select v-model="selectedModel" class="flex-1" :placeholder="$t('model.select')">
-                    <template #label>
-                        <div class="flex items-center" v-if="selectedOption">
-                            <a-avatar
-                                :image-url="getModelLogo(selectedOption.modelId)"
-                                :size="18"
-                                shape="square"
-                                class="mr-1 shrink-0"
-                                style="border: 1px solid #ccc"
-                            />
-                            <span class="truncate">{{ selectedOption.label }}</span>
-                        </div>
-                        <span v-else>{{ $t('model.select') }}</span>
-                    </template>
-                    <a-option v-for="opt in modelOptions" :key="opt.value" :value="opt.value">
-                        <div class="flex items-center gap-1">
-                            <a-avatar
-                                :image-url="getModelLogo(opt.modelId)"
-                                :size="18"
-                                shape="square"
-                                class="shrink-0"
-                                style="border: 1px solid #ccc"
-                            />
-                            <span class="truncate">{{ opt.label }}</span>
-                        </div>
-                    </a-option>
-                </a-select>
+                <div class="flex-1">
+                    <ModelSelector v-model="selectedModel" :filter="(m) => m.caps?.vision" />
+                </div>
                 <a-button type="primary" :loading="loading" @click="doSend" class="shrink-0">
                     <template #icon><i-lucide-message-square /></template>
                     {{ $t('task.chatSend') }}

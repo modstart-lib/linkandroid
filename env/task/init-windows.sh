@@ -47,7 +47,7 @@ if [ -d "$VENV_DIR" ]; then
   echo "[INFO] 虚拟环境已存在: ${VENV_DIR}"
 else
   echo "[INFO] 创建虚拟环境..."
-  "$PYTHON" -m venv "$VENV_DIR"
+  "$PYTHON" -m venv --copies "$VENV_DIR"
 fi
 
 # ---- 检测 venv 中 python 可执行文件路径 ----
