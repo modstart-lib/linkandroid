@@ -11,6 +11,7 @@ export function mapError(msg: unknown) {
         RequestError: t('error.requestError'),
         'Could not find any ADB device': t('error.adbDeviceNotFound'),
         DeviceNotConnected: t('device.notConnected'),
+        'Python.framework': t('error.pythonFrameworkMissing'),
     }
     for (let key in map) {
         if (msg.includes(key)) {

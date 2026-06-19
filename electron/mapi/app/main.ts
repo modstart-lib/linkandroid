@@ -1,4 +1,5 @@
 import {app, BrowserWindow, clipboard, ipcMain, nativeImage, nativeTheme, screen, shell} from 'electron'
+import {execSync} from 'node:child_process'
 import {existsSync} from 'node:fs'
 import {resolve} from 'node:path'
 import {AppConfig} from '../../../src/config'
@@ -432,6 +433,20 @@ ipcMain.handle('app:ensureAienv', async () => {
 
     const pythonPath = resolve(basePath, 'env/task', pythonRel)
     if (existsSync(pythonPath)) {
+        // Verify Python binary is actually runnable (not a broken framework build)
+        try {
+            execSync(`"${pythonPath}" --version`, {timeout: 5000, stdio: 'pipe'})
+        } catch (e: any) {
+            const stderr = (e.stderr && e.stderr.toString().trim()) || e.message || 'unknown error'
+            // Detect framework dependency issue
+            if (stderr.includes('Library not loaded') && stderr.includes('Python.framework')) {
+                return {
+                    ok: false,
+                    error: 'Python 运行环境框架缺失（Python.framework 未找到），请重新安装应用',
+                }
+            }
+            return {ok: false, error: `Python 运行环境异常: ${stderr}`}
+        }
         return {ok: true}
     }
 

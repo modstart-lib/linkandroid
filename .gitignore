@@ -55,6 +55,7 @@ test-results/
 /DEV_BACKUP.md
 
 __pycache__/
+/env/task/_cache/
 
 
 /storage/screenshot/image/

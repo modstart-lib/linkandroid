@@ -360,6 +360,7 @@ const messages: Messages = {
     'error.fileSizeExceedMax': '上传文件大小不能大于{max}',
     'error.noMicrophone': '未检测到录音设备',
     'error.parseFailed': '解析失败',
+    'error.pythonFrameworkMissing': 'Python 运行环境异常，请重新安装应用或运行 env/task/init-osx.sh 重建环境',
     'error.processTimeout': '处理超时',
     'error.requestError': '请求错误',
     'error.responseEmpty': '返回内容为空',

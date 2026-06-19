@@ -11,8 +11,8 @@
 //   5. Run electron-builder
 
 import {execSync} from 'node:child_process';
-import {readFileSync, mkdirSync, rmSync, cpSync, existsSync, statSync, readdirSync} from 'node:fs';
-import {resolve, dirname, join, basename} from 'node:path';
+import {readFileSync, mkdirSync, rmSync, cpSync, existsSync, readdirSync, lstatSync, readlinkSync, unlinkSync, symlinkSync, statSync} from 'node:fs';
+import {resolve, dirname, join, basename, relative, isAbsolute, sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -20,6 +20,9 @@ const rootDir = resolve(__dirname, '..');
 const TEMP_DIR = '_temp';
 const SHARE_REPO = 'https://github.com/modstart-lib/share-binary';
 const SHARE_DIR = `${TEMP_DIR}/share-binary`;
+const STANDALONE_TAG = '20260610';
+const PYTHON_VERSION = '3.12.13';
+const PYTHON_DEPS = ['uiautomator2', 'requests', 'pillow', 'psutil'];
 
 const PLAT_MAP = {
   darwin: {dir: 'osx', goos: 'darwin', initScript: 'env/task/init-osx.sh'},
@@ -38,9 +41,177 @@ function run(cmd, extraEnv = {}) {
   }
 }
 
+function fail(message) {
+  console.error(`  [ERROR] ${message}`);
+  process.exit(1);
+}
+
+function assertPath(path, label) {
+  if (!existsSync(path)) {
+    fail(`${label} not found: ${path}`);
+  }
+  console.log(`  [check] ${label}: ${path}`);
+}
+
+function assertCommand(command, label, versionArgs = '--version') {
+  try {
+    execSync(`${command} ${versionArgs}`, {cwd: rootDir, stdio: ['ignore', 'pipe', 'pipe'], shell: true});
+    console.log(`  [check] ${label}: ${command}`);
+  } catch (e) {
+    const stderr = (e.stderr && e.stderr.toString().trim()) || e.message || '(no output)';
+    fail(`${label} command unavailable: ${command}\n${stderr}`);
+  }
+}
+
+function formatBytes(bytes) {
+  if (bytes > 1024 * 1024) {
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+  if (bytes > 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  return `${bytes} B`;
+}
+
+function pathSize(path) {
+  if (!existsSync(path)) {
+    return 0;
+  }
+  const stat = lstatSync(path);
+  if (!stat.isDirectory()) {
+    return stat.size;
+  }
+  let total = 0;
+  walkFiles(path, (file, fileStat) => {
+    if (!fileStat.isDirectory()) {
+      total += fileStat.size;
+    }
+  });
+  return total;
+}
+
 function getVersion() {
   const pkg = JSON.parse(readFileSync(resolve(rootDir, 'package.json'), 'utf-8'));
   return pkg.version;
+}
+
+function pythonTarget(a) {
+  if (process.platform === 'darwin') {
+    return a === 'x64' ? 'x86_64-apple-darwin' : 'aarch64-apple-darwin';
+  }
+  if (process.platform === 'linux') {
+    return a === 'x64' ? 'x86_64-unknown-linux-gnu' : 'aarch64-unknown-linux-gnu';
+  }
+  if (process.platform === 'win32') {
+    return a === 'x64' ? 'x86_64-pc-windows-msvc' : 'aarch64-pc-windows-msvc';
+  }
+  throw new Error(`Unsupported Python platform: ${process.platform}`);
+}
+
+function pythonArchiveNames(target) {
+  const base = `cpython-${PYTHON_VERSION}+${STANDALONE_TAG}-${target}`;
+  return [`${base}-install_only_stripped.tar.gz`, `${base}-install_only.tar.gz`];
+}
+
+function downloadPythonArchive(target) {
+  const cacheDir = 'env/task/_cache';
+  mkdirSync(cacheDir, {recursive: true});
+  for (const fileName of pythonArchiveNames(target)) {
+    const filePath = `${cacheDir}/${fileName}`;
+    if (existsSync(filePath)) {
+      console.log(`  [python] use cache ${filePath} (${formatBytes(statSync(filePath).size)})`);
+      return filePath;
+    }
+    const url = `https://github.com/astral-sh/python-build-standalone/releases/download/${STANDALONE_TAG}/${fileName}`;
+    try {
+      console.log(`  [python] download ${url}`);
+      run(`curl -fL --connect-timeout 30 --max-time 600 "${url}" -o "${filePath}"`);
+      console.log(`  [python] archive ready ${filePath} (${formatBytes(statSync(filePath).size)})`);
+      return filePath;
+    } catch (_) {
+      rmSync(filePath, {force: true});
+      console.log(`  [python] skip missing ${fileName}`);
+    }
+  }
+  throw new Error(`No portable Python archive found for target ${target}`);
+}
+
+function walkFiles(dir, callback) {
+  if (!existsSync(dir)) {
+    return;
+  }
+  for (const item of readdirSync(dir)) {
+    const file = join(dir, item);
+    const stat = lstatSync(file);
+    callback(file, stat);
+    if (stat.isDirectory() && existsSync(file)) {
+      walkFiles(file, callback);
+    }
+  }
+}
+
+function normalizePythonRuntime(runtimeDir) {
+  const absRuntimeDir = resolve(rootDir, runtimeDir);
+  let changed = 0;
+  walkFiles(absRuntimeDir, (file, stat) => {
+    if (stat.isDirectory() && basename(file) === '__pycache__') {
+      rmSync(file, {recursive: true, force: true});
+      return;
+    }
+    if (!stat.isSymbolicLink()) {
+      return;
+    }
+    const target = readlinkSync(file);
+    if (!isAbsolute(target)) {
+      return;
+    }
+    let targetInRuntime = target;
+    const marker = `${sep}_aienv${sep}`;
+    if (!target.startsWith(absRuntimeDir) && target.includes(marker)) {
+      targetInRuntime = join(absRuntimeDir, target.split(marker).pop());
+    }
+    if (!targetInRuntime.startsWith(absRuntimeDir)) {
+      return;
+    }
+    const relativeTarget = relative(dirname(file), targetInRuntime);
+    unlinkSync(file);
+    symlinkSync(relativeTarget || '.', file);
+    changed++;
+  });
+  console.log(`  [python] normalized ${changed} symlink(s) in ${runtimeDir}`);
+}
+
+function buildPortablePython(arch, eName, isCrossX86) {
+  const target = pythonTarget(arch);
+  const archivePath = downloadPythonArchive(target);
+  const runtimeRoot = process.platform === 'win32' ? 'env/task/_aienv/Scripts' : 'env/task/_aienv';
+  const pythonPath = process.platform === 'win32'
+    ? 'env/task/_aienv/Scripts/python.exe'
+    : 'env/task/_aienv/bin/python';
+  console.log(`  [python] target=${target}`);
+  console.log(`  [python] archive=${archivePath}`);
+  console.log(`  [python] extract=${runtimeRoot}`);
+  console.log(`  [python] executable=${pythonPath}`);
+  rmSync('env/task/_aienv', {recursive: true, force: true});
+  mkdirSync(runtimeRoot, {recursive: true});
+  run(`tar -xzf "${archivePath}" -C "${runtimeRoot}" --strip-components=1`);
+
+  assertPath(pythonPath, `Portable Python executable (${eName})`);
+  const py = isCrossX86 ? `arch -x86_64 "${pythonPath}"` : `"${pythonPath}"`;
+  run(`${py} -m pip install --upgrade pip -q`);
+  run(`${py} -m pip install ${PYTHON_DEPS.join(' ')} -q`);
+  normalizePythonRuntime('env/task/_aienv');
+  try {
+    const pythonVersion = execSync(`${py} --version`, {cwd: rootDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}).trim();
+    execSync(`${py} -c "import uiautomator2, requests, PIL, psutil"`, {cwd: rootDir, stdio: ['ignore', 'pipe', 'pipe']});
+    console.log(`  [verify] Portable Python OK (${eName}): ${pythonVersion}`);
+    console.log(`  [verify] Portable Python size (${eName}): ${formatBytes(pathSize('env/task/_aienv'))}`);
+  } catch (e) {
+    const stderr = (e.stderr && e.stderr.toString().trim()) || e.message || '(no output)';
+    console.error(`  [ERROR] Portable Python validation failed for ${eName}`);
+    console.error(`  [ERROR] ${stderr}`);
+    process.exit(1);
+  }
 }
 
 // ---- helpers ----
@@ -52,6 +223,9 @@ if (!info) { console.error(`Unsupported platform: ${process.platform}`); process
 // primaryArch = the arch we're building FOR (for packaging).
 const targetEnv = process.env.TARGET_ARCH;
 const primaryArch = targetEnv || nativeArch;
+if (!['x64', 'arm64'].includes(primaryArch)) {
+  fail(`Unsupported TARGET_ARCH/process.arch: ${primaryArch} (expected x64 or arm64)`);
+}
 
 const arches = [primaryArch];
 // On arm64 Mac, always also cross-prepare x86 resources
@@ -64,7 +238,62 @@ function edir(a) { return `${info.dir}-${a === 'x64' ? 'x86' : a}`; }
 function cliName(a) { return `linkandroid-${info.goos}-${a}`; }
 function suffix(a) { return a === 'x64' || a === 'arm64' ? '' : '.exe'; }
 
+function expectedPythonPath() {
+  return process.platform === 'win32'
+    ? 'env/task/_aienv/Scripts/python.exe'
+    : 'env/task/_aienv/bin/python';
+}
+
+function printBuildPathPlan() {
+  console.log(`\n─── Build path plan ───`);
+  console.log(`  platform=${process.platform}`);
+  console.log(`  nativeArch=${nativeArch}`);
+  console.log(`  primaryArch=${primaryArch}`);
+  console.log(`  arches=${arches.join(', ')}`);
+  console.log(`  version=${version}`);
+  for (const arch of arches) {
+    const target = pythonTarget(arch);
+    const archive = pythonArchiveNames(target)[0];
+    console.log(`  [${edir(arch)}] target=${target}`);
+    console.log(`  [${edir(arch)}] archive=${archive}`);
+    console.log(`  [${edir(arch)}] archiveFallback=${pythonArchiveNames(target)[1]}`);
+    console.log(`  [${edir(arch)}] extra=electron/resources/extra/${edir(arch)}/_aienv`);
+    console.log(`  [${edir(arch)}] runtime=${expectedPythonPath()}`);
+  }
+}
+
 const version = getVersion();
+printBuildPathPlan();
+
+function preflight() {
+  console.log(`\n─── Preflight checks ───`);
+  assertPath('package.json', 'package.json');
+  assertPath('electron-builder.json5', 'electron-builder config');
+  assertPath('cli', 'CLI source directory');
+  assertPath('env/task/lib', 'Python task lib');
+  assertPath(info.initScript, 'Platform init script');
+  assertCommand('node', 'Node.js');
+  assertCommand('npm', 'npm');
+  assertCommand('npx', 'npx');
+  assertCommand('go', 'Go', 'version');
+  assertCommand('tar', 'tar');
+  assertCommand('curl', 'curl');
+}
+
+function verifyExtraPayload(extraPath, arch) {
+  console.log(`  [verify] extra payload (${edir(arch)}): ${extraPath}`);
+  const cliSfx = suffix(arch);
+  assertPath(`${extraPath}/linkandroid${cliSfx}`, `CLI payload (${edir(arch)})`);
+  assertPath(`${extraPath}/_aienv`, `Python payload dir (${edir(arch)})`);
+  assertPath(`${extraPath}/lib`, `Python lib payload (${edir(arch)})`);
+  assertPath(`${extraPath}/${basename(info.initScript)}`, `Init script payload (${edir(arch)})`);
+  assertPath(process.platform === 'win32'
+    ? `${extraPath}/_aienv/Scripts/python.exe`
+    : `${extraPath}/_aienv/bin/python`, `Python payload executable (${edir(arch)})`);
+  console.log(`  [verify] extra payload size (${edir(arch)}): ${formatBytes(pathSize(extraPath))}`);
+}
+
+preflight();
 
 // ================================================================
 // 0. Download share-binary binaries (scrcpy, ffmpeg, ffprobe)
@@ -91,12 +320,16 @@ const SHARE_FILES = {
 function copyToExtra(platDir, items) {
   const srcBase = join(shareRepoDir, platDir);
   const destBase = join('electron/resources/extra', platDir);
+  if (!existsSync(srcBase)) {
+    console.log(`  [warn] share-binary dir missing, skip optional payload: ${srcBase}`);
+    return;
+  }
   mkdirSync(destBase, {recursive: true});
   for (const item of items) {
     const src = join(srcBase, item);
     const dest = join(destBase, item);
     if (!existsSync(src)) {
-      console.log(`  [skip] ${src} not found`);
+      console.log(`  [warn] optional share-binary missing: ${src}`);
       continue;
     }
     console.log(`  [copy] ${platDir}/${item}`);
@@ -138,20 +371,20 @@ for (const arch of arches) {
 
   // ---- 1b. Python env ----
   console.log(`\n─── Build Python env (${eName}) ───`);
-  rmSync('env/task/_aienv', {recursive: true, force: true});
   // x86 Python on arm64 Mac needs Rosetta (arch -x86_64) to install x86-compatible .dylib
   const isCrossX86 = (arch === 'x64' && process.platform === 'darwin' && nativeArch === 'arm64');
-  const pyCmd = isCrossX86 ? `arch -x86_64 bash ${info.initScript}` : `bash ${info.initScript}`;
-  run(pyCmd);
+  buildPortablePython(arch, eName, isCrossX86);
 
   // Copy to electron/resources/extra/{plat}-{arch}/ (unified source)
   rmSync(`${extraPath}/_aienv`, {recursive: true, force: true});
   cpSync('env/task/_aienv', `${extraPath}/_aienv`, {recursive: true});
+  normalizePythonRuntime(`${extraPath}/_aienv`);
   rmSync(`${extraPath}/lib`, {recursive: true, force: true});
   cpSync('env/task/lib', `${extraPath}/lib`, {recursive: true});
   // Copy platform init script (e.g. init-osx.sh) into extra dir so afterPack can move it to env/task/
   rmSync(`${extraPath}/${basename(info.initScript)}`, {recursive: true, force: true});
   cpSync(info.initScript, `${extraPath}/${basename(info.initScript)}`);
+  verifyExtraPayload(extraPath, arch);
 }
 
 // ---- Ensure primary arch's Python env is in env/task/ ----

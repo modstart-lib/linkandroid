@@ -126,7 +126,7 @@ async function createWindow() {
         rendererLoadPath(AppRuntime.splashWindow, 'splash.html')
     }
     AppRuntime.mainWindow = new BrowserWindow({
-        show: !hasSplashWindow,
+        show: true,
         title: AppConfig.title,
         ...(!isPackaged ? {icon} : {}),
         frame: false,
@@ -183,16 +183,8 @@ async function createWindow() {
     rendererLoadPath(AppRuntime.mainWindow, 'index.html')
     DevToolsManager.register('Main', AppRuntime.mainWindow)
 
-    AppRuntime.mainWindow.webContents.on('did-finish-load', async () => {
+    AppRuntime.mainWindow.webContents.on('did-finish-load', () => {
         if (hasSplashWindow) {
-            // macOS: activate the app before showing the main window
-            // to ensure the window appears in the foreground (not behind other apps)
-            if (isMac) {
-                app.dock.show()
-                await app.focus()
-            }
-            AppRuntime.mainWindow?.show()
-            AppRuntime.mainWindow?.focus()
             setTimeout(() => {
                 try {
                     AppRuntime.splashWindow?.close()
