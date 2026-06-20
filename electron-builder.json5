@@ -80,6 +80,7 @@
                 "to": "extra",
                 "filter": [
                     "common",
+                    "osx",
                     "osx-*"
                 ]
             }

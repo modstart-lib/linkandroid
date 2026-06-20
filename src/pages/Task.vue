@@ -223,7 +223,7 @@ onUnmounted(() => {
 
             <!-- Empty state -->
             <div v-if="records.length === 0" class="py-32 text-center">
-                <div class="mb-6">
+                <div class="mb-6 flex justify-center">
                     <i-lucide-workflow class="text-6xl text-gray-300" />
                 </div>
                 <div class="text-gray-400 mb-6">{{ $t('task.noTasks') }}</div>

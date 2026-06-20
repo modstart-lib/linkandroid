@@ -10,8 +10,10 @@ let tray = null
 const showApp = () => {
     if (isMac) {
         app.dock.show()
+        app.focus({steal: true})
     }
     AppRuntime.mainWindow.show()
+    AppRuntime.mainWindow.focus()
 }
 
 const hideApp = () => {

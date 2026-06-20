@@ -251,10 +251,8 @@ const doRun = async () => {
         return
     }
     if (!formData.value.name.trim()) {
-        const msg = t('task.nameRequired')
-        appendLog('--- ' + msg + ' ---\n')
-        Dialog.tipError(msg)
-        return
+        // Auto-generate a temporary name for debug run
+        formData.value.name = t('task.debugRun') + '_' + Date.now()
     }
 
     isRunning.value = true
