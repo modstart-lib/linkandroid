@@ -43,13 +43,8 @@ const spawnShell = async (
     if (existsSync(proDir)) {
         option.env['SCRCPY_SERVER_PATH'] = resolve(proDir, 'x/server/scrcpy-server')
         binary = resolve(proDir, 'x/app/scrcpy')
-    } else {
-        option.env['SCRCPY_SERVER_PATH'] = resolve(
-            home,
-            'data/project/linkandroid/linkandroid-scrcpy/x/server/scrcpy-server',
-        )
-        binary = resolve(home, 'data/project/linkandroid/linkandroid-scrcpy/x/app/scrcpy')
     }
+    // else: keep defaults from extra (already set above)
 
     Log.info('Scrcpy.spawnShell', [binary, ...args].join(' '))
     return await Apps.spawnShell([binary, ...args], {
