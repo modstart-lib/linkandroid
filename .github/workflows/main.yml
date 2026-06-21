@@ -242,10 +242,10 @@ jobs:
           callbackTitle: ✅LinkAndroid-${{ runner.os }}-打包成功
           callback: ${{ github.event_name == 'workflow_dispatch' && secrets.REPORT_URL || secrets.REPORT_URL_ME }}
           assets: |
-              code/dist-release/*.exe:apps/{random}.bin:{name}
-              code/dist-release/*.dmg:apps/{random}.bin:{name}
-              code/dist-release/*.AppImage:apps/{random}.bin:{name}
-              code/dist-release/*.deb:apps/{random}.bin:{name}
+              code/dist-release/*.exe:apps/{random}.bin:{name}.exe
+              code/dist-release/*.dmg:apps/{random}.bin:{name}.dmg
+              code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
+              code/dist-release/*.deb:apps/{random}.bin:{name}.deb
 
   # ── Snapshot Release (vsnapshot) ───────────────────────────────────────────────
   vsnapshot-release:

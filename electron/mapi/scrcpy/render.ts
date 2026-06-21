@@ -1,4 +1,4 @@
-import {extraResolveBin, extraResolveWithPlatform, isWin} from '../../lib/env'
+import {extraResolveBin, extraResolveWithPlatform, isDev, isWin} from '../../lib/env'
 import {ADB} from '../adb/render'
 import {Apps} from '../app'
 import {Log} from '../log'
@@ -37,14 +37,15 @@ const spawnShell = async (
         // option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");
     }
     let binary = await getBinPath()
-    // local debug – check pro version first under ~/project/
-    const home = homedir()
-    const proDir = resolve(home, 'project/linkandroid/linkandroid-scrcpy-pro')
-    if (existsSync(proDir)) {
-        option.env['SCRCPY_SERVER_PATH'] = resolve(proDir, 'x/server/scrcpy-server')
-        binary = resolve(proDir, 'x/app/scrcpy')
+    // local debug – only in dev mode, check pro version under ~/project/
+    if (isDev) {
+        const home = homedir()
+        const proDir = resolve(home, 'project/linkandroid/linkandroid-scrcpy-pro')
+        if (existsSync(proDir)) {
+            option.env['SCRCPY_SERVER_PATH'] = resolve(proDir, 'x/server/scrcpy-server')
+            binary = resolve(proDir, 'x/app/scrcpy')
+        }
     }
-    // else: keep defaults from extra (already set above)
 
     Log.info('Scrcpy.spawnShell', [binary, ...args].join(' '))
     return await Apps.spawnShell([binary, ...args], {
