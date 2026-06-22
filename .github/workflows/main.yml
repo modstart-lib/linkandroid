@@ -232,7 +232,6 @@ jobs:
             code/dist-release/*.deb
 
       - name: Upload
-        if: github.event_name == 'workflow_dispatch'
         uses: modstart/github-oss-action@master
         with:
           title: ${{ github.event.head_commit.message }}
@@ -243,10 +242,10 @@ jobs:
           callbackTitle: ✅LinkAndroid-${{ runner.os }}-打包成功
           callback: ${{ github.event_name == 'workflow_dispatch' && secrets.REPORT_URL || secrets.REPORT_URL_ME }}
           assets: |
-              code/dist-release/*.exe:apps/{random}.bin:{name}
-              code/dist-release/*.dmg:apps/{random}.bin:{name}
-              code/dist-release/*.AppImage:apps/{random}.bin:{name}
-              code/dist-release/*.deb:apps/{random}.bin:{name}
+              code/dist-release/*.exe:apps/{random}.bin:{name}.exe
+              code/dist-release/*.dmg:apps/{random}.bin:{name}.dmg
+              code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
+              code/dist-release/*.deb:apps/{random}.bin:{name}.deb
 
   # ── Snapshot Release (vsnapshot) ───────────────────────────────────────────────
   vsnapshot-release:
@@ -302,6 +301,6 @@ jobs:
           NAME="${{ github.event.repository.name }}"
           TYPE=$(echo "${{ github.workflow }}" | tr '[:upper:]' '[:lower:]')
           VERSION=$(node -p "require('./package.json').version")
-          curl -X POST "${{ github.event_name == 'workflow_dispatch' && secrets.REPORT_URL || secrets.REPORT_URL_ME }}" \
+          curl -X POST "${{ secrets.HOOK_URL }}" \
             -H "Content-Type: application/json" \
             -d "{\"event\":\"${NAME}\",\"param\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"},\"data\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"}}"

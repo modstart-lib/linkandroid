@@ -231,7 +231,7 @@ jobs:
             NAME="${{ github.event.repository.name }}"
             TYPE=$(echo "${{ github.workflow }}" | tr '[:upper:]' '[:lower:]')
             VERSION=$(node -p "require('./package.json').version")
-            curl -X POST "${{ github.event_name == 'workflow_dispatch' && secrets.REPORT_URL || secrets.REPORT_URL_ME }}" \
+            curl -X POST "${{ secrets.HOOK_URL }}" \
               -H "Content-Type: application/json" \
               -d "{\"event\":\"${NAME}\",\"param\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"},\"data\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"}}"
 
