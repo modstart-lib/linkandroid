@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed} from 'vue'
+import {computed, onMounted, onUnmounted} from 'vue'
 import {useRouter} from 'vue-router'
 import {t} from '../lang'
 

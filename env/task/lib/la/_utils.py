@@ -167,7 +167,10 @@ def waitIdle(timeout: float = 5) -> None:
         timeout: 最大等待秒数
     """
     if _la_state._device:
-        _la_state._device.wait_idle(timeout=timeout)
+        if hasattr(_la_state._device, "wait_idle"):
+            _la_state._device.wait_idle(timeout=timeout)
+        else:
+            time.sleep(timeout)
 
 
 @_require_device

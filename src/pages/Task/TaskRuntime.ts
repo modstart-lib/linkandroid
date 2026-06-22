@@ -1,3 +1,4 @@
+import {t} from '../../lang'
 import {ModelProvider} from '../../module/Model/provider/provider'
 import {model} from '../../module/Model/store/model'
 
@@ -32,7 +33,7 @@ export const getTaskRuntime = async (deviceId: string, deviceIds?: string[]) => 
     // Ensure _aienv Python virtual environment exists before using it
     const result = await window.$mapi.app.ensureAienv()
     if (!result.ok) {
-        throw new Error(result.error || 'Python 环境未就绪，无法刷新 AI 手机预览')
+        throw new Error(result.error || t('error.pythonEnvNotReady'))
     }
     const taskDir = await taskPath('')
     const pythonPath =
@@ -59,6 +60,8 @@ export const runTaskPythonCode = async (
     code: string,
     deviceId: string,
     option?: {
+        preparing?: () => void
+        started?: () => void
         stdout?: (data: string, process: any) => void
         stderr?: (data: string, process: any) => void
         success?: (process: any) => void
@@ -67,8 +70,10 @@ export const runTaskPythonCode = async (
         deviceIds?: string[]
     },
 ) => {
+    option?.preparing?.()
     const runtime = await getTaskRuntime(deviceId, option?.deviceIds)
     const llmEnv = await getLlmEnv()
+    option?.started?.()
     return await window.$mapi.app.spawnShell([runtime.pythonPath, '-c', code], {
         shell: false,
         cwd: runtime.taskDir,

@@ -5,7 +5,7 @@ import express from 'express'
 import fs from 'node:fs'
 import path from 'node:path'
 import type {Server} from 'node:http'
-import {extraResolveBin} from '../../lib/env'
+import {resolveAdbBin} from '../../lib/env'
 import Apps from '../app'
 import {AppEnv} from '../env'
 import {Log} from '../log/main'
@@ -36,7 +36,7 @@ const writeCliAuthFile = (port: number, token: string): void => {
 
 const getAdbBin = (): string | null => {
     try {
-        return extraResolveBin('scrcpy/adb')
+        return resolveAdbBin()
     } catch {
         return null
     }

@@ -15,7 +15,7 @@ export interface RunDeviceConfig {
 const visible = ref(false)
 const deviceStore = useDeviceStore()
 const searchKeywords = ref('')
-const filterType = ref<string>('')
+const filterGroupId = ref<string>('')
 
 // Form fields
 const runMode = ref<'manual' | 'scheduled'>('manual')
@@ -25,8 +25,12 @@ const runOnAllDevices = ref(false)
 
 const filterRecords = computed(() => {
     let records = deviceStore.records
-    if (filterType.value) {
-        records = records.filter((d) => d.type === filterType.value)
+    // Group filter
+    if (filterGroupId.value) {
+        const group = deviceStore.groups.find((g) => g.id === filterGroupId.value)
+        if (group) {
+            records = records.filter((d) => group.deviceIds.includes(d.id))
+        }
     }
     if (searchKeywords.value) {
         const kw = searchKeywords.value.toLowerCase()
@@ -58,7 +62,7 @@ const show = (config?: Partial<RunDeviceConfig>) => {
     runOnAllDevices.value = config?.runOnAllDevices || false
     selectedDeviceIds.value = config?.deviceIds ? [...config.deviceIds] : []
     searchKeywords.value = ''
-    filterType.value = ''
+    filterGroupId.value = ''
     visible.value = true
 }
 
@@ -77,11 +81,10 @@ const doConfirm = () => {
 }
 
 const doToggleDevice = (deviceId: string) => {
-    const idx = selectedDeviceIds.value.indexOf(deviceId)
-    if (idx === -1) {
-        selectedDeviceIds.value.push(deviceId)
+    if (selectedDeviceIds.value.includes(deviceId)) {
+        selectedDeviceIds.value = selectedDeviceIds.value.filter((id) => id !== deviceId)
     } else {
-        selectedDeviceIds.value.splice(idx, 1)
+        selectedDeviceIds.value = [...selectedDeviceIds.value, deviceId]
     }
 }
 
@@ -134,12 +137,24 @@ defineExpose({show})
                         {{ $t('task.runDevices') }}
                     </div>
                     <ListerTop>
-                        <a-checkbox :checked="allFilteredSelected" @change="toggleSelectAll">
-                            {{ $t('common.selectAll') }}
-                        </a-checkbox>
-                        <a-select v-model="filterType" :placeholder="$t('device.groupFilter')" class="w-28" allow-clear>
-                            <a-option value="usb">USB</a-option>
-                            <a-option value="wifi">WiFi</a-option>
+                        <a-button
+                            :disabled="filterRecords.length === 0"
+                            @click="toggleSelectAll"
+                            :aria-label="allFilteredSelected ? $t('common.deselectAll') : $t('common.selectAll')"
+                        >
+                            <template #icon>
+                                <i-lucide-check-square v-if="allFilteredSelected" />
+                                <i-lucide-square v-else />
+                            </template>
+                        </a-button>
+                        <a-select
+                            v-model="filterGroupId"
+                            :placeholder="$t('device.groupFilter')"
+                            class="w-36"
+                            allow-clear
+                        >
+                            <a-option value="">{{ $t('device.groupFilter') }}</a-option>
+                            <a-option v-for="g in deviceStore.groups" :key="g.id" :value="g.id">{{ g.name }}</a-option>
                         </a-select>
                         <a-input-search
                             v-model="searchKeywords"
@@ -160,10 +175,11 @@ defineExpose({show})
                                 :class="{'bg-blue-50 dark:bg-blue-900/20': selectedDeviceIds.includes(d.id)}"
                                 @click="doToggleDevice(d.id)"
                             >
-                                <a-checkbox
-                                    :checked="selectedDeviceIds.includes(d.id)"
-                                    @click.stop="doToggleDevice(d.id)"
+                                <i-lucide-check-circle
+                                    v-if="selectedDeviceIds.includes(d.id)"
+                                    class="text-[var(--color-primary)] w-4 h-4 flex-shrink-0"
                                 />
+                                <i-lucide-circle v-else class="text-gray-300 w-4 h-4 flex-shrink-0" />
                                 <div class="flex items-center gap-2 flex-1 min-w-0">
                                     <a-avatar :size="24" shape="square">
                                         <template #trigger-icon>

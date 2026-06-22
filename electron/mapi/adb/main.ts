@@ -3,7 +3,7 @@ const {Bonjour} = bonjourPkg
 import {BrowserWindow, ipcMain} from 'electron'
 import {spawn} from 'node:child_process'
 import net from 'node:net'
-import {extraResolveBin} from '../../lib/env'
+import {resolveAdbBin} from '../../lib/env'
 
 const MDNS_CONFIG = {
     PAIRING_TYPE: 'adb-tls-pairing',
@@ -234,7 +234,7 @@ class AdbScanner {
 
     private async pairWithDevice(device: DeviceData, password: string) {
         try {
-            const adbPath = await extraResolveBin('scrcpy/adb')
+            const adbPath = resolveAdbBin()
 
             console.log(`[Main] 执行配对命令: ${adbPath} pair ${device.address}:${device.port}`)
 
@@ -318,7 +318,7 @@ class AdbScanner {
 
     private async connectToDevice(device: DeviceData) {
         try {
-            const adbPath = await extraResolveBin('scrcpy/adb')
+            const adbPath = resolveAdbBin()
             console.log(`[Main] 执行连接命令: ${adbPath} connect ${device.address}:${device.port}`)
 
             return new Promise<void>((resolve, reject) => {

@@ -7,6 +7,7 @@ import {testActionSet, testActionUnset} from '../../utils/test'
 import {useDeviceStore} from '../../store/modules/device'
 import {EnumDeviceStatus} from '../../types/Device'
 import CodeEditor from '../../components/common/CodeEditor.vue'
+import LogPanel from '../../components/common/LogPanel.vue'
 
 import TaskDevicePreviewPanel from './TaskDevicePreviewPanel.vue'
 import TaskDocPanel from './TaskDocPanel.vue'
@@ -41,8 +42,8 @@ const isEditMode = computed(() => formData.value.id > 0)
 
 // Log area
 const showLog = ref(false)
-const logContent = ref('')
 const isRunning = ref(false)
+const logPanel = ref<InstanceType<typeof LogPanel> | null>(null)
 let runController: {stop: () => void; send: (data: any) => void} | null = null
 
 // Device related
@@ -219,16 +220,8 @@ const onSelectedDeviceChange = (deviceId: string) => {
     runDeviceIds.value = deviceId ? [deviceId] : []
 }
 
-const appendLog = (text: string) => {
-    logContent.value += text
-    nextTick(() => {
-        const el = document.querySelector('.task-log-content')
-        if (el) el.scrollTop = el.scrollHeight
-    })
-}
-
 const doClearLog = () => {
-    logContent.value = ''
+    logPanel.value?.clear()
 }
 
 const doStopRun = () => {
@@ -240,21 +233,20 @@ const doStopRun = () => {
 
 const doRun = async () => {
     // Always show the log window when clicking debug run
-    logContent.value = ''
     showLog.value = true
     isRunning.value = false
+    await nextTick()
+    logPanel.value?.clear()
 
     if (runDeviceIds.value.length === 0) {
         const msg = t('hint.selectDeviceFirst')
-        appendLog('--- ' + msg + ' ---\n')
+        logPanel.value?.printSystem(msg)
         Dialog.tipError(msg)
         return
     }
     if (!formData.value.name.trim()) {
-        const msg = t('task.nameRequired')
-        appendLog('--- ' + msg + ' ---\n')
-        Dialog.tipError(msg)
-        return
+        // Auto-generate a temporary name for debug run
+        formData.value.name = t('task.debugRun') + '_' + Date.now()
     }
 
     isRunning.value = true
@@ -296,19 +288,25 @@ const doRun = async () => {
 
         const deviceId = runDeviceIds.value[0]
         const controller = await runTaskPythonCode(formData.value.code, deviceId, {
+            preparing: () => {
+                logPanel.value?.printSystem(t('task.runPreparing'))
+            },
+            started: () => {
+                logPanel.value?.printSystem(t('task.runStarted'))
+            },
             stdout: (data: string) => {
-                appendLog(data)
+                logPanel.value?.printLogChunk(data)
             },
             stderr: (data: string) => {
-                appendLog(data)
+                logPanel.value?.printErrorChunk(data)
             },
             success: () => {
-                appendLog('\n--- ' + t('task.runSuccess') + ' ---\n')
+                logPanel.value?.printSystem(t('task.runSuccess'))
                 isRunning.value = false
                 runController = null
             },
             error: (msg: string) => {
-                appendLog('\n--- ' + t('task.statusFailed') + ': ' + msg + ' ---\n')
+                logPanel.value?.printError(t('task.runFailed') + ': ' + msg)
                 isRunning.value = false
                 runController = null
             },
@@ -321,7 +319,7 @@ const doRun = async () => {
         runController = controller
     } catch (e) {
         isRunning.value = false
-        appendLog('\n--- ' + mapError(e) + ' ---\n')
+        logPanel.value?.printError(mapError(e))
         Dialog.tipError(mapError(e))
     }
 }
@@ -501,40 +499,29 @@ defineExpose({
                             class="shrink-0 border-t border-gray-200 dark:border-gray-700 flex flex-col"
                             style="height: 180px"
                         >
-                            <div
-                                class="shrink-0 flex items-center justify-between px-4 py-1.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+                            <LogPanel
+                                ref="logPanel"
+                                :title="$t('task.runLog')"
+                                :empty-text="$t('task.noLog')"
+                                :running="isRunning"
+                                text-size="xs"
                             >
-                                <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                    <i-lucide-workflow class="inline-block mr-1" />
-                                    {{ $t('task.runLog') }}
-                                </span>
-                                <div class="flex items-center gap-1">
-                                    <a-button v-if="isRunning" size="mini" status="danger" @click="doStopRun">
-                                        <template #icon><i-lucide-circle-pause /></template>
-                                        {{ $t('task.stop') }}
-                                    </a-button>
-                                    <a-button size="mini" @click="doClearLog">
-                                        <template #icon><i-lucide-trash-2 /></template>
-                                        {{ $t('task.clearLog') }}
-                                    </a-button>
-                                    <a-button size="mini" @click="showLog = false">
-                                        <template #icon><i-lucide-x /></template>
-                                    </a-button>
-                                </div>
-                            </div>
-                            <pre
-                                v-if="logContent || isRunning"
-                                class="task-log-content flex-1 overflow-auto p-3 text-xs font-mono leading-relaxed m-0 bg-gray-900 text-green-400"
-                                style="
-                                    white-space: pre-wrap;
-                                    word-break: break-all;
-                                ">{{ logContent }}<span v-if="isRunning" class="inline-block w-2 h-4 bg-green-400 animate-pulse ml-0.5 align-bottom" /></pre>
-                            <div
-                                v-else
-                                class="task-log-content flex-1 flex items-center justify-center p-3 text-xs font-mono m-0 bg-gray-900 text-gray-500"
-                            >
-                                {{ $t('task.noLog') }}
-                            </div>
+                                <template #actions>
+                                    <div class="flex items-center gap-1">
+                                        <a-button v-if="isRunning" size="mini" status="danger" @click="doStopRun">
+                                            <template #icon><i-lucide-circle-pause /></template>
+                                            {{ $t('task.stop') }}
+                                        </a-button>
+                                        <a-button size="mini" @click="doClearLog">
+                                            <template #icon><i-lucide-trash-2 /></template>
+                                            {{ $t('task.clearLog') }}
+                                        </a-button>
+                                        <a-button size="mini" @click="showLog = false">
+                                            <template #icon><i-lucide-x /></template>
+                                        </a-button>
+                                    </div>
+                                </template>
+                            </LogPanel>
                         </div>
                     </div>
                     <div class="w-1/2 flex flex-col overflow-hidden">

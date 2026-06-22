@@ -4,6 +4,7 @@ import {t} from '../../lang'
 import {mapError} from '../../lib/error'
 import {useDeviceStore} from '../../store/modules/device'
 import {EnumDeviceStatus} from '../../types/Device'
+import LogPanel from '../../components/common/LogPanel.vue'
 import {runTaskPythonCode} from './TaskRuntime'
 
 const emit = defineEmits<{
@@ -11,19 +12,11 @@ const emit = defineEmits<{
 }>()
 
 const visible = ref(false)
-const logContent = ref('')
 const isRunning = ref(false)
+const logPanel = ref<InstanceType<typeof LogPanel> | null>(null)
 const taskName = ref('')
 let runController: {stop: () => void; send: (data: any) => void} | null = null
 let currentTask: {id: number; name: string; code: string; language: string} | null = null
-
-const appendLog = (text: string) => {
-    logContent.value += text
-    nextTick(() => {
-        const el = document.querySelector('.task-run-log-content')
-        if (el) el.scrollTop = el.scrollHeight
-    })
-}
 
 const doStopRun = () => {
     if (runController) {
@@ -35,15 +28,16 @@ const doStopRun = () => {
 const doRun = async (task: {id: number; name: string; code: string; language: string}) => {
     currentTask = task
     taskName.value = task.name
-    logContent.value = ''
     isRunning.value = true
     visible.value = true
+    await nextTick()
+    logPanel.value?.clear()
 
     const deviceStore = useDeviceStore()
     const deviceIds = deviceStore.records.filter((d) => d.status === EnumDeviceStatus.CONNECTED).map((d) => d.id)
 
     if (deviceIds.length === 0) {
-        appendLog(t('hint.selectDeviceFirst'))
+        logPanel.value?.printSystem(t('hint.selectDeviceFirst'))
         isRunning.value = false
         return
     }
@@ -59,40 +53,47 @@ const doRun = async (task: {id: number; name: string; code: string; language: st
             [now, now, task.id, deviceIds.join(','), 'running', '', now],
         )
     } catch (e) {
-        appendLog('--- ' + mapError(e) + ' ---')
+        logPanel.value?.printError(mapError(e))
         isRunning.value = false
         return
     }
 
     try {
         const controller = await runTaskPythonCode(task.code, deviceId, {
+            preparing: () => {
+                logPanel.value?.printSystem(t('task.runPreparing'))
+            },
+            started: () => {
+                logPanel.value?.printSystem(t('task.runStarted'))
+            },
             stdout: (data: string) => {
-                appendLog(data)
+                logPanel.value?.printLogChunk(data)
             },
             stderr: (data: string) => {
-                appendLog(data)
+                logPanel.value?.printErrorChunk(data)
             },
             success: async () => {
-                appendLog('\n--- ' + t('task.runSuccess') + ' ---\n')
+                logPanel.value?.printSystem(t('task.runSuccess'))
                 isRunning.value = false
                 runController = null
                 if (runId) {
+                    const plainLog = logPanel.value?.getPlainText() || ''
                     await window.$mapi.db.update(
                         `UPDATE task_run SET updated_at = ?, status = ?, log = ?, finished_at = ? WHERE id = ?`,
-                        [new Date().toISOString(), 'success', logContent.value, new Date().toISOString(), runId],
+                        [new Date().toISOString(), 'success', plainLog, new Date().toISOString(), runId],
                     )
                 }
                 emit('done')
             },
             error: async (msg: string) => {
-                const errText = '\n--- ' + t('task.statusFailed') + ': ' + msg + ' ---\n'
-                appendLog(errText)
+                logPanel.value?.printError(t('task.runFailed') + ': ' + msg)
                 isRunning.value = false
                 runController = null
                 if (runId) {
+                    const plainLog = logPanel.value?.getPlainText() || ''
                     await window.$mapi.db.update(
                         `UPDATE task_run SET updated_at = ?, status = ?, log = ?, finished_at = ? WHERE id = ?`,
-                        [new Date().toISOString(), 'failed', logContent.value, new Date().toISOString(), runId],
+                        [new Date().toISOString(), 'failed', plainLog, new Date().toISOString(), runId],
                     )
                 }
                 emit('done')
@@ -106,13 +107,14 @@ const doRun = async (task: {id: number; name: string; code: string; language: st
         runController = controller
     } catch (e) {
         isRunning.value = false
-        appendLog('\n--- ' + mapError(e) + ' ---\n')
+        logPanel.value?.printError(mapError(e))
         if (runId) {
+            const plainLog = logPanel.value?.getPlainText() || ''
             await window.$mapi.db
                 .update(`UPDATE task_run SET updated_at = ?, status = ?, log = ?, finished_at = ? WHERE id = ?`, [
                     new Date().toISOString(),
                     'failed',
-                    logContent.value,
+                    plainLog,
                     new Date().toISOString(),
                     runId,
                 ])
@@ -144,12 +146,14 @@ defineExpose({doRun, doClose})
         </template>
         <div class="-mx-5 -my-6 flex flex-col" style="min-height: 300px; max-height: calc(80vh - 100px)">
             <div class="flex-1 flex flex-col p-5 overflow-hidden">
-                <pre
-                    class="task-run-log-content flex-1 overflow-auto p-4 text-sm font-mono leading-relaxed m-0 bg-gray-900 text-green-400 rounded-lg"
-                    style="white-space: pre-wrap; word-break: break-all; min-height: 200px">{{ logContent }}<span
-                        v-if="isRunning"
-                        class="inline-block w-2 h-4 bg-green-400 animate-pulse ml-0.5 align-bottom"
-                    /></pre>
+                <LogPanel
+                    ref="logPanel"
+                    :title="$t('task.runLog')"
+                    :empty-text="$t('task.noLog')"
+                    :running="isRunning"
+                    text-size="sm"
+                    class="rounded-lg overflow-hidden"
+                />
             </div>
             <div class="flex items-center justify-end gap-2 px-5 pb-4 shrink-0">
                 <a-button v-if="isRunning" status="danger" @click="doStopRun">

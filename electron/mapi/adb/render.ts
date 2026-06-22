@@ -3,7 +3,7 @@ import Client from '@devicefarmer/adbkit/dist/src/adb/client'
 import dayjs from 'dayjs'
 import {ipcRenderer} from 'electron'
 import fs from 'node:fs'
-import {extraResolveBin} from '../../lib/env'
+import {resolveAdbBin} from '../../lib/env'
 import {FileUtil, TimeUtil} from '../../lib/util'
 import {Apps} from '../app'
 
@@ -20,7 +20,7 @@ const destroy = () => {
 }
 
 export const getBinPath = async (): Promise<string> => {
-    return extraResolveBin('scrcpy/adb')
+    return resolveAdbBin()
 }
 
 const getClient = async (): Promise<Client> => {

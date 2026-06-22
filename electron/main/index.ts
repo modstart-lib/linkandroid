@@ -194,6 +194,12 @@ async function createWindow() {
         }
         Page.ready('main')
         DevToolsManager.autoShow(AppRuntime.mainWindow)
+        if (isMac) {
+            app.dock.show()
+            app.focus({steal: true})
+        }
+        AppRuntime.mainWindow.show()
+        AppRuntime.mainWindow.focus()
     })
     AppRuntime.mainWindow.webContents.setWindowOpenHandler(({url}) => {
         if (url.startsWith('https:')) shell.openExternal(url)

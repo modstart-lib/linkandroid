@@ -32,8 +32,8 @@
                 "from": "electron/resources/extra",
                 "to": "extra",
                 "filter": [
-                    "common",
-                    "win-*"
+                    "common/**",
+                    "win-*/**"
                 ]
             }
         ]
@@ -79,8 +79,9 @@
                 "from": "electron/resources/extra",
                 "to": "extra",
                 "filter": [
-                    "common",
-                    "osx-*"
+                    "common/**",
+                    "osx/**",
+                    "osx-*/**"
                 ]
             }
         ],
@@ -122,8 +123,8 @@
                 "from": "electron/resources/extra",
                 "to": "extra",
                 "filter": [
-                    "common",
-                    "linux-*"
+                    "common/**",
+                    "linux-*/**"
                 ]
             }
         ]

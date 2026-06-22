@@ -1,4 +1,5 @@
 import {t} from '../../lang'
+import BuildInProviderLogo from '../../assets/image/logo.svg'
 import Ai360ModelLogo from './assets/image/models/360.png'
 import Ai360ModelLogoDark from './assets/image/models/360_dark.png'
 import AdeptModelLogo from './assets/image/models/adept.png'
@@ -255,7 +256,7 @@ export function getModelLogo(modelId: string) {
         }
     }
 
-    return isLight ? ChatGptModelLogo : ChatGptModelLogoDark
+    return BuildInProviderLogo
 }
 
 // SystemModels has been moved to modelPresets.ts

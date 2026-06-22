@@ -236,7 +236,7 @@ if (process.platform === 'darwin' && nativeArch === 'arm64' && primaryArch !== '
 function goArch(a) { return a === 'x64' ? 'amd64' : a; }
 function edir(a) { return `${info.dir}-${a === 'x64' ? 'x86' : a}`; }
 function cliName(a) { return `linkandroid-${info.goos}-${a}`; }
-function suffix(a) { return a === 'x64' || a === 'arm64' ? '' : '.exe'; }
+function suffix(_a) { return process.platform === 'win32' ? '.exe' : ''; }
 
 function expectedPythonPath() {
   return process.platform === 'win32'

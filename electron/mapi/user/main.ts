@@ -247,10 +247,15 @@ const post = async <T>(
             return await post(api, data, option)
         }
         Log.error('user.post.error', {api, data, res})
+        const resInfo =
+            res && typeof res === 'object' && 'status' in res
+                ? `httpStatus:${res.status},statusText:${res.statusText}`
+                : `response:${String(res)}`
+        const errMsg = `ResponseError(api:${api},${resInfo})`
         if (option.throwException) {
-            throw 'ResponseError'
+            throw errMsg
         }
-        return {code: 10000, msg: 'ResponseError'}
+        return {code: 10000, msg: errMsg}
     }
     if (json.code) {
         // login required

@@ -1,12 +1,11 @@
-import {extraResolveBin, extraResolveWithPlatform, isWin} from '../../lib/env'
-import {ADB} from '../adb/render'
+import {devProResolve, extraResolveBin, extraResolveWithPlatform, isDev, isWin, resolveAdbBin} from '../../lib/env'
 import {Apps} from '../app'
 import {Log} from '../log'
-import {existsSync} from 'fs'
-import {homedir} from 'os'
-import {resolve} from 'path'
 
 const getBinPath = async (): Promise<string> => {
+    // Dev mode: try pro project scrcpy binary first
+    const proBinary = devProResolve('x/app/scrcpy')
+    if (proBinary) return proBinary
     return extraResolveBin('scrcpy/scrcpy')
 }
 
@@ -29,26 +28,27 @@ const spawnShell = async (
         },
         option,
     )
-    option.env['ADB'] = await ADB.getBinPath()
-    option.env['SCRCPY_FONT_PATH'] = await extraResolveWithPlatform('scrcpy/font.ttf')
-    option.env['SCRCPY_ICON_ROOT_PATH'] = await extraResolveWithPlatform('scrcpy')
-    option.env['SCRCPY_SERVER_PATH'] = await extraResolveWithPlatform('scrcpy/scrcpy-server')
+
+    // Resolve binary path
+    let binary: string
+
+    if (isDev) {
+        const proBinary = devProResolve('x/app/scrcpy')
+        if (proBinary) binary = proBinary
+    }
+    if (!binary) {
+        binary = await getBinPath()
+    }
+    option.env['ADB'] = resolveAdbBin()
+    option.env['SCRCPY_FONT_PATH'] = extraResolveWithPlatform('scrcpy/font.ttf')
+    option.env['SCRCPY_ICON_ROOT_PATH'] = extraResolveWithPlatform('scrcpy')
+
+    // Resolve SCRCPY_SERVER_PATH: try pro project first in dev mode
+    option.env['SCRCPY_SERVER_PATH'] =
+        devProResolve('x/server/scrcpy-server') || extraResolveWithPlatform('scrcpy/scrcpy-server')
+
     if (isWin) {
         // option.env["ADB"] = IconvUtil.convert(option.env["ADB"], "gbk");
-    }
-    let binary = await getBinPath()
-    // local debug – check pro version first under ~/project/
-    const home = homedir()
-    const proDir = resolve(home, 'project/linkandroid/linkandroid-scrcpy-pro')
-    if (existsSync(proDir)) {
-        option.env['SCRCPY_SERVER_PATH'] = resolve(proDir, 'x/server/scrcpy-server')
-        binary = resolve(proDir, 'x/app/scrcpy')
-    } else {
-        option.env['SCRCPY_SERVER_PATH'] = resolve(
-            home,
-            'data/project/linkandroid/linkandroid-scrcpy/x/server/scrcpy-server',
-        )
-        binary = resolve(home, 'data/project/linkandroid/linkandroid-scrcpy/x/app/scrcpy')
     }
 
     Log.info('Scrcpy.spawnShell', [binary, ...args].join(' '))

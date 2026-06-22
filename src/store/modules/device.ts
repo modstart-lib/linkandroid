@@ -537,6 +537,7 @@ export const deviceStore = defineStore('device', {
 
             let successTimer: ReturnType<typeof setTimeout> | null = null
             let successShown = false
+            let unauthorized = false
             const logs: string[] = []
             try {
                 runtime.value.mirrorController = await $mapi.scrcpy.mirror(device.id, {
@@ -559,6 +560,9 @@ export const deviceStore = defineStore('device', {
                         console.log('mirror.stderr', data)
                         $mapi.log.error('Mirror.stderr', data)
                         logs.push('[stderr] ' + data)
+                        if (/unauthorized/i.test(data)) {
+                            unauthorized = true
+                        }
                     },
                     success: () => {
                         console.log('mirror.success')
@@ -576,6 +580,10 @@ export const deviceStore = defineStore('device', {
                         $mapi.log.error('Mirror.error', {msg, exitCode, logs})
                         runtime.value.mirrorController = null
                         $mapi.power.stop()
+                        if (unauthorized) {
+                            Dialog.alertError(t('device.mirrorUnauthorized'))
+                            return
+                        }
                         const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
                         const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
                         Dialog.alertError(t('device.mirrorFailed') + ` : <code>${escapeHtml(msg)}</code>${detail}`)

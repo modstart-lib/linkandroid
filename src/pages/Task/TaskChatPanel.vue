@@ -3,7 +3,10 @@ import {nextTick, onMounted, ref} from 'vue'
 import {t} from '../../lang'
 import {Dialog} from '../../lib/dialog'
 import {useModelStore} from '../../module/Model/store/model'
+import {useUserStore} from '../../store/modules/user'
 import ModelSelector from '../../module/Model/ModelSelector.vue'
+import LoginRequiredDialog from '../../components/common/LoginRequiredDialog.vue'
+import LLMRechargeDialog from '../../components/common/LLMRechargeDialog.vue'
 import {StorageUtil} from '../../lib/storage'
 import TaskUpdatePreviewDialog from './TaskUpdatePreviewDialog.vue'
 import {collectDeviceScreenshotByLa, collectDeviceXmlByLa, runTaskPythonCode} from './TaskRuntime'
@@ -49,6 +52,8 @@ const inputText = ref('')
 const loading = ref(false)
 const messageContainer = ref<HTMLDivElement | null>(null)
 const updatePreviewDialog = ref<InstanceType<typeof TaskUpdatePreviewDialog> | null>(null)
+const loginRequiredDialog = ref<InstanceType<typeof LoginRequiredDialog> | null>(null)
+const llmRechargeDialog = ref<InstanceType<typeof LLMRechargeDialog> | null>(null)
 const customAskChoice = '__custom__'
 
 const modelStore = useModelStore()
@@ -110,6 +115,47 @@ const scrollToBottom = () => {
             messageContainer.value.scrollTop = messageContainer.value.scrollHeight
         }
     })
+}
+
+const showLoginDialog = () => {
+    loginRequiredDialog.value?.show()
+}
+
+const showRechargeDialog = () => {
+    llmRechargeDialog.value?.show()
+}
+
+/**
+ * 消息发送前的统一预检函数。
+ * 在真正发送消息之前检查各项前置条件，若不满足则弹出对应提示且不发送消息。
+ */
+const preCheckSend = (providerId: string, modelId: string): boolean => {
+    if (!providerId || !modelId) {
+        Dialog.tipError(t('hint.selectModel'))
+        return false
+    }
+    const userStore = useUserStore()
+    if (providerId === 'buildIn') {
+        if (!userStore.user.id) {
+            showLoginDialog()
+            return false
+        }
+        const provider = modelStore.providers.find((p) => p.id === providerId)
+        if (!provider?.apiUrl) {
+            showRechargeDialog()
+            return false
+        }
+        const quota = userStore.data.llmpx?.quota
+        if (quota !== undefined && quota <= 0) {
+            showRechargeDialog()
+            return false
+        }
+    }
+    if (!props.selectedDeviceId) {
+        Dialog.tipError(t('hint.selectDeviceFirst'))
+        return false
+    }
+    return true
 }
 
 const parseToolArgs = (value: string) => {
@@ -250,34 +296,20 @@ const getDeviceBasicInfo = async () => {
         )
         return await controller.result()
     } catch (e: any) {
-        return `获取手机基本信息失败：${e.message || e}`
+        return t('task.fetchDeviceInfoFailed', {error: e.message || e})
     }
 }
 
 const sendPrompt = async (input: string, displayInput?: string) => {
     const text = input.trim()
     if (!text || loading.value) return
+
+    const [providerId, modelId] = (selectedModel.value || '|').split('|')
+    if (!preCheckSend(providerId, modelId)) return
+
     inputText.value = ''
     addMessage('user', displayInput?.trim() || text)
     scrollToBottom()
-
-    const [providerId, modelId] = (selectedModel.value || '|').split('|')
-    if (!providerId || !modelId) {
-        addMessage('assistant', t('hint.selectModel'))
-        scrollToBottom()
-        return
-    }
-    if (!props.selectedDeviceId) {
-        addMessage('assistant', t('hint.selectDeviceFirst'))
-        scrollToBottom()
-        return
-    }
-    const provider = modelStore.providers.find((p) => p.id === providerId)
-    if (providerId === 'buildIn' && !provider?.apiUrl) {
-        addMessage('assistant', t('error.energyInsufficient'))
-        scrollToBottom()
-        return
-    }
 
     loading.value = true
     const startedAt = Date.now()
@@ -315,7 +347,7 @@ const sendPrompt = async (input: string, displayInput?: string) => {
             const options = (result.ask.options || [])
                 .map((item) => item.trim())
                 .filter((item) => item && item !== '自己填')
-            addMessage('assistant', '需要补充信息', {
+            addMessage('assistant', t('task.needMoreInfo'), {
                 question: result.ask.question,
                 options,
                 choice: options[0] || customAskChoice,
@@ -349,7 +381,7 @@ const doSubmitAsk = async (msg: ChatMessage) => {
     const answer = msg.ask.choice === customAskChoice ? msg.ask.custom.trim() : msg.ask.choice.trim()
     if (!answer || loading.value) return
     msg.ask.answered = answer
-    const prompt = [msg.ask.sourcePrompt, '', `用户针对问题「${msg.ask.question}」选择：${answer}`]
+    const prompt = [msg.ask.sourcePrompt, '', t('task.questionAnswer', {question: msg.ask.question, answer})]
         .filter((item) => item)
         .join('\n')
     await sendPrompt(prompt, answer)
@@ -371,11 +403,12 @@ const doCopyDialogLog = async () => {
         await window.$mapi.app.setClipboardText(filePath)
         Dialog.tipSuccess(t('task.chatLogPathCopied'))
     } catch (e: any) {
-        Dialog.tipError(`复制对话日志失败: ${e.message || e}`)
+        Dialog.tipError(t('task.copyLogFailed', {error: e.message || e}))
     }
 }
 
 defineExpose({
+    preCheckSend,
     testSetCode: (code: string) => {
         addMessage('assistant', code)
     },
@@ -465,7 +498,7 @@ const onPreviewConfirm = (code: string) => {
                         <div v-if="msg.ask.answered" class="space-y-2">
                             <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                                 <i-lucide-check class="w-4 h-4" aria-hidden="true" />
-                                <span class="font-medium">已回答</span>
+                                <span class="font-medium">{{ $t('task.answered') }}</span>
                             </div>
                             <div class="text-gray-800 dark:text-gray-100 whitespace-pre-wrap">
                                 {{ msg.ask.question }}
@@ -530,7 +563,7 @@ const onPreviewConfirm = (code: string) => {
                                     </button>
                                     <a-textarea
                                         v-model="msg.ask.custom"
-                                        placeholder="自己填"
+                                        :placeholder="$t('task.fillSelf')"
                                         class="flex-1"
                                         :auto-size="{minRows: 1, maxRows: 6}"
                                         @focus="msg.ask.choice = customAskChoice"
@@ -547,7 +580,7 @@ const onPreviewConfirm = (code: string) => {
                                 "
                                 @click="doSubmitAsk(msg)"
                             >
-                                提交答案
+                                {{ $t('task.submitAnswer') }}
                             </a-button>
                         </div>
                     </div>
@@ -588,7 +621,7 @@ const onPreviewConfirm = (code: string) => {
                     {{ $t('task.chatSend') }}
                 </a-button>
                 <a-dropdown trigger="click">
-                    <a-button class="shrink-0" aria-label="聊天更多操作">
+                    <a-button class="shrink-0" :aria-label="$t('task.chatMoreActions')">
                         <template #icon><i-lucide-ellipsis-vertical /></template>
                     </a-button>
                     <template #content>
@@ -605,5 +638,7 @@ const onPreviewConfirm = (code: string) => {
             </div>
         </div>
         <TaskUpdatePreviewDialog ref="updatePreviewDialog" @confirm="onPreviewConfirm" />
+        <LoginRequiredDialog ref="loginRequiredDialog" />
+        <LLMRechargeDialog ref="llmRechargeDialog" />
     </div>
 </template>

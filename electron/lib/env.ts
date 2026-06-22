@@ -125,6 +125,30 @@ export const extraResolveWithPlatform = (filePath: string): string => {
     return extraResolve(p)
 }
 
+/**
+ * Dev mode: resolve a file path from the sibling `linkandroid-scrcpy-pro` project.
+ * Returns `null` if not in dev mode, the directory doesn't exist, or the file doesn't exist.
+ *
+ * Usage:
+ *   const adb = devProResolve('app/deps/work/install/adb-macos/adb')
+ *   if (adb) { ... }
+ */
+export const devProResolve = (relativePath: string): string | null => {
+    if (!isDev) return null
+    const proDir = resolve('../linkandroid-scrcpy-pro')
+    if (!fs.existsSync(proDir)) return null
+    const fullPath = resolve(proDir, relativePath)
+    return fs.existsSync(fullPath) ? fullPath : null
+}
+
+/**
+ * Resolve ADB binary path: try pro project first in dev mode, fall back to extra resources.
+ * Throws if neither exists.
+ */
+export const resolveAdbBin = (): string => {
+    return devProResolve('app/deps/work/install/adb-macos/adb') || extraResolveBin('scrcpy/adb')
+}
+
 export const extraResolveBin = (filePath: string): string => {
     if (isWin) {
         if (!filePath.endsWith('.exe')) {

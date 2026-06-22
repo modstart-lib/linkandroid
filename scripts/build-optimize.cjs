@@ -6,6 +6,7 @@
 // This script only moves things WITHIN the app bundle.
 
 const common = require("./common.cjs");
+const childProcess = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -103,6 +104,20 @@ function normalizePythonRuntime(runtimeDir) {
   console.log(`  [normalize] Python _aienv symlink(s): ${changed}`);
 }
 
+function runOptional(cmd, args, label) {
+  const result = childProcess.spawnSync(cmd, args, {stdio: "pipe", encoding: "utf8"});
+  if (result.status === 0) return;
+  const output = [result.stdout, result.stderr].filter(Boolean).join("\n").trim();
+  console.log(`  [warn] ${label} failed${output ? `: ${output}` : ""}`);
+}
+
+function prepareMacExecutable(file) {
+  if (common.platformName() !== "osx") return;
+  runOptional("xattr", ["-d", "com.apple.quarantine", file], "clear CLI quarantine");
+  runOptional("xattr", ["-d", "com.apple.provenance", file], "clear CLI provenance");
+  runOptional("codesign", ["--force", "--sign", "-", file], "codesign CLI");
+}
+
 // ── main ─────────────────────────────────────────────────────────
 exports.default = async function (context) {
   console.log("BuildOptimize", {name: common.platformName(), arch: common.platformArch()});
@@ -129,7 +144,9 @@ exports.default = async function (context) {
   const cliDestDir = path.join(resRootDir, "cli");
   fs.mkdirSync(cliDestDir, {recursive: true});
   move(cliSrc, path.join(cliDestDir, cliFile), "CLI");
-  assertExists(path.join(cliDestDir, cliFile), "CLI runtime executable");
+  const cliDest = path.join(cliDestDir, cliFile);
+  prepareMacExecutable(cliDest);
+  assertExists(cliDest, "CLI runtime executable");
 
   // ── 2. Extract portable Python env + init script from extra/ → env/task/ ──
   const taskDir = path.join(resRootDir, "env", "task");
