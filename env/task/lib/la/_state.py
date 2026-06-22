@@ -7,6 +7,7 @@ import functools
 import json
 import re
 import os
+import time
 from typing import Any, List, Optional
 
 import uiautomator2 as u2
@@ -15,6 +16,7 @@ import uiautomator2 as u2
 # 全局设备实例
 # ---------------------------------------------------------------------------
 _device: Optional[u2.Device] = None
+_device_id: Optional[str] = None
 error = Exception
 
 
@@ -57,6 +59,30 @@ def _connect_raw(device_id: str) -> u2.Device:
     raw_device = u2.connect(device_id)
     raw_device.wait_timeout = 30
     return raw_device
+
+
+def _call_if_exists(target: Any, name: str, *args) -> bool:
+    callback = getattr(target, name, None)
+    if not callable(callback):
+        return False
+    callback(*args)
+    return True
+
+
+def _recover_device_connection() -> None:
+    global _device, _device_id
+    current = _device
+    if current is not None:
+        try:
+            if not _call_if_exists(current, "reset_uiautomator"):
+                service = getattr(current, "uiautomator", None)
+                if service is not None:
+                    _call_if_exists(service, "stop")
+                    time.sleep(0.5)
+                    _call_if_exists(service, "start")
+        except Exception:
+            pass
+    _device = _connect_raw(_device_id or _active_device_id())
 
 
 def _active_device_id() -> str:

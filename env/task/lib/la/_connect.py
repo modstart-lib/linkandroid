@@ -31,6 +31,7 @@ def connect(addr: str = "127.0.0.1") -> u2.Device:
     if addr == "127.0.0.1":
         addr = os.environ.get("ANDROID_DEVICE_ADDR", addr)
     _la_state._device = u2.connect(addr)
+    _la_state._device_id = addr
     _la_state._device.wait_timeout = 30
     return _la_state._device
 
@@ -38,6 +39,7 @@ def connect(addr: str = "127.0.0.1") -> u2.Device:
 def disconnect():
     """断开连接 (重置全局设备)."""
     _la_state._device = None
+    _la_state._device_id = None
 
 
 def device():

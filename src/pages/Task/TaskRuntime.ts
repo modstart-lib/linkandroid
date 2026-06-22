@@ -74,7 +74,7 @@ export const runTaskPythonCode = async (
     const runtime = await getTaskRuntime(deviceId, option?.deviceIds)
     const llmEnv = await getLlmEnv()
     option?.started?.()
-    return await window.$mapi.app.spawnShell([runtime.pythonPath, '-c', code], {
+    return await window.$mapi.app.spawnShell([runtime.pythonPath, '-u', '-c', code], {
         shell: false,
         cwd: runtime.taskDir,
         stdout: option?.stdout,
@@ -84,6 +84,7 @@ export const runTaskPythonCode = async (
         env: {
             ...runtime.env,
             ...llmEnv,
+            PYTHONUNBUFFERED: '1',
             ...(option?.env || {}),
         },
     })
