@@ -31,7 +31,7 @@ const doHelp = () => {
                 <div>② {{ $t('device.connectUsb') }}</div>
                 <div class="pt-3">
                     {{ $t('device.seeMoreDocs') }}
-                    <a href="javascript:;" class="text-link" @click="doHelp">
+                    <a href="javascript:;" class="text-link inline-flex items-center gap-1" @click="doHelp">
                         <i-lucide-book-open />
                         {{ $t('device.onlineDocs') }}
                     </a>

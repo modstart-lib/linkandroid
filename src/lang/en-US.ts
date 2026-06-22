@@ -638,7 +638,7 @@ const messages: Messages = {
     'task.noTasks': 'No tasks',
     'task.noChildNodes': 'No child nodes',
     'task.previewDevice': 'Device Preview',
-    'task.aiGenerate': 'AI Edit Script',
+    'task.aiGenerate': 'AI Edit Task',
     'task.seedName': 'Seed Task',
     'task.seedDescription': 'Task for automated testing',
     'task.noVisionToolsModel': 'No model with vision/tools support configured',

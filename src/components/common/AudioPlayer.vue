@@ -402,7 +402,10 @@ defineExpose({
                 </div>
             </div>
             <div class="ml-3">
-                <div v-if="!recordInputDevices.length" class="text-sm bg-gray-100 h-10 leading-10 rounded-lg px-5">
+                <div
+                    v-if="!recordInputDevices.length"
+                    class="text-sm bg-gray-100 h-10 leading-10 rounded-lg px-5 flex items-center gap-1"
+                >
                     <icon-info-circle />
                     {{ $t('error.noMicrophone') }}
                 </div>

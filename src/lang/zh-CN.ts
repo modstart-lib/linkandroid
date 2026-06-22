@@ -637,7 +637,7 @@ const messages: Messages = {
     'task.noTasks': '暂无任务',
     'task.noChildNodes': '无子节点',
     'task.previewDevice': '手机预览',
-    'task.aiGenerate': 'AI 修改脚本',
+    'task.aiGenerate': 'AI 修改任务',
     'task.seedName': 'Seed 任务',
     'task.seedDescription': '用于自动化测试的任务',
     'task.noVisionToolsModel': '未配置支持 vision/tools 的模型',

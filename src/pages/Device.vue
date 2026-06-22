@@ -184,59 +184,65 @@ onUnmounted(() => {
             </div>
         </div>
         <div class="px-6 pb-6">
-            <ListerTop v-if="deviceStore.records.length > 0" :loading="loading" @refresh="doRefresh">
-                <!-- 全选按钮 - 独立组件，始终显示，状态与当前列表选中关联 -->
-                <a-button
-                    :disabled="filterRecords.length === 0"
-                    @click="doSelectAll"
-                    :aria-label="isAllVisibleSelected ? $t('common.deselectAll') : $t('common.selectAll')"
-                >
-                    <template #icon>
-                        <i-lucide-check-square v-if="isAllVisibleSelected" />
-                        <i-lucide-square v-else />
-                    </template>
-                </a-button>
-                <!-- 全部状态 -->
-                <a-select v-model="filterStatus" :placeholder="$t('device.allStatus')" class="w-32" allow-clear>
-                    <a-option value="">{{ $t('device.allStatus') }}</a-option>
-                    <a-option :value="EnumDeviceStatus.CONNECTED">{{ $t('device.statusConnected') }}</a-option>
-                    <a-option :value="EnumDeviceStatus.WAIT_CONNECTING">{{ $t('device.statusConnecting') }}</a-option>
-                    <a-option :value="EnumDeviceStatus.DISCONNECTED">{{ $t('device.statusDisconnected') }}</a-option>
-                </a-select>
-                <a-select v-model="filterGroupId" :placeholder="$t('device.groupFilter')" class="w-36" allow-clear>
-                    <a-option value="">{{ $t('device.groupFilter') }}</a-option>
-                    <a-option v-for="g in deviceStore.groups" :key="g.id" :value="g.id">{{ g.name }}</a-option>
-                </a-select>
-                <!-- 搜索设备 -->
-                <a-input-search
-                    v-model="searchKeywords"
-                    :placeholder="$t('device.searchPlaceholder')"
-                    class="w-48"
-                    allow-clear
-                />
-                <!-- 批量操作 - 放在搜索设备后面 -->
-                <a-dropdown @select="doBatchAction">
-                    <a-button :disabled="selectedDeviceIds.size === 0">
+            <ListerTop :loading="loading" @refresh="doRefresh">
+                <template v-if="deviceStore.records.length > 0">
+                    <!-- 全选按钮 - 独立组件，始终显示，状态与当前列表选中关联 -->
+                    <a-button
+                        :disabled="filterRecords.length === 0"
+                        @click="doSelectAll"
+                        :aria-label="isAllVisibleSelected ? $t('common.deselectAll') : $t('common.selectAll')"
+                    >
                         <template #icon>
-                            <i-lucide-layers />
+                            <i-lucide-check-square v-if="isAllVisibleSelected" />
+                            <i-lucide-square v-else />
                         </template>
-                        {{ $t('device.batchOperation', {count: selectedCount}) }}
                     </a-button>
-                    <template #content>
-                        <a-doption value="install">
+                    <!-- 全部状态 -->
+                    <a-select v-model="filterStatus" :placeholder="$t('device.allStatus')" class="w-32" allow-clear>
+                        <a-option value="">{{ $t('device.allStatus') }}</a-option>
+                        <a-option :value="EnumDeviceStatus.CONNECTED">{{ $t('device.statusConnected') }}</a-option>
+                        <a-option :value="EnumDeviceStatus.WAIT_CONNECTING">{{
+                            $t('device.statusConnecting')
+                        }}</a-option>
+                        <a-option :value="EnumDeviceStatus.DISCONNECTED">{{
+                            $t('device.statusDisconnected')
+                        }}</a-option>
+                    </a-select>
+                    <a-select v-model="filterGroupId" :placeholder="$t('device.groupFilter')" class="w-36" allow-clear>
+                        <a-option value="">{{ $t('device.groupFilter') }}</a-option>
+                        <a-option v-for="g in deviceStore.groups" :key="g.id" :value="g.id">{{ g.name }}</a-option>
+                    </a-select>
+                    <!-- 搜索设备 -->
+                    <a-input-search
+                        v-model="searchKeywords"
+                        :placeholder="$t('device.searchPlaceholder')"
+                        class="w-48"
+                        allow-clear
+                    />
+                    <!-- 批量操作 - 放在搜索设备后面 -->
+                    <a-dropdown @select="doBatchAction">
+                        <a-button :disabled="selectedDeviceIds.size === 0">
                             <template #icon>
-                                <i-lucide-package />
+                                <i-lucide-layers />
                             </template>
-                            {{ $t('device.installApp') }}
-                        </a-doption>
-                        <a-doption value="mirror">
-                            <template #icon>
-                                <i-lucide-monitor />
-                            </template>
-                            {{ $t('device.mirrorToComputer') }}
-                        </a-doption>
-                    </template>
-                </a-dropdown>
+                            {{ $t('device.batchOperation', {count: selectedCount}) }}
+                        </a-button>
+                        <template #content>
+                            <a-doption value="install">
+                                <template #icon>
+                                    <i-lucide-package />
+                                </template>
+                                {{ $t('device.installApp') }}
+                            </a-doption>
+                            <a-doption value="mirror">
+                                <template #icon>
+                                    <i-lucide-monitor />
+                                </template>
+                                {{ $t('device.mirrorToComputer') }}
+                            </a-doption>
+                        </template>
+                    </a-dropdown>
+                </template>
                 <template #actions>
                     <a-dropdown trigger="hover">
                         <a-button>

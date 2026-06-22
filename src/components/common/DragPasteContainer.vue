@@ -168,7 +168,7 @@ const onDragLeave = (e: DragEvent) => {
                 <div>
                     <icon-file class="text-5xl" />
                 </div>
-                <div>
+                <div class="flex items-center gap-1 justify-center">
                     <icon-drag-arrow />
                     {{ $t('common.dragHereToRelease') }}
                 </div>

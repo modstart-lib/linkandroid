@@ -228,7 +228,7 @@ watch(
                             </template>
                         </a-button>
                     </div>
-                    <div class="text-gray-400">
+                    <div class="text-gray-400 flex items-center gap-1">
                         <icon-check class="text-green-600" />
                         {{ $t('model.builtinDesc') }}
                     </div>
