@@ -277,7 +277,7 @@ jobs:
           echo "=== Cleaning filenames ==="
           find _artifacts/ -type f | while read f; do
             base=$(basename "$f")
-            clean=$(echo "$base" | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+(\.[a-zA-Z][a-zA-Z0-9]*)?/snapshot/')
+            clean=$(echo "$base" | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+(-(beta|alpha|rc|dev)(\.[0-9]+)?)?/snapshot/')
             cp "$f" "$tmpdir/$clean"
             echo "Staged: $base -> $clean"
           done
