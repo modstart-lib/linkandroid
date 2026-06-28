@@ -11,11 +11,15 @@ let tray = null
 
 const getTrayImage = () => {
     const iconPath = existsSync(trayPath) ? trayPath : extraResolve('common/tray/icon.png')
-    const image = nativeImage.createFromPath(iconPath)
+    let image = nativeImage.createFromPath(iconPath)
     if (image.isEmpty()) {
         return null
     }
     if (isMac) {
+        const size = image.getSize()
+        if (size.width > 22 || size.height > 22) {
+            image = image.resize({width: 16, height: 16})
+        }
         image.setTemplateImage(true)
     }
     return image

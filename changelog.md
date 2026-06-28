@@ -1,59 +1,21 @@
 ## [Unreleased]
 
-### Technical Improvements
-- Added timezone support for build ID generation using dayjs plugins
-- 添加了dayjs插件以支持构建ID生成的时区
+- 优化：更新应用图标资源（appx、tray、logo 等）
+- 优化：macOS 托盘图标过大时自动缩小至 16x16
+- 优化：macOS 构建时 extraResources 增加 osx/ 目录过滤规则
 
-### UI Improvements
-- Updated panel buttons to use icons instead of text for better visual consistency
-- 将面板按钮更新为使用图标而不是文本，以提高视觉一致性
+## v2.0.0 全新自动化任务系统与 AI 大模型集成
 
-### Internationalization
-- Localized loading text on home page using translation keys
-- 使用翻译键本地化主页上的加载文本
-
-### Code Cleanup
-- Commented out debug logging in device store
-- 在设备存储中注释掉调试日志
-
-## v1.1.0 Enhanced Wireless Pairing & Side Toolbar
-
-### Release Summary
-**LinkAndroid v1.1.0** brings revolutionary wireless pairing capabilities and enhanced mirroring controls. Experience seamless device connections with QR code auto-pairing, automatic mDNS discovery, and an intuitive side toolbar for screen mirroring operations. This update significantly improves the wireless debugging workflow and user experience across all platforms.
-
-**Key Highlights:**
-- **One-Scan Connection**: QR code pairing with automatic device discovery
-- **Mirroring Toolbar**: Quick access controls during screen mirroring
-- **Smart Discovery**: Bonjour-based mDNS for effortless device finding
-- **Multi-Device Sync**: Follow and top modes for synchronized operations
-
----
-
-### Major Features
-- **Enhanced Wireless Pairing**: Complete overhaul of wireless debugging with QR code auto-pairing and manual pairing code input
-- **mDNS Service Discovery**: Automatic device discovery using Bonjour for seamless ADB connections
-- **Side Toolbar for Mirroring**: Quick access toolbar during screen mirroring with Back, Home, Recent, Volume, and Screenshot controls
-- **Device Connection Menu**: Dropdown menu for rapid network device connections and wireless debugging pairing
-
-### Technical Improvements
-- **Core Upgrade**: scrcpy upgraded to v3.3.4 for enhanced mirroring stability
-- **Path Management**: Simplified ADB and Scrcpy binary path handling with intelligent defaults
-- **UI/UX Enhancements**: Improved wireless pairing dialogs, loading animations, and multilingual consistency
-- **Network Detection**: Automatic network interface detection for wireless pairing
-
-### Bug Fixes & Optimizations
-- Fixed mirroring failures when installation paths contain Chinese characters
-- Added force quit functionality in tray configuration
-- Optimized splash screen layout and transparency settings
-- Enhanced Pro version feature guidance and upgrade prompts
-- Improved internationalization with comprehensive translation updates
-
-### Device Features
-- Follow mode and top mode for synchronized multi-device mirroring operations
-- Automatic device scanning and connection after QR code pairing
-- Enhanced device search and connection workflows
-
----
+- 新增：Task 自动化任务完整体系（任务编辑器、运行器、运行时框架、聊天面板、设备预览、文档面板、XML 节点树、运行/日志弹窗）
+- 新增：大模型设置模块，支持多种 AI 提供商和模型配置
+- 新增：设置页 CLI 工具
+- 新增：新增取消全选、脚本、大模型设置、录屏格式、Task 自动化任务等多语言键
+- 优化：设备页分组设置弹窗重构，全选按钮改进（支持取消全选及实时状态），标题图标装饰，移除重复代码，内容区底部内边距
+- 优化：macOS 窗口增加拖拽支持，标题栏样式改进
+- 优化：导航栏头像增加阴影和固定尺寸显示，PageNav 导航栏进一步简化
+- 优化：设备弹窗（AppManager/FileManager/Camera 等）多项交互改进
+- 优化：大模型设置面板布局修复，侧栏和内容区高度自适应
+- 优化：弹窗硬编码文本直接使用英文标签，移除 Lib 模块相关多语言键
 
 ## v1.1.0 增强无线配对与投屏操作栏
 
@@ -91,9 +53,6 @@
 - 增强设备搜索和连接工作流
 
 ---
-
-## v1.0.0 正式版发布，布局调整设计，内置依赖，支持设备搜索
-
 
 ## v1.0.0 正式版发布，布局调整设计，内置依赖，支持设备搜索
 

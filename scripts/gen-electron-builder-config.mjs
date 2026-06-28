@@ -58,14 +58,19 @@ for (const t of platformTarget) {
   t.arch = [archName];
 }
 
-// 2. Override extraResources filter: include common/ + this platform's arch dir
+const extraFilters = ['common', extraDirGlob];
+if (platform === 'darwin') {
+  extraFilters.splice(1, 0, 'osx/**');
+}
+
+// 2. Override extraResources filter: include common/ + this platform's shared dir + arch dir
 //    electron-builder doesn't include platform-specific extra dirs (osx-arm64/ etc.)
 //    via the generic filter, so we explicitly add the right one here.
 nativeConfig[info.name].extraResources = [
   {
     from: 'electron/resources/extra',
     to: 'extra',
-    filter: ['common', extraDirGlob],
+    filter: extraFilters,
   },
 ];
 
@@ -83,4 +88,4 @@ const outPath = resolve(outDir, 'electron-builder-native-config.json');
 writeFileSync(outPath, JSON.stringify(nativeConfig, null, 2));
 
 console.log(`Native config written to: ${outPath}`);
-console.log(`  extra filter: common, ${extraDirGlob}`);
+console.log(`  extra filter: ${extraFilters.join(', ')}`);
