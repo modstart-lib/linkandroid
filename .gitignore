@@ -63,3 +63,7 @@ __pycache__/
 
 # Python 虚拟环境 (env/task 中的便携 Python)
 /env/task/_aienv/
+
+# OpenCode
+_temp/
+DEV_*.md

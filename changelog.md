@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+- 新增：scrcpy升级到4.1版本
+- 新增：测试项目根目录统一解析工具 projectRoot()
+- 优化：测试文件统一使用 projectRoot() 替代各自独立计算根目录
+- 优化：.gitignore 增加 OpenCode 临时文件忽略规则
 - 优化：更新应用图标资源（appx、tray、logo 等）
 - 优化：macOS 托盘图标过大时自动缩小至 16x16
 - 优化：macOS 构建时 extraResources 增加 osx/ 目录过滤规则
