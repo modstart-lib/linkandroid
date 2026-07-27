@@ -48,6 +48,7 @@ database.db
 /.agents
 dist-cli/
 /cli/linkandroid-cli
+*.tsbuildinfo
 test-results/
 /_temp/
 /DEV_QUEUE.md

@@ -12,6 +12,8 @@ const deviceStates: Map<string, any> = new Map()
 const deviceFollowMode: Map<string, boolean> = new Map()
 // 每个设备的置顶状态
 const deviceTopMode: Map<string, boolean> = new Map()
+// 每个设备的屏幕开关状态（true=亮屏，false=息屏）
+const deviceScreenOn: Map<string, boolean> = new Map()
 
 const start = async (): Promise<number> => {
     if (wss) {
@@ -32,6 +34,9 @@ const start = async (): Promise<number> => {
             const getPanelConfig = (deviceId: string) => {
                 const isFollowMode = deviceFollowMode.get(deviceId) || false
                 const isTopMode = deviceTopMode.get(deviceId) || false
+                const isScreenOn = deviceScreenOn.get(deviceId)
+                // 默认 true（亮屏），除非显式设为 false
+                const screenState = isScreenOn !== undefined ? isScreenOn : true
                 return {
                     type: 'panel',
                     data: {
@@ -42,6 +47,7 @@ const start = async (): Promise<number> => {
                             {id: 'volume_up', icon: 'v-plus'},
                             {id: 'volume_down', icon: 'v-minus'},
                             {id: 'screenshot', icon: 'screenshot'},
+                            {id: 'screen_power', icon: screenState ? 'screen-on' : 'screen-off'},
                             {id: 'follow', icon: isFollowMode ? 'follow_active' : 'follow'},
                             {id: 'toggle_top', icon: isTopMode ? 'top_active' : 'top'},
                             {id: 'close', icon: 'quit'},
@@ -125,6 +131,19 @@ const start = async (): Promise<number> => {
                                     }),
                                 )
                                 ws.send(JSON.stringify(getPanelConfig(deviceId)))
+                            } else if (buttonId === 'screen_power') {
+                                const currentState = deviceScreenOn.get(deviceId)
+                                const newState = currentState !== undefined ? !currentState : false
+                                deviceScreenOn.set(deviceId, newState)
+                                Log.info(`Screen power toggled for ${deviceId}: ${newState ? 'on' : 'off'}`)
+                                data.deviceId = deviceId
+                                data.type = 'DevicePanelButtonClick'
+                                broadcast('Render', data)
+                                ws.send(JSON.stringify(getPanelConfig(deviceId)))
+                                const isFollowMode = deviceFollowMode.get(deviceId) || false
+                                if (isFollowMode) {
+                                    handlePanelButtonFollowMode(deviceId, buttonId)
+                                }
                             } else if (buttonId === 'close') {
                                 ws.send(
                                     JSON.stringify({
@@ -164,10 +183,11 @@ const start = async (): Promise<number> => {
                         id: deviceId,
                     })
                 }
-                // 清理设备的随动状态和置顶状态
+                // 清理设备的随动状态、置顶状态和屏幕开关状态
                 if (clientType === 'DeviceMirror' && deviceId) {
                     deviceFollowMode.delete(deviceId)
                     deviceTopMode.delete(deviceId)
+                    deviceScreenOn.delete(deviceId)
                 }
             })
 
@@ -231,7 +251,7 @@ const isDeviceEvent = (eventType: string): boolean => {
 
 // 判断面板按钮是否支持随动
 const isPanelButtonFollowable = (buttonId: string): boolean => {
-    const followableButtons = ['home', 'back', 'recent', 'volume_up', 'volume_down', 'screenshot']
+    const followableButtons = ['home', 'back', 'recent', 'volume_up', 'volume_down', 'screenshot', 'screen_power']
     return followableButtons.includes(buttonId)
 }
 
@@ -244,6 +264,7 @@ const panelButtonToKeyCode = (buttonId: string): number | null => {
         volume_up: 24, // KEYCODE_VOLUME_UP
         volume_down: 25, // KEYCODE_VOLUME_DOWN
         screenshot: 120, // KEYCODE_SYSRQ
+        screen_power: 26, // KEYCODE_POWER
     }
     return keyCodeMap[buttonId] || null
 }

@@ -233,6 +233,10 @@ const handlePanelButtonClick = async (deviceId: string, buttonId: string) => {
             args = ['shell', 'input', 'keyevent', 'KEYCODE_SYSRQ']
             await $mapi.adb.spawnShell(args, {}, deviceId)
             break
+        case 'screen_power':
+            args = ['shell', 'input', 'keyevent', 'KEYCODE_POWER']
+            await $mapi.adb.spawnShell(args, {}, deviceId)
+            break
         case 'close':
             await stopDeviceManage(deviceId)
             break
