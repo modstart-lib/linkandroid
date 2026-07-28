@@ -8,6 +8,13 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    outputs:
+      dl-linux-x64: ${{ steps.oss-dl.outputs.dl-linux-x64 }}
+      dl-linux-arm64: ${{ steps.oss-dl.outputs.dl-linux-arm64 }}
+      dl-mac-x64: ${{ steps.oss-dl.outputs.dl-mac-x64 }}
+      dl-mac-arm64: ${{ steps.oss-dl.outputs.dl-mac-arm64 }}
+      dl-win-x64: ${{ steps.oss-dl.outputs.dl-win-x64 }}
+      dl-win-arm64: ${{ steps.oss-dl.outputs.dl-win-arm64 }}
 
     strategy:
       fail-fast: false
@@ -206,6 +213,36 @@ jobs:
             code/dist-release/*.AppImage
             code/dist-release/*.deb
 
+      - name: Upload to OSS
+        id: oss-upload
+        uses: modstart/github-oss-action@master
+        with:
+          title: ${{ github.ref_name }}
+          key-id: ${{ secrets.OSS_2_KEY_ID }}
+          key-secret: ${{ secrets.OSS_2_KEY_SECRET }}
+          region: ${{ secrets.OSS_2_REGION }}
+          bucket: ${{ secrets.OSS_2_BUCKET }}
+          callbackTitle: 🎉LinkAndroid-${{ runner.os }}-Release-${{ github.ref_name }}
+          callback: ${{ secrets.REPORT_URL_ME }}
+          assets: |
+              code/dist-release/*.exe:apps/{random}.bin:{name}.exe
+              code/dist-release/*.dmg:apps/{random}.bin:{name}.dmg
+              code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
+              code/dist-release/*.deb:apps/{random}.bin:{name}.deb
+
+      - name: Expose downloads output for Notify
+        id: oss-dl
+        shell: bash
+        env:
+          DOWNLOADS: ${{ steps.oss-upload.outputs.downloads }}
+        run: |
+          if [ -n "${DOWNLOADS}" ]; then
+            echo "::add-mask::${DOWNLOADS}"
+            echo "dl-${{ matrix.name }}<<__DL_EOF__" >> "${GITHUB_OUTPUT}"
+            echo "${DOWNLOADS}" >> "${GITHUB_OUTPUT}"
+            echo "__DL_EOF__" >> "${GITHUB_OUTPUT}"
+          fi
+
   # ── Release ────────────────────────────────────────────────────────────────────
   release:
     name: Create Release
@@ -216,6 +253,7 @@ jobs:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: linkandroid-*
           path: _artifacts
           merge-multiple: false
       - name: Create Release and Upload Assets
@@ -252,10 +290,40 @@ jobs:
       - uses: actions/checkout@v5
       - name: Notify Webhook
         run: |
-            NAME="${{ github.event.repository.name }}"
-            TYPE=$(echo "${{ github.workflow }}" | tr '[:upper:]' '[:lower:]')
-            VERSION=$(node -p "require('./package.json').version")
-            curl -X POST "${{ secrets.HOOK_URL }}" \
-              -H "Content-Type: application/json" \
-              -d "{\"event\":\"${NAME}\",\"param\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"},\"data\":{\"name\":\"${NAME}\",\"type\":\"${TYPE}\",\"version\":\"${VERSION}\"}}"
+          # Merge downloads from all matrix builds via job outputs
+          MERGED="{}"
+          for key in \
+            "${{ needs.build.outputs.dl-linux-x64 }}" \
+            "${{ needs.build.outputs.dl-linux-arm64 }}" \
+            "${{ needs.build.outputs.dl-mac-x64 }}" \
+            "${{ needs.build.outputs.dl-mac-arm64 }}" \
+            "${{ needs.build.outputs.dl-win-x64 }}" \
+            "${{ needs.build.outputs.dl-win-arm64 }}"; do
+            if [ -n "$key" ] && [ "$key" != "{}" ]; then
+              MERGED=$(node -e "
+                const a = JSON.parse(process.argv[1]);
+                const b = JSON.parse(process.argv[2]);
+                console.log(JSON.stringify(Object.assign(a, b)));
+              " "$MERGED" "$key")
+            fi
+          done
+          echo "::add-mask::${MERGED}"
+
+          NAME="${{ github.event.repository.name }}"
+          TYPE=$(echo "${{ github.workflow }}" | tr '[:upper:]' '[:lower:]')
+          VERSION=$(node -p "require('./package.json').version")
+
+          PAYLOAD=$(node -e "
+            const p = {
+              event: process.argv[1],
+              param: { name: process.argv[1], type: process.argv[2], version: process.argv[3] },
+              data: { name: process.argv[1], type: process.argv[2], version: process.argv[3], downloads: process.argv[4] }
+            };
+            console.log(JSON.stringify(p));
+          " "$NAME" "$TYPE" "$VERSION" "$MERGED")
+          echo "::add-mask::${PAYLOAD}"
+
+          curl -X POST "${{ secrets.HOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "${PAYLOAD}"
 
