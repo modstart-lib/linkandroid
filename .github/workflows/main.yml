@@ -9,13 +9,6 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    outputs:
-      dl-linux-x64: ${{ steps.oss-dl.outputs.dl-linux-x64 }}
-      dl-linux-arm64: ${{ steps.oss-dl.outputs.dl-linux-arm64 }}
-      dl-mac-x64: ${{ steps.oss-dl.outputs.dl-mac-x64 }}
-      dl-mac-arm64: ${{ steps.oss-dl.outputs.dl-mac-arm64 }}
-      dl-win-x64: ${{ steps.oss-dl.outputs.dl-win-x64 }}
-      dl-win-arm64: ${{ steps.oss-dl.outputs.dl-win-arm64 }}
 
     strategy:
       fail-fast: false
@@ -255,18 +248,23 @@ jobs:
               code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
               code/dist-release/*.deb:apps/{random}.bin:{name}.deb
 
-      - name: Expose downloads output for Notify
-        id: oss-dl
+      - name: Save OSS Downloads for Notify
         shell: bash
         env:
-          DOWNLOADS: ${{ steps.oss-upload.outputs.downloads }}
+          OSS_DOWNLOADS: ${{ steps.oss-upload.outputs.downloads }}
         run: |
-          if [ -n "${DOWNLOADS}" ]; then
-            echo "::add-mask::${DOWNLOADS}"
-            echo "dl-${{ matrix.name }}<<__DL_EOF__" >> "${GITHUB_OUTPUT}"
-            echo "${DOWNLOADS}" >> "${GITHUB_OUTPUT}"
-            echo "__DL_EOF__" >> "${GITHUB_OUTPUT}"
+          if [ -n "${OSS_DOWNLOADS}" ]; then
+            # No echo of the value needed; output is masked by core.setSecret
+            echo "${OSS_DOWNLOADS}" > "oss-downloads-${{ matrix.name }}.json"
+          else
+            echo "{}" > "oss-downloads-${{ matrix.name }}.json"
           fi
+
+      - name: Upload OSS Downloads Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oss-downloads-${{ matrix.name }}
+          path: oss-downloads-${{ matrix.name }}.json
 
   # ── Snapshot Release (vsnapshot) ───────────────────────────────────────────────
   vsnapshot-release:
@@ -319,24 +317,26 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Download OSS Downloads Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: oss-downloads-*
+          path: _oss-downloads
+          merge-multiple: true
+
       - name: Notify Webhook
         run: |
-          # Merge downloads from all matrix builds via job outputs
+          # Merge all OSS download maps into a single JSON string
           MERGED="{}"
-          for key in \
-            "${{ needs.build.outputs.dl-linux-x64 }}" \
-            "${{ needs.build.outputs.dl-linux-arm64 }}" \
-            "${{ needs.build.outputs.dl-mac-x64 }}" \
-            "${{ needs.build.outputs.dl-mac-arm64 }}" \
-            "${{ needs.build.outputs.dl-win-x64 }}" \
-            "${{ needs.build.outputs.dl-win-arm64 }}"; do
-            if [ -n "$key" ] && [ "$key" != "{}" ]; then
-              MERGED=$(node -e "
-                const a = JSON.parse(process.argv[1]);
-                const b = JSON.parse(process.argv[2]);
-                console.log(JSON.stringify(Object.assign(a, b)));
-              " "$MERGED" "$key")
-            fi
+          for f in _oss-downloads/*.json; do
+            [ -f "$f" ] || continue
+            content=$(cat "$f")
+            [ -z "$content" ] && content="{}"
+            MERGED=$(node -e "
+              const a = JSON.parse(process.argv[1]);
+              const b = JSON.parse(process.argv[2]);
+              console.log(JSON.stringify(Object.assign(a, b)));
+            " "$MERGED" "$content")
           done
           echo "::add-mask::${MERGED}"
 
@@ -357,3 +357,16 @@ jobs:
           curl -X POST "${{ secrets.HOOK_URL }}" \
             -H "Content-Type: application/json" \
             -d "${PAYLOAD}"
+
+      - name: Clean up OSS Downloads Artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Deleting oss-downloads-* artifacts for run ${{ github.run_id }}..."
+          gh api "/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+            --jq '.artifacts[] | select(.name | startswith("oss-downloads-")) | .id' \
+            | while read id; do
+              echo "  deleting artifact id=$id"
+              gh api "/repos/${{ github.repository }}/actions/artifacts/$id" -X DELETE
+            done
+          echo "Cleanup done."
