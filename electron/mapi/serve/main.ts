@@ -1,8 +1,12 @@
+import {randomBytes} from 'node:crypto'
 import {ipcMain} from 'electron'
 import {WebSocket, WebSocketServer} from 'ws'
 import {t} from '../../config/lang'
 import {Apps} from '../app'
 import {Log} from '../log/main'
+
+// 生成 8 位十六进制随机 id（协议要求）
+const genId = () => randomBytes(4).toString('hex')
 
 let wss: WebSocketServer | null = null
 let wsPort: number = 10667
@@ -110,6 +114,22 @@ const start = async (): Promise<number> => {
                         if (data.type === 'ready') {
                             ws.send(JSON.stringify(getPanelConfig(deviceId)))
                             Log.info(`Sent panel config to DeviceMirror: deviceId=${deviceId}`)
+                            // 查询设备实际屏幕状态，确保图标与真实状态一致
+                            ws.send(
+                                JSON.stringify({
+                                    type: 'screen_power',
+                                    id: genId(),
+                                    data: {action: 'query'},
+                                }),
+                            )
+                        } else if (data.type === 'screen_power' && data.data?.action === 'query') {
+                            // screen_power query 回复，更新屏幕状态
+                            const isOn = data.data?.state?.on
+                            if (isOn !== undefined) {
+                                deviceScreenOn.set(deviceId, isOn)
+                                Log.info(`Screen state updated for ${deviceId}: ${isOn ? 'on' : 'off'}`)
+                                ws.send(JSON.stringify(getPanelConfig(deviceId)))
+                            }
                         } else if (data.type === 'panel_button_click') {
                             const buttonId = data.data?.id
                             if (buttonId === 'follow') {
@@ -136,9 +156,14 @@ const start = async (): Promise<number> => {
                                 const newState = currentState !== undefined ? !currentState : false
                                 deviceScreenOn.set(deviceId, newState)
                                 Log.info(`Screen power toggled for ${deviceId}: ${newState ? 'on' : 'off'}`)
-                                data.deviceId = deviceId
-                                data.type = 'DevicePanelButtonClick'
-                                broadcast('Render', data)
+                                // 通过 scrcpy 控制协议设置屏幕电源（不触发锁屏）
+                                ws.send(
+                                    JSON.stringify({
+                                        type: 'screen_power',
+                                        id: genId(),
+                                        data: {action: newState ? 'on' : 'off'},
+                                    }),
+                                )
                                 ws.send(JSON.stringify(getPanelConfig(deviceId)))
                                 const isFollowMode = deviceFollowMode.get(deviceId) || false
                                 if (isFollowMode) {

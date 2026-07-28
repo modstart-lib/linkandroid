@@ -66,6 +66,12 @@ const shell = async (
     }
 }
 
+const trimLogList = (list: string[], maxLines: number) => {
+    if (maxLines > 0 && list.length > maxLines) {
+        list.splice(0, list.length - maxLines)
+    }
+}
+
 const spawnShell = async (
     command: string | string[],
     option: {
@@ -77,6 +83,7 @@ const spawnShell = async (
         outputEncoding?: string
         env?: Record<string, any>
         shell?: boolean
+        maxLogLines?: number // 0 = unlimited
     } | null = null,
 ): Promise<{
     stop: () => void
@@ -125,6 +132,7 @@ const spawnShell = async (
         let dataString = outputStringConvert(option.outputEncoding as any, data)
         Log.info('App.spawnShell.stdout', dataString)
         stdoutList.push(dataString)
+        trimLogList(stdoutList, option.maxLogLines || 0)
         option.stdout?.(dataString, spawnProcess)
     })
     spawnProcess.stderr?.on('data', (data) => {
@@ -132,6 +140,7 @@ const spawnShell = async (
         let dataString = outputStringConvert(option.outputEncoding as any, data)
         Log.info('App.spawnShell.stderr', dataString)
         stderrList.push(dataString)
+        trimLogList(stderrList, option.maxLogLines || 0)
         option.stderr?.(dataString, spawnProcess)
     })
     spawnProcess.on('exit', (code, signal) => {

@@ -19,12 +19,14 @@ const spawnShell = async (
         cwd?: string
         outputEncoding?: string
         env?: Record<string, any>
+        maxLogLines?: number
     } | null = null,
 ) => {
     option = Object.assign(
         {
             env: {},
             args: [],
+            maxLogLines: 0,
         },
         option,
     )
@@ -68,12 +70,14 @@ const mirror = async (
         success?: (process: any) => void
         error?: (msg: string, exitCode: number, process: any) => void
         env?: Record<string, any>
+        maxLogLines?: number
     },
 ) => {
     option = Object.assign(
         {
             env: {},
             args: [],
+            maxLogLines: 0,
         },
         option,
     )
@@ -84,6 +88,7 @@ const mirror = async (
         success: option.success,
         error: option.error,
         env: option.env,
+        maxLogLines: option.maxLogLines,
     })
 }
 

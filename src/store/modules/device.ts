@@ -233,10 +233,6 @@ const handlePanelButtonClick = async (deviceId: string, buttonId: string) => {
             args = ['shell', 'input', 'keyevent', 'KEYCODE_SYSRQ']
             await $mapi.adb.spawnShell(args, {}, deviceId)
             break
-        case 'screen_power':
-            args = ['shell', 'input', 'keyevent', 'KEYCODE_POWER']
-            await $mapi.adb.spawnShell(args, {}, deviceId)
-            break
         case 'close':
             await stopDeviceManage(deviceId)
             break
@@ -542,15 +538,23 @@ export const deviceStore = defineStore('device', {
             let successTimer: ReturnType<typeof setTimeout> | null = null
             let successShown = false
             let unauthorized = false
+            const MAX_MIRROR_LOG_LINES = 200
             const logs: string[] = []
+            const pushLog = (prefix: string, data: string) => {
+                logs.push(prefix + data)
+                if (logs.length > MAX_MIRROR_LOG_LINES) {
+                    logs.splice(0, logs.length - MAX_MIRROR_LOG_LINES)
+                }
+            }
             try {
                 runtime.value.mirrorController = await $mapi.scrcpy.mirror(device.id, {
                     title: device.name as string,
                     args,
+                    maxLogLines: MAX_MIRROR_LOG_LINES,
                     stdout: (data: string) => {
                         console.log('mirror.stdout', data)
                         $mapi.log.info('Mirror.stdout', data)
-                        logs.push('[stdout] ' + data)
+                        pushLog('[stdout] ', data)
                         if (!successTimer) {
                             successTimer = setTimeout(() => {
                                 if (runtime.value.mirrorController) {
@@ -563,7 +567,7 @@ export const deviceStore = defineStore('device', {
                     stderr: (data: string) => {
                         console.log('mirror.stderr', data)
                         $mapi.log.error('Mirror.stderr', data)
-                        logs.push('[stderr] ' + data)
+                        pushLog('[stderr] ', data)
                         if (/unauthorized/i.test(data)) {
                             unauthorized = true
                         }
