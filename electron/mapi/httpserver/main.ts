@@ -180,7 +180,8 @@ app.post('/api/task/run', async (req, res) => {
             res.status(400).json({code: -1, msg: 'Missing task id'})
             return
         }
-        const result = await runTaskById(Number(id))
+        const deviceId = req.body?.deviceId || req.body?.device_id
+        const result = await runTaskById(Number(id), deviceId)
         if (!result.success) {
             res.status(500).json({code: -1, msg: result.log})
             return

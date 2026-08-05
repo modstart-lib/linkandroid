@@ -127,7 +127,7 @@
 | `POST /api/devices` | 获取设备列表 |
 | `POST /api/task/list` | 列出所有任务 |
 | `POST /api/task/get` | 按 ID 查询任务 |
-| `POST /api/task/run` | 远程触发任务运行 |
+| `POST /api/task/run` | 远程触发任务运行（可选 `deviceId`，不传自动选第一个在线设备） |
 | `POST /api/task/history` | 查看任务执行历史 |
 
 支持 Bearer Token 认证，可集成到 CI/CD 或自动化流水线中。

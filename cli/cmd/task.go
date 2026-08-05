@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var taskRunDevice string
+
 var taskCmd = &cobra.Command{
 	Use:   "task",
 	Short: "Manage and run tasks",
@@ -60,7 +62,11 @@ var taskRunCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		result, err := internal.DoRequest(cfg, "/api/task/run", map[string]any{"id": id})
+		body := map[string]any{"id": id}
+		if taskRunDevice != "" {
+			body["deviceId"] = taskRunDevice
+		}
+		result, err := internal.DoRequest(cfg, "/api/task/run", body)
 		if err != nil {
 			return err
 		}
@@ -90,5 +96,6 @@ func init() {
 	taskCmd.AddCommand(taskGetCmd)
 	taskCmd.AddCommand(taskRunCmd)
 	taskCmd.AddCommand(taskHistoryCmd)
+	taskRunCmd.Flags().StringVar(&taskRunDevice, "device", "", "device id to run the task on (default: auto-select first online device)")
 	rootCmd.AddCommand(taskCmd)
 }

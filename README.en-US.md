@@ -127,7 +127,7 @@ The built-in HTTP server provides a RESTful API for remote control and CI/CD int
 | `POST /api/devices` | List connected devices |
 | `POST /api/task/list` | List all tasks |
 | `POST /api/task/get` | Get task by ID |
-| `POST /api/task/run` | Trigger a task remotely |
+| `POST /api/task/run` | Trigger a task remotely (optional `deviceId`; auto-selects first online device if omitted) |
 | `POST /api/task/history` | View task execution history |
 
 Bearer Token authentication is supported for secure access.

@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+- 修复：CLI/HTTP 远程执行任务时未注入设备环境变量导致连接失败（如提示 "127.0.0.1 not online"），现自动选择 adb 在线设备（USB 优先）并注入设备信息，与界面手动执行行为一致
+- 新增：task run 支持 --device 参数，/api/task/run 接口支持可选 deviceId 参数；无在线设备时返回明确错误提示
+
 ## v2.1.0 scrcpy升级至4.1，投屏新增息屏/亮屏控制
 
 - 新增：scrcpy升级到4.1版本

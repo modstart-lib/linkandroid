@@ -5,13 +5,16 @@
  * 使用 croner 判断当前时间是否匹配 cron 表达式，匹配则执行任务。
  */
 
+import adbkitPkg from '@devicefarmer/adbkit'
 import {Cron} from 'croner'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {Log} from '../log/index'
 import Apps from '../app/index'
 import DBMain from '../db/main'
-import {isPackaged} from '../../lib/env'
+import {isPackaged, resolveAdbBin} from '../../lib/env'
+
+const {Adb} = adbkitPkg as any
 
 const _dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -58,6 +61,66 @@ const buildPythonEnv = () => {
 }
 
 /**
+ * 设备排序优先级: USB(0) < WiFi(1) < 模拟器(2)
+ */
+const deviceSortKey = (id: string): number => {
+    if (id.startsWith('emulator-')) return 2
+    if (id.includes(':')) return 1
+    return 0
+}
+
+/**
+ * 从 adb 发现在线设备 ID 列表, USB 优先.
+ * 失败时返回空数组.
+ */
+const discoverOnlineDevices = async (): Promise<string[]> => {
+    let bin: string | null = null
+    try {
+        bin = resolveAdbBin()
+    } catch {
+        // fall back to system adb
+    }
+    const client = Adb.createClient(bin ? {bin} : {})
+    try {
+        const devices = await client.listDevicesWithPaths()
+        return devices
+            .filter((d: any) => d.type === 'device' || d.type === 'emulator')
+            .map((d: any) => d.id)
+            .sort((a: string, b: string) => deviceSortKey(a) - deviceSortKey(b))
+    } catch (e) {
+        return []
+    } finally {
+        client.kill().catch(() => {})
+    }
+}
+
+/**
+ * 构建任务运行环境变量, 与前端手动执行 (TaskRuntime) 保持一致.
+ */
+const buildTaskEnv = (
+    task: {id: number; name: string},
+    deviceIds: string[],
+    libPath: string,
+): Record<string, string> => {
+    const env: Record<string, string> = {
+        LINKANDROID_TASK_ID: `${task.id}`,
+        LINKANDROID_TASK_NAME: task.name,
+        PYTHONPATH: libPath,
+    }
+    if (deviceIds.length > 0) {
+        env.LINKANDROID_DEVICE_ID = deviceIds[0]
+        env.LINKANDROID_DEVICE_IDS = deviceIds.join(',')
+        env.ANDROID_DEVICE_ADDR = deviceIds[0]
+    }
+    try {
+        env.LINKANDROID_ADB_PATH = resolveAdbBin()
+    } catch {
+        // adb binary unavailable — skip
+    }
+    return env
+}
+
+/**
  * 执行单个定时任务
  */
 const executeScheduledTask = async (task: TaskRow) => {
@@ -81,6 +144,7 @@ const executeScheduledTask = async (task: TaskRow) => {
         ])
 
         const {pythonPath, libPath, taskDir} = buildPythonEnv()
+        const deviceIds = await discoverOnlineDevices()
 
         let logOutput = ''
 
@@ -93,11 +157,7 @@ const executeScheduledTask = async (task: TaskRow) => {
             stderr: (data: string) => {
                 logOutput += data
             },
-            env: {
-                LINKANDROID_TASK_ID: `${task.id}`,
-                LINKANDROID_TASK_NAME: task.name,
-                PYTHONPATH: libPath,
-            },
+            env: buildTaskEnv(task, deviceIds, libPath),
         })
 
         const result = await controller.result()
@@ -176,9 +236,14 @@ const doSchedulerTick = async () => {
 
 /**
  * 根据任务 ID 手动执行任务（供 HTTP API / CLI 调用）
+ *
+ * @param deviceId  可选, 指定目标设备; 未指定时自动从 adb 选择第一个在线设备 (USB 优先)
+ * @param deviceIds 可选, 多设备列表; 优先级高于 deviceId
  */
 export const runTaskById = async (
     taskId: number,
+    deviceId?: string,
+    deviceIds?: string[],
 ): Promise<{runId: number | string | null; success: boolean; log: string}> => {
     const task: TaskRow | undefined = await DBMain.first(
         `SELECT id, name, description, code, language, run_mode, cron_expression
@@ -195,7 +260,7 @@ export const runTaskById = async (
         runId = await DBMain.insert(
             `INSERT INTO task_run (created_at, updated_at, task_id, device_id, status, log, started_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [now, now, task.id, 'cli', 'pending', '', null],
+            [now, now, task.id, deviceId || 'cli', 'pending', '', null],
         )
         await DBMain.update(`UPDATE task_run SET updated_at = ?, status = ?, started_at = ? WHERE id = ?`, [
             now,
@@ -203,6 +268,11 @@ export const runTaskById = async (
             now,
             runId,
         ])
+        const targetIds =
+            deviceIds && deviceIds.length > 0 ? deviceIds : deviceId ? [deviceId] : await discoverOnlineDevices()
+        if (targetIds.length === 0) {
+            throw new Error('NoOnlineDevice')
+        }
         const {pythonPath, libPath, taskDir} = buildPythonEnv()
         const controller = await Apps.spawnShell([pythonPath, '-c', task.code], {
             shell: false,
@@ -213,11 +283,7 @@ export const runTaskById = async (
             stderr: (data: string) => {
                 logOutput += data
             },
-            env: {
-                LINKANDROID_TASK_ID: `${task.id}`,
-                LINKANDROID_TASK_NAME: task.name,
-                PYTHONPATH: libPath,
-            },
+            env: buildTaskEnv(task, targetIds, libPath),
         })
         const result = await controller.result()
         logOutput = result || logOutput
