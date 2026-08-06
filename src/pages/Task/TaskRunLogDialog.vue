@@ -16,7 +16,14 @@ const isRunning = ref(false)
 const logPanel = ref<InstanceType<typeof LogPanel> | null>(null)
 const taskName = ref('')
 let runController: {stop: () => void; send: (data: any) => void} | null = null
-let currentTask: {id: number; name: string; code: string; language: string} | null = null
+let currentTask: {
+    id: number
+    name: string
+    code: string
+    language: string
+    device_ids?: string
+    run_on_all_devices?: number
+} | null = null
 
 const doStopRun = () => {
     if (runController) {
@@ -25,7 +32,14 @@ const doStopRun = () => {
     }
 }
 
-const doRun = async (task: {id: number; name: string; code: string; language: string}) => {
+const doRun = async (task: {
+    id: number
+    name: string
+    code: string
+    language: string
+    device_ids?: string
+    run_on_all_devices?: number
+}) => {
     currentTask = task
     taskName.value = task.name
     isRunning.value = true
@@ -34,7 +48,21 @@ const doRun = async (task: {id: number; name: string; code: string; language: st
     logPanel.value?.clear()
 
     const deviceStore = useDeviceStore()
-    const deviceIds = deviceStore.records.filter((d) => d.status === EnumDeviceStatus.CONNECTED).map((d) => d.id)
+    const connectedDeviceIds = deviceStore.records
+        .filter((d) => d.status === EnumDeviceStatus.CONNECTED)
+        .map((d) => d.id)
+
+    // 优先使用任务保存的「运行设置」设备; 未配置则自动取所有已连接设备
+    let deviceIds: string[] = []
+    if (task.run_on_all_devices === 1) {
+        deviceIds = connectedDeviceIds
+    } else {
+        const bound = (task.device_ids || '')
+            .split(',')
+            .map((id) => id.trim())
+            .filter((id) => id.length > 0)
+        deviceIds = bound.length > 0 ? bound : connectedDeviceIds
+    }
 
     if (deviceIds.length === 0) {
         logPanel.value?.printSystem(t('hint.selectDeviceFirst'))

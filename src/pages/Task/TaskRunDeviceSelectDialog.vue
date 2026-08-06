@@ -92,12 +92,14 @@ onMounted(() => {
     testActionSet('task.deviceSelect.toggleSelectAll', () => toggleSelectAll())
     testActionSet('task.deviceSelect.getSelectedCount', () => selectedDeviceIds.value.length)
     testActionSet('task.deviceSelect.getDeviceCount', () => filterRecords.value.length)
+    testActionSet('task.deviceSelect.confirm', () => doConfirm())
 })
 
 onUnmounted(() => {
     testActionUnset('task.deviceSelect.toggleSelectAll')
     testActionUnset('task.deviceSelect.getSelectedCount')
     testActionUnset('task.deviceSelect.getDeviceCount')
+    testActionUnset('task.deviceSelect.confirm')
 })
 
 defineExpose({show})

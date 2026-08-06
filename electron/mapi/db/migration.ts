@@ -68,6 +68,19 @@ const versions = [
             await db.execute(`DROP TABLE IF EXISTS users`)
         },
     },
+    {
+        version: 6,
+        up: async (db: DB) => {
+            // 持久化「运行设置」: 目标设备列表 + 是否所有设备
+            const columns = await db.select('PRAGMA table_info(task)')
+            if (!columns.some((c: any) => c.name === 'device_ids')) {
+                await db.execute(`ALTER TABLE task ADD COLUMN device_ids TEXT DEFAULT ''`)
+            }
+            if (!columns.some((c: any) => c.name === 'run_on_all_devices')) {
+                await db.execute(`ALTER TABLE task ADD COLUMN run_on_all_devices INTEGER NOT NULL DEFAULT 0`)
+            }
+        },
+    },
 ]
 
 export default {

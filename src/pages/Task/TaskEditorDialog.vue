@@ -78,6 +78,18 @@ const show = (record?: any) => {
             code: record.code || '',
             language: record.language || 'python',
         }
+        // 恢复任务保存的「运行设置」设备
+        runDeviceConfig.value = {
+            runMode: record.run_mode || 'manual',
+            cronExpression: record.cron_expression || '',
+            runOnAllDevices: record.run_on_all_devices === 1,
+            deviceIds: (record.device_ids || '')
+                .split(',')
+                .map((id: string) => id.trim())
+                .filter((id: string) => id.length > 0),
+        }
+        runDeviceIds.value = runDeviceConfig.value.runOnAllDevices ? [] : [...runDeviceConfig.value.deviceIds]
+        selectedDeviceId.value = runDeviceIds.value[0] || deviceOptions.value[0]?.value || ''
     } else {
         formData.value = {
             id: 0,
@@ -98,6 +110,13 @@ la.sleep(3)
 device.tapText("联系人", timeout=5)`,
             language: 'python',
         }
+        runDeviceConfig.value = {
+            runMode: 'manual',
+            cronExpression: '',
+            runOnAllDevices: false,
+            deviceIds: [],
+        }
+        runDeviceIds.value = []
     }
     // Set default device
     if (deviceOptions.value.length > 0 && !selectedDeviceId.value) {
@@ -118,6 +137,17 @@ const copy = (record: any) => {
         code: record.code || '',
         language: record.language || 'python',
     }
+    // 复制时沿用原任务的运行设置设备
+    runDeviceConfig.value = {
+        runMode: record.run_mode || 'manual',
+        cronExpression: record.cron_expression || '',
+        runOnAllDevices: record.run_on_all_devices === 1,
+        deviceIds: (record.device_ids || '')
+            .split(',')
+            .map((id: string) => id.trim())
+            .filter((id: string) => id.length > 0),
+    }
+    runDeviceIds.value = runDeviceConfig.value.runOnAllDevices ? [] : [...runDeviceConfig.value.deviceIds]
     if (deviceOptions.value.length > 0 && !selectedDeviceId.value) {
         selectedDeviceId.value = deviceOptions.value[0].value
     }
@@ -144,10 +174,12 @@ const doSave = async () => {
         return
     }
     const now = new Date().toISOString()
+    const deviceIdsText = runDeviceConfig.value.deviceIds.join(',')
+    const runOnAllDevices = runDeviceConfig.value.runOnAllDevices ? 1 : 0
     try {
         if (formData.value.id > 0) {
             await window.$mapi.db.update(
-                `UPDATE task SET name = ?, description = ?, code = ?, language = ?, run_mode = ?, cron_expression = ?, updated_at = ? WHERE id = ?`,
+                `UPDATE task SET name = ?, description = ?, code = ?, language = ?, run_mode = ?, cron_expression = ?, device_ids = ?, run_on_all_devices = ?, updated_at = ? WHERE id = ?`,
                 [
                     formData.value.name.trim(),
                     formData.value.description.trim(),
@@ -155,13 +187,15 @@ const doSave = async () => {
                     formData.value.language,
                     runDeviceConfig.value.runMode,
                     runDeviceConfig.value.cronExpression,
+                    deviceIdsText,
+                    runOnAllDevices,
                     now,
                     formData.value.id,
                 ],
             )
         } else {
             const newId = await window.$mapi.db.insert(
-                `INSERT INTO task (created_at, updated_at, name, description, code, language, run_mode, cron_expression) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO task (created_at, updated_at, name, description, code, language, run_mode, cron_expression, device_ids, run_on_all_devices) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     now,
                     now,
@@ -171,6 +205,8 @@ const doSave = async () => {
                     formData.value.language,
                     runDeviceConfig.value.runMode,
                     runDeviceConfig.value.cronExpression,
+                    deviceIdsText,
+                    runOnAllDevices,
                 ],
             )
             formData.value.id = Number(newId)
@@ -187,21 +223,24 @@ const doShowDeviceSelect = () => {
     deviceSelectDialog.value?.show(runDeviceConfig.value)
 }
 
-const saveScheduleConfig = async () => {
+// 立即保存完整「运行设置」(运行模式 / cron / 目标设备)
+const saveRunConfig = async () => {
     if (formData.value.id > 0) {
         try {
             await window.$mapi.db.update(
-                `UPDATE task SET run_mode = ?, cron_expression = ?, updated_at = ? WHERE id = ?`,
+                `UPDATE task SET run_mode = ?, cron_expression = ?, device_ids = ?, run_on_all_devices = ?, updated_at = ? WHERE id = ?`,
                 [
                     runDeviceConfig.value.runMode,
                     runDeviceConfig.value.cronExpression,
+                    runDeviceConfig.value.deviceIds.join(','),
+                    runDeviceConfig.value.runOnAllDevices ? 1 : 0,
                     new Date().toISOString(),
                     formData.value.id,
                 ],
             )
         } catch (e) {
             // Non-critical, log silently
-            console.error('Failed to save schedule config:', e)
+            console.error('Failed to save run config:', e)
         }
     }
 }
@@ -210,9 +249,9 @@ const onDeviceSelectConfirm = (config: RunDeviceConfig) => {
     runDeviceConfig.value = config
     runDeviceIds.value = config.runOnAllDevices ? [] : [...config.deviceIds]
     selectedDeviceId.value = runDeviceIds.value[0] || selectedDeviceId.value
-    // If scheduled mode and task has ID, save immediately
-    if (config.runMode === 'scheduled' && formData.value.id > 0) {
-        saveScheduleConfig()
+    // 确认后立即持久化到任务（新建任务则随保存按钮写入）
+    if (formData.value.id > 0) {
+        saveRunConfig()
     }
 }
 
@@ -358,6 +397,15 @@ const testGetCode = () => {
     return formData.value.code
 }
 
+const testGetRunConfig = () => {
+    return {
+        runMode: runDeviceConfig.value.runMode,
+        cronExpression: runDeviceConfig.value.cronExpression,
+        runOnAllDevices: runDeviceConfig.value.runOnAllDevices,
+        deviceIds: [...runDeviceConfig.value.deviceIds],
+    }
+}
+
 
 
 const onInsertLocator = (code: string) => {
@@ -377,6 +425,7 @@ onMounted(() => {
     testActionSet('task.editor.selectFirstLocator', () => testSelectFirstLocator())
     testActionSet('task.editor.getSelectedLocator', () => testGetSelectedLocator())
     testActionSet('task.editor.getCode', () => testGetCode())
+    testActionSet('task.editor.getRunConfig', () => testGetRunConfig())
     testActionSet('task.editor.close', () => close())
     testActionSet('task.editor.showDeviceSelect', () => doShowDeviceSelect())
     
@@ -391,6 +440,7 @@ onUnmounted(() => {
     testActionUnset('task.editor.selectFirstLocator')
     testActionUnset('task.editor.getSelectedLocator')
     testActionUnset('task.editor.getCode')
+    testActionUnset('task.editor.getRunConfig')
     testActionUnset('task.editor.close')
     testActionUnset('task.editor.showDeviceSelect')
     

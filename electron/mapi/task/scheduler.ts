@@ -26,6 +26,8 @@ interface TaskRow {
     language: string
     run_mode: string
     cron_expression: string
+    device_ids: string
+    run_on_all_devices: number
 }
 
 const CHECK_INTERVAL_MS = 30_000
@@ -121,6 +123,22 @@ const buildTaskEnv = (
 }
 
 /**
+ * 解析任务保存的「运行设置」目标设备:
+ * - run_on_all_devices = 1 → 所有在线设备
+ * - device_ids 非空 → 逗号分隔的设备 ID 列表
+ * - 均未配置 → 空数组 (调用方自行兜底)
+ */
+const parseBoundDevices = async (task: TaskRow): Promise<string[]> => {
+    if (task.run_on_all_devices === 1) {
+        return await discoverOnlineDevices()
+    }
+    return (task.device_ids || '')
+        .split(',')
+        .map((id) => id.trim())
+        .filter((id) => id.length > 0)
+}
+
+/**
  * 执行单个定时任务
  */
 const executeScheduledTask = async (task: TaskRow) => {
@@ -144,7 +162,9 @@ const executeScheduledTask = async (task: TaskRow) => {
         ])
 
         const {pythonPath, libPath, taskDir} = buildPythonEnv()
-        const deviceIds = await discoverOnlineDevices()
+        // 定时任务优先使用任务保存的「运行设置」设备, 未配置则自动发现
+        const boundDevices = await parseBoundDevices(task)
+        const deviceIds = boundDevices.length > 0 ? boundDevices : await discoverOnlineDevices()
 
         let logOutput = ''
 
@@ -194,7 +214,7 @@ const executeScheduledTask = async (task: TaskRow) => {
 const doSchedulerTick = async () => {
     try {
         const tasks: TaskRow[] = await DBMain.select(
-            `SELECT id, name, description, code, language, run_mode, cron_expression
+            `SELECT id, name, description, code, language, run_mode, cron_expression, device_ids, run_on_all_devices
              FROM task
              WHERE run_mode = 'scheduled' AND cron_expression != ''`,
         )
@@ -237,7 +257,9 @@ const doSchedulerTick = async () => {
 /**
  * 根据任务 ID 手动执行任务（供 HTTP API / CLI 调用）
  *
- * @param deviceId  可选, 指定目标设备; 未指定时自动从 adb 选择第一个在线设备 (USB 优先)
+ * 设备解析优先级: deviceIds > deviceId > 任务保存的运行设置 > 自动发现 adb 在线设备 (USB 优先)
+ *
+ * @param deviceId  可选, 指定目标设备
  * @param deviceIds 可选, 多设备列表; 优先级高于 deviceId
  */
 export const runTaskById = async (
@@ -246,7 +268,7 @@ export const runTaskById = async (
     deviceIds?: string[],
 ): Promise<{runId: number | string | null; success: boolean; log: string}> => {
     const task: TaskRow | undefined = await DBMain.first(
-        `SELECT id, name, description, code, language, run_mode, cron_expression
+        `SELECT id, name, description, code, language, run_mode, cron_expression, device_ids, run_on_all_devices
          FROM task WHERE id = ?`,
         [taskId],
     )
@@ -256,11 +278,26 @@ export const runTaskById = async (
     let runId: number | string | null = null
     let logOutput = ''
     try {
+        // 解析目标设备: 显式指定 > 任务绑定 > 自动发现
+        let targetIds: string[] = []
+        if (deviceIds && deviceIds.length > 0) {
+            targetIds = deviceIds
+        } else if (deviceId) {
+            targetIds = [deviceId]
+        } else {
+            targetIds = await parseBoundDevices(task)
+            if (targetIds.length === 0) {
+                targetIds = await discoverOnlineDevices()
+            }
+        }
+        if (targetIds.length === 0) {
+            throw new Error('NoOnlineDevice')
+        }
         const now = new Date().toISOString()
         runId = await DBMain.insert(
             `INSERT INTO task_run (created_at, updated_at, task_id, device_id, status, log, started_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [now, now, task.id, deviceId || 'cli', 'pending', '', null],
+            [now, now, task.id, targetIds.join(','), 'pending', '', null],
         )
         await DBMain.update(`UPDATE task_run SET updated_at = ?, status = ?, started_at = ? WHERE id = ?`, [
             now,
@@ -268,11 +305,6 @@ export const runTaskById = async (
             now,
             runId,
         ])
-        const targetIds =
-            deviceIds && deviceIds.length > 0 ? deviceIds : deviceId ? [deviceId] : await discoverOnlineDevices()
-        if (targetIds.length === 0) {
-            throw new Error('NoOnlineDevice')
-        }
         const {pythonPath, libPath, taskDir} = buildPythonEnv()
         const controller = await Apps.spawnShell([pythonPath, '-c', task.code], {
             shell: false,

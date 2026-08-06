@@ -20,6 +20,8 @@ interface TaskRecord {
     language: string
     run_mode?: string
     cron_expression?: string
+    device_ids?: string
+    run_on_all_devices?: number
 }
 
 const records = ref<TaskRecord[]>([])

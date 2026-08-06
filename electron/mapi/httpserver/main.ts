@@ -140,7 +140,7 @@ app.post('/api/devices', async (_req, res) => {
 app.post('/api/task/list', async (_req, res) => {
     try {
         const tasks = await DBMain.select(
-            `SELECT id, name, description, language, run_mode, cron_expression, created_at, updated_at
+            `SELECT id, name, description, language, run_mode, cron_expression, device_ids, run_on_all_devices, created_at, updated_at
              FROM task ORDER BY id DESC`,
         )
         res.json({code: 0, data: tasks})
@@ -158,7 +158,7 @@ app.post('/api/task/get', async (req, res) => {
             return
         }
         const task = await DBMain.first(
-            `SELECT id, name, description, code, language, run_mode, cron_expression, created_at, updated_at
+            `SELECT id, name, description, code, language, run_mode, cron_expression, device_ids, run_on_all_devices, created_at, updated_at
              FROM task WHERE id = ?`,
             [id],
         )
