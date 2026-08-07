@@ -75,7 +75,7 @@ __all__ = [
     "drag", "scrollForward", "scrollBackward",
     "text", "inputText", "clearText", "sendKeys", "typeText",
     "screenshot", "dumpHierarchy", "dumpXmlToFile",
-    "selector", "select", "find", "findOne", "findAll", "count", "exists", "wait",
+    "selector", "select", "find", "findOne", "findOrNull", "findOrNone", "findAll", "count", "exists", "wait",
     "tapText", "tapDesc", "tapId", "tapExists", "clickText", "clickIfExists",
     "findByXpath",
     "clickElement", "clickCenter", "getText", "getBounds", "center", "info",
@@ -97,7 +97,7 @@ __all__ = [
     "sleep", "waitIdle",
     # 重导出的标准库
     "json", "re", "math", "random", "Path", "datetime", "timedelta", "requests",
-    "error",
+    "error", "ElementNotFoundError",
 ]
 
 
@@ -334,12 +334,13 @@ from ._screenshot import (  # noqa: E402
 # 元素查找
 # ---------------------------------------------------------------------------
 from ._selector import (  # noqa: E402
-    selector, select, find, findOne, findAll, count, exists, wait,
+    selector, select, find, findOne, findOrNull, findAll, count, exists, wait,
     clickText, tapText, tapDesc, tapId, tapExists, clickIfExists,
     findByXpath,
     clickElement, clickCenter, getText, getBounds, info, center,
-    find_one, find_all, click_text, tap_text, tap_desc, tap_id, tap_exists, click_if_exists,
+    find_one, find_all, find_or_null, find_or_none, findOrNone, click_text, tap_text, tap_desc, tap_id, tap_exists, click_if_exists,
     find_by_xpath, click_element, click_center, get_text, get_bounds,
+    ElementNotFoundError,
 )
 
 # ---------------------------------------------------------------------------

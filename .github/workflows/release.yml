@@ -215,7 +215,7 @@ jobs:
           key-secret: ${{ secrets.OSS_2_KEY_SECRET }}
           region: ${{ secrets.OSS_2_REGION }}
           bucket: ${{ secrets.OSS_2_BUCKET }}
-          callbackTitle: 🎉LinkAndroid-${{ runner.os }}-Release-${{ github.ref_name }}
+          callbackTitle: "📦 LinkAndroid-${{ runner.os }}-Release-${{ github.ref_name }}"
           callback: ${{ secrets.REPORT_URL_ME }}
           assets: |
               code/dist-release/*.exe:apps/{random}.bin:{name}.exe

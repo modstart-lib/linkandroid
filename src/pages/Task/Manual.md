@@ -288,7 +288,7 @@ print(text)  # {"name": "test", "value": 123}
 
 **示例**：
 ```python
-result = la.util.retry(lambda: la.find(text="确定"), times=5, interval=2)
+result = la.util.retry(lambda: la.findOrNull(text="确定"), times=5, interval=2)
 ```
 
 ---
@@ -685,15 +685,40 @@ device.selector(id="com.android.settings:id/search").click()
 | `packageName` | str | `None` | 过滤包名 |
 | `index` | int | `0` | 匹配元素索引 |
 
-**返回值**：UI 元素对象，未找到时返回 None
+**返回值**：UI 元素对象。**未找到时抛出 `ElementNotFoundError`**（报错信息含选择器与排查建议），不会返回 `None`。
+
+> ⚠️ **注意**：`find()` 未找到元素时直接抛异常，避免脚本出现晦涩的 `'NoneType' object has no attribute 'click'` 报错。
+> - 点击元素请优先用 `tapText()` / `tapId()` / `tapDesc()` / `tapExists()`（找不到时安全返回）。
+> - 必须拿到元素对象再操作时，用 `findOrNull()` 并判空。
 
 **别名**：`findOne()`
 
 **示例**：
 ```python
+# 不推荐：元素不存在时 find() 直接抛异常
 elem = device.find(text="确定", className="android.widget.Button")
+elem.click()
+```
+
+---
+
+### findOrNull(text, className, resourceId, description, packageName, index)
+
+**功能**：查找匹配的第一个 UI 元素，**未找到时返回 `None`**（不抛异常）。
+
+**参数**：同 `find()`
+
+**返回值**：UI 元素对象，未找到时返回 `None`
+
+**别名**：`findOrNone()` / `find_or_null()`
+
+**示例**：
+```python
+elem = device.findOrNull(text="确定", className="android.widget.Button")
 if elem:
     elem.click()
+else:
+    print("未找到确定按钮")
 ```
 
 ---
@@ -874,7 +899,7 @@ elem = device.findByXpath("//android.widget.TextView[@text='设置']")
 
 **示例**：
 ```python
-elem = device.find(text="确定")
+elem = device.findOrNull(text="确定")
 if elem:
     device.clickElement(elem)
 ```
@@ -907,9 +932,10 @@ if elem:
 
 **示例**：
 ```python
-elem = device.find(className="android.widget.TextView")
-text = device.getText(elem)
-print("元素文本:", text)
+elem = device.findOrNull(className="android.widget.TextView")
+if elem:
+    text = device.getText(elem)
+    print("元素文本:", text)
 ```
 
 ---

@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+- 修复：任务脚本 `la.find()` 未找到元素时返回 None，脚本直接调用 `.click()` 会报晦涩的 `AttributeError: 'NoneType' object has no attribute 'click'`；现改为抛出带清晰中文提示的 `ElementNotFoundError`（含选择器信息与排查建议）
+- 新增：任务脚本新增 `la.findOrNull()` / `la.findOrNone()` API，未找到元素时返回 None（不抛异常），配合判空使用
+- 新增：`la.ElementNotFoundError` 异常对外导出，脚本可用 `except la.ElementNotFoundError` 捕获
+- 优化：AI 生成任务代码约束强化，禁止 `device.find(...).click()` 链式调用，点击优先使用 `tapText` / `tapId` / `tapDesc` / `tapExists`
+- 优化：任务脚本使用手册（Manual.md）更新 `find()` / `findOrNull()` 说明与安全点击示例
 - 修复：CLI/HTTP 远程执行任务时未注入设备环境变量导致连接失败（如提示 "127.0.0.1 not online"），现自动选择 adb 在线设备（USB 优先）并注入设备信息，与界面手动执行行为一致
 - 新增：task run 支持 --device 参数，/api/task/run 接口支持可选 deviceId 参数；无在线设备时返回明确错误提示
 - 新增：任务「运行设置」支持保存目标设备配置（多设备或所有设备），定时任务、手动运行、CLI/API 执行均按保存的配置执行

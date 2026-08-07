@@ -11,6 +11,23 @@ from ._state import _require_device
 from ._click import click
 
 
+class ElementNotFoundError(RuntimeError):
+    """元素查找未命中时抛出, 携带选择器与排查建议.
+
+    避免出现晦涩的 ``AttributeError: 'NoneType' object has no attribute 'click'``.
+    """
+
+    def __init__(self, selector_desc: str):
+        super().__init__(
+            f"未找到匹配的 UI 元素 ({selector_desc})。\n"
+            "可能原因: 筛选条件不正确, 或元素尚未出现。\n"
+            "建议:\n"
+            "  1. 先等待元素出现: device.wait(text=..., timeout=10) 或 device.exists(text=..., timeout=5);\n"
+            "  2. 直接安全点击: device.tapText(\"确定\", timeout=5) / tapId(...) / tapDesc(...) / tapExists(...);\n"
+            "  3. 需要拿到元素对象再操作时, 改用 device.findOrNull(...) 并判空后再调用。"
+        )
+
+
 def _normalize_selector_kwargs(kwargs: dict) -> dict:
     selector = dict(kwargs)
     alias_map = {
@@ -73,6 +90,43 @@ def select(**kwargs) -> Any:
     return selector(**kwargs)
 
 
+def _describe_selector(selector: dict) -> str:
+    """将选择器格式化为可读描述, 用于报错信息."""
+    return "、".join(f"{key}={value!r}" for key, value in selector.items())
+
+
+def _build_find_selector(
+    text: Optional[str],
+    className: Optional[str],
+    resourceId: Optional[str],
+    description: Optional[str],
+    packageName: Optional[str],
+) -> dict:
+    selector = {}
+    if text is not None:
+        selector["text"] = text
+    if className is not None:
+        selector["className"] = className
+    if resourceId is not None:
+        selector["resourceId"] = resourceId
+    if description is not None:
+        selector["description"] = description
+    if packageName is not None:
+        selector["packageName"] = packageName
+    if not selector:
+        raise ValueError("至少需要指定一个筛选条件 (text/className/resourceId/description)")
+    return selector
+
+
+def _find_element(selector: dict, index: int):
+    """返回第 index 个匹配元素, 找不到时返回 None."""
+    elements = _la_state._device(**selector)
+    count = elements.count
+    if count == 0:
+        return None
+    return elements[index] if index < count else None
+
+
 @_require_device
 def find(
     text: Optional[str] = None,
@@ -94,28 +148,47 @@ def find(
         index: 如果有多个匹配, 取第几个 (默认 0)
 
     Returns:
-        uiautomator2 UiObject 或 None
+        uiautomator2 UiObject
+
+    Raises:
+        ElementNotFoundError: 未找到匹配元素 (报错信息含排查建议)
+        ValueError: 未指定任何筛选条件
+
+    Notes:
+        未找到元素时会抛 ElementNotFoundError, 而不是返回 None,
+        避免脚本出现 ``'NoneType' object has no attribute 'click'`` 这类晦涩报错。
+        如需"找不到返回 None"的语义, 请使用 findOrNull()。
     """
-    selector = {}
-    if text is not None:
-        selector["text"] = text
-    if className is not None:
-        selector["className"] = className
-    if resourceId is not None:
-        selector["resourceId"] = resourceId
-    if description is not None:
-        selector["description"] = description
-    if packageName is not None:
-        selector["packageName"] = packageName
+    selector = _build_find_selector(text, className, resourceId, description, packageName)
+    elem = _find_element(selector, index)
+    if elem is None:
+        raise ElementNotFoundError(_describe_selector(selector))
+    return elem
 
-    if not selector:
-        raise ValueError("至少需要指定一个筛选条件 (text/className/resourceId/description)")
 
-    elements = _la_state._device(**selector)
-    count = elements.count
-    if count == 0:
-        return None
-    return elements[index] if index < count else None
+@_require_device
+def findOrNull(
+    text: Optional[str] = None,
+    *,
+    className: Optional[str] = None,
+    resourceId: Optional[str] = None,
+    description: Optional[str] = None,
+    packageName: Optional[str] = None,
+    index: int = 0,
+) -> Optional[Any]:
+    """查找 UI 元素, 未找到时返回 None (不抛异常).
+
+    参数与返回值语义与旧版 find() 一致, 适合需要判空的场景:
+
+    Examples:
+        elem = device.findOrNull(text="确定")
+        if elem:
+            elem.click()
+        else:
+            print("未找到确定按钮")
+    """
+    selector = _build_find_selector(text, className, resourceId, description, packageName)
+    return _find_element(selector, index)
 
 
 findOne = find
@@ -272,7 +345,12 @@ def clickElement(element: Any) -> None:
 
     Args:
         element: 由 find() / findAll() 返回的 UiObject
+
+    Raises:
+        ElementNotFoundError: element 为 None (来自 findOrNull()/findAll() 判空失败)
     """
+    if element is None:
+        raise ElementNotFoundError("None (元素对象为空, 请先确认 findOrNull()/findAll() 返回非空)")
     element.click()
 
 
@@ -286,6 +364,8 @@ def getText(element: Any) -> str:
     Returns:
         元素的 text 属性
     """
+    if element is None:
+        raise ElementNotFoundError("None (元素对象为空, 请先确认 findOrNull()/findAll() 返回非空)")
     return element.info.get("text", "")
 
 
@@ -299,16 +379,22 @@ def getBounds(element: Any) -> dict:
     Returns:
         {"left": int, "top": int, "right": int, "bottom": int}
     """
+    if element is None:
+        raise ElementNotFoundError("None (元素对象为空, 请先确认 findOrNull()/findAll() 返回非空)")
     return element.info.get("bounds", {})
 
 
 def info(element: Any) -> dict:
     """获取元素 info 字典."""
+    if element is None:
+        raise ElementNotFoundError("None (元素对象为空, 请先确认 findOrNull()/findAll() 返回非空)")
     return element.info
 
 
 def center(element: Any) -> Tuple[int, int]:
     """获取元素中心点坐标."""
+    if element is None:
+        raise ElementNotFoundError("None (元素对象为空, 请先确认 findOrNull()/findAll() 返回非空)")
     bounds = getBounds(element)
     return (
         int((bounds.get("left", 0) + bounds.get("right", 0)) / 2),
@@ -340,6 +426,9 @@ def findByXpath(xpath: str) -> Optional[Any]:
 
 find_one = findOne
 find_all = findAll
+find_or_null = findOrNull
+find_or_none = findOrNull
+findOrNone = findOrNull
 click_text = clickText
 tap_text = tapText
 tap_desc = tapDesc
