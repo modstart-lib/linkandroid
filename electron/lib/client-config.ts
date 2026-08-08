@@ -2,9 +2,10 @@
  * electron/lib/client-config.ts — 客户端入口配置
  *
  * 不管是本地软件还是 CLI 工具，统一按以下流程工作：
- * 1. 读取 ~/.linkandroid/client.json
- * 2. 从 dataPath 字段获取数据目录（默认 ~/.linkandroid/data）
- * 3. 如果 client.json 不存在则自动创建
+ * 1. 检查 LINKANDROID_DATA_ROOT 环境变量（有值则直接作为数据目录，支持 ~ 展开）
+ * 2. 读取 ~/.linkandroid/client.json
+ * 3. 从 dataPath 字段获取数据目录（默认 ~/.linkandroid/data）
+ * 4. 如果 client.json 不存在则自动创建
  */
 
 import fs from 'node:fs'
@@ -36,13 +37,27 @@ export interface ClientConfig {
 /**
  * 确保 client.json 存在，返回解析后的配置
  *
- * 逻辑：
+ * 数据目录优先级：
+ * 1. LINKANDROID_DATA_ROOT 环境变量（有值，支持 ~ 展开）
+ * 2. ~/.linkandroid/client.json 的 dataPath
+ * 3. 默认 ~/.linkandroid/data
+ *
+ * 环境变量分支不写 client.json，其余逻辑：
  * 1. 读取 ~/.linkandroid/client.json
  * 2. 若不存在则自动创建（含 dataPath 默认值）
  * 3. 若 dataPath 为空则用默认值回填
  * 4. 展开 ~ 为实际 home 目录
  */
 export function ensureClientConfig(): ClientConfig {
+    // 环境变量优先级最高（正式安装版由 macOS Info.plist 的 LSEnvironment 注入，
+    // 用于把正式使用数据隔离到独立目录，避免被开发测试的种子数据污染）
+    const envDataRoot = process.env.LINKANDROID_DATA_ROOT
+    if (envDataRoot && envDataRoot.trim()) {
+        return {
+            dataPath: path.resolve(expandTilde(envDataRoot.trim())),
+        }
+    }
+
     const configPath = clientConfigPath()
     const configDir = path.dirname(configPath)
 
