@@ -77,12 +77,14 @@ if (!app.requestSingleInstanceLock()) {
 const hasSplashWindow = true
 
 AppEnv.appRoot = process.env.APP_ROOT
-AppEnv.appData = app.getPath('appData')
-AppEnv.userData = app.getPath('userData')
 
-// ~/.linkandroid/client.json → dataPath（默认 ~/.linkandroid/data）
+// 数据根目录：~/.linkandroid/client.json → dataRoot（默认 ~/.linkandroid/data）
 const clientConfig = ensureClientConfig()
-AppEnv.dataRoot = clientConfig.dataPath
+AppEnv.dataRoot = clientConfig.dataRoot
+
+// userData / appData 统一指向数据根目录，后续所有数据都存储在该目录
+AppEnv.userData = AppEnv.dataRoot
+AppEnv.appData = AppEnv.dataRoot
 
 if (!fs.existsSync(AppEnv.dataRoot)) {
     fs.mkdirSync(AppEnv.dataRoot, {recursive: true})

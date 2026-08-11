@@ -10,7 +10,7 @@ import (
 
 // ClientConfig represents ~/.linkandroid/client.json
 type ClientConfig struct {
-	DataPath string `json:"dataPath"`
+	DataRoot string `json:"dataRoot"`
 }
 
 // AuthConfig holds the port and token read from cli-auth.json
@@ -21,12 +21,18 @@ type AuthConfig struct {
 
 // defaultClientConfig returns the default ClientConfig.
 func defaultClientConfig() ClientConfig {
-	return ClientConfig{DataPath: "~/.linkandroid/data"}
+	return ClientConfig{DataRoot: "~/.linkandroid/data"}
 }
 
-// readClientConfig reads ~/.linkandroid/client.json and returns dataDir.
-// If the file does not exist, it is auto-created with the default dataPath.
+// readClientConfig reads LINKANDROID_DATA_ROOT env or ~/.linkandroid/client.json and returns dataDir.
+// Priority: LINKANDROID_DATA_ROOT env > client.json dataRoot > default ~/.linkandroid/data.
+// If client.json does not exist, it is auto-created with the default dataRoot.
 func readClientConfig() (ClientConfig, error) {
+	// 环境变量优先级最高
+	if envDataRoot := os.Getenv("LINKANDROID_DATA_ROOT"); envDataRoot != "" {
+		return ClientConfig{DataRoot: envDataRoot}, nil
+	}
+
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return defaultClientConfig(), err
@@ -50,7 +56,7 @@ func readClientConfig() (ClientConfig, error) {
 	}
 
 	var parsed ClientConfig
-	if err := json.Unmarshal(data, &parsed); err == nil && parsed.DataPath != "" {
+	if err := json.Unmarshal(data, &parsed); err == nil && parsed.DataRoot != "" {
 		cfg = parsed
 	}
 	return cfg, nil
@@ -62,7 +68,7 @@ func dataDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return expandPath(cfg.DataPath), nil
+	return expandPath(cfg.DataRoot), nil
 }
 
 // expandPath expands ~ to the user's home directory.

@@ -1,6 +1,7 @@
 ## [Unreleased]
 
-- 新增：数据目录支持 `LINKANDROID_DATA_ROOT` 环境变量覆盖（优先级：环境变量 > client.json dataPath > 默认 ~/.linkandroid/data），正式安装版可由 macOS Info.plist 的 LSEnvironment 注入该变量，实现正式使用数据与开发测试完全隔离
+- 新增：数据目录支持 `LINKANDROID_DATA_ROOT` 环境变量覆盖（优先级：环境变量 > client.json dataRoot > 默认 ~/.linkandroid/data），正式安装版可由 macOS Info.plist 的 LSEnvironment 注入该变量，实现正式使用数据与开发测试完全隔离
+- 优化：client.json 数据目录字段名由 `dataPath` 统一改为 `dataRoot`；应用启动时 `userData`、`appData` 均指向数据根目录，后续所有数据统一存储在该目录（Go CLI 同步支持环境变量优先级）
 - 修复：任务脚本 `la.find()` 未找到元素时返回 None，脚本直接调用 `.click()` 会报晦涩的 `AttributeError: 'NoneType' object has no attribute 'click'`；现改为抛出带清晰中文提示的 `ElementNotFoundError`（含选择器信息与排查建议）
 - 新增：任务脚本新增 `la.findOrNull()` / `la.findOrNone()` API，未找到元素时返回 None（不抛异常），配合判空使用
 - 新增：`la.ElementNotFoundError` 异常对外导出，脚本可用 `except la.ElementNotFoundError` 捕获

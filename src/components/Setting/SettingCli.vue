@@ -15,7 +15,7 @@ const commands = [
 ]
 
 const authConfigPaths = [
-    '~/.linkandroid/client.json      ← 入口配置（dataPath）',
+    '~/.linkandroid/client.json      ← 入口配置（dataRoot）',
     '~/.linkandroid/data/cli-auth.json  ← HTTP 认证信息',
 ]
 const authConfigContent = JSON.stringify({port: 12345, token: 'your-auth-token'}, null, 2)
@@ -209,7 +209,7 @@ $ linkandroid task history 1
                     <p class="text-sm text-gray-500 mb-2">{{ t('cli.authDesc') }}</p>
                     <p class="text-sm text-gray-500 mb-2">{{ t('cli.fullDocAuthNote') }}</p>
                     <pre class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-sm font-mono overflow-x-auto">
-~/.linkandroid/client.json         ← 入口配置（dataPath）
+~/.linkandroid/client.json         ← 入口配置（dataRoot）
 ~/.linkandroid/data/cli-auth.json  ← HTTP 认证信息</pre
                     >
                 </div>
