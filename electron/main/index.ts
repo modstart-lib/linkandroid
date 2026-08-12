@@ -78,13 +78,14 @@ const hasSplashWindow = true
 
 AppEnv.appRoot = process.env.APP_ROOT
 
+// userData / appData 保持 Electron 系统默认位置（框架数据，如缓存、session 等）
+AppEnv.appData = app.getPath('appData')
+AppEnv.userData = app.getPath('userData')
+
 // 数据根目录：~/.linkandroid/client.json → dataRoot（默认 ~/.linkandroid/data）
+// 应用数据（日志、配置、storage、数据库、cli-auth.json 等）统一存储在该目录
 const clientConfig = ensureClientConfig()
 AppEnv.dataRoot = clientConfig.dataRoot
-
-// userData / appData 统一指向数据根目录，后续所有数据都存储在该目录
-AppEnv.userData = AppEnv.dataRoot
-AppEnv.appData = AppEnv.dataRoot
 
 if (!fs.existsSync(AppEnv.dataRoot)) {
     fs.mkdirSync(AppEnv.dataRoot, {recursive: true})
