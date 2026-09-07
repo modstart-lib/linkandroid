@@ -111,7 +111,11 @@ const doSubmit = async () => {
             windowBorderless: formData.value.windowBorderless,
         })
         if (device.value.type === EnumDeviceType.WIFI) {
-            await deviceStore.updateNetworkPort(device.value, formData.value.host.trim(), parseInt(formData.value.port.trim()))
+            await deviceStore.updateNetworkPort(
+                device.value,
+                formData.value.host.trim(),
+                parseInt(formData.value.port.trim()),
+            )
         }
         visible.value = false
     } catch (error) {

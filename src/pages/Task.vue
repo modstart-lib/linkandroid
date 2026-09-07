@@ -136,6 +136,21 @@ const doShowRunRecord = (record: TaskRecord) => {
     runDialog.value?.show(record.id)
 }
 
+const doClearAllRunRecords = async () => {
+    Dialog.confirm(t('task.clearAllRunRecordsAllConfirm')).then(async () => {
+        try {
+            await window.$mapi.db.delete('DELETE FROM task_run')
+            Dialog.tipSuccess(t('task.runRecordsCleared'))
+        } catch (e) {
+            Dialog.tipError(mapError(e))
+        }
+    })
+}
+
+const doTestClearAllRunRecords = async () => {
+    await window.$mapi.db.delete('DELETE FROM task_run')
+}
+
 // ── 测试辅助：创建定时任务 ──
 const doTestSetupSchedule = async (cronExpression: string = '*/1 * * * *') => {
     await doTestEnsureSeed()
@@ -185,6 +200,7 @@ onMounted(async () => {
     testActionSet('task.run', () => doTestRun())
     testActionSet('task.setupSchedule', (cronExpression?: string) => doTestSetupSchedule(cronExpression))
     testActionSet('task.resetToManual', () => doTestResetToManual())
+    testActionSet('task.clearAllRunRecords', () => doTestClearAllRunRecords())
 })
 
 onUnmounted(() => {
@@ -196,6 +212,7 @@ onUnmounted(() => {
     testActionUnset('task.run')
     testActionUnset('task.setupSchedule')
     testActionUnset('task.resetToManual')
+    testActionUnset('task.clearAllRunRecords')
 })
 </script>
 
@@ -216,6 +233,10 @@ onUnmounted(() => {
                     allow-clear
                 />
                 <template #actions>
+                    <a-button type="outline" status="danger" @click="doClearAllRunRecords">
+                        <template #icon><i-lucide-trash-2 /></template>
+                        {{ $t('task.clearAllRunRecordsAll') }}
+                    </a-button>
                     <a-button type="primary" @click="doAdd">
                         <template #icon><i-lucide-plus /></template>
                         {{ $t('task.add') }}

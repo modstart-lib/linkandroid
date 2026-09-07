@@ -37,7 +37,7 @@ const ready = () => {
             {label: t('menu.redo'), accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo'},
             {type: 'separator'},
             {label: t('menu.cut'), accelerator: 'CmdOrCtrl+X', role: 'cut'},
-            {label: t('menu.copy'), accelerator: 'CmdOrCtrl+C', role: 'copy'},
+            {label: t('menu.copy'), role: 'copy'},
             {label: t('menu.paste'), accelerator: 'CmdOrCtrl+V', role: 'paste'},
             {label: t('menu.selectAll'), accelerator: 'CmdOrCtrl+A', role: 'selectAll'},
         ],

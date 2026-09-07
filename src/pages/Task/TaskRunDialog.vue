@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import {onMounted, onUnmounted, ref, watch} from 'vue'
 import ListerTop from '../../components/common/ListerTop.vue'
+import {Dialog} from '../../lib/dialog'
+import {mapError} from '../../lib/error'
+import {t} from '../../lang'
 import {testActionSet, testActionUnset} from '../../utils/test'
 
 const visible = ref(false)
@@ -93,6 +96,39 @@ const showDetail = (record: any) => {
     detailVisible.value = true
 }
 
+const doDeleteRecord = async (record: any) => {
+    try {
+        await window.$mapi.db.delete('DELETE FROM task_run WHERE id = ?', [record.id])
+        Dialog.tipSuccess(t('task.runRecordDeleted'))
+        await loadData()
+    } catch (e) {
+        Dialog.tipError(mapError(e))
+    }
+}
+
+const doDelete = (record: any) => {
+    Dialog.confirm(t('task.deleteRunRecordConfirm')).then(async () => {
+        await doDeleteRecord(record)
+    })
+}
+
+const doClearAll = async () => {
+    if (!taskId.value) return
+    try {
+        await window.$mapi.db.delete('DELETE FROM task_run WHERE task_id = ?', [taskId.value])
+        Dialog.tipSuccess(t('task.runRecordsCleared'))
+        await loadData()
+    } catch (e) {
+        Dialog.tipError(mapError(e))
+    }
+}
+
+const doClear = () => {
+    Dialog.confirm(t('task.clearAllRunRecordsConfirm')).then(async () => {
+        await doClearAll()
+    })
+}
+
 const close = () => {
     visible.value = false
 }
@@ -103,11 +139,19 @@ onMounted(() => {
         if (rows.length > 0) show(rows[0].id)
     })
     testActionSet('task.runRecord.close', () => close())
+    testActionSet('task.runRecord.deleteFirst', async () => {
+        if (records.value.length > 0) await doDeleteRecord(records.value[0])
+    })
+    testActionSet('task.runRecord.clearAll', async () => {
+        await doClearAll()
+    })
 })
 
 onUnmounted(() => {
     testActionUnset('task.runRecord')
     testActionUnset('task.runRecord.close')
+    testActionUnset('task.runRecord.deleteFirst')
+    testActionUnset('task.runRecord.clearAll')
 })
 
 defineExpose({show, close})
@@ -161,6 +205,12 @@ watch(visible, (val) => {
                         style="width: 220px"
                         @change="onFilterChange"
                     />
+                    <template #actions>
+                        <a-button type="outline" status="danger" @click="doClear">
+                            <template #icon><i-lucide-trash-2 /></template>
+                            {{ $t('task.clearAllRunRecords') }}
+                        </a-button>
+                    </template>
                 </ListerTop>
                 <div v-if="records.length === 0" class="py-16 text-center text-gray-400">
                     {{ $t('task.noRecords') }}
@@ -205,9 +255,14 @@ watch(visible, (val) => {
                                 {{ record.finished_at ? new Date(record.finished_at).toLocaleString() : '-' }}
                             </template>
                         </a-table-column>
-                        <a-table-column :title="$t('common.more')" :width="80">
+                        <a-table-column :title="$t('common.more')" :width="140">
                             <template #cell="{record}">
-                                <a-button @click="showDetail(record)">{{ $t('common.detail') }}</a-button>
+                                <div class="flex items-center gap-2">
+                                    <a-button @click="showDetail(record)">{{ $t('common.detail') }}</a-button>
+                                    <a-button type="outline" status="danger" @click="doDelete(record)">
+                                        <template #icon><i-lucide-trash-2 /></template>
+                                    </a-button>
+                                </div>
                             </template>
                         </a-table-column>
                     </template>

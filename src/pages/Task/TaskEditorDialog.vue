@@ -468,6 +468,7 @@ defineExpose({
             width="95vw"
             :footer="false"
             title-align="start"
+            :esc-to-close="false"
             :style="{top: '20px', height: 'calc(100vh - 40px)'}"
         >
             <template #title>
