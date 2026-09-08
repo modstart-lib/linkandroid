@@ -280,16 +280,24 @@ jobs:
           pattern: linkandroid-*
           path: _artifacts
           merge-multiple: false
-      - name: Upload to Snapshot Release (with overwrite)
+      - name: Upload to Snapshot Release (delete old + create new)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Ensure vsnapshot release exists (create if not)
+          # Delete existing vsnapshot release if present
+          echo "=== Checking for existing vsnapshot release ==="
+          if gh release view vsnapshot --json id 2>/dev/null; then
+            echo "Deleting old vsnapshot release..."
+            gh release delete vsnapshot --yes 2>/dev/null || true
+            echo "Old release deleted."
+          else
+            echo "No existing vsnapshot release found."
+          fi
+          # Create fresh vsnapshot release
           gh release create vsnapshot \
             --title "Snapshot" \
             --notes "Latest build from main branch" \
-            --prerelease \
-            2>/dev/null || true
+            --prerelease
           # Copy artifacts to temp dir with version replaced by "snapshot"
           tmpdir=$(mktemp -d)
           echo "=== Downloaded artifacts ==="
