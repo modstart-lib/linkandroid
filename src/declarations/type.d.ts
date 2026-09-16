@@ -459,6 +459,7 @@ type DefsMapi = {
                 error?: Function | null
             },
         ) => Promise<any>
+        listApps: (serial: string) => Promise<{id: string; name: string; system: boolean}[]>
         mirror: (
             serial: string,
             option: {
@@ -469,6 +470,7 @@ type DefsMapi = {
                 success?: (process: any) => void
                 error?: (msg: string, exitCode: number, process: any) => void
                 env?: Record<string, any>
+                maxLogLines?: number
             },
         ) => Promise<any>
     }

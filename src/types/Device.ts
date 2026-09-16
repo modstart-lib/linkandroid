@@ -29,6 +29,9 @@ export type DeviceSetting = {
     panelShow?: string
     powerSaveBlock?: string
     windowBorderless?: string
+    appPackage?: string
+    appDisplaySize?: string
+    appDisplayDpi?: string
 }
 
 export type ShellController = {
@@ -49,9 +52,17 @@ export type DeviceRecord = {
     setting?: DeviceSetting
 }
 
+export type AppMirror = {
+    package: string
+    name: string
+    controller: ShellController | null
+}
+
 export type DeviceRuntime = {
     status: EnumDeviceStatus
     mirrorController: ShellController | null
+    // 应用投屏支持同时投屏多个应用，每个应用对应一个独立的 scrcpy 虚拟屏窗口
+    appMirrors: AppMirror[]
     screenBrightness?: number
     previewImage: string
 }

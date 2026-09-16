@@ -21,3 +21,19 @@ export function parseIPPort(ip: string) {
         port: parseInt(port),
     }
 }
+
+/**
+ * 解析 `adb shell wm size` / `wm density` 输出，判断手机分辨率是否被覆盖过。
+ * 被 `wm size/density` 修改过的设备会在输出中多出 `Override size/density` 行。
+ */
+export function parseDisplayOverride(wmSize: string, wmDensity: string) {
+    const detail = [wmSize, wmDensity]
+        .flatMap((item) => String(item || '').split('\n'))
+        .map((line) => line.trim())
+        .filter((line) => /^override/i.test(line))
+        .join('，')
+    return {
+        overridden: '' !== detail,
+        detail,
+    }
+}

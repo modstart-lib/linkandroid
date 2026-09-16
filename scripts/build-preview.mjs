@@ -38,8 +38,9 @@ try {
     execSync('pkill -9 -f "vite.*linkandroid" 2>/dev/null || true', {stdio: 'ignore'})
 } catch {}
 try {
-    // kill 当前项目下的 electron 进程（精确匹配开发版入口，避免误杀已安装的正式版 LinkAndroid）
-    execSync('pkill -9 -f "dist-electron/main/index.js" 2>/dev/null || true', {stdio: 'ignore'})
+    // kill 当前项目下的 electron 进程（匹配本项目 dist-electron 入口，
+    // 避免误杀已安装的正式版，也避免误杀同机其他项目的开发版进程）
+    execSync(`pkill -9 -f "${ROOT}/dist-electron/main/index.js" 2>/dev/null || true`, {stdio: 'ignore'})
 } catch {}
 try {
     // kill 可能遗留的 linkandroid 相关 node 进程

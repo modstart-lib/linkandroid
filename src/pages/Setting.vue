@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onBeforeUnmount, onMounted, ref} from 'vue'
+import {nextTick, onBeforeUnmount, onMounted, ref} from 'vue'
 import SettingAbout from '../components/Setting/SettingAbout.vue'
 import SettingBasic from '../components/Setting/SettingBasic.vue'
 import SettingCli from '../components/Setting/SettingCli.vue'
@@ -21,6 +21,11 @@ onMounted(() => {
     testActionSet('setting.tab.about', () => {
         activeTab.value = 'about'
     })
+    // 截图钩子：setting-about 截图前切到「关于」页签
+    testActionSet('setting-about.prepare', async () => {
+        activeTab.value = 'about'
+        await nextTick()
+    })
 })
 
 onBeforeUnmount(() => {
@@ -29,6 +34,7 @@ onBeforeUnmount(() => {
     
     testActionUnset('setting.tab.cli')
     testActionUnset('setting.tab.about')
+    testActionUnset('setting-about.prepare')
 })
 </script>
 

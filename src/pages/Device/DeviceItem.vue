@@ -10,7 +10,9 @@ import {DeviceRecord, EnumDeviceStatus, EnumDeviceType} from '../../types/Device
 import DeviceActionApp from './DeviceActionApp.vue'
 import DeviceActionConnect from './DeviceActionConnect.vue'
 import DeviceActionDisconnect from './DeviceActionDisconnect.vue'
+import DeviceActionDisplayReset from './DeviceActionDisplayReset.vue'
 import DeviceActionMirror from './DeviceActionMirror.vue'
+import DeviceActionMirrorApp from './DeviceActionMirrorApp.vue'
 import DeviceActionMirrorCamera from './DeviceActionMirrorCamera.vue'
 import DeviceActionMirrorOTG from './DeviceActionMirrorOTG.vue'
 import DeviceActionRecord from './DeviceActionRecord.vue'
@@ -31,6 +33,7 @@ const emit = defineEmits<{
     (e: 'file-manager'): void
     (e: 'adbShell'): void
     (e: 'camera'): void
+    (e: 'mirror-app'): void
     (e: 'group-select'): void
 }>()
 
@@ -158,6 +161,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                         />
                         <DeviceActionWifiOn v-if="record.type === EnumDeviceType.USB" :device="record" />
                         <DeviceActionWifiOff v-if="record.type === EnumDeviceType.WIFI" :device="record" />
+                        <DeviceActionMirrorApp :device="record" @mirror-app="emit('mirror-app')" />
                         <DeviceActionMirrorCamera :device="record" @camera="emit('camera')" />
                         <DeviceActionMirrorOTG v-if="record.type === EnumDeviceType.USB" :device="record" />
                         <a-doption @click="emit('adbShell')">
@@ -172,6 +176,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                             </template>
                             {{ $t('device.pinTop') }}
                         </a-doption>
+                        <DeviceActionDisplayReset :device="record" />
                         <a-doption @click="emit('setting')">
                             <template #icon>
                                 <i-lucide-settings />

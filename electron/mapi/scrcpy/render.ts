@@ -60,6 +60,48 @@ const spawnShell = async (
     })
 }
 
+export type ScrcpyApp = {
+    id: string
+    name: string
+    system: boolean
+}
+
+// Parse `scrcpy --list-apps` output, whose lines look like:
+//   ` * Google Play 商店          com.android.vending`  (* = system app)
+//   ` - 微信                      com.tencent.mm`
+// App names longer than the 30-chars column wrap, and the package name is
+// printed alone on the following line.
+const parseAppList = (output: string): ScrcpyApp[] => {
+    const apps: ScrcpyApp[] = []
+    const lines = output.split('\n')
+    for (let i = 0; i < lines.length; i++) {
+        const matched = lines[i].match(/^ ([*-]) (.+)$/)
+        if (!matched) continue
+        const system = '*' === matched[1]
+        const content = matched[2]
+        const tail = content.match(/^(.*)\s+(\S+)$/)
+        let name = content
+        let id = ''
+        if (tail) {
+            name = tail[1].trim()
+            id = tail[2]
+        } else {
+            const wrapped = (lines[i + 1] || '').match(/^\s+(\S+)$/)
+            if (!wrapped) continue
+            name = content.trim()
+            id = wrapped[1]
+        }
+        if (!id) continue
+        apps.push({id, name, system})
+    }
+    return apps
+}
+
+const listApps = async (serial: string): Promise<ScrcpyApp[]> => {
+    const controller = await spawnShell(['--serial', serial, '--list-apps'])
+    return parseAppList(await controller.result())
+}
+
 const mirror = async (
     serial: string,
     option: {
@@ -95,5 +137,6 @@ const mirror = async (
 export default {
     getBinPath,
     spawnShell,
+    listApps,
     mirror,
 }

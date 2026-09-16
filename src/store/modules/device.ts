@@ -5,8 +5,10 @@ import {t} from '../../lang'
 import {Dialog} from '../../lib/dialog'
 import {mapError} from '../../lib/error'
 import {isIPWithPort, parseIPPort} from '../../lib/linkandroid'
+import {ShellUtil} from '../../lib/util'
 
 import {
+    AppMirror,
     DeviceGroup,
     DeviceRecord,
     DeviceRuntime,
@@ -84,6 +86,7 @@ const getDeviceRuntime = (record: DeviceRecord): ComputedRef<DeviceRuntime> => {
         deviceRuntime.value?.set(id, {
             status: EnumDeviceStatus.WAIT_CONNECTING,
             mirrorController: null,
+            appMirrors: [],
             previewImage: record.setting?.previewImage || previewImageDefault,
         } as DeviceRuntime)
         return deviceRuntime.value?.get(id) as DeviceRuntime
@@ -595,6 +598,66 @@ export const deviceStore = defineStore('device', {
             this.records.unshift(record)
             await this.sync()
         },
+        // 应用投屏：保存最后一次选择，并在独立虚拟屏中启动该应用（可与主投屏、其他应用同时投屏）
+        async doMirrorApp(
+            device: DeviceRecord,
+            option: {appPackage: string; appName?: string; appDisplaySize?: string; appDisplayDpi?: string},
+        ) {
+            if (!option.appPackage) {
+                throw new Error('AppPackageRequired')
+            }
+            const runtime = getDeviceRuntime(device)
+            if (runtime.value.status !== EnumDeviceStatus.CONNECTED) {
+                throw new Error('DeviceNotConnected')
+            }
+            if (runtime.value.appMirrors.some((m) => m.package === option.appPackage)) {
+                throw new Error(t('device.mirrorAppExists'))
+            }
+            await this.updateSetting(device.id, {
+                appPackage: option.appPackage,
+                appDisplaySize: option.appDisplaySize || '',
+                appDisplayDpi: option.appDisplayDpi || '',
+            })
+            const entry: AppMirror = {
+                package: option.appPackage,
+                name: option.appName || option.appPackage,
+                controller: null,
+            }
+            getDeviceRuntime(device).value.appMirrors.push(entry)
+            try {
+                entry.controller = await this.startMirror(device, {appPackage: option.appPackage})
+            } catch (error) {
+                const current = getDeviceRuntime(device).value
+                current.appMirrors = current.appMirrors.filter((m) => m.package !== option.appPackage)
+                throw error
+            }
+        },
+        // 停止单个应用投屏（被投屏应用由投屏退出流程自动结束）
+        stopAppMirror(device: DeviceRecord, appPackage: string) {
+            const runtime = getDeviceRuntime(device).value
+            const entry = runtime.appMirrors.find((m) => m.package === appPackage)
+            if (!entry) {
+                return
+            }
+            if (!entry.controller) {
+                runtime.appMirrors = runtime.appMirrors.filter((m) => m.package !== appPackage)
+                return
+            }
+            try {
+                entry.controller.stop()
+            } catch (e) {}
+        },
+        // 所有投屏都结束时才恢复电脑休眠行为
+        releaseMirrorPower(device: DeviceRecord) {
+            const runtime = getDeviceRuntime(device).value
+            if (!runtime.mirrorController && runtime.appMirrors.length === 0) {
+                $mapi.power.stop()
+            }
+        },
+        // 供组件读取设备运行态（含主投屏与应用投屏列表）
+        runtimeOf(device: DeviceRecord): DeviceRuntime {
+            return getDeviceRuntime(device).value
+        },
         async doMirror(device: DeviceRecord) {
             const runtime = getDeviceRuntime(device)
             if (runtime.value.status !== EnumDeviceStatus.CONNECTED) {
@@ -604,23 +667,148 @@ export const deviceStore = defineStore('device', {
                 try {
                     runtime.value.mirrorController.stop()
                 } catch (e) {}
-                $mapi.power.stop()
                 return
             }
+            try {
+                getDeviceRuntime(device).value.mirrorController = await this.startMirror(device, {})
+            } catch (error) {
+                Dialog.tipError(mapError(error))
+            }
+        },
+        // 启动一个投屏进程（主投屏 / 应用投屏共用），返回进程控制器
+        async startMirror(device: DeviceRecord, option?: {appPackage?: string}): Promise<ShellController> {
             Dialog.loadingOn(t('device.mirroring'))
+            const args = await this.buildMirrorArgs(device, option)
+            const powerSaveBlock = await this.settingGet(device, 'powerSaveBlock', 'yes')
+
+            const appPackage = option?.appPackage || ''
+            let appLaunched = false
+            let active = true
+
+            // 虚拟屏投屏时，应用在关闭投屏后需要结束，避免残留在手机侧
+            const cleanupMirroredApp = async () => {
+                if (!appPackage || !appLaunched) return
+                try {
+                    await $mapi.adb.shell(device.id, `am force-stop ${appPackage}`)
+                } catch (e) {
+                    $mapi.log.error('Mirror.appForceStop', e as any)
+                }
+            }
+
+            // 投屏结束：清理运行态、结束被投屏应用、无其他投屏时恢复电脑休眠
+            const onMirrorEnd = () => {
+                active = false
+                const current = getDeviceRuntime(device).value
+                if (appPackage) {
+                    current.appMirrors = current.appMirrors.filter((m) => m.package !== appPackage)
+                } else {
+                    current.mirrorController = null
+                }
+                this.releaseMirrorPower(device)
+                cleanupMirroredApp().then()
+            }
+
+            let successTimer: ReturnType<typeof setTimeout> | null = null
+            let successShown = false
+            let unauthorized = false
+            const MAX_MIRROR_LOG_LINES = 200
+            const logs: string[] = []
+            const pushLog = (prefix: string, data: string) => {
+                logs.push(prefix + data)
+                if (logs.length > MAX_MIRROR_LOG_LINES) {
+                    logs.splice(0, logs.length - MAX_MIRROR_LOG_LINES)
+                }
+            }
+            try {
+                const controller = await $mapi.scrcpy.mirror(device.id, {
+                    title: device.name as string,
+                    args,
+                    maxLogLines: MAX_MIRROR_LOG_LINES,
+                    stdout: (data: string) => {
+                        console.log('mirror.stdout', data)
+                        $mapi.log.info('Mirror.stdout', data)
+                        pushLog('[stdout] ', data)
+                        if (/Starting app/i.test(data)) {
+                            appLaunched = true
+                        }
+                        if (!successTimer) {
+                            successTimer = setTimeout(() => {
+                                if (active) {
+                                    successShown = true
+                                    Dialog.tipSuccess(t('device.mirrorSuccess'))
+                                }
+                            }, 2000)
+                        }
+                    },
+                    stderr: (data: string) => {
+                        console.log('mirror.stderr', data)
+                        $mapi.log.error('Mirror.stderr', data)
+                        pushLog('[stderr] ', data)
+                        if (/Starting app/i.test(data)) {
+                            appLaunched = true
+                        }
+                        if (/unauthorized/i.test(data)) {
+                            unauthorized = true
+                        }
+                    },
+                    success: () => {
+                        console.log('mirror.success')
+                        $mapi.log.info('Mirror.success', {successShown, logs})
+                        onMirrorEnd()
+                        const hasMirrorError = logs.some(
+                            (l) =>
+                                l.startsWith('[stderr]') &&
+                                MIRROR_ERROR_KEYWORDS.some((kw) => l.toLowerCase().includes(kw)),
+                        )
+                        // 只有当"既没成功弹起投屏"且（stderr 含错误信息 或 完全没有 stdout）时才提示失败，
+                        // 避免 scrcpy 版本 banner 在 stdout 输出导致失败被静默吞掉
+                        if (!successShown && (hasMirrorError || !logs.some((l) => l.startsWith('[stdout]')))) {
+                            const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
+                            const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
+                            Dialog.alertError(t('device.mirrorFailed') + (detail ? ` : ${detail}` : ''))
+                        }
+                    },
+                    error: (msg: string, exitCode: number) => {
+                        console.log('mirror.error', {msg, exitCode})
+                        $mapi.log.error('Mirror.error', {msg, exitCode, logs})
+                        onMirrorEnd()
+                        if (unauthorized) {
+                            Dialog.alertError(t('device.mirrorUnauthorized'))
+                            return
+                        }
+                        const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
+                        const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
+                        Dialog.alertError(t('device.mirrorFailed') + ` : <code>${escapeHtml(msg)}</code>${detail}`)
+                    },
+                })
+                // 根据用户设置决定是否阻止电脑休眠
+                if (powerSaveBlock === 'yes') {
+                    $mapi.power.start('prevent-display-sleep')
+                }
+                return controller
+            } finally {
+                Dialog.loadingOff()
+            }
+        },
+        async buildMirrorArgs(device: DeviceRecord, option?: {appPackage?: string}): Promise<string[]> {
             const setting = {
                 dimWhenMirror: await this.settingGet(device, 'dimWhenMirror', 'no'),
                 alwaysTop: await this.settingGet(device, 'alwaysTop', 'no'),
                 mirrorSound: await this.settingGet(device, 'mirrorSound', 'no'),
                 videoBitRate: await this.settingGet(device, 'videoBitRate', '8M'),
                 maxFps: await this.settingGet(device, 'maxFps', '60'),
-                scrcpyArgs: await this.settingGet(device, 'scrcpyArgs', ''),
                 panelShow: await this.settingGet(device, 'panelShow', 'no'),
-                powerSaveBlock: await this.settingGet(device, 'powerSaveBlock', 'yes'),
                 windowBorderless: await this.settingGet(device, 'windowBorderless', 'no'),
             }
 
-            // 构建投屏参数
+            // 自定义参数：全局参数在前，单机参数在后（后者可覆盖前者，scrcpy 后值优先）
+            const globalScrcpyArgs = await $mapi.config.get('Device.scrcpyArgs', '')
+            const deviceScrcpyArgs = device.setting?.scrcpyArgs || ''
+            const customArgs = [
+                ...ShellUtil.parseArgs(String(globalScrcpyArgs || '')),
+                ...ShellUtil.parseArgs(String(deviceScrcpyArgs || '')),
+            ]
+
             const args: string[] = []
             args.push('--stay-awake')
             if ('yes' === setting.alwaysTop) {
@@ -641,97 +829,35 @@ export const deviceStore = defineStore('device', {
             if (setting.dimWhenMirror === 'yes') {
                 args.push('--turn-screen-off')
             }
-            if (setting.scrcpyArgs) {
-                args.push(setting.scrcpyArgs)
+
+            // 应用投屏：投屏内容为独立虚拟屏，不会修改手机的物理分辨率
+            if (option?.appPackage) {
+                const displaySize = String(device.setting?.appDisplaySize || '')
+                const displayDpi = String(device.setting?.appDisplayDpi || '')
+                // --new-display 的可选参数只能通过 `=` 传入（如 --new-display=720x1280/240）
+                const displayArg = displaySize
+                    ? `${displaySize}${displayDpi ? '/' + displayDpi : ''}`
+                    : displayDpi
+                      ? `/${displayDpi}`
+                      : ''
+                args.push(displayArg ? `--new-display=${displayArg}` : '--new-display')
+                args.push(`--start-app=+${option.appPackage}`)
+                // 输入法显示在投屏窗口，而不是手机主屏
+                args.push('--display-ime-policy=local')
+            }
+
+            if (customArgs.length) {
+                args.push(...customArgs)
             }
 
             // 添加 WebSocket 服务器和面板参数
             const wsAddress = await $mapi.serve.getAddress()
             const wsUrl = `${wsAddress}/server?type=DeviceMirror&deviceId=${device.id}`
-            // args.push("-V","debug");
             args.push('--linkandroid-server', wsUrl)
             if (setting.panelShow === 'yes') {
                 args.push('--linkandroid-panel-show')
             }
-
-            let successTimer: ReturnType<typeof setTimeout> | null = null
-            let successShown = false
-            let unauthorized = false
-            const MAX_MIRROR_LOG_LINES = 200
-            const logs: string[] = []
-            const pushLog = (prefix: string, data: string) => {
-                logs.push(prefix + data)
-                if (logs.length > MAX_MIRROR_LOG_LINES) {
-                    logs.splice(0, logs.length - MAX_MIRROR_LOG_LINES)
-                }
-            }
-            try {
-                runtime.value.mirrorController = await $mapi.scrcpy.mirror(device.id, {
-                    title: device.name as string,
-                    args,
-                    maxLogLines: MAX_MIRROR_LOG_LINES,
-                    stdout: (data: string) => {
-                        console.log('mirror.stdout', data)
-                        $mapi.log.info('Mirror.stdout', data)
-                        pushLog('[stdout] ', data)
-                        if (!successTimer) {
-                            successTimer = setTimeout(() => {
-                                if (runtime.value.mirrorController) {
-                                    successShown = true
-                                    Dialog.tipSuccess(t('device.mirrorSuccess'))
-                                }
-                            }, 2000)
-                        }
-                    },
-                    stderr: (data: string) => {
-                        console.log('mirror.stderr', data)
-                        $mapi.log.error('Mirror.stderr', data)
-                        pushLog('[stderr] ', data)
-                        if (/unauthorized/i.test(data)) {
-                            unauthorized = true
-                        }
-                    },
-                    success: () => {
-                        console.log('mirror.success')
-                        $mapi.log.info('Mirror.success', {successShown, logs})
-                        runtime.value.mirrorController = null
-                        $mapi.power.stop()
-                        const hasMirrorError = logs.some(
-                            (l) =>
-                                l.startsWith('[stderr]') &&
-                                MIRROR_ERROR_KEYWORDS.some((kw) => l.toLowerCase().includes(kw)),
-                        )
-                        // 只有当"既没成功弹起投屏"且（stderr 含错误信息 或 完全没有 stdout）时才提示失败，
-                        // 避免 scrcpy 版本 banner 在 stdout 输出导致失败被静默吞掉
-                        if (!successShown && (hasMirrorError || !logs.some((l) => l.startsWith('[stdout]')))) {
-                            const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
-                            const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
-                            Dialog.alertError(t('device.mirrorFailed') + (detail ? ` : ${detail}` : ''))
-                        }
-                    },
-                    error: (msg: string, exitCode: number) => {
-                        console.log('mirror.error', {msg, exitCode})
-                        $mapi.log.error('Mirror.error', {msg, exitCode, logs})
-                        runtime.value.mirrorController = null
-                        $mapi.power.stop()
-                        if (unauthorized) {
-                            Dialog.alertError(t('device.mirrorUnauthorized'))
-                            return
-                        }
-                        const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
-                        const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
-                        Dialog.alertError(t('device.mirrorFailed') + ` : <code>${escapeHtml(msg)}</code>${detail}`)
-                    },
-                })
-                // 根据用户设置决定是否阻止电脑休眠
-                if (setting.powerSaveBlock === 'yes') {
-                    $mapi.power.start('prevent-display-sleep')
-                }
-            } catch (error) {
-                Dialog.tipError(mapError(error))
-            } finally {
-                Dialog.loadingOff()
-            }
+            return args
         },
         async settingGet(device: DeviceRecord, name: keyof DeviceSetting, defaultValue: string) {
             if (device.setting && name in device.setting) {

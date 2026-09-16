@@ -172,6 +172,9 @@ const spawnShell = async (
     return {
         stop: () => {
             Log.info('App.spawnShell.stop')
+            if (end) {
+                return
+            }
             if (isWin) {
                 _exec(
                     `taskkill /pid ${spawnProcess.pid} /T /F`,
@@ -190,6 +193,16 @@ const spawnShell = async (
                 )
             } else {
                 spawnProcess.kill('SIGINT')
+                // 部分子进程（如无窗口模式的 scrcpy）不会响应 SIGINT，
+                // 延迟后仍未退出时强制结束，保证停止操作一定生效
+                const forceTimer = setTimeout(() => {
+                    if (end) {
+                        return
+                    }
+                    Log.info('App.spawnShell.stop.force', spawnProcess.pid)
+                    spawnProcess.kill('SIGKILL')
+                }, 1500)
+                spawnProcess.once('exit', () => clearTimeout(forceTimer))
             }
         },
         send: (data) => {

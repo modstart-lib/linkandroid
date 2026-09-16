@@ -48,6 +48,12 @@ const mapModelError = (e: any, provider: Provider) => {
                 .then()
         }
         const map = {
+            // Standard OpenAI / proxy error code
+            insufficient_quota: {
+                msg: t('error.energyInsufficient'),
+                callback: showCharge,
+            },
+            // one-api / new-api proxy error code
             insufficient_user_quota: {
                 msg: t('error.energyInsufficient'),
                 callback: showCharge,

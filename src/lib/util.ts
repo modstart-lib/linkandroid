@@ -224,6 +224,49 @@ export const ShellUtil = {
     quotaPath(p: string) {
         return `"${p}"`
     },
+    // Split a raw argument string into argv tokens, honoring quotes and escapes.
+    parseArgs(input: string): string[] {
+        const args: string[] = []
+        let arg = ''
+        let quote = ''
+        let escape = false
+        let hasArg = false
+        for (const c of input) {
+            if (escape) {
+                arg += c
+                escape = false
+                hasArg = true
+                continue
+            }
+            if ('\\' === c) {
+                escape = true
+                continue
+            }
+            if (!quote && (' ' === c || '\t' === c || '\n' === c || '\r' === c)) {
+                if (hasArg) {
+                    args.push(arg)
+                    arg = ''
+                    hasArg = false
+                }
+                continue
+            }
+            if (!quote && ('"' === c || "'" === c)) {
+                quote = c
+                hasArg = true
+                continue
+            }
+            if (quote === c) {
+                quote = ''
+                continue
+            }
+            arg += c
+            hasArg = true
+        }
+        if (hasArg) {
+            args.push(arg)
+        }
+        return args
+    },
 }
 
 export const ObjectUtil = {

@@ -4,12 +4,13 @@ import ListerTop from '../components/common/ListerTop.vue'
 import {t} from '../lang'
 import {Dialog} from '../lib/dialog'
 import {mapError} from '../lib/error'
-import {parseIPPort} from '../lib/linkandroid'
+import {parseDisplayOverride, parseIPPort} from '../lib/linkandroid'
 import {useDeviceStore} from '../store/modules/device'
 import {EnumDeviceStatus, EnumDeviceType} from '../types/Device'
 import {testActionSet, testActionUnset} from '../utils/test'
 import DeviceAdbShellDialog from './Device/DeviceAdbShellDialog.vue'
 import DeviceCameraDialog from './Device/DeviceCameraDialog.vue'
+import DeviceMirrorAppDialog from './Device/DeviceMirrorAppDialog.vue'
 import DeviceConnectWifiDialog from './Device/DeviceConnectWifiDialog.vue'
 import DeviceDefaultSettingDialog from './Device/DeviceDefaultSettingDialog.vue'
 import DeviceEmpty from './Device/DeviceEmpty.vue'
@@ -25,6 +26,7 @@ import DeviceShellDialog from './Device/DeviceShellDialog.vue'
 import DeviceWirelessPairingDialog from './Device/DeviceWirelessPairingDialog.vue'
 
 const cameraDialog = ref<InstanceType<typeof DeviceCameraDialog> | null>(null)
+const mirrorAppDialog = ref<InstanceType<typeof DeviceMirrorAppDialog> | null>(null)
 const settingDialog = ref<InstanceType<typeof DeviceSettingDialog> | null>(null)
 const fileManagerDialog = ref<InstanceType<typeof DeviceFileManagerDialog> | null>(null)
 const shellDialog = ref<InstanceType<typeof DeviceShellDialog> | null>(null)
@@ -188,6 +190,23 @@ onMounted(() => {
     testActionSet('device.selectAll', () => doSelectAll())
     testActionSet('device.batchAction', (action: string) => doBatchAction(action))
     testActionSet('device.getSelectedCount', () => selectedDeviceIds.value.size)
+    testActionSet('device.mirrorArgs', async (deviceId: string) => {
+        const device = deviceStore.records.find((r) => r.id === deviceId)
+        if (!device) return null
+        return await deviceStore.buildMirrorArgs(device)
+    })
+    testActionSet('device.displayOverrideFormat', (data: any) => {
+        return parseDisplayOverride(data?.wmSize, data?.wmDensity)
+    })
+    testActionSet('device.mirrorAppArgs', async (data: any) => {
+        const device = deviceStore.records.find((r) => r.id === data?.deviceId)
+        if (!device) return null
+        device.setting = Object.assign({}, device.setting, {
+            appDisplaySize: data?.appDisplaySize || '',
+            appDisplayDpi: data?.appDisplayDpi || '',
+        })
+        return await deviceStore.buildMirrorArgs(device, {appPackage: data?.appPackage})
+    })
 })
 
 onUnmounted(() => {
@@ -198,6 +217,9 @@ onUnmounted(() => {
     testActionUnset('device.selectAll')
     testActionUnset('device.batchAction')
     testActionUnset('device.getSelectedCount')
+    testActionUnset('device.mirrorArgs')
+    testActionUnset('device.displayOverrideFormat')
+    testActionUnset('device.mirrorAppArgs')
 })
 </script>
 
@@ -354,6 +376,7 @@ onUnmounted(() => {
                         @setting="settingDialog?.show(r)"
                         @adb-shell="adbShellDialog?.show(r)"
                         @camera="cameraDialog?.show(r)"
+                        @mirror-app="mirrorAppDialog?.show(r)"
                         @group-select="groupSelectDialog?.show(r.id)"
                     />
                 </div>
@@ -364,6 +387,7 @@ onUnmounted(() => {
     <DeviceWirelessPairingDialog ref="wirelessPairingDialog" @update="doRefresh" />
     <DevicePairingCodeDialog ref="pairingCodeDialog" @update="doRefresh" />
     <DeviceCameraDialog ref="cameraDialog" />
+    <DeviceMirrorAppDialog ref="mirrorAppDialog" />
     <DeviceSettingDialog ref="settingDialog" />
     <DeviceFileManagerDialog ref="fileManagerDialog" />
     <DeviceAdbShellDialog ref="adbShellDialog" />
