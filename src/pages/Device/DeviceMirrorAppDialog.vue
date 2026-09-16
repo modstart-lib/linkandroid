@@ -5,6 +5,7 @@ import {t} from '../../lang'
 import {Dialog} from '../../lib/dialog'
 import {mapError} from '../../lib/error'
 import {useDeviceStore} from '../../store/modules/device'
+import DeviceAppIcon from './DeviceAppIcon.vue'
 import {AppMirror, DeviceRecord, EnumDeviceStatus} from '../../types/Device'
 
 type AppRecord = {
@@ -240,7 +241,7 @@ onUnmounted(() => {
                 <a-switch v-model="showSystemApps" />
                 <div class="text-xs text-gray-500 flex-shrink-0">{{ $t('device.mirrorAppShowSystem') }}</div>
             </div>
-            <div class="flex-1 min-h-0 overflow-auto border border-gray-200 rounded p-1">
+            <div class="flex-1 min-h-0 overflow-auto border border-gray-200 rounded p-2">
                 <div v-if="loading" class="p-4 text-center text-sm text-gray-400">
                     <a-spin :size="16" /> {{ $t('device.mirrorAppLoading') }}
                 </div>
@@ -251,18 +252,28 @@ onUnmounted(() => {
                 <div v-else-if="filterApps.length === 0" class="p-4 text-center text-sm text-gray-400">
                     {{ $t('device.mirrorAppEmpty') }}
                 </div>
-                <div
-                    v-for="app in filterApps"
-                    :key="app.id"
-                    class="flex items-center gap-2 px-3 py-2 rounded cursor-pointer hover:bg-gray-100"
-                    :class="app.id === appPackage ? 'bg-blue-50' : ''"
-                    @click="appPackage = app.id"
-                >
-                    <div class="text-sm">{{ app.name }}</div>
-                    <div class="text-xs text-gray-400">{{ app.id }}</div>
-                    <a-tag v-if="app.system">{{ $t('device.mirrorAppSystemTag') }}</a-tag>
-                    <a-tag v-if="isAppMirroring(app.id)" color="blue">{{ $t('device.mirrorAppRunningTag') }}</a-tag>
-                    <i-lucide-check v-if="app.id === appPackage" class="ml-auto text-blue-500 w-4 h-4" />
+                <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-1">
+                    <div
+                        v-for="app in filterApps"
+                        :key="app.id"
+                        class="relative flex flex-col items-center gap-1 p-2 rounded cursor-pointer hover:bg-gray-100"
+                        :class="app.id === appPackage ? 'bg-blue-50 ring-1 ring-blue-400' : ''"
+                        :title="app.id"
+                        @click="appPackage = app.id"
+                    >
+                        <DeviceAppIcon :name="app.id" size="44px" />
+                        <div class="text-xs text-center leading-4 line-clamp-2 break-all">{{ app.name }}</div>
+                        <div v-if="app.system" class="text-xs text-gray-400">{{ $t('device.mirrorAppSystemTag') }}</div>
+                        <span
+                            v-if="isAppMirroring(app.id)"
+                            class="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-500"
+                            :title="$t('device.mirrorAppRunningTag')"
+                        ></span>
+                        <i-lucide-check
+                            v-if="app.id === appPackage"
+                            class="absolute top-1 left-1 w-4 h-4 text-blue-500"
+                        />
+                    </div>
                 </div>
             </div>
             <div class="flex justify-end gap-2">

@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import android from './App/Icon/android.svg'
-import {computed} from 'vue'
-
-const images = {
-    android,
-}
+import {computed, ref, watch} from 'vue'
 
 const props = withDefaults(
     defineProps<{
@@ -12,35 +8,44 @@ const props = withDefaults(
         size?: string
     }>(),
     {
-        isFolder: false,
         size: '100%',
     },
 )
 
-const extSrc = computed(() => {
-    return images['android']
+const failed = ref(false)
+
+// 应用图标统一由 iconx 服务按包名生成，失败时回退到内置图标
+const iconUrl = computed(() => (props.name ? `https://iconx.tecmz.com/icon/apk/${props.name}.svg` : ''))
+
+const src = computed(() => {
+    if (failed.value || !iconUrl.value) {
+        return android
+    }
+    return iconUrl.value
 })
 
-const extSrcUrl = computed(() => {
-    return `url("${extSrc.value}")`
-})
+watch(
+    () => props.name,
+    () => {
+        failed.value = false
+    },
+)
 </script>
 
 <template>
-    <div class="pb-app-icon" :style="{width: props.size, height: props.size, backgroundImage: extSrcUrl}"></div>
+    <img
+        class="pb-app-icon"
+        :src="src"
+        :style="{width: props.size, height: props.size}"
+        loading="lazy"
+        alt=""
+        @error="failed = true"
+    />
 </template>
 
 <style scoped>
 .pb-app-icon {
     display: inline-block;
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-
-    &:after {
-        content: '';
-        display: block;
-        padding-top: 100%;
-    }
+    object-fit: contain;
 }
 </style>
