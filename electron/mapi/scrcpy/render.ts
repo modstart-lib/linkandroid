@@ -1,4 +1,5 @@
 import {devProResolve, extraResolveBin, extraResolveWithPlatform, isDev, isWin, resolveAdbBin} from '../../lib/env'
+import adb from '../adb/render'
 import {Apps} from '../app'
 import {Log} from '../log'
 
@@ -73,7 +74,8 @@ export type ScrcpyApp = {
 // printed alone on the following line.
 const parseAppList = (output: string): ScrcpyApp[] => {
     const apps: ScrcpyApp[] = []
-    const lines = output.split('\n')
+    // 兼容 adb / 终端可能带回车（\r\n）的输出
+    const lines = output.split(/\r?\n/)
     for (let i = 0; i < lines.length; i++) {
         const matched = lines[i].match(/^ ([*-]) (.+)$/)
         if (!matched) continue
@@ -97,9 +99,56 @@ const parseAppList = (output: string): ScrcpyApp[] => {
     return apps
 }
 
+// scrcpy 通过服务端 PackageManager 枚举「可启动应用」，部分 ROM（如澎湃 3.0 / Android 16）
+// 会限制应用列表权限导致枚举为空，此时退回 adb 通道获取带桌面的应用
+const listAppsByAdb = async (serial: string): Promise<ScrcpyApp[]> => {
+    const output = await adb.shell(
+        serial,
+        'cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER',
+    )
+    const ids: string[] = []
+    for (const line of output.split(/\r?\n/)) {
+        const matched = line.trim().match(/^([A-Za-z0-9_.]+)\/[^\s]*$/)
+        if (matched && !ids.includes(matched[1])) {
+            ids.push(matched[1])
+        }
+    }
+    if (!ids.length) return []
+    const systemOutput = await adb.shell(serial, 'pm list packages -s')
+    const systemPackages = systemOutput
+        .split(/\r?\n/)
+        .map((line) => line.trim().replace(/^package:/, ''))
+        .filter(Boolean)
+    // adb 通道拿不到应用名称，使用包名兜底（图标仍按包名自动获取）
+    return ids.sort().map((id) => ({id, name: id, system: systemPackages.includes(id)}))
+}
+
 const listApps = async (serial: string): Promise<ScrcpyApp[]> => {
-    const controller = await spawnShell(['--serial', serial, '--list-apps'])
-    return parseAppList(await controller.result())
+    let output = ''
+    let scrcpyError: unknown = null
+    try {
+        const controller = await spawnShell(['--serial', serial, '--list-apps'])
+        output = await controller.result()
+        const apps = parseAppList(output)
+        if (apps.length) return apps
+    } catch (error) {
+        scrcpyError = error
+        output = String(error)
+    }
+    try {
+        const fallback = await listAppsByAdb(serial)
+        if (fallback.length) return fallback
+    } catch (error) {
+        Log.info('Scrcpy.listApps.fallback.error', error)
+    }
+    if (scrcpyError) throw scrcpyError
+    // 两条通道都拿不到应用时抛出原始信息，界面上展示出来便于定位原因
+    const tail = output
+        .split(/\r?\n/)
+        .filter((line) => line.trim())
+        .slice(-12)
+        .join('\n')
+    throw new Error(`MirrorAppListEmpty\n${tail}`)
 }
 
 const mirror = async (

@@ -250,6 +250,8 @@ const messages: Messages = {
     'device.mirrorAppShowSystem': 'Show system apps',
     'device.mirrorAppLoading': 'Loading app list',
     'device.mirrorAppEmpty': 'No app found',
+    'device.mirrorAppListEmpty':
+        'Failed to read the app list. The system may restrict the app-list permission (on HyperOS/MIUI, check "Access installed apps list"). Raw output:',
     'device.mirrorAppSystemTag': 'System',
     'device.mirrorAppSelectRequired': 'Please select an app to mirror',
     'device.mirrorAppStart': 'Start mirroring',

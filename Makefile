@@ -10,6 +10,7 @@
 # 
 
 dev:
+	node scripts/kill-dev-electron.mjs
 	bash env/task/init-osx.sh 2>&1 | tail -5
 	npm run dev
 

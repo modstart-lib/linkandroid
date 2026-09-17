@@ -246,6 +246,8 @@ const messages: Messages = {
     'device.mirrorAppShowSystem': '显示系统应用',
     'device.mirrorAppLoading': '正在读取应用列表',
     'device.mirrorAppEmpty': '没有找到应用',
+    'device.mirrorAppListEmpty':
+        '未能读取应用列表，可能是当前系统限制了应用列表权限（小米/澎湃请检查“获取应用列表”权限）。原始信息：',
     'device.mirrorAppSystemTag': '系统',
     'device.mirrorAppSelectRequired': '请选择要投屏的应用',
     'device.mirrorAppStart': '开始投屏',

@@ -68,7 +68,15 @@ const doLoadApps = async () => {
     try {
         apps.value = await $mapi.scrcpy.listApps(device.value.id)
     } catch (error) {
-        loadError.value = mapError(error)
+        const message = mapError(error)
+        // scrcpy 与 adb 两条通道都拿不到应用时，展示原始信息（如澎湃限制应用列表权限）
+        const marker = 'MirrorAppListEmpty'
+        if (message.includes(marker)) {
+            const detail = message.slice(message.indexOf(marker) + marker.length).trim()
+            loadError.value = [t('device.mirrorAppListEmpty'), detail].filter(Boolean).join('\n')
+        } else {
+            loadError.value = message
+        }
     } finally {
         loading.value = false
     }
