@@ -51,6 +51,7 @@ const start = async (): Promise<number> => {
                             {id: 'volume_up', icon: 'v-plus'},
                             {id: 'volume_down', icon: 'v-minus'},
                             {id: 'screenshot', icon: 'screenshot'},
+                            {id: 'rotate', icon: 'rotate'},
                             {id: 'screen_power', icon: screenState ? 'screen-on' : 'screen-off'},
                             {id: 'follow', icon: isFollowMode ? 'follow_active' : 'follow'},
                             {id: 'toggle_top', icon: isTopMode ? 'top_active' : 'top'},
@@ -168,6 +169,19 @@ const start = async (): Promise<number> => {
                                 const isFollowMode = deviceFollowMode.get(deviceId) || false
                                 if (isFollowMode) {
                                     handlePanelButtonFollowMode(deviceId, buttonId)
+                                }
+                            } else if (buttonId === 'rotate') {
+                                Log.info(`Rotate device requested for ${deviceId}`)
+                                // 旋转手机屏幕方向（scrcpy ROTATE_DEVICE 控制消息）
+                                ws.send(
+                                    JSON.stringify({
+                                        type: 'rotate',
+                                        id: genId(),
+                                    }),
+                                )
+                                const isFollowMode = deviceFollowMode.get(deviceId) || false
+                                if (isFollowMode) {
+                                    broadcastRotateToOtherDevices(deviceId)
                                 }
                             } else if (buttonId === 'close') {
                                 ws.send(
@@ -347,6 +361,37 @@ const handlePanelButtonFollowMode = (sourceDeviceId: string, buttonId: string) =
 
     if (targetCount === 0) {
         Log.info(`FollowMode: No target devices to forward panel button (source: ${sourceDeviceId})`)
+    }
+}
+
+// 处理旋转按钮的随动模式 - 旋转无法用按键码表达，直接转发 rotate 控制消息
+const broadcastRotateToOtherDevices = (sourceDeviceId: string) => {
+    const rotateEvent = {
+        type: 'rotate',
+        id: genId(),
+    }
+
+    Log.info(`FollowMode: Broadcasting rotate from ${sourceDeviceId}`)
+    let targetCount = 0
+    wss?.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            const ws = client as any
+            const clientDeviceId = ws._deviceId
+            const clientType = ws._clientType
+            if (clientType === 'DeviceManage' && clientDeviceId && clientDeviceId !== sourceDeviceId) {
+                try {
+                    client.send(JSON.stringify(rotateEvent))
+                    targetCount++
+                    Log.info(`FollowMode: Rotate sent to ${clientType}:${clientDeviceId}`)
+                } catch (error) {
+                    Log.error(`FollowMode: Failed to send rotate to ${clientDeviceId}: ${error.message}`)
+                }
+            }
+        }
+    })
+
+    if (targetCount === 0) {
+        Log.info(`FollowMode: No target devices to forward rotate (source: ${sourceDeviceId})`)
     }
 }
 
