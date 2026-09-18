@@ -43,7 +43,7 @@ const type = computed(() => {
         </template>
         {{ title }}
     </a-button>
-    <a-modal v-model:visible="visible" width="800px" title-align="start">
+    <a-modal v-model:visible="visible" width="min(800px, 95vw)" title-align="start">
         <template #title>
             {{ title }}
         </template>

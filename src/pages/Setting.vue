@@ -39,14 +39,29 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="less" scoped>
+.setting-tab {
+    color: var(--color-text);
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+}
+
 .tab-active {
-    --tw-bg-opacity: 1;
-    background-color: rgb(243 244 246 / var(--tw-bg-opacity));
+    background-color: var(--color-bg-page-nav-active);
+    color: var(--color-text-page-nav-active);
+
+    &:hover {
+        background-color: var(--color-bg-page-nav-active);
+    }
 }
 
 [data-theme='dark'] {
-    .tab-active {
-        background-color: var(--color-bg-page-nav-active);
+    .setting-tab:hover {
+        background-color: rgba(255, 255, 255, 0.06);
     }
 }
 </style>
@@ -55,7 +70,7 @@ onBeforeUnmount(() => {
     <div class="flex select-none">
         <div class="p-6 w-48 flex-shrink-0 border-r border-solid border-gray-100 dark:border-gray-800">
             <div
-                class="p-2 rounded-lg mb-4 cursor-pointer"
+                class="setting-tab p-2 rounded-lg mb-4 cursor-pointer"
                 :class="activeTab === 'basic' ? 'tab-active' : ''"
                 @click="activeTab = 'basic'"
             >
@@ -66,7 +81,7 @@ onBeforeUnmount(() => {
             </div>
             
             <div
-                class="p-2 rounded-lg mb-4 cursor-pointer"
+                class="setting-tab p-2 rounded-lg mb-4 cursor-pointer"
                 :class="activeTab === 'cli' ? 'tab-active' : ''"
                 @click="activeTab = 'cli'"
             >
@@ -76,7 +91,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
             <div
-                class="p-2 rounded-lg mb-4 cursor-pointer"
+                class="setting-tab p-2 rounded-lg mb-4 cursor-pointer"
                 :class="activeTab === 'about' ? 'tab-active' : ''"
                 @click="activeTab = 'about'"
             >

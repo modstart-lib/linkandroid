@@ -184,7 +184,7 @@ defineExpose({
 <template>
     <a-modal
         v-model:visible="visible"
-        width="40rem"
+        width="min(640px, 95vw)"
         :closable="false"
         :mask-closable="false"
         :footer="false"

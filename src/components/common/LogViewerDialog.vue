@@ -29,7 +29,7 @@ defineExpose({
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" title-align="start" :footer="false" width="80vw">
+    <a-modal v-model:visible="visible" title-align="start" :footer="false" width="min(1000px, 95vw)">
         <template #title>
             {{ $t('log.view') }}
         </template>

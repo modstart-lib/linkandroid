@@ -45,7 +45,13 @@ defineExpose({
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="30rem" :esc-to-close="false" :mask-closable="false" title-align="start">
+    <a-modal
+        v-model:visible="visible"
+        width="min(480px, 95vw)"
+        :esc-to-close="false"
+        :mask-closable="false"
+        title-align="start"
+    >
         <template #title>
             {{ $t('model.edit') }}
         </template>

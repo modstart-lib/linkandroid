@@ -48,7 +48,7 @@ const doSave = async () => {
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="min(400px, 90vw)" title-align="start" @cancel="visible = false">
+    <a-modal v-model:visible="visible" width="min(400px, 95vw)" title-align="start" @cancel="visible = false">
         <template #title>
             <div class="font-bold">{{ $t('device.groupSelectTitle') }}</div>
         </template>

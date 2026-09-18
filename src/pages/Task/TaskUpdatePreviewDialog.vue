@@ -65,7 +65,13 @@ defineExpose({show})
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="900px" :esc-to-close="false" :mask-closable="false" title-align="start">
+    <a-modal
+        v-model:visible="visible"
+        width="min(900px, 95vw)"
+        :esc-to-close="false"
+        :mask-closable="false"
+        title-align="start"
+    >
         <template #title>
             <div class="font-bold">{{ $t('task.updatePreview') }}</div>
         </template>

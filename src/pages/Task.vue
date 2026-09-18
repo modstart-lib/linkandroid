@@ -271,7 +271,7 @@ onUnmounted(() => {
                 >
                     <div class="p-4 flex-grow">
                         <div class="flex items-start gap-2 mb-2">
-                            <i-lucide-workflow class="text-xl text-blue-500 mt-0.5" />
+                            <i-lucide-workflow class="text-xl text-primary mt-0.5" />
                             <div class="flex-1 min-w-0">
                                 <div class="font-medium truncate flex items-center gap-2">
                                     {{ r.name }}

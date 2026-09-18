@@ -112,7 +112,7 @@ Write and execute Python automation scripts for batch operations and workflow au
 - **Cron Scheduling** — Schedule tasks to run automatically using cron expressions
 - **Multi-Device Execution** — Run the same task across multiple devices simultaneously
 - **Run Logs** — Full execution history with detailed logs
-- **HTTP API** — Trigger tasks remotely via REST API (port 53030)
+- **HTTP API** — Trigger tasks remotely via REST API (port 53070)
 
 | Task List | Task Editor |
 |:---------:|:----------:|

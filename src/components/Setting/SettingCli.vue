@@ -176,7 +176,7 @@ $ linkandroid task history 1
     </div>
 
     <!-- Full Documentation Modal -->
-    <a-modal v-model:visible="showFullDoc" width="min(800px, 90vw)" :footer="false" title-align="start">
+    <a-modal v-model:visible="showFullDoc" width="min(800px, 95vw)" :footer="false" title-align="start">
         <template #title>
             <div class="font-bold">{{ t('page.setting.cli') }}</div>
         </template>

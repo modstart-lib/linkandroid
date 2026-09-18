@@ -199,7 +199,7 @@ onUnmounted(() => {
 <template>
     <a-modal
         v-model:visible="visible"
-        width="min(680px, 92vw)"
+        width="min(680px, 95vw)"
         :footer="false"
         title-align="start"
         :mask-closable="false"

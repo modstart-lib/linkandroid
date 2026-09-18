@@ -49,7 +49,7 @@ defineExpose({
 <template>
     <a-modal
         v-model:visible="visible"
-        width="22rem"
+        width="min(360px, 95vw)"
         modal-class="pb-app-quit-confirm"
         :closable="true"
         :title="$t('common.tip')"

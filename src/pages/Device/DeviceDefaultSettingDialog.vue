@@ -93,7 +93,7 @@ defineExpose({
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="40rem" title-align="start">
+    <a-modal v-model:visible="visible" width="min(640px, 95vw)" title-align="start">
         <template #title>
             <i-lucide-smartphone />
             {{ $t('device.defaultSettings') }}

@@ -198,7 +198,7 @@ const onEditName = async (device: DeviceRecord, name: string) => {
                 <i-mdi-ip-network class="w-3.5 h-3.5" aria-hidden="true" />
                 <span>{{ deviceIP }}</span>
             </div>
-            <div class="flex items-center gap-1 cursor-pointer hover:text-blue-500" @click.stop="emit('group-select')">
+            <div class="flex items-center gap-1 cursor-pointer hover:text-primary" @click.stop="emit('group-select')">
                 <template v-if="deviceGroups.length > 0">
                     <div v-for="g in deviceGroups" :key="g.id" class="flex items-center gap-1">
                         <i-mdi-folder-outline class="w-3.5 h-3.5" aria-hidden="true" />

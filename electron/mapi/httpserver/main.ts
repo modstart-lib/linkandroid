@@ -224,7 +224,7 @@ const start = async (): Promise<number> => {
         return runningPort
     }
 
-    runningPort = await Apps.availablePort(53030, 'httpserver', 60)
+    runningPort = await Apps.availablePort(53070, 'httpserver', 60)
     runningToken = generateToken()
 
     await new Promise<void>((resolve, reject) => {

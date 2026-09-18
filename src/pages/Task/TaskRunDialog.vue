@@ -272,7 +272,7 @@ watch(visible, (val) => {
     </a-modal>
 
     <!-- Detail log modal -->
-    <a-modal v-model:visible="detailVisible" width="min(800px, 90vw)" :footer="false" title-align="start">
+    <a-modal v-model:visible="detailVisible" width="min(800px, 95vw)" :footer="false" title-align="start">
         <template #title>
             <div class="font-bold">
                 {{ $t('task.runDetail') }}

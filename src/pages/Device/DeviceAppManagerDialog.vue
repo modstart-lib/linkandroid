@@ -70,7 +70,7 @@ defineExpose({
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="80vw" :footer="false" title-align="start">
+    <a-modal v-model:visible="visible" width="min(1000px, 95vw)" :footer="false" title-align="start">
         <template #title>
             {{ $t('device.appManagement') }}
         </template>

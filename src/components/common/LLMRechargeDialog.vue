@@ -18,7 +18,7 @@ defineExpose({show})
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="min(460px, 90vw)" :footer="false" title-align="start">
+    <a-modal v-model:visible="visible" width="min(460px, 95vw)" :footer="false" title-align="start">
         <template #title>
             <div class="font-bold">{{ $t('common.tip') }}</div>
         </template>

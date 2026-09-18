@@ -4,50 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>%name%</title>
+    <style>
+        /* Minimal light splash: brand logo centered, faint brand glow, slim loading bar */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --brand: #ea0056;
+            --text: #111827;
+            --muted: #6b7280;
+            --faint: #9ca3af;
+            --bg: #ffffff;
+            --track: #f1f2f4;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            overflow: hidden;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .splash {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 40px 20px;
+            background:
+                radial-gradient(120% 90% at 50% -25%, rgba(234, 0, 86, .10) 0%, rgba(234, 0, 86, 0) 55%),
+                radial-gradient(90% 70% at 50% 125%, rgba(234, 0, 86, .05) 0%, rgba(234, 0, 86, 0) 60%);
+        }
+
+        .version {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 11px;
+            letter-spacing: .4px;
+            color: var(--faint);
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            animation: pop .6s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .name {
+            margin-top: 18px;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: .3px;
+        }
+
+        .slogan {
+            margin-top: 8px;
+            font-size: 13px;
+            letter-spacing: .2px;
+            color: var(--muted);
+        }
+
+        .progress {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 3px;
+            background: var(--track);
+            overflow: hidden;
+        }
+
+        .progress::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 35%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, rgba(234, 0, 86, 0), var(--brand));
+            animation: slide 1.4s ease-in-out infinite;
+        }
+
+        @keyframes slide {
+            0% {
+                transform: translateX(-120%);
+            }
+            100% {
+                transform: translateX(340%);
+            }
+        }
+
+        @keyframes pop {
+            from {
+                opacity: 0;
+                transform: translateY(6px) scale(.96);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <div style="display:flex;justify-content:center;align-items:center;">
-        <div style="margin-right:10px;">
-            <img width="40" src="./logo.svg"/>
-        </div>
-        <div style="margin-right:10px;font-size:20px;font-weight:bold;color:#ea0056;">%name%</div>
-        <div style="font-size:12px;color:#333;">v%version%</div>
-        <div style="flex-grow:1;"></div>
+<div class="splash">
+    <div class="version">v%version%</div>
+    <div class="logo">
+        <img src="./logo.svg" alt="%name%"/>
     </div>
-    <div style="flex-grow:1;margin-top:30px;">
-        <div style="font-size:16px;line-height:2em;margin-bottom:1em;">%slogan%</div>
-        <div style="font-size:14px;line-height:2em;">HD Screen Mirroring · Screenshot Beautification · File Management · App Installation</div>
-    </div>
-    <div style="color:#999;font-size:12px;">
-        Starting up ...
-    </div>
+    <div class="name">%name%</div>
+    <div class="slogan">%slogan%</div>
+    <div class="progress"></div>
 </div>
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-size: 14px;
-        line-height: 2em;
-        font-family: Helvetica Neue,Helvetica,PingFang SC,Tahoma,Arial,sans-serif;
-    }
-
-    body {
-        height: 100vh;
-        background:transparent;
-    }
-    body .container{
-        background-image: url("./splash-bg.svg");
-        display:flex;
-        flex-direction:column;
-        height:calc( 100vh - 40px );
-        padding:20px;
-        background-size: cover;
-        background-position: right;
-        background-repeat: no-repeat;
-        border-radius: 10px;
-    }
-</style>
 </body>
 </html>

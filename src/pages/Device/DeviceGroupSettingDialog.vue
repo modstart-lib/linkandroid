@@ -69,7 +69,7 @@ const doSave = async () => {
 <template>
     <a-modal
         v-model:visible="visible"
-        width="min(600px, 90vw)"
+        width="min(600px, 95vw)"
         :footer="false"
         title-align="start"
         @cancel="visible = false"

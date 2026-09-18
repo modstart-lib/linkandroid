@@ -43,7 +43,7 @@ defineExpose({
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="50rem" :footer="false" title-align="start">
+    <a-modal v-model:visible="visible" width="min(800px, 95vw)" :footer="false" title-align="start">
         <template #title>
             {{ $t('device.shellTool') }}
         </template>

@@ -64,9 +64,9 @@ if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 if (!app.requestSingleInstanceLock()) {
     // 如何激活已经启动的实例？
     // https://www.electronjs.org/docs/api/app#apprequestsingleinstancelock
-    // 测试模式（--remote-debugging-port=53031）下跳过单实例检查
+    // 测试模式（--remote-debugging-port=53071）下跳过单实例检查
     if (
-        !process.argv.includes('--remote-debugging-port=53031') &&
+        !process.argv.includes('--remote-debugging-port=53071') &&
         !process.argv.some((a) => a.startsWith('--remote-debugging-port='))
     ) {
         app.quit()

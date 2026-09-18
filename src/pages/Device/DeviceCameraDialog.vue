@@ -110,7 +110,7 @@ defineExpose({
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="min(600px, 90vw)" :footer="false" title-align="start">
+    <a-modal v-model:visible="visible" width="min(600px, 95vw)" :footer="false" title-align="start">
         <template #title>
             <div class="font-bold">{{ $t('device.cameraSettings') }}</div>
         </template>

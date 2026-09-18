@@ -101,7 +101,7 @@ defineExpose({
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="54rem" title-align="start" @cancel="hide" :closable="false">
+    <a-modal v-model:visible="visible" width="min(860px, 95vw)" title-align="start" @cancel="hide" :closable="false">
         <template #title> {{ $t('device.pairingCodePairing') }} </template>
         <template #footer>
             <a-button @click="hide"> {{ $t('common.close') }} </a-button>

@@ -164,7 +164,7 @@ defineExpose({doRun, doClose})
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="min(800px, 90vw)" :footer="false" title-align="start" draggable>
+    <a-modal v-model:visible="visible" width="min(800px, 95vw)" :footer="false" title-align="start" draggable>
         <template #title>
             <div class="font-bold flex items-center gap-2">
                 <i-lucide-play class="text-blue-500" />

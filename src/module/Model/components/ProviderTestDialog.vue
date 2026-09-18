@@ -52,7 +52,13 @@ defineExpose({
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="20rem" :esc-to-close="false" :mask-closable="false" title-align="start">
+    <a-modal
+        v-model:visible="visible"
+        width="min(360px, 95vw)"
+        :esc-to-close="false"
+        :mask-closable="false"
+        title-align="start"
+    >
         <template #title>
             {{ $t('hint.selectModelCheck') }}
         </template>
