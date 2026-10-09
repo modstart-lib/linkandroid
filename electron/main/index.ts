@@ -5,7 +5,7 @@ import path from 'node:path'
 
 /** process.js 必须位于非依赖项的顶部 */
 import {isDummy} from '../lib/process'
-import {ensureClientConfig} from '../lib/client-config'
+import {defaultDataRoot, ensureClientConfig, isDefaultDataRoot} from '../lib/client-config'
 import {AppEnv, AppRuntime} from '../mapi/env'
 import {MAPI} from '../mapi/main'
 
@@ -16,6 +16,7 @@ import {ConfigLang} from '../config/lang'
 import {ConfigMenu} from '../config/menu'
 import {ConfigTray} from '../config/tray'
 import {WindowConfig} from '../config/window'
+import {Diagnostics} from '../lib/diagnostics'
 import {DevToolsManager} from '../lib/devtools'
 import {isMac, isPackaged} from '../lib/env'
 import {preloadDefault, rendererDistPath, rendererLoadPath} from '../lib/env-main'
@@ -97,6 +98,8 @@ AppEnv.userData = app.getPath('userData')
 // 应用数据（日志、配置、storage、数据库、cli-auth.json 等）统一存储在该目录
 const clientConfig = ensureClientConfig()
 AppEnv.dataRoot = clientConfig.dataRoot
+AppEnv.dataRootDefault = defaultDataRoot()
+AppEnv.dataRootIsDefault = isDefaultDataRoot(AppEnv.dataRoot)
 
 if (!fs.existsSync(AppEnv.dataRoot)) {
     fs.mkdirSync(AppEnv.dataRoot, {recursive: true})
@@ -111,6 +114,12 @@ AppEnv.isInit = true
 
 MAPI.init()
 ConfigContextMenu.init()
+
+// Runtime diagnostics: renderer crashes, unresponsive windows, load failures,
+// child (GPU/utility) process crashes and periodic memory snapshots, all
+// written to the standard log file for post-mortem analysis. Must be
+// registered before any window is created.
+Diagnostics.register()
 
 Log.info('Starting')
 Log.info('LaunchInfo', {

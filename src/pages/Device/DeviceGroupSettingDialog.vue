@@ -77,8 +77,8 @@ const doSave = async () => {
         <template #title>
             <div class="font-bold">{{ $t('device.groupSettings') }}</div>
         </template>
-        <div style="height: calc(100vh - 16rem)" class="flex flex-col">
-            <div class="flex-grow overflow-y-auto">
+        <div class="flex flex-col">
+            <div class="flex-grow">
                 <div v-if="draftGroups.length === 0" class="text-gray-400 text-center py-8">
                     {{ $t('device.noGroups') }}
                 </div>

@@ -293,9 +293,11 @@ jobs:
           else
             echo "No existing vsnapshot release found."
           fi
-          # Create fresh vsnapshot release
+          # Create fresh vsnapshot release with current version as title
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $VERSION"
           gh release create vsnapshot \
-            --title "Snapshot" \
+            --title "snapshot-${VERSION}" \
             --notes "Latest build from main branch" \
             --prerelease
           # Copy artifacts to temp dir with version replaced by "snapshot"

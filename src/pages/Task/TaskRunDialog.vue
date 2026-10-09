@@ -173,7 +173,7 @@ watch(visible, (val) => {
             </div>
         </template>
         <div class="-mx-5 -my-6">
-            <div class="overflow-y-auto p-5" style="height: var(--modal-height-lg)">
+            <div class="p-5">
                 <ListerTop :loading="loading" @refresh="loadData">
                     <a-select
                         v-model="filterStatus"
@@ -278,9 +278,9 @@ watch(visible, (val) => {
                 {{ $t('task.runDetail') }}
             </div>
         </template>
-        <div class="-mx-5 -my-6 flex flex-col" style="min-height: 300px; max-height: calc(80vh - 100px)">
-            <div class="flex-1 flex flex-col p-5 overflow-hidden">
-                <div v-if="detailRecord" class="flex flex-col h-full space-y-3">
+        <div class="-mx-5 -my-6 flex flex-col">
+            <div class="flex-1 flex flex-col p-5">
+                <div v-if="detailRecord" class="flex flex-col space-y-3">
                     <div class="flex items-center gap-4 text-sm shrink-0">
                         <span
                             >{{ $t('task.status') }}:
@@ -305,7 +305,7 @@ watch(visible, (val) => {
                         <div class="font-bold mb-2 shrink-0">{{ $t('task.log') }}</div>
                         <div
                             v-if="detailRecord.log"
-                            class="flex-1 bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap overflow-y-auto"
+                            class="flex-1 bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap"
                         >
                             {{ detailRecord.log }}
                         </div>

@@ -5,7 +5,9 @@
 # 
 
 # 
-.PHONY: dev-seed screenshot dev build-and-install build-cli update-version
+.PHONY: dev-seed screenshot dev build-cli update-version
+
+_VERSION := $(word 2,$(MAKECMDGOALS))
 
 # 
 
@@ -21,10 +23,11 @@ build:
 # 
 
 update-version:
-	@if [ -z "$(VERSION)" ]; then \
-		echo "ERROR: 用法：make update-version VERSION=2.3.0"; \
+	@V="$(or $(_VERSION),$(VERSION))"; \
+	if [ -z "$$V" ]; then \
+		echo "ERROR: 用法：make update-version 2.3.0"; \
 		exit 1; \
 	fi; \
-	node scripts/update-version.mjs "$(VERSION)"
+	node scripts/update-version.mjs "$$V"
 
 # 

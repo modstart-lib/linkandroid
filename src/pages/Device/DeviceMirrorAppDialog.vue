@@ -202,7 +202,7 @@ onUnmounted(() => {
         <template #title>
             <div class="font-bold">{{ $t('device.mirrorApp') }}</div>
         </template>
-        <div style="height: calc(100vh - 15rem)" class="flex flex-col gap-3">
+        <div class="flex flex-col gap-3">
             <div class="text-xs text-gray-500">
                 {{ $t('device.mirrorAppDesc') }}
             </div>
@@ -249,7 +249,7 @@ onUnmounted(() => {
                 <a-switch v-model="showSystemApps" />
                 <div class="text-xs text-gray-500 flex-shrink-0">{{ $t('device.mirrorAppShowSystem') }}</div>
             </div>
-            <div class="flex-1 min-h-0 overflow-auto border border-gray-200 rounded p-2">
+            <div class="border border-gray-200 rounded p-2">
                 <div v-if="loading" class="p-4 text-center text-sm text-gray-400">
                     <a-spin :size="16" /> {{ $t('device.mirrorAppLoading') }}
                 </div>

@@ -769,6 +769,9 @@ const messages: Messages = {
     'setting.apiUrl': 'API URL',
     'setting.askEveryTime': '每次询问',
     'setting.autoUpdate': '自动检测更新',
+    'setting.dataRoot': '数据目录',
+    'setting.dataRootCustomTip':
+        '当前软件使用了非默认的数据目录，日志、配置与数据文件均存于此目录，可点击右侧按钮快速打开。',
     'setting.exitDirectly': '直接退出',
     'setting.followSystem': '跟随系统',
     'setting.interfaceType': '接口类型',

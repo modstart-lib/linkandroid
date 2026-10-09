@@ -469,14 +469,14 @@ defineExpose({
             :footer="false"
             title-align="start"
             :esc-to-close="false"
-            :style="{top: '20px', height: 'calc(100vh - 40px)'}"
+            :style="{height: 'calc(100vh - 96px)'}"
         >
             <template #title>
                 <div class="font-bold">
                     {{ isEditMode ? $t('task.edit') : $t('task.add') }}
                 </div>
             </template>
-            <div class="-mx-5 -my-6 flex flex-col" style="height: calc(100vh - 110px)">
+            <div class="-mx-5 -my-6 flex flex-col" style="height: calc(100vh - 166px)">
                 <!-- Top toolbar -->
                 <div
                     class="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"

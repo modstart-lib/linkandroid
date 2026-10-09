@@ -67,7 +67,7 @@ const doRestore = () => {
                 {{ $t('common.save') }}
             </a-button>
         </template>
-        <div class="-mx- -my-3" style="height: 60vh">
+        <div class="-my-3">
             <slot></slot>
             <div v-if="help">
                 <a-alert type="info" show-icon class="mb-2">

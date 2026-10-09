@@ -104,7 +104,7 @@ defineExpose({
             </a-button>
         </template>
         <div v-if="visible" class="-mx-5 -my-6">
-            <div class="overflow-y-auto p-5" style="height: calc(80vh - 200px)">
+            <div class="p-5">
                 <div>
                     <div class="font-bold text-xl mb-3">
                         {{ $t('device.title') }}

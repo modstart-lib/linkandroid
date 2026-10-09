@@ -253,6 +253,32 @@ body:not([data-theme="dark"]) {
     .arco-modal-mask {
         position: fixed;
     }
+
+    .arco-modal-wrapper:not(:has(.modal-independent-scroll)) {
+        box-sizing: border-box;
+        padding: 48px 0;
+    }
+
+    .arco-modal-wrapper-align-center:not(:has(.modal-independent-scroll)) {
+        white-space: normal;
+
+        &::after {
+            display: none;
+        }
+
+        .arco-modal {
+            vertical-align: top;
+        }
+    }
+
+    .arco-modal:not(.modal-independent-scroll) {
+        top: 0;
+        vertical-align: top;
+    }
+
+    .arco-modal:not(.modal-independent-scroll) .arco-modal-body {
+        overflow: visible;
+    }
 }
 
 .arco-select {

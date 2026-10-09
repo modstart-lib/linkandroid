@@ -7,6 +7,9 @@ export const AppEnv = {
     appData: null as string,
     userData: null as string,
     dataRoot: null as string,
+    // 默认数据根目录与是否为默认目录（非默认时前端提示用户实际存储位置）
+    dataRootDefault: null as string,
+    dataRootIsDefault: true,
 }
 
 export const AppRuntime = {

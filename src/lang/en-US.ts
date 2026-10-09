@@ -777,6 +777,9 @@ const messages: Messages = {
     'setting.apiUrl': 'API URL',
     'setting.askEveryTime': 'Ask Every Time',
     'setting.autoUpdate': 'Auto Check Update',
+    'setting.dataRoot': 'Data Directory',
+    'setting.dataRootCustomTip':
+        'This app uses a non-default data directory. Logs, configuration and data files are stored here. Click the button on the right to open it.',
     'setting.exitDirectly': 'Exit Directly',
     'setting.followSystem': 'Follow System',
     'setting.interfaceType': 'Interface Type',

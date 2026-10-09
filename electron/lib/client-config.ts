@@ -30,6 +30,20 @@ function expandTilde(p: string): string {
     return p
 }
 
+/**
+ * 默认数据根目录（展开 ~ 后的绝对路径）
+ */
+export function defaultDataRoot(): string {
+    return expandTilde(DEFAULT_DATA_ROOT)
+}
+
+/**
+ * 判断给定路径是否为默认数据根目录
+ */
+export function isDefaultDataRoot(dataRoot: string): boolean {
+    return path.resolve(dataRoot) === path.resolve(defaultDataRoot())
+}
+
 export interface ClientConfig {
     dataRoot: string
 }

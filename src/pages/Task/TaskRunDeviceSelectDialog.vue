@@ -165,7 +165,7 @@ defineExpose({show})
                             allow-clear
                         />
                     </ListerTop>
-                    <div class="overflow-y-auto mt-3" style="max-height: calc(50vh - 200px)">
+                    <div class="mt-3">
                         <div v-if="filterRecords.length === 0" class="py-8 text-center text-gray-400">
                             {{ $t('device.empty') }}
                         </div>

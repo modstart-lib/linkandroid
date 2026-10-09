@@ -109,7 +109,7 @@ defineExpose({
                 {{ $t('device.connectButton') }}
             </a-button>
         </template>
-        <div style="max-height: calc(100vh - 15rem)" class="-mx-2 -my-4">
+        <div class="-mx-2 -my-4">
             <div class="flex gap-2">
                 <!-- Left: Input Form -->
                 <div class="left-panel flex-shrink-0 space-y-4" style="width: 25rem">

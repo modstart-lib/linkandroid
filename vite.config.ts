@@ -188,7 +188,7 @@ export default defineConfig(({command}) => {
                       };
                   })()
                 : {
-                      port: 53032,
+                      port: 53072,
                   },
     };
 });

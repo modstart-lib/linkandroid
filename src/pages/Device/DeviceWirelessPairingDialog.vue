@@ -180,7 +180,7 @@ defineExpose({
                 {{ $t('common.close') }}
             </a-button>
         </template>
-        <div style="max-height: calc(100vh - 15rem)" class="-mx-2 -my-4">
+        <div class="-mx-2 -my-4">
             <div v-if="qrcodeUrl && pairingCode" class="flex gap-2">
                 <!-- Left: QR Code and Pairing Info -->
                 <div class="left-panel flex-shrink-0" style="width: 25rem">
