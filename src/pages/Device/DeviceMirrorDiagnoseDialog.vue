@@ -43,6 +43,107 @@ const setItem = (key: string, status: DiagnoseStatus, output: string, hint: stri
 
 const outputEncoding = () => (window.$mapi.app.platformName() === 'win' ? 'cp936' : 'utf8')
 
+interface PortListener {
+    pid: string
+    name: string
+    path: string
+}
+
+const normalizePath = (value: string) => (value || '').trim().replace(/\\/g, '/').toLowerCase()
+
+const isSamePath = (a: string, b: string) => {
+    const x = normalizePath(a)
+    const y = normalizePath(b)
+    if (!x || !y) return false
+    return x === y || x.endsWith(`/${y}`) || y.endsWith(`/${x}`)
+}
+
+const runShellText = async (command: string): Promise<string> => {
+    return await window.$mapi.app.shell(command, {outputEncoding: outputEncoding()}).then(
+        (r) => `${r.stdout}\n${r.stderr}`.trim(),
+        (e: any) => `${e?.stdout ?? ''}\n${e?.stderr ?? ''}`.trim() || String(e?.message ?? e),
+    )
+}
+
+const runSpawnText = async (command: string[]): Promise<string> => {
+    try {
+        const controller = await window.$mapi.app.spawnShell(command, {
+            env: {},
+            shell: false,
+            outputEncoding: outputEncoding(),
+        })
+        return (await controller.result()).trim()
+    } catch {
+        return ''
+    }
+}
+
+// Locate the process listening on TCP 5037 and resolve its executable path
+const findPortListener = async (platform: string): Promise<{listener: PortListener | null; raw: string}> => {
+    if (platform === 'win') {
+        const raw = await runShellText('netstat -ano | findstr :5037')
+        let pid = ''
+        for (const line of raw.split('\n')) {
+            const cols = line.trim().split(/\s+/)
+            if (
+                cols.length >= 5 &&
+                cols[0].toUpperCase() === 'TCP' &&
+                /:5037$/.test(cols[1]) &&
+                cols[3].toUpperCase() === 'LISTENING'
+            ) {
+                pid = cols[4]
+                break
+            }
+        }
+        if (!pid) return {listener: null, raw}
+        const path = (
+            await runSpawnText([
+                'powershell',
+                '-NoProfile',
+                '-Command',
+                `(Get-Process -Id ${pid} -ErrorAction SilentlyContinue).Path`,
+            ])
+        )
+            .split('\n')[0]
+            .trim()
+        let name = path ? path.split(/[\\/]/).pop() || '' : ''
+        if (!name) {
+            const tasklist = await runShellText(`tasklist /FI "PID eq ${pid}" /FO CSV /NH`)
+            name = tasklist.match(/"([^"]+\.exe)"/i)?.[1] ?? ''
+        }
+        return {listener: {pid, name, path}, raw}
+    }
+    const raw = await runShellText('lsof -nP -iTCP:5037 -sTCP:LISTEN')
+    let pid = ''
+    let name = ''
+    for (const line of raw.split('\n')) {
+        const cols = line.trim().split(/\s+/)
+        if (
+            cols.length >= 2 &&
+            cols[0].toUpperCase() !== 'COMMAND' &&
+            /^\d+$/.test(cols[1]) &&
+            line.includes(':5037') &&
+            /LISTEN/.test(line)
+        ) {
+            pid = cols[1]
+            name = cols[0]
+            break
+        }
+    }
+    if (!pid) return {listener: null, raw}
+    const path = (await runSpawnText(['ps', '-p', pid, '-o', 'comm='])).split('\n')[0].trim()
+    return {listener: {pid, name: path ? path.split('/').pop() || name : name, path}, raw}
+}
+
+const isOurAdb = (listener: PortListener, adbPath: string) => {
+    if (listener.path && isSamePath(listener.path, adbPath)) return true
+    if (!listener.path && listener.name) {
+        const ourName = adbPath.split(/[\\/]/).pop() || ''
+        if (ourName && listener.name.toLowerCase() === ourName.toLowerCase()) return true
+    }
+    return false
+}
+
 const runAdbVersion = async (adbPath: string): Promise<{ok: boolean; output: string; hint: string}> => {
     try {
         const controller = await window.$mapi.app.spawnShell([adbPath, 'version'], {
@@ -54,17 +155,16 @@ const runAdbVersion = async (adbPath: string): Promise<{ok: boolean; output: str
         if (/Android Debug Bridge/.test(output)) {
             return {ok: true, output, hint: ''}
         }
-        return {ok: false, output, hint: 'adb version 未输出正常版本信息，可执行文件可能不完整或已被安全软件破坏。'}
+        return {ok: false, output, hint: t('device.diagnoseAdbVersionAbnormal')}
     } catch (e: any) {
-        const message = String(e?.message ?? e ?? 'adb version 执行失败')
+        const message = String(e?.message ?? e ?? t('device.diagnoseAdbVersionFailed'))
         const codeMatch = message.match(/code\s*(\d+)/i)
         const exitCode = codeMatch?.[1] ?? ''
         let hint = ''
         if (exitCode === '3221226505' || /3221226505|0xC0000409/i.test(message)) {
-            hint =
-                '退出码 3221226505 (0xC0000409)：adb.exe 启动即被终止，通常是杀毒/安全软件拦截，或 adb.exe 文件损坏/不完整。建议将软件安装目录加入安全软件白名单后重试。'
+            hint = t('device.diagnoseAdbExitHint')
         } else {
-            hint = `adb 运行失败（退出码 ${exitCode || '未知'}）：${message}`
+            hint = t('device.diagnoseAdbRunFailed', {code: exitCode || t('device.diagnoseUnknown'), message})
         }
         return {ok: false, output: message, hint}
     }
@@ -77,37 +177,47 @@ const runDiagnose = async () => {
 
     // 当前运行平台
     const platform = window.$mapi.app.platformName()
-    setItem('platform', 'success', platform)
+    const platformText =
+        platform === 'win'
+            ? t('device.diagnosePlatform.win')
+            : platform === 'osx'
+              ? t('device.diagnosePlatform.osx')
+              : platform === 'linux'
+                ? t('device.diagnosePlatform.linux')
+                : String(platform ?? '')
+    setItem('platform', 'success', platformText)
 
     // 1. adb 可执行文件
     let adbPath = ''
     try {
         adbPath = await window.$mapi.adb.getBinPath()
     } catch (e: any) {
-        setItem('adbFile', 'fail', String(e?.message ?? e), '无法获取 adb 路径')
+        setItem('adbFile', 'fail', String(e?.message ?? e), t('device.diagnoseAdbPathFailed'))
     }
     if (adbPath) {
         const exists = await window.$mapi.file.exists(adbPath)
         if (!exists) {
-            setItem('adbFile', 'fail', adbPath, 'adb 可执行文件不存在，安装可能不完整，请重新安装。')
+            setItem('adbFile', 'fail', adbPath, t('device.diagnoseAdbFileMissing'))
         } else {
             const stat = await window.$mapi.file.stat(adbPath)
             if (!stat || stat.size <= 0) {
                 setItem(
                     'adbFile',
                     'fail',
-                    `${adbPath}\n文件大小: ${stat?.size ?? '未知'}`,
-                    'adb 文件为空或大小为 0，安装可能不完整。',
+                    `${adbPath}\n${t('device.diagnoseFileSize', {size: stat?.size ?? t('device.diagnoseUnknown')})}`,
+                    t('device.diagnoseAdbFileEmpty'),
                 )
             } else {
-                setItem('adbFile', 'success', `${adbPath}\n文件大小: ${stat.size} 字节`)
+                setItem('adbFile', 'success', `${adbPath}\n${t('device.diagnoseFileSize', {size: stat.size})}`)
             }
         }
     }
 
     // 2. adb 运行测试
     setItem('adbVersion', 'running', 'adb version ...')
-    const adbResult = adbPath ? await runAdbVersion(adbPath) : {ok: false, output: '未获取到 adb 路径', hint: ''}
+    const adbResult = adbPath
+        ? await runAdbVersion(adbPath)
+        : {ok: false, output: t('device.diagnoseAdbPathEmpty'), hint: ''}
     setItem('adbVersion', adbResult.ok ? 'success' : 'fail', adbResult.output, adbResult.hint)
 
     // 3. scrcpy 可执行文件
@@ -115,62 +225,48 @@ const runDiagnose = async () => {
         const scrcpyPath = await window.$mapi.scrcpy.getBinPath()
         const exists = await window.$mapi.file.exists(scrcpyPath)
         if (!exists) {
-            setItem('scrcpyFile', 'fail', scrcpyPath, 'scrcpy 可执行文件不存在，安装可能不完整，请重新安装。')
+            setItem('scrcpyFile', 'fail', scrcpyPath, t('device.diagnoseScrcpyFileMissing'))
         } else {
             const stat = await window.$mapi.file.stat(scrcpyPath)
-            setItem('scrcpyFile', 'success', `${scrcpyPath}\n文件大小: ${stat?.size ?? '未知'} 字节`)
+            setItem(
+                'scrcpyFile',
+                'success',
+                `${scrcpyPath}\n${t('device.diagnoseFileSize', {size: stat?.size ?? t('device.diagnoseUnknown')})}`,
+            )
         }
     } catch (e: any) {
-        setItem('scrcpyFile', 'fail', String(e?.message ?? e), '无法获取 scrcpy 路径')
+        setItem('scrcpyFile', 'fail', String(e?.message ?? e), t('device.diagnoseScrcpyPathFailed'))
     }
 
-    // 4. 5037 端口占用
+    // 4. 5037 端口占用（判断监听进程是否为本软件内置 adb）
     setItem('port5037', 'running', '')
-    const portOutput = await window.$mapi.app
-        .shell(platform === 'win' ? 'netstat -ano | findstr 5037' : 'lsof -nP -iTCP:5037 -sTCP:LISTEN', {
-            outputEncoding: outputEncoding(),
-        })
-        .then(
-            (r) => `${r.stdout}\n${r.stderr}`.trim(),
-            (e: any) => `${e?.stdout ?? ''}\n${e?.stderr ?? ''}`.trim() || String(e?.message ?? e),
-        )
-    if (platform === 'win') {
-        if (/LISTENING|ESTABLISHED/.test(portOutput)) {
-            setItem(
-                'port5037',
-                'fail',
-                portOutput,
-                '端口 5037 已被进程监听/占用，若占用者不是本软件内置 adb，请排查其他 adb 版本、模拟器或手机管理工具。',
-            )
-        } else {
-            setItem(
-                'port5037',
-                'fail',
-                portOutput || '端口 5037 无监听',
-                '没有发现 adb server 监听 5037 端口，说明 adb server 未启动或启动失败（请关注上方 adb 运行测试结果）。',
-            )
-        }
+    const {listener: portListener, raw: portOutput} = await findPortListener(platform)
+    if (!portListener) {
+        const raw = /^Command failed:/i.test(portOutput) ? '' : portOutput
+        setItem('port5037', 'fail', raw || t('device.diagnosePortEmpty'), t('device.diagnosePortNotRunning'))
+    } else if (isOurAdb(portListener, adbPath)) {
+        const owner = `PID ${portListener.pid}${portListener.path ? ` (${portListener.path})` : portListener.name ? ` (${portListener.name})` : ''}`
+        setItem('port5037', 'success', `${portOutput}\n\n${t('device.diagnosePortOkOwner', {owner})}`)
     } else {
-        if (portOutput) {
-            setItem('port5037', 'success', portOutput)
-        } else {
-            setItem(
-                'port5037',
-                'fail',
-                portOutput || '端口 5037 无监听',
-                '没有发现 adb server 监听 5037 端口，adb server 未启动或启动失败。',
-            )
-        }
+        const owner = `${portListener.name || t('device.diagnoseUnknownProcess')}（PID ${portListener.pid}）`
+        const where = portListener.path ? t('device.diagnosePortOccupiedPath', {path: portListener.path}) : ''
+        setItem('port5037', 'fail', portOutput, t('device.diagnosePortOccupied', {owner, where}))
     }
 
     // 5. adb devices
     try {
         const devices = (await window.$mapi.adb.devices()) || []
-        const output = devices.length ? devices.map((d: any) => `${d.id}\t${d.type}`).join('\n') : '无设备'
+        const output = devices.length
+            ? devices.map((d: any) => `${d.id}\t${d.type}`).join('\n')
+            : t('device.diagnoseDevicesNone')
         const onlineCount = devices.filter((d: any) => d.type === 'device').length
-        setItem('devices', 'success', `${output}\n\n在线设备: ${onlineCount} / ${devices.length}`)
+        setItem(
+            'devices',
+            'success',
+            `${output}\n\n${t('device.diagnoseDevicesSummary', {online: onlineCount, total: devices.length})}`,
+        )
     } catch (e: any) {
-        setItem('devices', 'fail', String(e?.message ?? e), '无法获取设备列表')
+        setItem('devices', 'fail', String(e?.message ?? e), t('device.diagnoseDevicesFailed'))
     }
 
     running.value = false
