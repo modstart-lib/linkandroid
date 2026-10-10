@@ -1,6 +1,6 @@
 {
     "name": "linkandroid",
-    "version": "2.4.0",
+    "version": "2.5.0-beta",
     "main": "dist-electron/main/index.js",
     "description": "Link android to PC easily",
     "author": "ModStartLib",
@@ -36,6 +36,7 @@
         "build:linux": "npm run format && cross-env VITE_RELEASE=1 vite build && electron-builder --linux",
         "dev:seed": "tsx test/dev-seed.ts",
         "screenshot": "tsx test/screenshot.ts",
+        "auto-serve": "tsx test/auto-serve/index.ts",
         "preview": "vite preview",
         "postinstall": "electron-builder install-app-deps",
         "postuninstall": "electron-builder install-app-deps",

@@ -5,7 +5,7 @@
 # 
 
 # 
-.PHONY: dev-seed screenshot dev build-cli update-version
+.PHONY: dev-seed screenshot auto-serve dev build-cli update-version
 
 _VERSION := $(word 2,$(MAKECMDGOALS))
 
