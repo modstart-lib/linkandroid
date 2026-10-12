@@ -2,6 +2,7 @@
 import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {testActionSet, testActionUnset} from '../../utils/test'
 import SettingItemYesNo from '../../components/common/SettingItemYesNo.vue'
+import {t} from '../../lang'
 import {useSettingStore} from '../../store/modules/setting'
 
 const setting = useSettingStore()
@@ -16,36 +17,28 @@ const formData = ref({
     windowBorderless: '',
 })
 
-const bitrateOptions = [
-    {label: '2M', value: '2M'},
-    {label: '4M', value: '4M'},
-    {label: '6M', value: '6M'},
-    {label: '8M', value: '8M'},
-    {label: '10M', value: '10M'},
-    {label: '12M', value: '12M'},
-    {label: '16M', value: '16M'},
-    {label: '20M', value: '20M'},
-    {label: '40M', value: '40M'},
-    {label: '50M', value: '50M'},
-]
+const bitratePresets = ['2M', '4M', '6M', '8M', '10M', '12M', '16M', '20M', '40M', '50M']
+const fpsPresets = ['30', '60', '90', '120', '144', '240']
 
-const fpsOptions = [
-    {label: '30', value: '30'},
-    {label: '60', value: '60'},
-    {label: '90', value: '90'},
-    {label: '120', value: '120'},
-    {label: '144', value: '144'},
-    {label: '240', value: '240'},
-]
+const bitrateValue = computed(() => setting.configGet('Device.videoBitRate', '8M').value)
+const fpsValue = computed(() => setting.configGet('Device.maxFps', '60').value)
 
-const bitrateValue = computed(() => {
-    const v = setting.configGet('Device.videoBitRate', '8M').value
-    return bitrateOptions.some((o) => o.value === v) ? v : '__custom__'
+const bitrateOptions = computed(() => {
+    const options = bitratePresets.map((v) => ({label: v, value: v}))
+    const current = bitrateValue.value
+    if (current && !bitratePresets.includes(current)) {
+        options.unshift({label: `${current} (${t('common.custom')})`, value: current})
+    }
+    return options
 })
 
-const fpsValue = computed(() => {
-    const v = setting.configGet('Device.maxFps', '60').value
-    return fpsOptions.some((o) => o.value === v) ? v : '__custom__'
+const fpsOptions = computed(() => {
+    const options = fpsPresets.map((v) => ({label: v, value: v}))
+    const current = fpsValue.value
+    if (current && !fpsPresets.includes(current)) {
+        options.unshift({label: `${current} (${t('common.custom')})`, value: current})
+    }
+    return options
 })
 const show = async () => {
     formData.value.dimWhenMirror = setting.configGet('Device.dimWhenMirror', 'no').value
@@ -158,52 +151,31 @@ defineExpose({
                         </div>
                         <div class="">
                             <a-select
-                                :model-value="bitrateValue.value"
+                                :model-value="bitrateValue"
                                 style="width: 10rem"
                                 size="small"
                                 allow-search
+                                allow-create
                                 :options="bitrateOptions"
-                                @change="
-                                    (val: string) => {
-                                        if (val !== '__custom__') setting.onConfigChange('Device.videoBitRate', val)
-                                    }
-                                "
+                                @change="(val: string) => setting.onConfigChange('Device.videoBitRate', val)"
                             />
-                            <a-input
-                                v-if="bitrateValue.value === '__custom__'"
-                                :model-value="setting.configGet('Device.videoBitRate', '8M').value"
-                                style="width: 10rem; margin-top: 0.25rem"
-                                size="small"
-                                @input="setting.onConfigChange('Device.videoBitRate', $event)"
-                            >
-                                <template #append>{{ $t('device.bitrateUnit') }}</template>
-                            </a-input>
                         </div>
                     </div>
                     <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t('device.maxFps') }}</div>
+                        <div class="flex-grow">
+                            <div>{{ $t('device.maxFps') }}</div>
+                            <div class="text-gray-400 text-xs">{{ $t('device.maxFpsHint') }}</div>
+                        </div>
                         <div class="">
                             <a-select
-                                :model-value="fpsValue.value"
+                                :model-value="fpsValue"
                                 style="width: 10rem"
                                 size="small"
                                 allow-search
+                                allow-create
                                 :options="fpsOptions"
-                                @change="
-                                    (val: string) => {
-                                        if (val !== '__custom__') setting.onConfigChange('Device.maxFps', val)
-                                    }
-                                "
+                                @change="(val: string) => setting.onConfigChange('Device.maxFps', val)"
                             />
-                            <a-input
-                                v-if="fpsValue.value === '__custom__'"
-                                :model-value="setting.configGet('Device.maxFps', '60').value"
-                                style="width: 10rem; margin-top: 0.25rem"
-                                size="small"
-                                @input="setting.onConfigChange('Device.maxFps', $event)"
-                            >
-                                <template #append>{{ $t('device.fpsUnit') }}</template>
-                            </a-input>
                         </div>
                     </div>
                     <div class="flex mb-3">

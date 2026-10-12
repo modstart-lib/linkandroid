@@ -263,6 +263,7 @@ const messages: Messages = {
     'device.ipAddressRequired': 'Please enter IP Address',
     'device.manageApps': 'Manage Apps',
     'device.maxFps': 'Frame Rate',
+    'device.maxFpsHint': 'Default 60, presets 30/60/90/120/144/240, or enter a custom value',
     'device.mirrorFailed': 'Mirror Failed',
     'device.mirrorUnauthorized':
         'Device not authorized. Please tap "Allow USB debugging" on your phone to authorize the connection',

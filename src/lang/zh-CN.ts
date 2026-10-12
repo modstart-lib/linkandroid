@@ -259,6 +259,7 @@ const messages: Messages = {
     'device.ipAddressRequired': '请输入IP地址',
     'device.manageApps': '管理应用',
     'device.maxFps': '刷新率',
+    'device.maxFpsHint': '默认 60，可选 30/60/90/120/144/240，也可直接输入自定义数值',
     'device.mirrorFailed': '投屏失败',
     'device.mirrorUnauthorized': '手机未授权，请在手机上点击「允许 USB 调试」以授权连接',
     'device.mirrorApp': '应用投屏',

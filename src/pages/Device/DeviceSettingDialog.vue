@@ -240,19 +240,24 @@ defineExpose({
                                 style="width: 16rem"
                                 size="small"
                                 allow-search
+                                allow-create
                                 :options="videoBitRateOptions"
                                 :placeholder="$t('device.emptyConfigPlaceholder')"
                             />
                         </div>
                     </div>
                     <div class="flex mb-3">
-                        <div class="flex-grow">{{ $t('device.maxFps') }}</div>
+                        <div class="flex-grow">
+                            <div>{{ $t('device.maxFps') }}</div>
+                            <div class="text-gray-400 text-xs">{{ $t('device.maxFpsHint') }}</div>
+                        </div>
                         <div class="">
                             <a-select
                                 v-model="formData.maxFps"
                                 style="width: 16rem"
                                 size="small"
                                 allow-search
+                                allow-create
                                 :options="maxFpsOptions"
                                 :placeholder="$t('device.emptyConfigPlaceholder')"
                             />
