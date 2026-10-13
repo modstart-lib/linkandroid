@@ -30,6 +30,7 @@ const MIRROR_ERROR_KEYWORDS = ['error', 'failed', 'could not', 'unable', 'cannot
 const getEmptySetting = () => {
     return JSON.parse(
         JSON.stringify({
+            autoMirror: '',
             dimWhenMirror: '',
             alwaysTop: '',
             mirrorSound: '',
@@ -64,6 +65,9 @@ const deviceManageStopped = new Set<string>()
 // DeviceManage 启动串行队列：多台设备同时启动会并发抢占 adb reverse 端口导致
 // 大部分启动失败，所以按固定间隔错峰串行启动
 let deviceManageStartChain: Promise<void> = Promise.resolve()
+
+// 连接自动投屏的并发保护：refresh 可能被 adb watch 连续触发，避免同一设备重复拉起投屏窗口
+const autoMirrorInFlight = new Set<string>()
 
 const shouldStartDeviceManage = (record: DeviceRecord) => {
     return !window.__TEST_MODE__ && !isSeedConnectedDevice(record)
@@ -480,6 +484,9 @@ export const deviceStore = defineStore('device', {
                             deviceManageStopped.delete(record.id)
                             startDeviceManage(record.id)
                         }
+
+                        // 连接自动投屏
+                        this.doAutoMirror(record).then()
                     }
                 } else {
                     if (runtime.value.status !== EnumDeviceStatus.DISCONNECTED) {
@@ -673,6 +680,34 @@ export const deviceStore = defineStore('device', {
                 getDeviceRuntime(device).value.mirrorController = await this.startMirror(device, {})
             } catch (error) {
                 Dialog.tipError(mapError(error))
+            }
+        },
+        // 连接自动投屏的判定：单设备设置优先，未设置时回落全局默认
+        async shouldAutoMirror(device: DeviceRecord): Promise<boolean> {
+            return 'yes' === (await this.settingGet(device, 'autoMirror', 'no'))
+        },
+        // 设备连上后按设置自动启动一次主投屏（与手动点击投屏一致）
+        async doAutoMirror(device: DeviceRecord) {
+            if (window.__TEST_MODE__) {
+                return
+            }
+            if (autoMirrorInFlight.has(device.id)) {
+                return
+            }
+            if (!(await this.shouldAutoMirror(device))) {
+                return
+            }
+            const runtime = getDeviceRuntime(device).value
+            if (runtime.mirrorController) {
+                return
+            }
+            autoMirrorInFlight.add(device.id)
+            try {
+                runtime.mirrorController = await this.startMirror(device, {})
+            } catch (error) {
+                Dialog.tipError(mapError(error))
+            } finally {
+                autoMirrorInFlight.delete(device.id)
             }
         },
         // 启动一个投屏进程（主投屏 / 应用投屏共用），返回进程控制器

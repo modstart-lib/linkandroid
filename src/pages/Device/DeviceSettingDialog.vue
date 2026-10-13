@@ -12,6 +12,7 @@ import {parseIPPort} from '../../lib/linkandroid'
 const deviceStore = useDeviceStore()
 const visible = ref(false)
 const formData = ref({
+    autoMirror: '',
     dimWhenMirror: '',
     alwaysTop: '',
     mirrorSound: '',
@@ -66,6 +67,7 @@ const deviceDataInfo = computed(() => {
 })
 const show = (record: DeviceRecord) => {
     device.value = record
+    formData.value.autoMirror = record.setting?.autoMirror || ''
     formData.value.dimWhenMirror = record.setting?.dimWhenMirror || ''
     formData.value.alwaysTop = record.setting?.alwaysTop || ''
     formData.value.mirrorSound = record.setting?.mirrorSound || ''
@@ -99,6 +101,7 @@ const doSubmit = async () => {
     Dialog.loadingOn(t('device.connecting'))
     try {
         await deviceStore.updateSetting(device.value.id, {
+            autoMirror: formData.value.autoMirror,
             dimWhenMirror: formData.value.dimWhenMirror,
             alwaysTop: formData.value.alwaysTop,
             mirrorSound: formData.value.mirrorSound,
@@ -185,6 +188,12 @@ defineExpose({
                         </div>
                         <div>
                             <a-input v-model="formData.port" style="width: 16rem" />
+                        </div>
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('device.autoMirror') }}</div>
+                        <div class="">
+                            <SettingItemYesNoDefault v-model="formData.autoMirror" />
                         </div>
                     </div>
                     <div class="flex mb-3">

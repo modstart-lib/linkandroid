@@ -195,6 +195,11 @@ onMounted(() => {
         if (!device) return null
         return await deviceStore.buildMirrorArgs(device)
     })
+    testActionSet('device.shouldAutoMirror', async (deviceId: string) => {
+        const device = deviceStore.records.find((r) => r.id === deviceId)
+        if (!device) return false
+        return await deviceStore.shouldAutoMirror(device)
+    })
     testActionSet('device.displayOverrideFormat', (data: any) => {
         return parseDisplayOverride(data?.wmSize, data?.wmDensity)
     })
@@ -218,6 +223,7 @@ onUnmounted(() => {
     testActionUnset('device.batchAction')
     testActionUnset('device.getSelectedCount')
     testActionUnset('device.mirrorArgs')
+    testActionUnset('device.shouldAutoMirror')
     testActionUnset('device.displayOverrideFormat')
     testActionUnset('device.mirrorAppArgs')
 })

@@ -8,6 +8,7 @@ import {useSettingStore} from '../../store/modules/setting'
 const setting = useSettingStore()
 const visible = ref(false)
 const formData = ref({
+    autoMirror: '',
     dimWhenMirror: '',
     alwaysTop: '',
     mirrorSound: '',
@@ -41,6 +42,7 @@ const fpsOptions = computed(() => {
     return options
 })
 const show = async () => {
+    formData.value.autoMirror = setting.configGet('Device.autoMirror', 'no').value
     formData.value.dimWhenMirror = setting.configGet('Device.dimWhenMirror', 'no').value
     formData.value.alwaysTop = setting.configGet('Device.alwaysTop', 'no').value
     formData.value.mirrorSound = setting.configGet('Device.mirrorSound', 'no').value
@@ -52,6 +54,7 @@ const show = async () => {
 }
 
 const doSubmit = async () => {
+    await setting.setConfig('Device.autoMirror', formData.value.autoMirror)
     await setting.setConfig('Device.dimWhenMirror', formData.value.dimWhenMirror)
     await setting.setConfig('Device.alwaysTop', formData.value.alwaysTop)
     await setting.setConfig('Device.mirrorSound', formData.value.mirrorSound)
@@ -101,6 +104,12 @@ defineExpose({
                 <div>
                     <div class="font-bold text-xl mb-3">
                         {{ $t('device.title') }}
+                    </div>
+                    <div class="flex mb-3">
+                        <div class="flex-grow">{{ $t('device.autoMirror') }}</div>
+                        <div class="">
+                            <SettingItemYesNo v-model="formData.autoMirror" />
+                        </div>
                     </div>
                     <div class="flex mb-3">
                         <div class="flex-grow">{{ $t('device.dimWhenMirror') }}</div>

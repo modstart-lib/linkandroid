@@ -93,6 +93,10 @@ onMounted(() => {
     testActionSet('task.deviceSelect.getSelectedCount', () => selectedDeviceIds.value.length)
     testActionSet('task.deviceSelect.getDeviceCount', () => filterRecords.value.length)
     testActionSet('task.deviceSelect.confirm', () => doConfirm())
+    testActionSet('task.deviceSelect.setRunMode', (payload: {mode: 'manual' | 'scheduled'; cron?: string}) => {
+        runMode.value = payload.mode
+        if (payload.cron !== undefined) cronExpression.value = payload.cron
+    })
 })
 
 onUnmounted(() => {
@@ -100,13 +104,14 @@ onUnmounted(() => {
     testActionUnset('task.deviceSelect.getSelectedCount')
     testActionUnset('task.deviceSelect.getDeviceCount')
     testActionUnset('task.deviceSelect.confirm')
+    testActionUnset('task.deviceSelect.setRunMode')
 })
 
 defineExpose({show})
 </script>
 
 <template>
-    <a-modal v-model:visible="visible" width="min(620px, 95vw)" :footer="false" title-align="start">
+    <a-modal v-model:visible="visible" width="min(620px, 95vw)" title-align="start">
         <template #title>
             <div class="font-bold">
                 {{ $t('task.runDeviceSettingsTitle') }}

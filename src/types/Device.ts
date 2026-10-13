@@ -19,6 +19,7 @@ export type DeviceRaw = {
 }
 
 export type DeviceSetting = {
+    autoMirror?: string
     dimWhenMirror?: string
     alwaysTop?: string
     mirrorSound?: string

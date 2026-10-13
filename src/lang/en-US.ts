@@ -112,6 +112,7 @@ const messages: Messages = {
     'device.allStatus': 'All Status',
     'device.alreadyMirroring': 'Already mirroring',
     'device.alwaysTop': 'Mirror always on top',
+    'device.autoMirror': 'Auto mirror on connect',
     'device.batchOperation': 'Batch operate ({count})',
     'device.batchConnect': 'Batch Connect',
     'device.batchConnectSuccess': 'Connected {count} device(s) successfully',

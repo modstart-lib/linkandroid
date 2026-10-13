@@ -112,6 +112,7 @@ const messages: Messages = {
     'device.allStatus': '全部状态',
     'device.alreadyMirroring': '已经在投屏中',
     'device.alwaysTop': '投屏总在最上层',
+    'device.autoMirror': '连接自动投屏',
     'device.batchOperation': '批量操作({count})',
     'device.batchConnect': '批量连接',
     'device.batchConnectSuccess': '已成功连接{count}台',
