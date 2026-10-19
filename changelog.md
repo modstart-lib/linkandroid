@@ -5,6 +5,13 @@
 - 修复：投屏诊断中「adb Server 端口 5037」在 Windows 上无论端口是否正常都会被误报为「异常」，现改为识别占用 5037 的进程，仅当被非本软件内置的 adb（其它 adb 版本、模拟器、手机管理工具）占用时才提示异常
 - 优化：投屏诊断弹窗内的全部提示、诊断结果与运行平台文案支持多语言，随软件语言设置自动切换中英文
 - 优化：设备设置与默认设置中的「视频比特率」「刷新率」下拉框支持直接输入自定义值（如 18M、165），并为刷新率补充可选值与格式提示
+- 优化：大模型「API地址」输入框显示默认地址占位，留空即使用默认值
+- 优化：更新 OpenAI、Gemini、Anthropic、硅基流动、MiniMax 的默认模型列表为当前可用模型
+- 修复：大模型供应商 API 地址拼接错误导致调用 404 的问题——填写带 `/v1` 的地址（如 `https://api.siliconflow.cn/v1`）会拼成 `/v1/v1/chat/completions`，带尾斜杠的地址会丢掉版本前缀；现在域名、带 `/v1`、带尾斜杠、以及完整 `.../chat/completions` 地址均可正确识别
+- 修复：Gemini、Anthropic、Perplexity、MiniMax 等供应商默认接口地址错误（Gemini 缺少 `/v1beta/openai` 兼容前缀、Anthropic 缺少 `/v1`、Perplexity 被错误追加 `/v1`、MiniMax 使用了旧域名）导致即使 Key 正确也无法调用的问题
+- 修复：阿里云百炼供应商模型列表为空的问题（模型配置 key 与供应商 id 不一致）
+- 修复：大模型列表中混入 embedding / rerank 模型、选中后对话必然失败的问题
+- 变更：移除已停止服务或无法使用普通 API Key 调用的供应商：GitHub Models（已退役）、GitHub Copilot（需 OAuth 令牌交换）、零一万物（已停止 API 服务）、Hyperbolic（推理服务已退役）、Jina / Voyage AI（仅提供 embedding/rerank）、Azure OpenAI（需 `api-key` 头与 `api-version` 参数）
 
 ## v2.4.0 投屏内核升级 scrcpy 5.0，硬解让 CPU 占用直降十倍
 

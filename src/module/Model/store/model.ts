@@ -92,10 +92,11 @@ export const modelStore = defineStore('model', {
                     logo: getProviderLogo(providerId),
                     isSystem: true,
                     apiUrl: provider.api.url,
+                    apiPath: provider.api.path,
                     websites: {
-                        official: provider.websites?.official,
-                        docs: provider.websites?.docs,
-                        models: provider.websites?.models,
+                        official: provider.websites?.official || '',
+                        docs: provider.websites?.docs || '',
+                        models: provider.websites?.models || '',
                     },
                     data: {
                         apiKey: '',
@@ -339,6 +340,7 @@ export const modelStore = defineStore('model', {
                         modelId: m.id,
                         apiUrl: provider.apiUrl,
                         apiHost: provider.data.apiHost,
+                        apiPath: provider.apiPath,
                         apiKey: provider.data.apiKey,
                     },
                 )
@@ -402,6 +404,7 @@ export const modelStore = defineStore('model', {
                     modelId: m.id,
                     apiUrl: provider.apiUrl,
                     apiHost: provider.data.apiHost,
+                    apiPath: provider.apiPath,
                     apiKey: provider.data.apiKey,
                 })
             } catch (e) {
