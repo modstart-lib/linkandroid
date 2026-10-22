@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import {nextTick, ref, watch} from 'vue'
+
+const logContainer = ref<HTMLElement | null>(null)
+
 interface LogItem {
     num: number
     text: string
@@ -7,11 +11,53 @@ interface LogItem {
 const props = withDefaults(
     defineProps<{
         logs: LogItem[]
+        autoScroll?: boolean
         height?: string
     }>(),
     {
         logs: [] as any,
+        autoScroll: true,
         height: '100%',
+    },
+)
+
+// The first scroll (initial log load) jumps to the bottom directly. Animating
+// it with smooth behavior made the viewer visibly scroll from the top down.
+let isFirstScroll = true
+
+const scrollToBottom = () => {
+    nextTick(() => {
+        const container = logContainer.value
+        if (!container) {
+            return
+        }
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior: isFirstScroll ? 'auto' : 'smooth',
+        })
+        isFirstScroll = false
+    })
+}
+
+watch(
+    () => props.logs,
+    () => {
+        if (props.autoScroll && props.logs.length) {
+            scrollToBottom()
+        }
+    },
+    {
+        immediate: true,
+        deep: true,
+    },
+)
+
+watch(
+    () => props.autoScroll,
+    () => {
+        if (props.autoScroll) {
+            scrollToBottom()
+        }
     },
 )
 </script>
