@@ -19,7 +19,7 @@
     <img src="https://gitcode.com/modstart-lib/linkandroid/star/badge.svg?style=flat-square" alt="GitCode Stars" />
   </a>
   <br/>
-  <strong>English</strong> · <a href="./README.md">简体中文</a>
+  <strong>English</strong> · <a href="./README.md">简体中文</a> · <a href="./README.ja-JP.md">日本語</a>
 </div>
 
 <p align="center">
