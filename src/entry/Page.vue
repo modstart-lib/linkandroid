@@ -23,6 +23,8 @@
                 <component :is="props.page" @event="onEvent" />
             </div>
         </div>
+        <UpdateDialog />
+        <UpdateFloatBar />
     </a-config-provider>
 </template>
 
@@ -30,6 +32,8 @@
 import {computed, onBeforeMount, ref} from 'vue'
 import type {Component} from 'vue'
 import {onLocaleChange} from '../lang'
+import UpdateDialog from '../components/common/UpdateDialog.vue'
+import UpdateFloatBar from '../components/common/UpdateFloatBar.vue'
 
 import zhCN from '@arco-design/web-vue/es/locale/lang/zh-cn'
 import enUS from '@arco-design/web-vue/es/locale/lang/en-us'

@@ -71,6 +71,14 @@
                     "x64",
                     "arm64"
                 ],
+            },
+            {
+                // 自动升级优先使用 zip（解压后替换 .app，无需挂载磁盘镜像）
+                "target": "zip",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
             }
         ],
         "artifactName": "${productName}-${version}-mac-${arch}.${ext}",

@@ -220,7 +220,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linkandroid-mac-${{ matrix.arch }}
-          path: code/dist-release/*.dmg
+          path: |
+            code/dist-release/*.dmg
+            code/dist-release/*.zip
 
       - name: Upload Artifact (Linux)
         if: runner.os == 'Linux'
@@ -245,6 +247,7 @@ jobs:
           assets: |
               code/dist-release/*.exe:apps/{random}.bin:{name}.exe
               code/dist-release/*.dmg:apps/{random}.bin:{name}.dmg
+              code/dist-release/*.zip:apps/{random}.bin:{name}.zip
               code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
               code/dist-release/*.deb:apps/{random}.bin:{name}.deb
 
@@ -272,9 +275,11 @@ jobs:
     needs: [build]
     if: success()
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
-      - name: Download All Artifacts
+      - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: linkandroid-*
@@ -284,22 +289,29 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Read current version from package.json
+          VERSION=$(node -p "require('./package.json').version")
+          RELEASE_TITLE="snapshot-${VERSION}"
+          echo "=== Current version: ${VERSION} ==="
+          echo "=== Release title: ${RELEASE_TITLE} ==="
           # Delete existing vsnapshot release if present
           echo "=== Checking for existing vsnapshot release ==="
           if gh release view vsnapshot --json id 2>/dev/null; then
             echo "Deleting old vsnapshot release..."
-            gh release delete vsnapshot --yes 2>/dev/null || true
+            # 同时删除 vsnapshot tag，下次创建时 tag/Release 的创建时间会更新，
+            # 从而在 GitHub Releases 历史列表中排到最前。
+            gh release delete vsnapshot --yes --cleanup-tag 2>/dev/null || true
             echo "Old release deleted."
           else
             echo "No existing vsnapshot release found."
           fi
-          # Create fresh vsnapshot release with current version as title
-          VERSION=$(node -p "require('./package.json').version")
-          echo "Current version: $VERSION"
+          # Create fresh vsnapshot release
+          # snapshot 需要显示为 GitHub 最新版本：GitHub 不允许 prerelease 设为 latest，
+          # 因此这里创建为普通 Release 并显式 --latest。
           gh release create vsnapshot \
-            --title "snapshot-${VERSION}" \
-            --notes "Latest build from main branch" \
-            --prerelease
+            --title "$RELEASE_TITLE" \
+            --notes "Latest build from main branch (${VERSION})" \
+            --latest
           # Copy artifacts to temp dir with version replaced by "snapshot"
           tmpdir=$(mktemp -d)
           echo "=== Downloaded artifacts ==="
@@ -308,6 +320,16 @@ jobs:
           find _artifacts/ -type f | while read f; do
             base=$(basename "$f")
             clean=$(echo "$base" | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+(-(beta|alpha|rc|dev)(\.[0-9]+)?)?/snapshot/')
+            # Windows portable has no electron-builder auto-update support (it is a
+            # manual-download target). Keep it out of the GitHub update channel so the
+            # client selects the NSIS setup asset instead of trying to replace its exe.
+            # The portable build is still uploaded to OSS for the download page.
+            case "$clean" in
+              *win-portable*.exe)
+                echo "Skip portable (manual install only): $clean"
+                continue
+                ;;
+            esac
             cp "$f" "$tmpdir/$clean"
             echo "Staged: $base -> $clean"
           done
@@ -316,6 +338,11 @@ jobs:
             echo "Uploading: $(basename "$f")"
             gh release upload vsnapshot "$f" --clobber
           done
+          # checksums.txt lets the client verify snapshot assets when GitHub exposes no
+          # per-asset digest. The names must match the uploaded (snapshot) file names,
+          # hence the sed that strips the "./" prefix added by find.
+          (cd "$tmpdir" && find . -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) -print0 | xargs -0 sha256sum | sed 's#  \./#  #' > checksums.txt)
+          gh release upload vsnapshot "$tmpdir/checksums.txt" --clobber
           rm -rf "$tmpdir"
 
   # ── Notify ────────────────────────────────────────────────────────────────────

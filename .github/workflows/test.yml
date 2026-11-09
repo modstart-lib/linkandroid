@@ -157,6 +157,7 @@ jobs:
             name: macos-artifact
             path: |
                 dist-release/*.dmg
+                dist-release/*.zip
 
       - name: Upload Artifact Linux
         if: runner.os == 'Linux'

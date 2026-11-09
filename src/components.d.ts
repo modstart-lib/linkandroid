@@ -134,6 +134,8 @@ declare module 'vue' {
     SettingItemYesNoDefault: typeof import('./components/common/SettingItemYesNoDefault.vue')['default']
     TaskBizStatus: typeof import('./components/common/TaskBizStatus.vue')['default']
     TextTruncateView: typeof import('./components/TextTruncateView.vue')['default']
+    UpdateDialog: typeof import('./components/common/UpdateDialog.vue')['default']
+    UpdateFloatBar: typeof import('./components/common/UpdateFloatBar.vue')['default']
     UpdaterButton: typeof import('./components/common/UpdaterButton.vue')['default']
     VideoPlayer: typeof import('./components/common/VideoPlayer.vue')['default']
     VipUpgradeView: typeof import('./components/common/VipUpgradeView.vue')['default']

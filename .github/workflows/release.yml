@@ -183,6 +183,28 @@ jobs:
             Write-Host "::add-mask::$DIST_FILE_NAME"
             echo "DIST_FILE_NAME=$DIST_FILE_NAME" >> $env:GITHUB_ENV
 
+      - name: Upload Sourcemaps
+        if: runner.os == 'Linux'
+        working-directory: code
+        env:
+          GROW_URL: ${{ secrets.GROW_URL }}
+          GROW_APP_NAME: ${{ secrets.GROW_APP_NAME }}
+          GROW_ADMIN_API_TOKEN: ${{ secrets.GROW_ADMIN_API_TOKEN }}
+        run: |
+          BUILD_ID=$(node -p "require('./dist/build.json').buildId")
+          echo "Uploading sourcemaps for buildId=${BUILD_ID} ..."
+          find dist dist-electron/main -name "*.map" | while read f; do
+            echo "  uploading $f"
+            RESP=$(curl -s -X POST "${GROW_URL}/api/admin/grow/buildUpload" \
+              -H "Authorization: Bearer ${GROW_ADMIN_API_TOKEN}" \
+              -F "appName=${GROW_APP_NAME}" \
+              -F "buildId=${BUILD_ID}" \
+              -F "file=@${f}" \
+              -F "name=${f}")
+            echo "  response: ${RESP}"
+          done
+          echo "Sourcemap upload done."
+
       - name: Upload Artifact (Windows)
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
@@ -195,7 +217,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linkandroid-mac-${{ matrix.arch }}
-          path: code/dist-release/*.dmg
+          path: |
+            code/dist-release/*.dmg
+            code/dist-release/*.zip
 
       - name: Upload Artifact (Linux)
         if: runner.os == 'Linux'
@@ -220,6 +244,7 @@ jobs:
           assets: |
               code/dist-release/*.exe:apps/{random}.bin:{name}.exe
               code/dist-release/*.dmg:apps/{random}.bin:{name}.dmg
+              code/dist-release/*.zip:apps/{random}.bin:{name}.zip
               code/dist-release/*.AppImage:apps/{random}.bin:{name}.AppImage
               code/dist-release/*.deb:apps/{random}.bin:{name}.deb
 
@@ -229,7 +254,6 @@ jobs:
           OSS_DOWNLOADS: ${{ steps.oss-upload.outputs.downloads }}
         run: |
           if [ -n "${OSS_DOWNLOADS}" ]; then
-            # No echo of the value needed; output is masked by core.setSecret
             echo "${OSS_DOWNLOADS}" > "oss-downloads-${{ matrix.name }}.json"
           else
             echo "{}" > "oss-downloads-${{ matrix.name }}.json"
@@ -246,9 +270,11 @@ jobs:
     name: Create Release
     needs: [build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
-      - name: Download All Artifacts
+      - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: linkandroid-*
@@ -261,22 +287,41 @@ jobs:
           TAG=${GITHUB_REF#refs/tags/}
           # Delete any existing release for this tag (handles force-push)
           gh release delete "$TAG" --yes 2>/dev/null || true
-          # Create release (draft, idempotent)
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --draft \
-            --prerelease=false \
-            --notes "" \
-            2>/dev/null || true
-          # Upload all artifacts (with pre-release tag stripped from version)
-          FULL_VERSION=$(node -p "require('./package.json').version")
-          CLEAN_VERSION=$(node -p "require('./package.json').version.replace(/-[a-zA-Z][a-zA-Z0-9.]*$/, '')")
+          # Create release (idempotent)
+          # 版本号带 alpha/beta/rc/dev 时标记为预发布
+          VERSION_FOR_PRERELEASE=$(node -p "require('./package.json').version")
+          if echo "$VERSION_FOR_PRERELEASE" | grep -Eq -- '-(alpha|beta|rc|dev)(\.|$)'; then
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --prerelease \
+              --notes "" \
+              2>/dev/null || true
+          else
+            # 正式版本显式设为 latest；预发布版本不能设为 latest
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --latest \
+              --notes "" \
+              2>/dev/null || true
+          fi
+          # 保留完整版本号（含 beta.1 等预发布信息）作为资产文件名
           find _artifacts/ -type f | while read f; do
             base=$(basename "$f")
-            clean=$(echo "$base" | sed "s/$FULL_VERSION/$CLEAN_VERSION/")
-            echo "Uploading: $clean"
+            # Windows portable 不支持 electron-builder 自动更新（官方仅支持 NSIS）。
+            # 不放进 GitHub 更新通道，客户端就会选择 NSIS setup 资产。
+            # portable 仍会通过 OSS 下载页分发。
+            case "$base" in
+              *win-portable*.exe)
+                echo "Skip portable (manual install only): $base"
+                continue
+                ;;
+            esac
+            echo "Uploading: $base"
             gh release upload "$TAG" "$f" --clobber
           done
+          # 生成校验文件，客户端在没有 GitHub digest 时也能校验 sha256
+          (cd _artifacts && find . -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) ! -name '*win-portable*.exe' -print0 | xargs -0 sha256sum | sed 's#  .*/#  #' > checksums.txt)
+          gh release upload "$TAG" _artifacts/checksums.txt --clobber
 
   # ── Notify ────────────────────────────────────────────────────────────────────
   notify:
@@ -340,4 +385,3 @@ jobs:
               gh api "/repos/${{ github.repository }}/actions/artifacts/$id" -X DELETE
             done
           echo "Cleanup done."
-

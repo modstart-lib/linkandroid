@@ -1,3 +1,5 @@
+import type {UpdaterAsset, UpdaterBlocker, UpdaterDownloadChannel, UpdaterState} from '../lib/updater'
+
 type DefsPage = {
     onShow: (cb: Function) => void
     onHide: (cb: Function) => void
@@ -306,9 +308,27 @@ type DefsMapi = {
         cacheGetPath: (key: any) => Promise<string | null>
     }
     updater: {
-        checkForUpdate: () => Promise<ApiResult<any>>
+        checkForUpdate: () => Promise<UpdaterState>
         getCheckAtLaunch: () => Promise<'yes' | 'no'>
         setCheckAtLaunch: (value: 'yes' | 'no') => Promise<void>
+        getState: () => Promise<UpdaterState>
+        probe: (
+            channels: UpdaterDownloadChannel[],
+        ) => Promise<Array<{title: string; url: string; ok: boolean; latency: number}>>
+        download: (payload?: {url?: string; asset?: UpdaterAsset}) => Promise<UpdaterState>
+        cancelDownload: () => Promise<UpdaterState>
+        preflight: () => Promise<UpdaterBlocker[]>
+        stopBlockers: () => Promise<UpdaterBlocker[]>
+        install: () => Promise<{
+            ok: boolean
+            error?: string
+            result?: {message: string; restartRequired: boolean}
+            blockers: UpdaterBlocker[]
+            state: UpdaterState
+        }>
+        openDownloadedFile: () => Promise<boolean>
+        openDownloadPage: () => Promise<boolean>
+        onState: (cb: (state: UpdaterState) => void) => () => void
     }
     statistics: {
         tick: (name: string, data: any = null) => Promise<void>
