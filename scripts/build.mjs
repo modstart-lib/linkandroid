@@ -143,6 +143,15 @@ function pythonArchiveNames(target) {
   return [`${base}-install_only_stripped.tar.gz`, `${base}-install_only.tar.gz`];
 }
 
+const PYTHON_RELEASE_BASE = 'https://github.com/astral-sh/python-build-standalone/releases/download';
+// Mirrors of the same release. GitHub answers anonymous release downloads with
+// 504 during its incidents, so fall back to a mirror instead of failing the job.
+const PYTHON_MIRRORS = [
+  PYTHON_RELEASE_BASE,
+  'https://mirror.nju.edu.cn/github-release/astral-sh/python-build-standalone',
+  'https://registry.npmmirror.com/-/binary/python-build-standalone',
+];
+
 function downloadPythonArchive(target) {
   const cacheDir = 'env/task/_cache';
   mkdirSync(cacheDir, {recursive: true});
@@ -152,16 +161,20 @@ function downloadPythonArchive(target) {
       console.log(`  [python] use cache ${filePath} (${formatBytes(statSync(filePath).size)})`);
       return filePath;
     }
-    const url = `https://github.com/astral-sh/python-build-standalone/releases/download/${STANDALONE_TAG}/${fileName}`;
-    try {
-      console.log(`  [python] download ${url}`);
-      run(`curl -fL --connect-timeout 30 --max-time 600 "${url}" -o "${filePath}"`);
-      console.log(`  [python] archive ready ${filePath} (${formatBytes(statSync(filePath).size)})`);
-      return filePath;
-    } catch (_) {
-      rmSync(filePath, {force: true});
-      console.log(`  [python] skip missing ${fileName}`);
+    for (const base of PYTHON_MIRRORS) {
+      const url = `${base}/${STANDALONE_TAG}/${fileName}`;
+      try {
+        console.log(`  [python] download ${url}`);
+        // Retry 5xx (including the frequent 504 on release assets) with backoff.
+        run(`curl -fL --retry 5 --retry-delay 5 --retry-connrefused --connect-timeout 30 --max-time 600 "${url}" -o "${filePath}"`);
+        console.log(`  [python] archive ready ${filePath} (${formatBytes(statSync(filePath).size)})`);
+        return filePath;
+      } catch (_) {
+        rmSync(filePath, {force: true});
+        console.log(`  [python] source failed, trying next: ${url}`);
+      }
     }
+    console.log(`  [python] skip missing ${fileName}`);
   }
   throw new Error(`No portable Python archive found for target ${target}`);
 }
