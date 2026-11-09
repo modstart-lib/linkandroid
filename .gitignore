@@ -42,6 +42,7 @@ database.db
 /electron/resources/extra/osx-arm64/
 /electron/resources/extra/osx-x86/
 /electron/resources/extra/win-x86/
+/electron/resources/extra/win-arm64/
 
 /AGENTS.md
 /.agents

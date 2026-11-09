@@ -344,13 +344,25 @@ const SHARE_FILES = {
   'win-x86':     ['scrcpy', 'ffmpeg.exe', 'ffprobe.exe'],
 };
 
+// Platform folders that reuse another folder's binaries.
+// share-binary has no Windows ARM64 build (scrcpy/ffmpeg ship x64 binaries
+// only), so win-arm64 takes the win-x86 files: Windows on ARM runs x64
+// executables through emulation, which is what earlier releases shipped.
+const SHARE_SOURCE_DIR = {
+  'win-arm64': 'win-x86',
+};
+
 // Only the primary arch gets packaged, so only its platform folder is needed
 const sharePlatDir = edir(primaryArch);
-const shareItems = SHARE_FILES[sharePlatDir] || [];
+const shareSrcDir = SHARE_SOURCE_DIR[sharePlatDir] || sharePlatDir;
+const shareItems = SHARE_FILES[shareSrcDir] || [];
 if (shareItems.length === 0) {
-  fail(`No share-binary mapping for platform folder ${sharePlatDir}`);
+  fail(`No share-binary mapping for platform folder ${sharePlatDir} (source: ${shareSrcDir})`);
 }
-const sharePaths = shareItems.map((item) => `${sharePlatDir}/${item}`);
+if (shareSrcDir !== sharePlatDir) {
+  console.log(`  [reuse] ${sharePlatDir} uses the ${shareSrcDir} binaries`);
+}
+const sharePaths = shareItems.map((item) => `${shareSrcDir}/${item}`);
 const sharePatterns = sharePaths.map((path) => `/${path}`);
 
 if (!existsSync(join(shareRepoDir, '.git'))) {
@@ -395,12 +407,12 @@ try {
 const shareDestBase = join('electron/resources/extra', sharePlatDir);
 mkdirSync(shareDestBase, {recursive: true});
 for (const item of shareItems) {
-  const src = join(shareRepoDir, sharePlatDir, item);
+  const src = join(shareRepoDir, shareSrcDir, item);
   if (!existsSync(src)) {
     fail(`share-binary file missing after checkout: ${src}`);
   }
   const dest = join(shareDestBase, item);
-  console.log(`  [copy] ${sharePlatDir}/${item}`);
+  console.log(`  [copy] ${shareSrcDir}/${item} -> extra/${sharePlatDir}/${item}`);
   rmSync(dest, {recursive: true, force: true});
   cpSync(src, dest, {recursive: true});
 }
