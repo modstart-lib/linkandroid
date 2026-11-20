@@ -62,6 +62,8 @@ export type AppMirror = {
 export type DeviceRuntime = {
     status: EnumDeviceStatus
     mirrorController: ShellController | null
+    // 摄像头投屏独立于屏幕投屏，单独保存进程控制器，便于设备断开或重复启动时收尾
+    cameraController: ShellController | null
     // 应用投屏支持同时投屏多个应用，每个应用对应一个独立的 scrcpy 虚拟屏窗口
     appMirrors: AppMirror[]
     screenBrightness?: number

@@ -480,6 +480,20 @@ type DefsMapi = {
             },
         ) => Promise<any>
         listApps: (serial: string) => Promise<{id: string; name: string; system: boolean}[]>
+        listCameras: (
+            serial: string,
+            option?: {timeoutMs?: number},
+        ) => Promise<
+            {
+                id: string
+                facing: 'front' | 'back' | 'external' | 'unknown'
+                activeSize: string
+                fps: number[]
+                zoomRange: {min: number; max: number} | null
+                sizes: string[]
+                highSpeed: {size: string; fps: number[]}[]
+            }[]
+        >
         mirror: (
             serial: string,
             option: {

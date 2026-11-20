@@ -2,6 +2,7 @@ import {devProResolve, extraResolveBin, extraResolveWithPlatform, isDev, isWin, 
 import adb from '../adb/render'
 import {Apps} from '../app'
 import {Log} from '../log'
+import {CameraInfo, parseCameraList} from './cameraParse'
 
 const getBinPath = async (): Promise<string> => {
     // Dev mode: try pro project scrcpy binary first
@@ -151,6 +152,47 @@ const listApps = async (serial: string): Promise<ScrcpyApp[]> => {
     throw new Error(`MirrorAppListEmpty\n${tail}`)
 }
 
+// List the cameras declared by the device. The scrcpy server prints the list
+// on stderr and exits, so we parse the combined output; a hung server must not
+// leave the camera dialog spinning forever, hence the explicit timeout.
+const listCameras = async (serial: string, option?: {timeoutMs?: number}): Promise<CameraInfo[]> => {
+    const timeoutMs = option?.timeoutMs || 12000
+    let controller: {stop: () => void; result: () => Promise<string>} | null = null
+    let timer: ReturnType<typeof setTimeout> | null = null
+    try {
+        controller = await spawnShell(['--serial', serial, '--list-camera-sizes'])
+        const timeout = new Promise<string>((_, reject) => {
+            timer = setTimeout(() => {
+                try {
+                    controller?.stop()
+                } catch {}
+                reject(new Error('CameraListTimeout'))
+            }, timeoutMs)
+        })
+        let output = ''
+        try {
+            output = await Promise.race([controller.result(), timeout])
+        } catch (error) {
+            const text = String(error)
+            if (text.includes('CameraListTimeout')) {
+                throw new Error('CameraListTimeout')
+            }
+            // A non-zero exit still prints the camera list (e.g. access denied)
+            output = text
+        }
+        const cameras = parseCameraList(output)
+        Log.info('Scrcpy.listCameras', {
+            serial,
+            count: cameras.length,
+        })
+        return cameras
+    } finally {
+        if (timer) {
+            clearTimeout(timer)
+        }
+    }
+}
+
 const mirror = async (
     serial: string,
     option: {
@@ -187,5 +229,6 @@ export default {
     getBinPath,
     spawnShell,
     listApps,
+    listCameras,
     mirror,
 }

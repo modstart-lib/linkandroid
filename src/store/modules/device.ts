@@ -90,6 +90,7 @@ const getDeviceRuntime = (record: DeviceRecord): ComputedRef<DeviceRuntime> => {
         deviceRuntime.value?.set(id, {
             status: EnumDeviceStatus.WAIT_CONNECTING,
             mirrorController: null,
+            cameraController: null,
             appMirrors: [],
             previewImage: record.setting?.previewImage || previewImageDefault,
         } as DeviceRuntime)
@@ -521,6 +522,13 @@ export const deviceStore = defineStore('device', {
             const index = this.records.findIndex((record) => record.id === device.id)
             if (index === -1) {
                 return
+            }
+            const runtime = deviceRuntime.value?.get(device.id)
+            if (runtime?.cameraController) {
+                try {
+                    runtime.cameraController.stop()
+                } catch (e) {}
+                runtime.cameraController = null
             }
             deleteDeviceRuntime(device)
             this.records.splice(index, 1)
