@@ -84,6 +84,9 @@ const spawnShell = async (
         env?: Record<string, any>
         shell?: boolean
         maxLogLines?: number // 0 = unlimited
+        // 显式指定哪些退出码算成功（scrcpy 用 0=正常 / 1=启动失败 / 2=运行中掉线，
+        // 不能用 Windows 下默认的 1 也算成功的规则）
+        successExitCodes?: number[]
     } | null = null,
 ): Promise<{
     stop: () => void
@@ -147,7 +150,11 @@ const spawnShell = async (
         // console.log('App.spawnShell.exit', code)
         Log.info('App.spawnShell.exit', {code, signal})
         exitCode = code
-        if (isWin) {
+        if (option.successExitCodes) {
+            if (null !== code && option.successExitCodes.includes(code)) {
+                isSuccess = true
+            }
+        } else if (isWin) {
             if (0 === code || 1 === code) {
                 isSuccess = true
             }

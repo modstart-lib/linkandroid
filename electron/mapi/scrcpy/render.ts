@@ -22,6 +22,7 @@ const spawnShell = async (
         outputEncoding?: string
         env?: Record<string, any>
         maxLogLines?: number
+        successExitCodes?: number[]
     } | null = null,
 ) => {
     option = Object.assign(
@@ -204,6 +205,7 @@ const mirror = async (
         error?: (msg: string, exitCode: number, process: any) => void
         env?: Record<string, any>
         maxLogLines?: number
+        successExitCodes?: number[]
     },
 ) => {
     option = Object.assign(
@@ -222,6 +224,7 @@ const mirror = async (
         error: option.error,
         env: option.env,
         maxLogLines: option.maxLogLines,
+        successExitCodes: option.successExitCodes,
     })
 }
 

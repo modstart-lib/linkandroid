@@ -505,6 +505,7 @@ type DefsMapi = {
                 error?: (msg: string, exitCode: number, process: any) => void
                 env?: Record<string, any>
                 maxLogLines?: number
+                successExitCodes?: number[]
             },
         ) => Promise<any>
     }

@@ -24,8 +24,15 @@ function escapeHtml(s: string): string {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-// scrcpy stderr 中命中任一关键词即视为投屏失败（避免 scrcpy 版本 banner 出现在 stdout 时静默吞掉失败）
-const MIRROR_ERROR_KEYWORDS = ['error', 'failed', 'could not', 'unable', 'cannot', 'exception', 'not found']
+// scrcpy 退出码：0=正常结束，1=启动失败（没连上），2=运行中设备掉线
+const SCRCPY_EXIT_DISCONNECTED = 2
+
+// 预览进程（DeviceManage）连续启动失败的最大重试次数；超过后等下一次设备连接再试
+const DEVICE_MANAGE_MAX_RETRY = 5
+// 预览进程稳定运行多久后重置失败计数（避免每次 spawn 成功就清零导致 3 秒一轮的重试风暴）
+const DEVICE_MANAGE_STABLE_MS = 30000
+// 同一设备自动投屏的最小间隔，避免设备反复掉线/重连时不停拉起投屏窗口
+const AUTO_MIRROR_MIN_INTERVAL = 10000
 
 const getEmptySetting = () => {
     return JSON.parse(
@@ -68,6 +75,14 @@ let deviceManageStartChain: Promise<void> = Promise.resolve()
 
 // 连接自动投屏的并发保护：refresh 可能被 adb watch 连续触发，避免同一设备重复拉起投屏窗口
 const autoMirrorInFlight = new Set<string>()
+// 自动投屏最近一次尝试时间（掉线重连时限频，避免反复弹窗、反复拉起窗口）
+const autoMirrorLastAttempt = new Map<string, number>()
+// 投屏进程正在启动：期间不能再启动同设备的预览进程，否则两个 scrcpy 抢手机编码器
+const mirrorStarting = new Set<string>()
+// 预览进程本次启动的时间，用于判断是否稳定运行后重置失败计数
+const deviceManageStartedAt = new Map<string, number>()
+// refresh 单飞：adb watch / WebSocket 会并发触发 refresh，多次并发会导致状态反复翻转
+let refreshChain: Promise<void> | null = null
 
 const shouldStartDeviceManage = (record: DeviceRecord) => {
     return !window.__TEST_MODE__ && !isSeedConnectedDevice(record)
@@ -276,25 +291,80 @@ const startDeviceManage = async (deviceId: string) => {
 }
 
 // DeviceManage 启动失败后自动重试（设备仍保持连接且未被主动停止时）。
-// 采用指数退避：3s → 6s → 12s → ... 上限 60s，避免持续高频重试
+// 采用指数退避：3s → 6s → 12s → ... 上限 60s；连续失败达到上限后停止，
+// 等设备重新连接或投屏结束再恢复，避免每 3 秒 push 一次 scrcpy-server 的重试风暴。
 const deviceManageRetryCount = new Map<string, number>()
-const scheduleDeviceManageRetry = (deviceId: string) => {
+// 取出并清除预览进程的启动时间，返回本次存活时长（毫秒）
+const takeDeviceManageUptime = (deviceId: string): number => {
+    const startedAt = deviceManageStartedAt.get(deviceId) || 0
+    deviceManageStartedAt.delete(deviceId)
+    return startedAt ? Date.now() - startedAt : 0
+}
+const hasActiveMirror = (deviceId: string) => {
+    if (mirrorStarting.has(deviceId)) {
+        return true
+    }
+    const runtime = deviceRuntime.value?.get(deviceId)
+    return !!runtime && (!!runtime.mirrorController || (runtime.appMirrors?.length || 0) > 0)
+}
+// uptime：本次进程存活时长；稳定运行过一段时间才重置失败计数
+const scheduleDeviceManageRetry = (deviceId: string, uptime: number = 0) => {
+    // 投屏期间不需要预览进程（投屏进程自己发预览），也不再重试，避免两个编码器互抢
+    if (hasActiveMirror(deviceId)) {
+        return
+    }
+    if (uptime >= DEVICE_MANAGE_STABLE_MS) {
+        deviceManageRetryCount.delete(deviceId)
+    }
     const count = deviceManageRetryCount.get(deviceId) || 0
+    if (count >= DEVICE_MANAGE_MAX_RETRY) {
+        window.$mapi.log.error('DeviceManage retry limit reached', {deviceId, count})
+        return
+    }
     const delay = Math.min(3000 * Math.pow(2, count), 60000)
     deviceManageRetryCount.set(deviceId, count + 1)
     setTimeout(() => {
         if (!deviceManageStopped.has(deviceId)) {
             const device = deviceStore().records.find((r) => r.id === deviceId)
-            if (device && device.status === EnumDeviceStatus.CONNECTED) {
+            if (device && device.status === EnumDeviceStatus.CONNECTED && !hasActiveMirror(deviceId)) {
                 startDeviceManage(deviceId)
             }
         }
     }, delay)
 }
 
+// 投屏结束后恢复预览进程；同一设备同时只保留一个 scrcpy 进程
+const restoreDeviceManage = (deviceId: string) => {
+    const tryRestore = (attempt: number) => {
+        const device = deviceStore().records.find((r) => r.id === deviceId)
+        if (!device || device.status !== EnumDeviceStatus.CONNECTED) {
+            return
+        }
+        if (deviceControllers.has(deviceId)) {
+            return
+        }
+        if (hasActiveMirror(deviceId)) {
+            // 可能正处于新一次投屏的启动窗口，稍后再确认
+            if (attempt < 3) {
+                setTimeout(() => tryRestore(attempt + 1), 800)
+            }
+            return
+        }
+        startDeviceManage(deviceId)
+    }
+    setTimeout(() => tryRestore(0), 1000)
+}
+
 // 启动 debug_manage（管理模式：预览+无视频音频播放）
 const doStartDeviceManage = async (deviceId: string) => {
     try {
+        // 投屏进程正在运行或正在启动时不再启动预览进程：
+        // 同一手机同时跑两个 scrcpy 会抢占硬件编码器（实测报 MediaCodec Error 0xfffffff4），
+        // 并把投屏连接一起拖断
+        if (hasActiveMirror(deviceId)) {
+            return
+        }
+
         // 启动流程开始即视为需要运行，清除可能遗留的停止标记
         // （避免上次 stopDeviceManage 流程遗留的标记导致本次无法启动）
         deviceManageStopped.delete(deviceId)
@@ -337,7 +407,8 @@ const doStartDeviceManage = async (deviceId: string) => {
                     // exitCode=1 退出，App.spawnShell 会把它当作"成功"，这里手动
                     // 识别非 0 退出码并触发自动重试
                     const exitCode = process?.exitCode
-                    window.$mapi.log.info('Render.DeviceManage.success', {deviceId, exitCode})
+                    const uptime = takeDeviceManageUptime(deviceId)
+                    window.$mapi.log.info('Render.DeviceManage.success', {deviceId, exitCode, uptime})
                     deviceControllers.delete(deviceId)
                     if (deviceManageStopped.has(deviceId)) {
                         deviceManageStopped.delete(deviceId)
@@ -347,24 +418,27 @@ const doStartDeviceManage = async (deviceId: string) => {
                         window.$mapi.log.error('DeviceManage exited abnormally, will retry', {
                             deviceId,
                             exitCode,
+                            uptime,
                         })
-                        scheduleDeviceManageRetry(deviceId)
+                        scheduleDeviceManageRetry(deviceId, uptime)
                     }
                 },
                 error: (msg: string, exitCode: number) => {
-                    window.$mapi.log.error('Render.DeviceManage.error', {deviceId, msg, exitCode})
+                    const uptime = takeDeviceManageUptime(deviceId)
+                    window.$mapi.log.error('Render.DeviceManage.error', {deviceId, msg, exitCode, uptime})
                     deviceControllers.delete(deviceId)
                     if (deviceManageStopped.has(deviceId)) {
                         deviceManageStopped.delete(deviceId)
                         return
                     }
-                    scheduleDeviceManageRetry(deviceId)
+                    scheduleDeviceManageRetry(deviceId, uptime)
                 },
             },
         )
         deviceControllers.set(deviceId, controller)
-        // 启动成功，重置失败重试计数
-        deviceManageRetryCount.delete(deviceId)
+        // 记录本次启动时间：只有稳定运行一段时间后才重置失败计数，
+        // 避免「spawn 成功 → 秒退 → 计数清零 → 3 秒后再试」的无限循环
+        deviceManageStartedAt.set(deviceId, Date.now())
     } catch (error) {
         window.$mapi.log.error('Failed to start debug_manage:', {deviceId, error})
         if (!deviceManageStopped.has(deviceId)) {
@@ -378,6 +452,7 @@ const stopDeviceManage = async (deviceId: string) => {
     deviceManageStopped.add(deviceId)
     // 重置失败重试计数，避免后续重连后沿用旧的退避间隔
     deviceManageRetryCount.delete(deviceId)
+    deviceManageStartedAt.delete(deviceId)
     const controller = deviceControllers.get(deviceId)
     if (controller) {
         try {
@@ -439,7 +514,18 @@ export const deviceStore = defineStore('device', {
             }
             return data
         },
+        // 单飞：adb watch / WebSocket 会并发触发 refresh，并发执行会导致状态反复翻转，
+        // 进而重复拉起预览进程与投屏窗口
         async refresh() {
+            if (refreshChain) {
+                return refreshChain
+            }
+            refreshChain = this.doRefresh().finally(() => {
+                refreshChain = null
+            })
+            return refreshChain
+        },
+        async doRefresh() {
             let connectedDevices: DeviceRecord[] = []
             try {
                 connectedDevices = await this.connectedDevices()
@@ -685,7 +771,7 @@ export const deviceStore = defineStore('device', {
                 return
             }
             try {
-                getDeviceRuntime(device).value.mirrorController = await this.startMirror(device, {})
+                runtime.value.mirrorController = await this.startMirror(device, {})
             } catch (error) {
                 Dialog.tipError(mapError(error))
             }
@@ -694,39 +780,73 @@ export const deviceStore = defineStore('device', {
         async shouldAutoMirror(device: DeviceRecord): Promise<boolean> {
             return 'yes' === (await this.settingGet(device, 'autoMirror', 'no'))
         },
+        // adb 当前是否真的能看到该设备（界面状态可能滞后于 adb，避免给已拔线的设备拉起进程）
+        async deviceOnline(deviceId: string): Promise<boolean> {
+            try {
+                const list = await $mapi.adb.devices()
+                return (list || []).some((d) => d.id === deviceId)
+            } catch (e) {
+                return false
+            }
+        },
         // 设备连上后按设置自动启动一次主投屏（与手动点击投屏一致）
         async doAutoMirror(device: DeviceRecord) {
             if (window.__TEST_MODE__) {
                 return
             }
-            if (autoMirrorInFlight.has(device.id)) {
+            const deviceId = device.id
+            if (autoMirrorInFlight.has(deviceId)) {
                 return
             }
-            if (!(await this.shouldAutoMirror(device))) {
+            if (getDeviceRuntime(device).value.mirrorController) {
                 return
             }
-            const runtime = getDeviceRuntime(device).value
-            if (runtime.mirrorController) {
+            // 掉线重连会连续触发 refresh，这里限频，避免反复拉起窗口、反复弹提示
+            const lastAttempt = autoMirrorLastAttempt.get(deviceId) || 0
+            if (Date.now() - lastAttempt < AUTO_MIRROR_MIN_INTERVAL) {
                 return
             }
-            autoMirrorInFlight.add(device.id)
+            // 先占位再 await，否则两次并发调用会同时通过上面的检查
+            autoMirrorInFlight.add(deviceId)
+            autoMirrorLastAttempt.set(deviceId, Date.now())
             try {
-                runtime.mirrorController = await this.startMirror(device, {})
+                if (!(await this.shouldAutoMirror(device))) {
+                    return
+                }
+                if (getDeviceRuntime(device).value.mirrorController) {
+                    return
+                }
+                if (!(await this.deviceOnline(deviceId))) {
+                    return
+                }
+                getDeviceRuntime(device).value.mirrorController = await this.startMirror(device, {})
             } catch (error) {
                 Dialog.tipError(mapError(error))
             } finally {
-                autoMirrorInFlight.delete(device.id)
+                autoMirrorInFlight.delete(deviceId)
             }
         },
         // 启动一个投屏进程（主投屏 / 应用投屏共用），返回进程控制器
         async startMirror(device: DeviceRecord, option?: {appPackage?: string}): Promise<ShellController> {
+            const deviceId = device.id
             Dialog.loadingOn(t('device.mirroring'))
+            // 同一设备同时跑「预览 + 投屏」两个 scrcpy 会抢占手机硬件编码器
+            //（实测 OPPO Android 10 报 MediaCodec Error 0xfffffff4，并把投屏连接一起拖断），
+            // 所以投屏期间停掉预览进程，预览改由投屏进程自己发送
+            mirrorStarting.add(deviceId)
+            if (deviceControllers.has(deviceId)) {
+                await stopDeviceManage(deviceId)
+                // 等预览进程真正退出、释放手机端编码器后再启动投屏进程
+                await new Promise((resolve) => setTimeout(resolve, 300))
+            }
             const args = await this.buildMirrorArgs(device, option)
             const powerSaveBlock = await this.settingGet(device, 'powerSaveBlock', 'yes')
 
             const appPackage = option?.appPackage || ''
             let appLaunched = false
             let active = true
+            let stoppedByUser = false
+            const session: {controller: ShellController | null} = {controller: null}
 
             // 虚拟屏投屏时，应用在关闭投屏后需要结束，避免残留在手机侧
             const cleanupMirroredApp = async () => {
@@ -738,17 +858,23 @@ export const deviceStore = defineStore('device', {
                 }
             }
 
-            // 投屏结束：清理运行态、结束被投屏应用、无其他投屏时恢复电脑休眠
+            // 投屏结束：清理运行态、结束被投屏应用、无其他投屏时恢复电脑休眠与预览进程
             const onMirrorEnd = () => {
                 active = false
-                const current = getDeviceRuntime(device).value
-                if (appPackage) {
-                    current.appMirrors = current.appMirrors.filter((m) => m.package !== appPackage)
-                } else {
-                    current.mirrorController = null
-                }
-                this.releaseMirrorPower(device)
                 cleanupMirroredApp().then()
+                // 放到下一轮事件循环：调用方是在 startMirror 返回后才把 controller 写入运行态，
+                // 立即清理会被覆盖回「正在投屏」，导致按钮状态与窗口不一致
+                setTimeout(() => {
+                    const current = getDeviceRuntime(device).value
+                    if (appPackage) {
+                        current.appMirrors = current.appMirrors.filter((m) => m.package !== appPackage)
+                    } else if (current.mirrorController === session.controller) {
+                        current.mirrorController = null
+                    }
+                    this.releaseMirrorPower(device)
+                    // 设备仍在线且没有其他投屏时，恢复预览进程
+                    restoreDeviceManage(deviceId)
+                }, 0)
             }
 
             let successTimer: ReturnType<typeof setTimeout> | null = null
@@ -762,11 +888,24 @@ export const deviceStore = defineStore('device', {
                     logs.splice(0, logs.length - MAX_MIRROR_LOG_LINES)
                 }
             }
+            // 启动失败时展示完整日志；设备掉线不算失败，只轻提示
+            const showMirrorError = (msg: string) => {
+                if (unauthorized) {
+                    Dialog.alertError(t('device.mirrorUnauthorized'))
+                    return
+                }
+                const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
+                const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
+                Dialog.alertError(t('device.mirrorFailed') + ` : <code>${escapeHtml(msg)}</code>${detail}`)
+            }
             try {
                 const controller = await $mapi.scrcpy.mirror(device.id, {
                     title: device.name as string,
                     args,
                     maxLogLines: MAX_MIRROR_LOG_LINES,
+                    // scrcpy 5.0: 0=正常结束 / 1=启动失败 / 2=运行中设备掉线，
+                    // 不能沿用 Windows 下把 1 也当成功的默认规则
+                    successExitCodes: [0],
                     stdout: (data: string) => {
                         console.log('mirror.stdout', data)
                         $mapi.log.info('Mirror.stdout', data)
@@ -796,41 +935,46 @@ export const deviceStore = defineStore('device', {
                     },
                     success: () => {
                         console.log('mirror.success')
-                        $mapi.log.info('Mirror.success', {successShown, logs})
+                        $mapi.log.info('Mirror.success', {successShown, stoppedByUser, logs})
                         onMirrorEnd()
-                        const hasMirrorError = logs.some(
-                            (l) =>
-                                l.startsWith('[stderr]') &&
-                                MIRROR_ERROR_KEYWORDS.some((kw) => l.toLowerCase().includes(kw)),
-                        )
-                        // 只有当"既没成功弹起投屏"且（stderr 含错误信息 或 完全没有 stdout）时才提示失败，
-                        // 避免 scrcpy 版本 banner 在 stdout 输出导致失败被静默吞掉
-                        if (!successShown && (hasMirrorError || !logs.some((l) => l.startsWith('[stdout]')))) {
-                            const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
-                            const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
-                            Dialog.alertError(t('device.mirrorFailed') + (detail ? ` : ${detail}` : ''))
-                        }
                     },
                     error: (msg: string, exitCode: number) => {
                         console.log('mirror.error', {msg, exitCode})
-                        $mapi.log.error('Mirror.error', {msg, exitCode, logs})
+                        $mapi.log.error('Mirror.error', {msg, exitCode, stoppedByUser, logs})
                         onMirrorEnd()
-                        if (unauthorized) {
-                            Dialog.alertError(t('device.mirrorUnauthorized'))
+                        // 用户自己关窗口 / 点停止，不提示
+                        if (stoppedByUser) {
                             return
                         }
-                        const logText = logs.map((l) => l.replace(/^\[(stdout|stderr)\] /, '')).join('\n')
-                        const detail = logText ? `\n\n<pre>${escapeHtml(logText)}</pre>` : ''
-                        Dialog.alertError(t('device.mirrorFailed') + ` : <code>${escapeHtml(msg)}</code>${detail}`)
+                        if (exitCode === SCRCPY_EXIT_DISCONNECTED) {
+                            // 已经投上之后设备掉线：属于设备断开，不是投屏失败
+                            Dialog.tipError(t('device.mirrorDisconnected'))
+                            return
+                        }
+                        showMirrorError(msg)
                     },
                 })
+                // 包一层 stop：用户主动停止（强杀会以非 0 退出码结束）时不弹错误
+                session.controller = {
+                    ...controller,
+                    stop: () => {
+                        stoppedByUser = true
+                        controller.stop()
+                    },
+                }
                 // 根据用户设置决定是否阻止电脑休眠
                 if (powerSaveBlock === 'yes') {
                     $mapi.power.start('prevent-display-sleep')
                 }
-                return controller
+                return session.controller
             } finally {
                 Dialog.loadingOff()
+                if (!session.controller) {
+                    // 投屏进程没起来（如参数错误/找不到二进制），把被停掉的预览进程恢复回来
+                    restoreDeviceManage(deviceId)
+                }
+                // 留出时间让调用方把 controller 写入运行态，避免排队中的预览进程插空启动
+                setTimeout(() => mirrorStarting.delete(deviceId), 1500)
             }
         },
         async buildMirrorArgs(device: DeviceRecord, option?: {appPackage?: string}): Promise<string[]> {
@@ -891,6 +1035,11 @@ export const deviceStore = defineStore('device', {
 
             if (customArgs.length) {
                 args.push(...customArgs)
+            }
+
+            // 主投屏同时负责发送设备卡片预览图（投屏期间不再单独启动预览进程）
+            if (!option?.appPackage) {
+                args.push('--linkandroid-preview-interval', '1000', '--linkandroid-preview-ratio', '30')
             }
 
             // 添加 WebSocket 服务器和面板参数

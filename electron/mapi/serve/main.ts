@@ -116,7 +116,14 @@ const start = async (): Promise<number> => {
                             Log.info(`${clientType}.msg.${deviceId}`, data)
                         }
                     } else if (clientType === 'DeviceMirror') {
-                        if (data.type === 'ready') {
+                        if (data.type === 'preview') {
+                            // 投屏进程也负责发送设备卡片预览图（投屏期间不再单独启动预览进程）
+                            broadcast('Render', {
+                                type: 'DevicePreview',
+                                deviceId,
+                                data: data.data,
+                            })
+                        } else if (data.type === 'ready') {
                             ws.send(JSON.stringify(getPanelConfig(deviceId)))
                             Log.info(`Sent panel config to DeviceMirror: deviceId=${deviceId}`)
                             // 查询设备实际屏幕状态，确保图标与真实状态一致
@@ -312,6 +319,30 @@ const panelButtonToKeyCode = (buttonId: string): number | null => {
     return keyCodeMap[buttonId] || null
 }
 
+// 随动目标：其它设备的预览进程或投屏进程（投屏期间预览进程已停止）；
+// 同一设备可能同时有主投屏与应用投屏多个连接，每台设备只下发一次，避免手机上执行两次
+const followTargets = (sourceDeviceId: string): Array<{ws: WebSocket; deviceId: string; type: string}> => {
+    const targets: Array<{ws: WebSocket; deviceId: string; type: string}> = []
+    const seen = new Set<string>()
+    wss?.clients.forEach((client) => {
+        const ws = client as any
+        const clientDeviceId = ws._deviceId
+        const clientType = ws._clientType
+        if (clientType !== 'DeviceManage' && clientType !== 'DeviceMirror') {
+            return
+        }
+        if (!clientDeviceId || clientDeviceId === sourceDeviceId || seen.has(clientDeviceId)) {
+            return
+        }
+        if (client.readyState !== WebSocket.OPEN) {
+            return
+        }
+        seen.add(clientDeviceId)
+        targets.push({ws: client, deviceId: clientDeviceId, type: clientType})
+    })
+    return targets
+}
+
 // 处理面板按钮的随动模式 - 将按钮操作转换为key事件并广播
 const handlePanelButtonFollowMode = (sourceDeviceId: string, buttonId: string) => {
     const keyCode = panelButtonToKeyCode(buttonId)
@@ -343,25 +374,18 @@ const handlePanelButtonFollowMode = (sourceDeviceId: string, buttonId: string) =
     }
 
     Log.info(`FollowMode: Broadcasting panel button from ${sourceDeviceId}`, buttonId)
-    let targetCount = 0
-    wss?.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            const ws = client as any
-            const clientDeviceId = ws._deviceId
-            const clientType = ws._clientType
-            if (clientType === 'DeviceManage' && clientDeviceId && clientDeviceId !== sourceDeviceId) {
-                try {
-                    // 发送按下和抬起两个事件
-                    client.send(JSON.stringify(keyDownEvent))
-                    client.send(JSON.stringify(keyUpEvent))
-                    targetCount++
-                    Log.info(`FollowMode: Panel button sent to ${clientType}:${clientDeviceId} ${buttonId}->${keyCode}`)
-                } catch (error) {
-                    Log.error(`FollowMode: Failed to send panel button to ${clientDeviceId}: ${error.message}`)
-                }
-            }
+    const targets = followTargets(sourceDeviceId)
+    for (const target of targets) {
+        try {
+            // 发送按下和抬起两个事件
+            target.ws.send(JSON.stringify(keyDownEvent))
+            target.ws.send(JSON.stringify(keyUpEvent))
+            Log.info(`FollowMode: Panel button sent to ${target.type}:${target.deviceId} ${buttonId}->${keyCode}`)
+        } catch (error) {
+            Log.error(`FollowMode: Failed to send panel button to ${target.deviceId}: ${error.message}`)
         }
-    })
+    }
+    const targetCount = targets.length
 
     if (targetCount === 0) {
         Log.info(`FollowMode: No target devices to forward panel button (source: ${sourceDeviceId})`)
@@ -376,23 +400,16 @@ const broadcastRotateToOtherDevices = (sourceDeviceId: string) => {
     }
 
     Log.info(`FollowMode: Broadcasting rotate from ${sourceDeviceId}`)
-    let targetCount = 0
-    wss?.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            const ws = client as any
-            const clientDeviceId = ws._deviceId
-            const clientType = ws._clientType
-            if (clientType === 'DeviceManage' && clientDeviceId && clientDeviceId !== sourceDeviceId) {
-                try {
-                    client.send(JSON.stringify(rotateEvent))
-                    targetCount++
-                    Log.info(`FollowMode: Rotate sent to ${clientType}:${clientDeviceId}`)
-                } catch (error) {
-                    Log.error(`FollowMode: Failed to send rotate to ${clientDeviceId}: ${error.message}`)
-                }
-            }
+    const targets = followTargets(sourceDeviceId)
+    for (const target of targets) {
+        try {
+            target.ws.send(JSON.stringify(rotateEvent))
+            Log.info(`FollowMode: Rotate sent to ${target.type}:${target.deviceId}`)
+        } catch (error) {
+            Log.error(`FollowMode: Failed to send rotate to ${target.deviceId}: ${error.message}`)
         }
-    })
+    }
+    const targetCount = targets.length
 
     if (targetCount === 0) {
         Log.info(`FollowMode: No target devices to forward rotate (source: ${sourceDeviceId})`)
@@ -402,23 +419,16 @@ const broadcastRotateToOtherDevices = (sourceDeviceId: string) => {
 // 处理随动模式 - 在main进程中直接转发事件给其他设备，不经过Render进程
 const handleFollowMode = (sourceDeviceId: string, eventData: any) => {
     Log.info(`FollowMode: Broadcasting event from ${sourceDeviceId}`, eventData.type)
-    let targetCount = 0
-    wss?.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            const ws = client as any
-            const clientDeviceId = ws._deviceId
-            const clientType = ws._clientType
-            if (clientType === 'DeviceManage' && clientDeviceId && clientDeviceId !== sourceDeviceId) {
-                try {
-                    client.send(JSON.stringify(eventData))
-                    targetCount++
-                    Log.info(`FollowMode: Event sent to ${clientType}:${clientDeviceId} ${JSON.stringify(eventData)}`)
-                } catch (error) {
-                    Log.error(`FollowMode: Failed to send event to ${clientDeviceId}: ${error.message}`)
-                }
-            }
+    const targets = followTargets(sourceDeviceId)
+    for (const target of targets) {
+        try {
+            target.ws.send(JSON.stringify(eventData))
+            Log.info(`FollowMode: Event sent to ${target.type}:${target.deviceId} ${JSON.stringify(eventData)}`)
+        } catch (error) {
+            Log.error(`FollowMode: Failed to send event to ${target.deviceId}: ${error.message}`)
         }
-    })
+    }
+    const targetCount = targets.length
 
     if (targetCount === 0) {
         Log.info(`FollowMode: No target devices to forward (source: ${sourceDeviceId})`)
