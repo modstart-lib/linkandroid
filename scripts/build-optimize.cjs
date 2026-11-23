@@ -118,6 +118,48 @@ function prepareMacExecutable(file) {
   runOptional("codesign", ["--force", "--sign", "-", file], "codesign CLI");
 }
 
+function findCodesignIdentity() {
+  const result = childProcess.spawnSync(
+    "bash",
+    ["-c", `security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\\(.*\\)"/\\1/'`],
+    {encoding: "utf8"}
+  );
+  return (result.stdout || "").trim();
+}
+
+/**
+ * Sign every .node binary while the app bundle is still unsealed (afterPack runs
+ * before electron-builder codesigns). Re-signing them in afterSign would modify
+ * sealed resources and make notarization fail with
+ * "a sealed resource is missing or invalid".
+ */
+function signNodeBinaries(context) {
+  const appPath = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`);
+  const identity = findCodesignIdentity();
+  if (!identity) {
+    console.log("  [sign] no Developer ID Application certificate, skipping .node signing");
+    return;
+  }
+  const nodeFiles = [];
+  walkFiles(appPath, (file, stat) => {
+    if (!stat.isDirectory() && file.endsWith(".node")) nodeFiles.push(file);
+  });
+  if (nodeFiles.length === 0) return;
+  console.log(`  [sign] ${nodeFiles.length} .node file(s) with: ${identity}`);
+  for (const file of nodeFiles) {
+    const result = childProcess.spawnSync(
+      "codesign",
+      ["--sign", identity, "--force", "--options", "runtime", "--timestamp", file],
+      {encoding: "utf8", timeout: 30000}
+    );
+    if (result.status === 0) {
+      console.log(`    ✓ ${file}`);
+    } else {
+      console.log(`    [warn] failed to sign ${file}: ${(result.stderr || result.error || "").toString().trim()}`);
+    }
+  }
+}
+
 // ── main ─────────────────────────────────────────────────────────
 exports.default = async function (context) {
   console.log("BuildOptimize", {name: common.platformName(), arch: common.platformArch()});
@@ -163,4 +205,9 @@ exports.default = async function (context) {
   assertExists(path.join(taskDir, "lib"), "Python runtime lib");
   assertExists(path.join(taskDir, initScriptName), "Python runtime init script");
   console.log(`  [check] Python runtime size: ${formatBytes(dirSize(pythonDir))}`);
+
+  // ── 3. Sign native addons before electron-builder seals the bundle ──
+  if (platformName === "osx") {
+    signNodeBinaries(context);
+  }
 };
