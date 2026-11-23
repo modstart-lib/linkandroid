@@ -372,7 +372,7 @@ onUnmounted(() => {
             </ListerTop>
             <DeviceEmpty v-if="!deviceStore.records.length" />
             <DeviceFilterEmpty v-else-if="!filterRecords.length" />
-            <div v-else class="grid gap-1 grid-cols-[repeat(auto-fill,minmax(13rem,1fr))]">
+            <div v-else class="pb-device-grid grid gap-1 grid-cols-[repeat(auto-fill,minmax(13rem,1fr))]">
                 <div v-for="(r, rIndex) in filterRecords" :key="rIndex">
                     <DeviceItem
                         :record="r"

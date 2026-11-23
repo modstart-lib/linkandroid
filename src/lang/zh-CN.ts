@@ -434,7 +434,7 @@ const messages: Messages = {
     'device.seeMoreDocs': '更多内容，请查看',
     'device.selectDevices': '选择设备',
     'device.settings': '设备设置',
-    'device.settingsFor': '设备',
+    'device.settingsFor': '设备设置',
     'device.shellHelpText': '输入 help 查看帮助',
     'device.shellTool': '命令行工具',
     'device.startPairing': '开始配对',

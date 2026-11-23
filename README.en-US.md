@@ -162,7 +162,7 @@ Choose from **Light**, **Dark**, or **Follow System** themes for a comfortable v
 
 ## 🚀 Development
 
-> Tested with **Node.js 20** only.
+> Tested with **Node.js 24** only.
 
 ```bash
 # Clone the repository

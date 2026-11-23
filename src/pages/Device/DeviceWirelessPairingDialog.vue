@@ -147,7 +147,10 @@ const regenerate = () => {
 }
 
 onMounted(() => {
-    testActionSet('device.wirelessPairing.show', () => show())
+    // 二维码配对会一直等待 UDP 扫描结果（最长 60s），测试动作只负责打开弹窗，不能阻塞调用方
+    testActionSet('device.wirelessPairing.show', () => {
+        show().then()
+    })
 })
 
 onUnmounted(() => {

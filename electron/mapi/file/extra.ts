@@ -185,7 +185,7 @@ const watchText = async (
             }
         }
         const readChunk = () => {
-            const buf = new Buffer(CHUNK_SIZE)
+            const buf = Buffer.alloc(CHUNK_SIZE)
             const bytesRead = fs.readSync(fd, buf, 0, CHUNK_SIZE, position)
             position += bytesRead
             content += buf.toString('utf8', 0, bytesRead)

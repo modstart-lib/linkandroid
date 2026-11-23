@@ -440,7 +440,7 @@ const messages: Messages = {
     'device.seeMoreDocs': 'For more information, please see',
     'device.selectDevices': 'Select Devices',
     'device.settings': 'Device Settings',
-    'device.settingsFor': 'Device',
+    'device.settingsFor': 'Device settings',
     'device.shellHelpText': 'Enter help to view help',
     'device.shellTool': 'Command Line Tool',
     'device.startPairing': 'Start Pairing',

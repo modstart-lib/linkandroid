@@ -60,7 +60,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -153,24 +153,11 @@ jobs:
         working-directory: code
         shell: pwsh
         run: |
-          # Skip lifecycle scripts: better-sqlite3 12.x ships no prebuilt binaries
-          # for Node 20 (ABI 115), so a plain `npm install` falls back to node-gyp
-          # and fails on the current runner image (node-gyp 10.1.0 cannot detect
-          # Visual Studio 18 / VS2026). Nothing in this build needs a Node-ABI
-          # binary - the app loads the Electron-ABI build created below.
+          # Skip lifecycle scripts: every native module in this build is N-API based
+          # (better-sqlite3 ships prebuilt binaries for each platform, node-mac-permissions
+          # is macOS-only), so nothing has to be rebuilt for the Electron ABI and no
+          # compiler is involved.
           npm install --ignore-scripts
-          # iconv is an unused native dependency (iconv-lite is used instead).
-          # Dropping binding.gyp keeps electron-builder from rebuilding it.
-          if (Test-Path "node_modules\iconv\binding.gyp") {
-            Remove-Item "node_modules\iconv\binding.gyp" -Force
-          }
-          if (Test-Path "node_modules\iconv\build") {
-            Remove-Item -Recurse -Force "node_modules\iconv\build"
-          }
-          # Rebuild native modules against the Electron ABI. better-sqlite3
-          # publishes electron-v121 (Electron 29) prebuilt binaries, so this
-          # downloads them instead of invoking a compiler.
-          npx electron-builder install-app-deps
 
       - name: Build Release Files
         working-directory: code

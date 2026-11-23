@@ -101,7 +101,8 @@ const onInput = async (files: any[]) => {
     dragIsOver.value = false
     const results: DragPasteFile[] = []
     for (const f of files) {
-        const isDirectory = await window.$mapi.file.isDirectory(f.path, {
+        const path = window.$mapi.file.pathForFile(f)
+        const isDirectory = await window.$mapi.file.isDirectory(path, {
             isDataPath: false,
         })
         const pcs = f.name.split('.')
@@ -113,7 +114,7 @@ const onInput = async (files: any[]) => {
             name: f.name,
             isDirectory: isDirectory,
             isFile: !isDirectory,
-            path: f.path,
+            path: path,
             fileExt,
         })
     }

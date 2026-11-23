@@ -242,6 +242,7 @@ type DefsMapi = {
         ) => Promise<string | null>
         openDirectory: (options: {} = {}) => Promise<string | null>
         openSave: (options: {} = {}) => Promise<string | null>
+        pathForFile: (file: File) => string
         ext: (path: string) => Promise<string>
         stat: (
             path: string,

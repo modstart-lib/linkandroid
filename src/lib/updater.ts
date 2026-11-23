@@ -3,7 +3,15 @@
  */
 
 export type UpdaterPhase =
-    'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'installing' | 'restarting' | 'up-to-date' | 'failed'
+    | 'idle'
+    | 'checking'
+    | 'available'
+    | 'downloading'
+    | 'ready'
+    | 'installing'
+    | 'restarting'
+    | 'up-to-date'
+    | 'failed'
 
 export type UpdaterDownloadChannel = {
     title: string

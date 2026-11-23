@@ -3,7 +3,7 @@
     "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
     "appId": "LinkAndroid",
     "asar": true,
-    "npmRebuild": true,
+    "npmRebuild": false,
     "publish": [],
     "productName": "LinkAndroid",
     "directories": {
@@ -97,10 +97,10 @@
         "entitlementsInherit": "./entitlements.mac.plist",
         "entitlements": "./entitlements.mac.plist",
         "extendInfo": {
-            "NSDocumentsFolderUsageDescription": "Application requests access to the user's Documents folder."
+            "NSDocumentsFolderUsageDescription": "Application requests access to the user's Documents folder.",
+            "NSAudioCaptureUsageDescription": "Application requests access to record system audio while capturing the screen."
         },
         "type": "development",
-        "notarize": false,
         "darkModeSupport": true,
         "hardenedRuntime": true,
         "identity": null

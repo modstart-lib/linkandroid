@@ -1,4 +1,4 @@
-import archiver from 'archiver'
+import {ZipArchive} from 'archiver'
 import axios from 'axios'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -133,7 +133,7 @@ const zip = async (
     )
     return new Promise((resolve, reject) => {
         const output = fs.createWriteStream(zipPath)
-        const archive = archiver('zip', {
+        const archive = new ZipArchive({
             zlib: {level: 9},
         })
         output.on('close', function () {

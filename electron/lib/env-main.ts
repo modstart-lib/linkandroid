@@ -1,5 +1,5 @@
 import url, {fileURLToPath} from 'node:url'
-import {BrowserView, BrowserWindow} from 'electron'
+import {BrowserWindow} from 'electron'
 import {isPackaged} from './env'
 import path, {join} from 'node:path'
 import {Log} from '../mapi/log/main'
@@ -16,20 +16,11 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 export const preloadDefault = path.join(MAIN_DIST, 'preload/index.cjs')
 
-export const rendererLoadPath = (window: BrowserWindow | BrowserView, fileName: string) => {
+export const rendererLoadPath = (window: BrowserWindow, fileName: string) => {
     if (!isPackaged && process.env.VITE_DEV_SERVER_URL) {
-        const x = new url.URL(rendererDistPath(fileName))
-        if (window instanceof BrowserView) {
-            window.webContents.loadURL(x.toString())
-        } else {
-            window.loadURL(x.toString())
-        }
+        window.loadURL(new url.URL(rendererDistPath(fileName)).toString())
     } else {
-        if (window instanceof BrowserView) {
-            window.webContents.loadFile(rendererDistPath(fileName))
-        } else {
-            window.loadFile(rendererDistPath(fileName))
-        }
+        window.loadFile(rendererDistPath(fileName))
     }
 }
 

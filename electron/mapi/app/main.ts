@@ -1,4 +1,4 @@
-import {app, BrowserWindow, clipboard, ipcMain, nativeImage, nativeTheme, screen, shell} from 'electron'
+import {app, BrowserWindow, clipboard, ClipboardItem, ipcMain, nativeImage, nativeTheme, screen, shell} from 'electron'
 import {execSync} from 'node:child_process'
 import {existsSync} from 'node:fs'
 import {resolve} from 'node:path'
@@ -191,7 +191,7 @@ ipcMain.handle(
 )
 
 const getClipboardText = () => {
-    return clipboard.readText('clipboard')
+    return clipboard.readText()
 }
 
 ipcMain.handle('app:getClipboardText', (event) => {
@@ -199,16 +199,27 @@ ipcMain.handle('app:getClipboardText', (event) => {
 })
 
 const setClipboardText = (text: string) => {
-    clipboard.writeText(text, 'clipboard')
+    return clipboard.writeText(text)
 }
 
 ipcMain.handle('app:setClipboardText', (event, text: string) => {
-    setClipboardText(text)
+    return setClipboardText(text)
 })
 
-const getClipboardImage = () => {
-    const image = clipboard.readImage('clipboard')
-    return image.isEmpty() ? '' : image.toDataURL()
+const getClipboardImage = async () => {
+    const items = await clipboard.read()
+    for (const item of items) {
+        const type = item.types.find((t) => t.startsWith('image/'))
+        if (!type) {
+            continue
+        }
+        const blob = (await item.getType(type)) as Blob
+        const image = nativeImage.createFromBuffer(Buffer.from(await blob.arrayBuffer()))
+        if (!image.isEmpty()) {
+            return image.toDataURL()
+        }
+    }
+    return ''
 }
 
 ipcMain.handle('app:getClipboardImage', (event) => {
@@ -217,11 +228,12 @@ ipcMain.handle('app:getClipboardImage', (event) => {
 
 const setClipboardImage = (image: string) => {
     const img = nativeImage.createFromDataURL(image)
-    clipboard.writeImage(img, 'clipboard')
+    const png = new Uint8Array(img.toPNG())
+    return clipboard.write([new ClipboardItem({'image/png': new Blob([png], {type: 'image/png'})})])
 }
 
 ipcMain.handle('app:setClipboardImage', (event, image: string) => {
-    setClipboardImage(image)
+    return setClipboardImage(image)
 })
 
 const isDarkMode = () => {

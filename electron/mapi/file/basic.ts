@@ -192,7 +192,7 @@ const deletes = async (path: string, option?: {isDataPath?: boolean}): Promise<v
                 return
             }
             if (stat.isDirectory()) {
-                fs.rmdir(fp, {recursive: true}, (err) => {
+                fs.rm(fp, {recursive: true}, (err) => {
                     if (err) {
                         reject(err)
                         return
