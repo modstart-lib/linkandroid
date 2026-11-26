@@ -13,7 +13,7 @@ export const Dialog = {
         if (window.__TEST_MODE__) console.warn('[dialog:tipError]', msg)
         Message.error(msg)
     },
-    confirm: (content: string, title: string | null = null): Promise<void> => {
+    confirm: (content: string, title: string | null = null, okText: string | null = null): Promise<void> => {
         title = title || t('common.tip')
         return new Promise((resolve, reject) => {
             Modal.confirm({
@@ -23,7 +23,7 @@ export const Dialog = {
                 simple: false,
                 width: '25rem',
                 modalClass: 'arco-modal-confirm',
-                okText: t('common.confirm'),
+                okText: okText || t('common.confirm'),
                 cancelText: t('common.cancel'),
                 onOk: () => {
                     resolve()

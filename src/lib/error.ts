@@ -12,6 +12,13 @@ export function mapError(msg: unknown) {
         'Could not find any ADB device': t('error.adbDeviceNotFound'),
         DeviceNotConnected: t('device.notConnected'),
         'Python.framework': t('error.pythonFrameworkMissing'),
+        ZipInvalid: t('error.zipInvalid'),
+        ZipPathInvalid: t('error.zipInvalid'),
+        ZipSymlinkRejected: t('error.zipInvalid'),
+        ZipTooLarge: t('error.zipTooLarge'),
+        ProjectDirMissing: t('error.projectDirMissing'),
+        ExportPathInProject: t('error.exportPathInProject'),
+        ExportPathRequired: t('error.exportPathRequired'),
     }
     for (let key in map) {
         if (msg.includes(key)) {

@@ -17,7 +17,7 @@ import {AppEnv} from '../env'
 import {Log} from '../log/main'
 import DBMain from '../db/main'
 import {OpenCodeAgent} from '../opencode-agent/main'
-
+import Misc from '../misc/index'
 
 export type ProjectManifest = {
     uuid: string
@@ -53,9 +53,22 @@ export type ProjectSaveData = {
 }
 
 const DEFAULT_ENTRY = 'main.py'
+const MANIFEST_FILE = 'linkandroid.json'
 const UUID_RE = /^[a-zA-Z0-9][a-zA-Z0-9_-]{7,63}$/
 const MAX_FILE_BYTES = 5 * 1024 * 1024
 const MAX_IMPORT_ENTRIES = 2000
+const MAX_IMPORT_ZIP_BYTES = 50 * 1024 * 1024
+
+export type TaskImportResult =
+    | {ok: true; id: number; name: string; overwritten: boolean}
+    | {ok: false; code: 'NameExists'; name: string}
+
+export type TaskImportPreview = {path: string; name: string; exists: boolean; error?: string}
+
+export type TaskExportAllResult = {
+    exported: number
+    failed: Array<{name: string; error: string}>
+}
 
 const root = () => path.join(AppEnv.dataRoot, 'projects')
 const projectDir = (uuid: string) => path.join(root(), uuid)
@@ -465,6 +478,273 @@ const openDir = async (id: number) => {
     return await shell.openPath(info.dir)
 }
 
+const zipFilter = ({path: relPath, name, isDir}: {path: string; name: string; isDir: boolean}) => {
+    if (/^(__pycache__|\.git|node_modules|\.venv|_aienv)$/.test(name)) return false
+    if (/\.pyc$/i.test(relPath)) return false
+    if (isDir && /\/\.cache$/.test(relPath)) return false
+    return true
+}
+
+const zipProjectToTemp = async (dir: string): Promise<{file: string; size: number}> => {
+    const tmp = path.join(root(), `.export-${crypto.randomUUID()}.zip`)
+    try {
+        await Misc.zip(tmp, dir, {
+            filter: async (params: any) => zipFilter(params),
+        })
+        return {file: tmp, size: fs.statSync(tmp).size}
+    } catch (e) {
+        removeDir(tmp)
+        throw e
+    }
+}
+
+const detectZipRoot = (dir: string): string => {
+    const items = fs.readdirSync(dir, {withFileTypes: true})
+    if (items.length === 1 && items[0].isDirectory()) {
+        const nested = path.join(dir, items[0].name)
+        if (fs.existsSync(path.join(nested, MANIFEST_FILE)) || fs.existsSync(path.join(nested, DEFAULT_ENTRY))) {
+            return nested
+        }
+    }
+    return dir
+}
+
+function readManifestFrom(dir: string): ProjectManifest | null {
+    try {
+        const file = path.join(dir, MANIFEST_FILE)
+        if (!fs.existsSync(file)) return null
+        return JSON.parse(fs.readFileSync(file, 'utf8'))
+    } catch {
+        return null
+    }
+}
+
+/** File-name-safe task title, used for exported zip names. */
+const safeFileBaseName = (name: string, fallback: string) => {
+    const value = String(name || '')
+        .replace(/[\\/:*?"<>|\r\n\t]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/^\.+/, '')
+        .slice(0, 80)
+        .trim()
+    return value || fallback
+}
+
+const uniqueZipPath = (dir: string, name: string, fallback: string) => {
+    const base = safeFileBaseName(name, fallback)
+    let target = path.join(dir, `${base}.zip`)
+    let index = 2
+    while (fs.existsSync(target)) {
+        target = path.join(dir, `${base} (${index}).zip`)
+        index++
+    }
+    return target
+}
+
+const normalizeTaskName = (name: string) => {
+    return String(name || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 100)
+}
+
+/** Entry path declared by an imported manifest; reject escapes and fall back to main.py. */
+const normalizeEntry = (entry?: string) => {
+    const rel = String(entry || DEFAULT_ENTRY).replace(/\\/g, '/')
+    if (!rel || rel.startsWith('/') || /^[a-zA-Z]:/.test(rel) || rel.split('/').some((s) => s === '..')) {
+        return DEFAULT_ENTRY
+    }
+    return rel
+}
+
+/** Replace the project directory content with the imported package (manifest is kept). */
+const replaceProjectFiles = (srcDir: string, destDir: string) => {
+    fs.mkdirSync(destDir, {recursive: true})
+    for (const item of fs.readdirSync(destDir)) {
+        if (item === MANIFEST_FILE) continue
+        fs.rmSync(path.join(destDir, item), {recursive: true, force: true})
+    }
+    for (const item of fs.readdirSync(srcDir)) {
+        if (item === MANIFEST_FILE) continue
+        fs.cpSync(path.join(srcDir, item), path.join(destDir, item), {recursive: true})
+    }
+}
+
+const exportToFile = async (id: number, targetPath: string): Promise<{path: string; size: number}> => {
+    const info = await localPathInfo(id)
+    if (!info.dir || !fs.existsSync(info.dir)) throw new Error('ProjectDirMissing')
+    let target = String(targetPath || '')
+    if (!target) throw new Error('ExportPathRequired')
+    if (path.extname(target).toLowerCase() !== '.zip') {
+        target = `${target}.zip`
+    }
+    const resolved = path.resolve(target)
+    const rel = path.relative(path.resolve(info.dir), resolved)
+    if (!rel || (!rel.startsWith('..') && !path.isAbsolute(rel))) {
+        // packing into the project folder would archive the archive itself
+        throw new Error('ExportPathInProject')
+    }
+    fs.mkdirSync(path.dirname(resolved), {recursive: true})
+    const packed = await zipProjectToTemp(info.dir)
+    try {
+        fs.copyFileSync(packed.file, resolved)
+        return {path: resolved, size: packed.size}
+    } finally {
+        removeDir(packed.file)
+    }
+}
+
+const exportAllTo = async (dir: string): Promise<TaskExportAllResult> => {
+    const targetDir = String(dir || '')
+    if (!targetDir) throw new Error('ExportPathRequired')
+    fs.mkdirSync(targetDir, {recursive: true})
+    const rows: any[] = await DBMain.select('SELECT id, name, uuid FROM task ORDER BY updated_at DESC')
+    const result: TaskExportAllResult = {exported: 0, failed: []}
+    for (const row of rows) {
+        const info = await localPathInfo(row.id)
+        if (!info.dir || !fs.existsSync(info.dir)) {
+            result.failed.push({name: row.name, error: 'ProjectDirMissing'})
+            continue
+        }
+        const target = uniqueZipPath(targetDir, row.name, info.uuid || String(row.id))
+        try {
+            await exportToFile(row.id, target)
+            result.exported++
+        } catch (e: any) {
+            result.failed.push({name: row.name, error: String(e?.message || e)})
+        }
+    }
+    return result
+}
+
+type ZipPackage = {
+    manifest: ProjectManifest | null
+    entry: string
+    code: string
+}
+
+/** Validate and unpack a task package into a temp directory; the caller must remove tmpRoot. */
+const extractZipPackage = async (zipPath: string): Promise<{tmpRoot: string; src: string; pkg: ZipPackage}> => {
+    const file = String(zipPath || '')
+    if (!file || !fs.existsSync(file)) throw new Error('FileNotFound')
+    if (fs.statSync(file).size > MAX_IMPORT_ZIP_BYTES) throw new Error('ZipTooLarge')
+    const fd = fs.openSync(file, 'r')
+    const magic = Buffer.alloc(2)
+    try {
+        fs.readSync(fd, magic, 0, 2, 0)
+    } finally {
+        fs.closeSync(fd)
+    }
+    if (magic[0] !== 0x50 || magic[1] !== 0x4b) throw new Error('ZipInvalid')
+    ensureDirs()
+    const tmpRoot = path.join(root(), `.import-${crypto.randomUUID()}`)
+    const tmpDir = path.join(tmpRoot, 'content')
+    fs.mkdirSync(tmpDir, {recursive: true})
+    try {
+        await Misc.unzip(file, tmpDir)
+    } catch (e) {
+        removeDir(tmpRoot)
+        throw e
+    }
+    const src = detectZipRoot(tmpDir)
+    const manifest = readManifestFrom(src)
+    const entry = normalizeEntry(manifest?.entry)
+    const entryFile = path.join(src, entry)
+    const code = fs.existsSync(entryFile) && fs.statSync(entryFile).isFile() ? fs.readFileSync(entryFile, 'utf8') : ''
+    return {tmpRoot, src, pkg: {manifest, entry, code}}
+}
+
+const packageTaskName = (pkg: ZipPackage, file: string) => {
+    return (
+        normalizeTaskName(pkg.manifest?.name || '') ||
+        normalizeTaskName(path.basename(file).replace(/\.zip$/i, '')) ||
+        '导入的任务'
+    )
+}
+
+const previewImport = async (zipPaths: string[]): Promise<TaskImportPreview[]> => {
+    const list: TaskImportPreview[] = []
+    for (const file of zipPaths || []) {
+        let extracted: {tmpRoot: string; src: string; pkg: ZipPackage} | null = null
+        try {
+            extracted = await extractZipPackage(file)
+            const name = packageTaskName(extracted.pkg, file)
+            const rows: any[] = await DBMain.select('SELECT id FROM task WHERE name = ?', [name])
+            list.push({path: file, name, exists: !!(rows && rows.length)})
+        } catch (e: any) {
+            list.push({
+                path: file,
+                name: path.basename(String(file || '')),
+                exists: false,
+                error: String(e?.message || e),
+            })
+        } finally {
+            if (extracted) removeDir(extracted.tmpRoot)
+        }
+    }
+    return list
+}
+
+/**
+ * Import a task package produced by exportToFile.
+ * A task with the same name is replaced only when overwrite is set; its id and uuid stay,
+ * and a "副本" backup is made first (same rule as cloud sync).
+ */
+const importFromFile = async (zipPath: string, overwrite: boolean = false): Promise<TaskImportResult> => {
+    const file = String(zipPath || '')
+    const extracted = await extractZipPackage(file)
+    try {
+        const {src, pkg} = extracted
+        const name = packageTaskName(pkg, file)
+        const rows: any[] = await DBMain.select('SELECT * FROM task WHERE name = ?', [name])
+        const existing = rows && rows[0] ? rows[0] : null
+        if (existing && !overwrite) {
+            return {ok: false, code: 'NameExists', name}
+        }
+        if (existing) {
+            await copy(existing.id)
+        }
+        const saved = await save({
+            id: existing?.id,
+            name,
+            description: pkg.manifest?.description || '',
+            requirement: pkg.manifest?.requirement || '',
+            code: pkg.code,
+            language: pkg.manifest?.language || 'python',
+            // imported tasks always start as manual runs on this machine
+            runMode: 'manual',
+            cronExpression: '',
+            deviceIds: [],
+            runOnAllDevices: false,
+            autoRepair: true,
+        })
+        replaceProjectFiles(src, projectDir(saved.uuid))
+        // keep the entry file present even when the package only carried its content
+        writeEntry(saved.uuid, pkg.entry, pkg.code)
+        const next = readManifest(saved.uuid)
+        if (next) {
+            next.uuid = saved.uuid
+            next.name = saved.name
+            next.entry = pkg.entry
+            next.runMode = 'manual'
+            next.cronExpression = ''
+            next.deviceIds = []
+            next.runOnAllDevices = false
+            next.autoRepair = true
+            next.updatedAt = saved.updated_at || nowISO()
+            writeManifest(saved.uuid, next)
+        }
+        Log.info('Project.Imported', {id: saved.id, name: saved.name, overwritten: !!existing, entry: pkg.entry})
+        return {ok: true, id: saved.id, name: saved.name, overwritten: !!existing}
+    } catch (e: any) {
+        Log.error('Project.ImportFileFailed', {file, message: String(e?.message || e)})
+        throw e
+    } finally {
+        removeDir(extracted.tmpRoot)
+    }
+}
+
 
 
 /**
@@ -518,6 +798,12 @@ ipcMain.handle('project:renameFile', async (_, id: number, fromPath: string, toP
     renameFile(id, fromPath, toPath),
 )
 ipcMain.handle('project:openDir', async (_, id: number) => openDir(id))
+ipcMain.handle('project:exportToFile', async (_, id: number, targetPath: string) => exportToFile(id, targetPath))
+ipcMain.handle('project:exportAllTo', async (_, dir: string) => exportAllTo(dir))
+ipcMain.handle('project:previewImport', async (_, zipPaths: string[]) => previewImport(zipPaths))
+ipcMain.handle('project:importFromFile', async (_, zipPath: string, overwrite: boolean) =>
+    importFromFile(zipPath, !!overwrite),
+)
 
 ipcMain.handle('project:manifest', async (_, id: number) => {
     const info = await localPathInfo(id)
@@ -529,6 +815,10 @@ export const Project = {
     save,
     remove,
     copy,
+    exportToFile,
+    exportAllTo,
+    previewImport,
+    importFromFile,
     
     projectDir,
 }

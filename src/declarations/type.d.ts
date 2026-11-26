@@ -561,6 +561,17 @@ type DefsMapi = {
         deleteFile: (id: number, relPath: string) => Promise<void>
         renameFile: (id: number, fromPath: string, toPath: string) => Promise<void>
         openDir: (id: number) => Promise<string>
+        exportToFile: (id: number, targetPath: string) => Promise<{path: string; size: number}>
+        exportAllTo: (dir: string) => Promise<{exported: number; failed: Array<{name: string; error: string}>}>
+        previewImport: (
+            zipPaths: string[],
+        ) => Promise<Array<{path: string; name: string; exists: boolean; error?: string}>>
+        importFromFile: (
+            zipPath: string,
+            overwrite?: boolean,
+        ) => Promise<
+            {ok: true; id: number; name: string; overwritten: boolean} | {ok: false; code: 'NameExists'; name: string}
+        >
         
         manifest: (id: number) => Promise<any>
     }

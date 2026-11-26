@@ -11,6 +11,7 @@ import {testActionSet, testActionUnset} from '../utils/test'
 import TaskEditorDialog from './Task/TaskEditorDialog.vue'
 import TaskRunDialog from './Task/TaskRunDialog.vue'
 import TaskRunLogDialog from './Task/TaskRunLogDialog.vue'
+import {useTaskTransfer} from './Task/useTaskTransfer'
 
 
 interface TaskRecord {
@@ -38,6 +39,7 @@ const searchKeywords = ref('')
 const editorDialog = ref<InstanceType<typeof TaskEditorDialog> | null>(null)
 const runDialog = ref<InstanceType<typeof TaskRunDialog> | null>(null)
 const runLogDialog = ref<InstanceType<typeof TaskRunLogDialog> | null>(null)
+const transfer = useTaskTransfer()
 
 const deviceStore = useDeviceStore()
 
@@ -91,6 +93,21 @@ const doEdit = (record: TaskRecord) => {
 
 const doCopy = async (record: TaskRecord) => {
     editorDialog.value?.copy(record)
+}
+
+const doImport = async () => {
+    const result = await transfer.doImport()
+    if (result && result.imported.length > 0) {
+        await refreshAll()
+    }
+}
+
+const doExport = async (record: TaskRecord) => {
+    await transfer.doExport(record)
+}
+
+const doExportAll = async () => {
+    await transfer.doExportAll()
 }
 
 const deleteRecord = async (record: TaskRecord) => {
@@ -220,6 +237,22 @@ onMounted(async () => {
     testActionSet('task.copy', () => {
         if (records.value.length > 0) doCopy(records.value[0])
     })
+    testActionSet('task.exportTo', (payload: {id: number; path: string}) => transfer.exportTo(payload.id, payload.path))
+    testActionSet('task.exportAllTo', (dir: string) => transfer.exportAllTo(dir))
+    testActionSet('task.previewImport', (paths: string[]) => window.$mapi.project.previewImport(paths))
+    testActionSet('task.importFrom', (payload: {paths: string[]; overwrite?: boolean}) =>
+        transfer.importPaths(payload.paths, !!payload.overwrite),
+    )
+    testActionSet('task.importWithConfirm', (paths: string[]) => {
+        // resolves immediately; the test clicks the overwrite confirm dialog and then checks the list
+        transfer
+            .doImportPaths(paths)
+            .then(async (result) => {
+                if (result && result.imported.length > 0) await refreshAll()
+            })
+            .catch(() => {})
+        return true
+    })
     testActionSet('task.edit', () => {
         if (records.value.length > 0) doEdit(records.value[0])
     })
@@ -242,6 +275,11 @@ onUnmounted(() => {
     testActionUnset('task.refresh')
     testActionUnset('task.add')
     testActionUnset('task.copy')
+    testActionUnset('task.exportTo')
+    testActionUnset('task.exportAllTo')
+    testActionUnset('task.previewImport')
+    testActionUnset('task.importFrom')
+    testActionUnset('task.importWithConfirm')
     testActionUnset('task.edit')
     testActionUnset('task.editById')
     testActionUnset('task.delete')
@@ -274,14 +312,33 @@ onUnmounted(() => {
                 
                 <template #actions>
                     <a-button
-                        class="hidden sm:inline-flex"
                         type="outline"
                         status="danger"
                         :aria-label="$t('task.clearAllRunRecordsAll')"
+                        :title="$t('task.clearAllRunRecordsAll')"
                         @click="doClearAllRunRecords"
                     >
                         <template #icon><i-lucide-trash-2 /></template>
-                        <span class="hidden sm:inline">{{ $t('task.clearAllRunRecordsAll') }}</span>
+                    </a-button>
+                    <a-button
+                        type="secondary"
+                        data-testid="task-import"
+                        :aria-label="$t('task.import')"
+                        :title="$t('task.importTitle')"
+                        @click="doImport"
+                    >
+                        <template #icon><i-lucide-upload /></template>
+                        {{ $t('task.import') }}
+                    </a-button>
+                    <a-button
+                        type="secondary"
+                        data-testid="task-export-all"
+                        :aria-label="$t('task.exportAll')"
+                        :title="$t('task.exportAllTip')"
+                        @click="doExportAll"
+                    >
+                        <template #icon><i-lucide-download /></template>
+                        {{ $t('task.exportAll') }}
                     </a-button>
                     <a-button type="primary" @click="doAdd">
                         <template #icon><i-lucide-plus /></template>
@@ -295,11 +352,18 @@ onUnmounted(() => {
                 <div class="mb-6 flex justify-center">
                     <i-lucide-workflow class="text-6xl text-gray-300" />
                 </div>
-                <div class="text-gray-400 mb-6">{{ $t('task.noTasks') }}</div>
-                <a-button type="primary" @click="doAdd">
-                    <template #icon><i-lucide-plus /></template>
-                    {{ $t('task.add') }}
-                </a-button>
+                <div class="text-gray-400">{{ $t('task.noTasks') }}</div>
+                <div class="text-xs text-gray-400 mt-2 mb-6">{{ $t('task.importEmptyHint') }}</div>
+                <div class="flex items-center justify-center gap-2">
+                    <a-button type="primary" @click="doAdd">
+                        <template #icon><i-lucide-plus /></template>
+                        {{ $t('task.add') }}
+                    </a-button>
+                    <a-button type="outline" data-testid="task-import-empty" @click="doImport">
+                        <template #icon><i-lucide-upload /></template>
+                        {{ $t('task.importTask') }}
+                    </a-button>
+                </div>
             </div>
 
             <!-- Filter empty -->
@@ -379,6 +443,10 @@ onUnmounted(() => {
                                 <a-doption @click="doCopy(r)">
                                     <template #icon><i-lucide-copy /></template>
                                     {{ $t('common.copy') }}
+                                </a-doption>
+                                <a-doption data-testid="task-export-item" @click="doExport(r)">
+                                    <template #icon><i-lucide-download /></template>
+                                    {{ $t('task.export') }}
                                 </a-doption>
                                 
                                 <a-doption @click="doOpenDir(r)">
