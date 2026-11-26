@@ -40,19 +40,37 @@ export const getTaskRuntime = async (deviceId: string, deviceIds?: string[]) => 
         window.$mapi.app.platformName() === 'win'
             ? await taskPath('_aienv/Scripts/python.exe')
             : await taskPath('_aienv/bin/python')
-    const libPath = await taskPath('lib')
     const adbPath = await window.$mapi.adb.getBinPath()
     const targetDeviceIds = deviceIds && deviceIds.length > 0 ? deviceIds : [deviceId]
+    // Built-in la lib + the user's pip overlay, assembled by the main process.
+    const pyenvEnv = await window.$mapi.pyenv.taskEnv()
     return {
         taskDir,
         pythonPath,
         env: {
+            ...pyenvEnv,
             LINKANDROID_ADB_PATH: adbPath,
             LINKANDROID_DEVICE_ID: deviceId,
             LINKANDROID_DEVICE_IDS: targetDeviceIds.join(','),
             ANDROID_DEVICE_ADDR: deviceId,
-            PYTHONPATH: libPath,
         },
+    }
+}
+
+/**
+ * Pip packages the task declares in linkandroid.json that are not installed yet.
+ * Runs before every start so a shared/imported task tells the user what to install
+ * instead of failing halfway with ModuleNotFoundError.
+ */
+export const taskMissingDependencies = async (projectId?: number): Promise<string[]> => {
+    if (!projectId) return []
+    try {
+        const manifest = await window.$mapi.project.manifest(projectId)
+        const dependencies: string[] = manifest?.dependencies || []
+        if (!dependencies.length) return []
+        return await window.$mapi.pyenv.check(dependencies)
+    } catch {
+        return []
     }
 }
 
@@ -72,6 +90,18 @@ export const runTaskPythonCode = async (
     },
 ) => {
     option?.preparing?.()
+    const missing = await taskMissingDependencies(option?.projectId)
+    if (missing.length) {
+        const message = `${t('task.depsMissing')}${missing.join('、')}`
+        option?.error?.(message, -1, null)
+        return {
+            stop: () => {},
+            send: () => {},
+            result: async (): Promise<string> => {
+                throw new Error(message)
+            },
+        }
+    }
     const runtime = await getTaskRuntime(deviceId, option?.deviceIds)
     const llmEnv = await getLlmEnv()
     option?.started?.()

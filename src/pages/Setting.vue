@@ -3,6 +3,7 @@ import {nextTick, onBeforeUnmount, onMounted, ref} from 'vue'
 import SettingAbout from '../components/Setting/SettingAbout.vue'
 import SettingBasic from '../components/Setting/SettingBasic.vue'
 import SettingCli from '../components/Setting/SettingCli.vue'
+import SettingPython from '../components/Setting/SettingPython.vue'
 import {t} from '../lang'
 
 import {testActionSet, testActionUnset} from '../utils/test'
@@ -17,6 +18,9 @@ onMounted(() => {
     
     testActionSet('setting.tab.cli', () => {
         activeTab.value = 'cli'
+    })
+    testActionSet('setting.tab.python', () => {
+        activeTab.value = 'python'
     })
     testActionSet('setting.tab.about', () => {
         activeTab.value = 'about'
@@ -33,6 +37,7 @@ onBeforeUnmount(() => {
     testActionUnset('setting.tab.basic')
     
     testActionUnset('setting.tab.cli')
+    testActionUnset('setting.tab.python')
     testActionUnset('setting.tab.about')
     testActionUnset('setting-about.prepare')
 })
@@ -82,6 +87,16 @@ onBeforeUnmount(() => {
             
             <div
                 class="setting-tab p-2 rounded-lg mb-4 cursor-pointer"
+                :class="activeTab === 'python' ? 'tab-active' : ''"
+                @click="activeTab = 'python'"
+            >
+                <div class="text-base flex items-center gap-2 whitespace-nowrap">
+                    <i-lucide-package />
+                    {{ t('setting.python.tab') }}
+                </div>
+            </div>
+            <div
+                class="setting-tab p-2 rounded-lg mb-4 cursor-pointer"
                 :class="activeTab === 'cli' ? 'tab-active' : ''"
                 @click="activeTab = 'cli'"
             >
@@ -112,6 +127,15 @@ onBeforeUnmount(() => {
                 </div>
             </div>
             
+            <div v-show="activeTab === 'python'">
+                <div class="p-6">
+                    <div class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <i-lucide-package class="text-2xl" />
+                        <span>{{ t('setting.python.tab') }}</span>
+                    </div>
+                    <SettingPython />
+                </div>
+            </div>
             <div v-show="activeTab === 'cli'">
                 <div class="p-6">
                     <div class="text-2xl font-bold mb-6 flex items-center gap-2">

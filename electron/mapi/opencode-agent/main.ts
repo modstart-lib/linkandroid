@@ -8,6 +8,7 @@ import os from 'node:os'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {AppEnv} from '../env'
+import Pyenv from '../pyenv/main'
 import {resolveAdbBin} from '../../lib/env'
 import Log from '../log/main'
 
@@ -73,6 +74,8 @@ const deviceRuntime = () => {
         libPath: path.join(basePath, 'env/task/lib'),
         taskDir: path.join(basePath, 'env/task'),
         adbPath,
+        // la lib + user pip overlay; same assembly as task runs
+        pythonEnv: Pyenv.buildEnv(),
     }
     Log.info('OpenCodeAgent.DeviceRuntime', runtime)
     return runtime

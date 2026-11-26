@@ -574,6 +574,27 @@ type DefsMapi = {
         >
         
         manifest: (id: number) => Promise<any>
+        setDependencies: (id: number, dependencies: string[]) => Promise<string[]>
+    }
+    pyenv: {
+        info: () => Promise<{
+            pythonVersion: string
+            overlayPath: string
+            size: number
+            packages: Array<{name: string; version: string; builtin: boolean}>
+        }>
+        install: (
+            packages: string[],
+            option?: {indexUrl?: string},
+        ) => Promise<{ok: boolean; log: string; error?: string}>
+        uninstall: (name: string) => Promise<{ok: boolean; removed: number}>
+        clear: () => Promise<{ok: boolean}>
+        check: (requirements: string[]) => Promise<string[]>
+        openDir: () => Promise<string>
+        taskEnv: () => Promise<Record<string, string>>
+        onInstallLog: (
+            cb: (data: {packages: string[]; line: string; done?: boolean; ok?: boolean}) => void,
+        ) => () => void
     }
     
     opencodeAgent: {

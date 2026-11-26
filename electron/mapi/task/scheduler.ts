@@ -15,6 +15,7 @@ import Apps from '../app/index'
 import DBMain from '../db/main'
 import {AppEnv} from '../env'
 import {Events} from '../event/main'
+import Pyenv from '../pyenv/main'
 import {isPackaged, resolveAdbBin} from '../../lib/env'
 
 const {Adb} = adbkitPkg as any
@@ -131,15 +132,11 @@ const discoverOnlineDevices = async (): Promise<string[]> => {
 /**
  * 构建任务运行环境变量, 与前端手动执行 (TaskRuntime) 保持一致.
  */
-const buildTaskEnv = (
-    task: {id: number; name: string},
-    deviceIds: string[],
-    libPath: string,
-): Record<string, string> => {
+const buildTaskEnv = (task: {id: number; name: string}, deviceIds: string[]): Record<string, string> => {
     const env: Record<string, string> = {
         LINKANDROID_TASK_ID: `${task.id}`,
         LINKANDROID_TASK_NAME: task.name,
-        PYTHONPATH: libPath,
+        ...Pyenv.buildEnv(),
     }
     if (deviceIds.length > 0) {
         env.LINKANDROID_DEVICE_ID = deviceIds[0]
@@ -199,7 +196,7 @@ const executeScheduledTask = async (task: TaskRow) => {
             runId,
         ])
 
-        const {command, cwd, libPath} = buildRunCommand(task)
+        const {command, cwd} = buildRunCommand(task)
 
         const controller = await Apps.spawnShell(command, {
             shell: false,
@@ -210,7 +207,7 @@ const executeScheduledTask = async (task: TaskRow) => {
             stderr: (data: string) => {
                 logOutput += data
             },
-            env: buildTaskEnv(task, deviceIds, libPath),
+            env: buildTaskEnv(task, deviceIds),
         })
 
         const result = await controller.result()
@@ -362,7 +359,7 @@ export const runTaskById = async (
             now,
             runId,
         ])
-        const {command, cwd, libPath} = buildRunCommand(task)
+        const {command, cwd} = buildRunCommand(task)
         const controller = await Apps.spawnShell(command, {
             shell: false,
             cwd,
@@ -372,7 +369,7 @@ export const runTaskById = async (
             stderr: (data: string) => {
                 logOutput += data
             },
-            env: buildTaskEnv(task, targetIds, libPath),
+            env: buildTaskEnv(task, targetIds),
         })
         const result = await controller.result()
         logOutput = result || logOutput

@@ -83,6 +83,10 @@ export const manifest = async (id: number): Promise<any> => {
     return ipcRenderer.invoke('project:manifest', id)
 }
 
+export const setDependencies = async (id: number, dependencies: string[]): Promise<string[]> => {
+    return ipcRenderer.invoke('project:setDependencies', id, dependencies)
+}
+
 export default {
     save,
     remove,
@@ -100,4 +104,5 @@ export default {
     importFromFile,
     
     manifest,
+    setDependencies,
 }

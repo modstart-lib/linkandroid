@@ -8,6 +8,8 @@ export type DeviceRuntime = {
     libPath: string
     taskDir: string
     adbPath?: string
+    /** la lib + user pip overlay, assembled in the main process. */
+    pythonEnv?: Record<string, string>
 }
 
 export type DeviceBridge = {
@@ -176,8 +178,9 @@ export const createDeviceBridge = (
             cwd: runtime.taskDir,
             env: {
                 ...process.env,
+                ...(runtime.pythonEnv || {}),
                 PYTHONUNBUFFERED: '1',
-                PYTHONPATH: runtime.libPath,
+                PYTHONPATH: runtime.pythonEnv?.PYTHONPATH || runtime.libPath,
                 LINKANDROID_DEVICE_ID: deviceId,
                 LINKANDROID_DEVICE_IDS: targets.join(','),
                 ANDROID_DEVICE_ADDR: deviceId,

@@ -5,7 +5,7 @@ import {mapError} from '../../lib/error'
 import {useDeviceStore} from '../../store/modules/device'
 import {EnumDeviceStatus} from '../../types/Device'
 import LogPanel from '../../components/common/LogPanel.vue'
-import {runTaskPythonCode} from './TaskRuntime'
+import {runTaskPythonCode, taskMissingDependencies} from './TaskRuntime'
 import {autoRepairTask} from './TaskAutoRepair'
 import {hasTaskChatModel} from '../../support/agent/agentModel'
 import TaskAgentSessionDialog from './TaskAgentSessionDialog.vue'
@@ -21,6 +21,8 @@ const logPanel = ref<InstanceType<typeof LogPanel> | null>(null)
 const taskName = ref('')
 const sessionViewer = ref<InstanceType<typeof TaskAgentSessionDialog> | null>(null)
 const repairSessionId = ref(0)
+const missingDeps = ref<string[]>([])
+const installingDeps = ref(false)
 let runController: {stop: () => void; send: (data: any) => void} | null = null
 let currentTask: {
     id: number
@@ -86,6 +88,7 @@ const runTaskInternal = async (task: {
     taskName.value = task.name
     isRunning.value = true
     visible.value = true
+    missingDeps.value = []
     await nextTick()
     logPanel.value?.clear()
 
@@ -145,6 +148,7 @@ const runTaskInternal = async (task: {
             },
             error: async (msg: string) => {
                 logPanel.value?.printError(t('task.runFailed') + ': ' + msg)
+                missingDeps.value = await taskMissingDependencies(task.id)
                 isRunning.value = false
                 runController = null
                 if (runId) {
@@ -159,6 +163,8 @@ const runTaskInternal = async (task: {
                     repairRunning = false
                     return
                 }
+                // Missing packages are not a code bug: the user installs them, the AI is not called.
+                if (missingDeps.value.length > 0) return
                 const failureLog = logPanel.value?.getPlainText() || msg
                 await tryAutoRepair(task, deviceId, failureLog)
             },
@@ -172,6 +178,7 @@ const runTaskInternal = async (task: {
     } catch (e) {
         isRunning.value = false
         logPanel.value?.printError(mapError(e))
+        missingDeps.value = await taskMissingDependencies(task.id)
         if (runId) {
             const plainLog = logPanel.value?.getPlainText() || ''
             await window.$mapi.db
@@ -185,6 +192,24 @@ const runTaskInternal = async (task: {
                 .catch(() => {})
         }
         emit('done')
+    }
+}
+
+const doInstallDeps = async () => {
+    const task = currentTask
+    if (!task || !missingDeps.value.length) return
+    installingDeps.value = true
+    try {
+        const result = await window.$mapi.pyenv.install([...missingDeps.value])
+        if (!result.ok) {
+            logPanel.value?.printError(t('task.depsInstallFailed'))
+            return
+        }
+        logPanel.value?.printSystem(t('task.depsInstallDone'))
+        missingDeps.value = []
+        await doRun(task)
+    } finally {
+        installingDeps.value = false
     }
 }
 
@@ -342,6 +367,15 @@ defineExpose({doRun, doRunFromScheduledFailure, doClose})
                 <a-button v-if="repairSessionId" @click="doShowRepairSession">
                     <template #icon><i-lucide-bot /></template>
                     查看 AI 修复会话
+                </a-button>
+                <a-button
+                    v-if="missingDeps.length && !isRunning"
+                    type="primary"
+                    :loading="installingDeps"
+                    @click="doInstallDeps"
+                >
+                    <template #icon><i-lucide-package-plus /></template>
+                    {{ t('task.depsInstallButton') }}（{{ missingDeps.join(', ') }}）
                 </a-button>
                 <a-button v-if="isRunning" status="danger" @click="doStopRun">
                     <template #icon><i-lucide-circle-pause /></template>

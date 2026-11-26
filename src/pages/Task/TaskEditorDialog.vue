@@ -12,9 +12,10 @@ import LogPanel from '../../components/common/LogPanel.vue'
 import TaskDevicePreviewPanel from './TaskDevicePreviewPanel.vue'
 import TaskDocPanel from './TaskDocPanel.vue'
 import TaskRunDeviceSelectDialog, {type RunDeviceConfig} from './TaskRunDeviceSelectDialog.vue'
+import TaskDepsDialog from './TaskDepsDialog.vue'
 import TaskFilesPanel from './TaskFilesPanel.vue'
 import {useTaskFiles} from './useTaskFiles'
-import {runTaskPythonCode} from './TaskRuntime'
+import {runTaskPythonCode, taskMissingDependencies} from './TaskRuntime'
 import {autoRepairTask} from './TaskAutoRepair'
 import {hasTaskChatModel, firstEnabledModel} from '../../support/agent/agentModel'
 import TaskAgentSessionDialog from './TaskAgentSessionDialog.vue'
@@ -236,6 +237,7 @@ const isPreviewLoading = computed(() => {
 
 // Device settings dialog ref
 const deviceSelectDialog = ref<InstanceType<typeof TaskRunDeviceSelectDialog> | null>(null)
+const depsDialog = ref<InstanceType<typeof TaskDepsDialog> | null>(null)
 
 const doSave = async () => {
     if (!formData.value.name.trim()) {
@@ -420,6 +422,11 @@ const runTaskInternal = async () => {
                 runController = null
                 if (repairRunning) {
                     repairRunning = false
+                    emit('update')
+                    return
+                }
+                // Missing packages are not a code bug: ask the user to install, do not call the AI.
+                if ((await taskMissingDependencies(formData.value.id)).length > 0) {
                     emit('update')
                     return
                 }
@@ -743,6 +750,13 @@ defineExpose({
                         </a-button>
                     </a-tooltip>
                     <div class="flex-1" />
+                    <!-- Task pip dependencies -->
+                    <a-tooltip :content="$t('task.depsDesc')">
+                        <a-button v-if="formData.id" @click="depsDialog?.show({id: formData.id})">
+                            <template #icon><i-lucide-package /></template>
+                            {{ $t('task.depsTitle') }}
+                        </a-button>
+                    </a-tooltip>
                     <!-- Run device settings -->
                     <a-tooltip :content="$t('task.runDeviceSettingsInfo')">
                         <a-button @click="doShowDeviceSelect">
@@ -873,6 +887,7 @@ defineExpose({
             </div>
         </a-modal>
         <TaskRunDeviceSelectDialog ref="deviceSelectDialog" @confirm="onDeviceSelectConfirm" />
+        <TaskDepsDialog ref="depsDialog" />
         <TaskAgentSessionDialog ref="sessionViewer" />
     </div>
 </template>

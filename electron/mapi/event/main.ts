@@ -16,6 +16,7 @@ type BroadcastType =
     | 'MonitorEvent'
     | 'TaskScheduledFailed'
     | 'UpdaterState'
+    | 'PyenvInstallLog'
 
 const broadcast = (
     type: BroadcastType,

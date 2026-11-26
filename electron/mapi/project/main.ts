@@ -31,6 +31,8 @@ export type ProjectManifest = {
     deviceIds: string[]
     runOnAllDevices: boolean
     autoRepair: boolean
+    /** Extra pip packages this task needs, e.g. ["pandas==2.2.3"]. */
+    dependencies: string[]
     createdAt: string
     updatedAt: string
     
@@ -117,6 +119,7 @@ const buildManifest = (row: any, code: string, old?: ProjectManifest | null): Pr
         .filter((v) => v.length > 0),
     runOnAllDevices: Number(row.run_on_all_devices || 0) === 1,
     autoRepair: Number(row.auto_repair ?? 1) !== 0,
+    dependencies: old?.dependencies || [],
     createdAt: old?.createdAt || row.created_at || nowISO(),
     updatedAt: row.updated_at || nowISO(),
     
@@ -732,6 +735,7 @@ const importFromFile = async (zipPath: string, overwrite: boolean = false): Prom
             next.deviceIds = []
             next.runOnAllDevices = false
             next.autoRepair = true
+            next.dependencies = pkg.manifest?.dependencies || []
             next.updatedAt = saved.updated_at || nowISO()
             writeManifest(saved.uuid, next)
         }
@@ -782,6 +786,24 @@ const ensureMigrated = async (): Promise<void> => {
     return migratePromise
 }
 
+/**
+ * Replace the pip dependencies a task declares. Kept in linkandroid.json so it
+ * travels with zip export/import; the runtime checks it before each run.
+ */
+const setDependencies = async (id: number, dependencies: string[]): Promise<string[]> => {
+    const info = await localPathInfo(Number(id))
+    if (!info.uuid) throw new Error('TaskNotFound')
+    const manifest = readManifest(info.uuid) || buildManifest(await getRow(Number(id)), '')
+    const list = Array.from(
+        new Set((dependencies || []).map((item) => String(item || '').trim()).filter((item) => item.length > 0)),
+    )
+    manifest.dependencies = list
+    manifest.updatedAt = nowISO()
+    writeManifest(info.uuid, manifest)
+    Log.info('Project.SetDependencies', {id, dependencies: list})
+    return list
+}
+
 // ── IPC ──
 
 ipcMain.handle('project:save', async (_, data: ProjectSaveData) => save(data))
@@ -809,6 +831,9 @@ ipcMain.handle('project:manifest', async (_, id: number) => {
     const info = await localPathInfo(id)
     return info.uuid ? readManifest(info.uuid) : null
 })
+ipcMain.handle('project:setDependencies', async (_, id: number, dependencies: string[]) =>
+    setDependencies(id, dependencies),
+)
 
 export const Project = {
     ensureMigrated,
@@ -820,6 +845,7 @@ export const Project = {
     previewImport,
     importFromFile,
     
+    setDependencies,
     projectDir,
 }
 

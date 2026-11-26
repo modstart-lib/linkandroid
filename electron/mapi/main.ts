@@ -16,6 +16,7 @@ import httpserver from './httpserver/main'
 import power from './power/main'
 import task from './task/main'
 import project from './project/main'
+import pyenv from './pyenv/main'
 
 import opencodeAgent from './opencode-agent/main'
 import {startAgentMaintenance} from './opencode-agent/maintain'
@@ -39,6 +40,7 @@ const $mapi = {
     power,
     task,
     project,
+    pyenv,
     
     opencodeAgent,
 }
