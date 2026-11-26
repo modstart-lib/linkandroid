@@ -1,29 +1,44 @@
 <script setup lang="ts">
-import {nextTick, onMounted, ref} from 'vue'
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {t} from '../../lang'
 import {Dialog} from '../../lib/dialog'
-import {useModelStore} from '../../module/Model/store/model'
+import {mapModelError, useModelStore} from '../../module/Model/store/model'
 import {useUserStore} from '../../store/modules/user'
 import ModelSelector from '../../module/Model/ModelSelector.vue'
 import LoginRequiredDialog from '../../components/common/LoginRequiredDialog.vue'
 import LLMRechargeDialog from '../../components/common/LLMRechargeDialog.vue'
 import {StorageUtil} from '../../lib/storage'
+import {testActionSet, testActionUnset} from '../../utils/test'
 import TaskUpdatePreviewDialog from './TaskUpdatePreviewDialog.vue'
+import TaskAgentSessionDialog, {type AgentSessionSnapshot} from './TaskAgentSessionDialog.vue'
 import {collectDeviceScreenshotByLa, collectDeviceXmlByLa, runTaskPythonCode} from './TaskRuntime'
-import {runTaskCodeAgent as runTaskCodeAgentCore} from './TaskCodeAgent'
-import {LINKANDROID_TASK_API_PROMPT} from './TaskChatPrompt'
+import {pythonString} from './TaskChatUtils'
+import {buildAgentProvider} from '../../support/agent/agentModel'
+import AgentParts from '../../support/agent/AgentParts.vue'
+import ChatImageList from '../../support/agent/ChatImageList.vue'
+import ChatComposer from '../../support/agent/ChatComposer.vue'
+import type {AgentLivePart} from '../../support/agent/types'
+import {buildLiveParts, imageParts} from '../../support/agent/types'
+import {useChatImages} from '../../support/agent/useChatImages'
+import {saveChatImage} from '../../support/agent/chatImageStore'
+import {hydrateAgentMessages, storedParts} from '../../support/agent/opencodeParts'
+import type {AgentMessageRecord, AgentSessionRecord} from '../../support/agent/agentSession'
 import {
-    normalizeGeneratedTaskCode,
-    validateTaskCodeByRequirement,
-    buildRequirementFallbackTaskCode,
-    extractTargetsFromXml,
-    formatUiTargets,
-    pythonString,
-} from './TaskChatUtils'
+    createAgentSession,
+    deleteAgentSession,
+    insertAgentMessage,
+    listAgentSessions,
+    loadAgentMessages,
+    loadAgentSession,
+    updateAgentSession,
+} from '../../support/agent/agentSession'
 
 const props = defineProps<{
     currentCode: string
     selectedDeviceId: string
+    /** Task uuid; empty for an unsaved task (chat stays in memory) */
+    businessId?: string
+    taskName?: string
 }>()
 
 const emit = defineEmits<{
@@ -35,37 +50,39 @@ interface ChatMessage {
     role: 'user' | 'assistant'
     content: string
     timestamp: string
-    ask?: ChatAsk
-}
-
-interface ChatAsk {
-    question: string
-    options: string[]
-    choice: string
-    custom: string
-    answered: string
-    sourcePrompt: string
+    session?: AgentSessionSnapshot
+    parts?: AgentLivePart[]
+    live?: boolean
+    /** Steps existed in OpenCode but could not be read back */
+    stepsMissing?: boolean
 }
 
 const messages = ref<ChatMessage[]>([])
 const inputText = ref('')
 const loading = ref(false)
+const {images: chatImages, addFromPaste, addFile, removeImage, clearImages, addDataUrl} = useChatImages()
+const currentClientId = ref('')
+const canSend = computed(() => !!(inputText.value.trim() || chatImages.value.length) && !loading.value)
 const messageContainer = ref<HTMLDivElement | null>(null)
 const updatePreviewDialog = ref<InstanceType<typeof TaskUpdatePreviewDialog> | null>(null)
+const sessionDialog = ref<InstanceType<typeof TaskAgentSessionDialog> | null>(null)
 const loginRequiredDialog = ref<InstanceType<typeof LoginRequiredDialog> | null>(null)
 const llmRechargeDialog = ref<InstanceType<typeof LLMRechargeDialog> | null>(null)
-const customAskChoice = '__custom__'
 
 const modelStore = useModelStore()
 const selectedModel = ref<string>('')
 const bizKey = 'task.chat'
 
+const sessions = ref<AgentSessionRecord[]>([])
+const activeSessionId = ref(0)
+const activeRecord = () => sessions.value.find((item) => item.id === activeSessionId.value) || null
+
 const resolveTestModelValue = (model: string) => {
     const findModel = (value: string) => {
         const [providerId, modelId] = value.split('|')
         for (const p of modelStore.providers) {
-            if (p.id === providerId && p.data.enabled) {
-                const m = p.data.models.find((x) => x.id === modelId)
+            if (p.id === providerId && p.data?.enabled) {
+                const m = p.data.models?.find((x) => x.id === modelId)
                 if (m?.enabled) return {value}
             }
         }
@@ -90,19 +107,211 @@ onMounted(() => {
     if (saved) {
         selectedModel.value = saved
     }
+    void loadSessions()
+    testActionSet('task.chat.newSession', () => doNewSession())
+    testActionSet('task.chat.selectSession', (id: number) => onSelectSession(id))
+    testActionSet('task.chat.renameSession', (arg: {id: number; title: string}) => {
+        const record = sessions.value.find((item) => item.id === Number(arg.id))
+        return updateAgentSession(Number(arg.id), {title: String(arg.title || ''), touch: false}).then(() => {
+            if (record) record.title = String(arg.title || '')
+        })
+    })
+    testActionSet('task.chat.deleteSession', (id: number) => deleteAgentSession(Number(id)).then(() => loadSessions()))
+    testActionSet('task.chat.sessionState', () => ({
+        businessId: props.businessId || '',
+        activeSessionId: activeSessionId.value,
+        messages: messages.value.length,
+        sessions: sessions.value.map((item) => ({
+            id: item.id,
+            title: item.title,
+            opencode: item.opencode_session_id,
+            count: Number(item.message_count || 0),
+        })),
+    }))
+    testActionSet('task.chat.imageCount', () => chatImages.value.length)
+    testActionSet('task.chat.addImage', (url: string) => addDataUrl(String(url || '')))
+    testActionSet('task.chat.seedSessionMessages', (arg: {sessionId: number; user: string; assistant: string}) =>
+        insertAgentMessage({sessionId: Number(arg.sessionId), role: 'user', content: arg.user}).then(() =>
+            insertAgentMessage({sessionId: Number(arg.sessionId), role: 'assistant', content: arg.assistant}),
+        ),
+    )
+})
+
+// 记住任务 AI 选用的模型，自动修复会话需要沿用同一个模型
+watch(selectedModel, (value) => {
+    if (value) StorageUtil.set(`ModelGenerator.${bizKey}`, value)
 })
 
 let msgIdCounter = 0
 const genId = () => `chat_${Date.now()}_${++msgIdCounter}`
 
-const addMessage = (role: 'user' | 'assistant', content: string, ask?: ChatAsk) => {
-    messages.value.push({
+const timeText = (value: string) => {
+    if (!value) return ''
+    const time = new Date(value).getTime()
+    if (Number.isNaN(time)) return ''
+    const date = new Date(time)
+    const now = new Date()
+    const sameDay =
+        date.getFullYear() === now.getFullYear() &&
+        date.getMonth() === now.getMonth() &&
+        date.getDate() === now.getDate()
+    if (sameDay) return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+    return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+const sessionLabel = (session: AgentSessionRecord) => {
+    const title = session.title || t('ai.untitled')
+    return `${title}（${timeText(session.updated_at)}）`
+}
+
+const toItems = (rows: AgentMessageRecord[]): ChatMessage[] =>
+    rows.map((row) => ({
+        id: `db_${row.id}`,
+        role: row.role as 'user' | 'assistant',
+        content: row.content || '',
+        timestamp: row.created_at,
+        parts: storedParts(row.parts),
+    }))
+
+const loadSessionMessages = async (sessionId: number) => {
+    if (!sessionId) {
+        messages.value = []
+        return
+    }
+    const rows = await loadAgentMessages(sessionId)
+    if (sessionId !== activeSessionId.value) return
+    const items = toItems(rows)
+    messages.value = items
+    scrollToBottom()
+
+    // Reasoning and tool steps stay in OpenCode and are read back in one request.
+    const record = await loadAgentSession(sessionId)
+    const hydrated = await hydrateAgentMessages(rows, record?.opencode_session_id || '')
+    if (sessionId !== activeSessionId.value) return
+    items.forEach((item, index) => {
+        const rowId = rows[index].id
+        const parts = hydrated.parts[rowId]
+        if (parts) item.parts = parts
+        else if (hydrated.missing.includes(rowId)) item.stepsMissing = true
+    })
+    // The hydrated objects are the raw ones; replace the array so the list re-renders.
+    messages.value = messages.value.slice()
+    scrollToBottom()
+}
+
+const loadSessions = async (options: {keepMessages?: boolean} = {}) => {
+    if (!props.businessId) {
+        sessions.value = []
+        activeSessionId.value = 0
+        if (!options.keepMessages) messages.value = []
+        return
+    }
+    sessions.value = await listAgentSessions({business: 'task-chat', businessId: props.businessId})
+    if (!sessions.value.some((item) => item.id === activeSessionId.value)) {
+        activeSessionId.value = sessions.value[0]?.id || 0
+    }
+    if (activeSessionId.value) {
+        await loadSessionMessages(activeSessionId.value)
+    } else if (!options.keepMessages) {
+        messages.value = []
+    }
+}
+
+watch(
+    () => props.businessId,
+    (value, old) => {
+        if (value === old) return
+        if (!value) {
+            sessions.value = []
+            activeSessionId.value = 0
+            messages.value = []
+            return
+        }
+        // A new task was saved: keep the in-memory chat until the first send replays it.
+        void loadSessions({keepMessages: old === ''})
+    },
+)
+
+const onSelectSession = async (value: number) => {
+    activeSessionId.value = Number(value) || 0
+    await loadSessionMessages(activeSessionId.value)
+}
+
+/** Make sure the task has a stored session row; unsaved tasks stay in memory. */
+const ensureSession = async (title: string): Promise<AgentSessionRecord | null> => {
+    if (!props.businessId) return null
+    const existing = activeRecord()
+    if (existing) return existing
+    const [providerId, modelId] = (selectedModel.value || '|').split('|')
+    const id = await createAgentSession({
+        business: 'task-chat',
+        businessId: props.businessId,
+        title: title.slice(0, 30),
+        providerId,
+        modelId,
+    })
+    sessions.value = await listAgentSessions({business: 'task-chat', businessId: props.businessId})
+    activeSessionId.value = id
+    return sessions.value.find((item) => item.id === id) || null
+}
+
+const doNewSession = async () => {
+    if (!props.businessId) {
+        messages.value = []
+        inputText.value = ''
+        return 0
+    }
+    const id = await createAgentSession({business: 'task-chat', businessId: props.businessId})
+    sessions.value = await listAgentSessions({business: 'task-chat', businessId: props.businessId})
+    activeSessionId.value = id
+    messages.value = []
+    scrollToBottom()
+    return id
+}
+
+const doRenameSession = async (id: number, current: string) => {
+    const title = await Dialog.prompt('请输入会话名称', current || '')
+    if (!title) return
+    const value = title.trim()
+    if (!value) return
+    await updateAgentSession(id, {title: value, touch: false})
+    const record = sessions.value.find((item) => item.id === id)
+    if (record) record.title = value
+}
+
+const doDeleteSession = async (id: number) => {
+    const record = sessions.value.find((item) => item.id === id)
+    try {
+        await Dialog.confirm(`确定删除会话「${record?.title || t('ai.untitled')}」？`)
+    } catch {
+        return
+    }
+    await deleteAgentSession(id)
+    activeSessionId.value = 0
+    await loadSessions()
+}
+
+const doRenameActive = () => {
+    const record = activeRecord()
+    if (!record) return
+    void doRenameSession(record.id, record.title)
+}
+
+const doDeleteActive = () => {
+    if (!activeSessionId.value) return
+    void doDeleteSession(activeSessionId.value)
+}
+
+const addMessage = (role: 'user' | 'assistant', content: string, parts: AgentLivePart[] = []) => {
+    const message: ChatMessage = {
         id: genId(),
         role,
         content,
         timestamp: new Date().toISOString(),
-        ask,
-    })
+        parts,
+    }
+    messages.value.push(message)
+    return message
 }
 
 const debugLog = (label: string, data: Record<string, any> = {}) => {
@@ -158,17 +367,6 @@ const preCheckSend = (providerId: string, modelId: string): boolean => {
     return true
 }
 
-const parseToolArgs = (value: string) => {
-    try {
-        return JSON.parse(value || '{}')
-    } catch {
-        return {}
-    }
-}
-
-// normalizeGeneratedTaskCode, validateGeneratedTaskCode, validateTaskCodeByRequirement,
-// buildRequirementFallbackTaskCode have been moved to TaskChatUtils.ts
-
 const getXmlInfo = async () => {
     if (!props.selectedDeviceId) {
         return ''
@@ -190,52 +388,6 @@ const getScreenshot = async () => {
     } catch {
         return ''
     }
-}
-
-const buildUserContent = (text: string, xmlInfo: string, screenshot: string) => {
-    const content: any[] = [
-        {
-            type: 'text',
-            text: [
-                `用户需求：${text}`,
-                '',
-                '=== 当前任务代码（必须基于此修改，不是重写） ===',
-                '```python',
-                props.currentCode,
-                '```',
-                '',
-                '=== LinkAndroid API 参考 ===',
-                LINKANDROID_TASK_API_PROMPT,
-                '',
-                '=== 当前界面 XML ===',
-                '```xml',
-                xmlInfo || '未获取到 XML 信息',
-                '```',
-                '',
-                '=== 开发约束 ===',
-                '用户需求可能是自然表达，你需要自行推导合适的 la API、界面观察步骤和输出内容。',
-                '不要要求用户提供 API 名称、输出格式或测试标记。',
-                '',
-                '⚠️ 重点：必须基于"当前任务代码"修改，保留已有操作步骤，在此基础上调整和扩展。禁止丢弃当前代码重写。',
-            ].join('\n'),
-        },
-    ]
-    if (screenshot) {
-        content.push({
-            type: 'image_url',
-            image_url: {
-                url: screenshot,
-            },
-        })
-        content.push({
-            type: 'text',
-            text: [
-                '最终确认：上面的截图只用于辅助定位，不是任务目标。',
-                '如果截图/XML 与用户需求冲突，以用户需求为准；如果需求涉及当前界面，请用工具继续观察，不要臆测。',
-            ].join('\n'),
-        })
-    }
-    return content
 }
 
 const buildDeviceContextScript = (prompt: string, xmlInfo: string, hasScreenshot: boolean) => {
@@ -275,6 +427,15 @@ const doSend = async () => {
     await sendPrompt(inputText.value)
 }
 
+const doStop = async () => {
+    if (!currentClientId.value) return
+    await window.$mapi.opencodeAgent.interrupt({clientId: currentClientId.value}).catch(() => {})
+}
+
+const addFiles = async (files: File[]) => {
+    for (const file of files) await addFile(file)
+}
+
 const getDeviceBasicInfo = async () => {
     try {
         const controller = await runTaskPythonCode(
@@ -302,40 +463,102 @@ const getDeviceBasicInfo = async () => {
 
 const sendPrompt = async (input: string, displayInput?: string) => {
     const text = input.trim()
-    if (!text || loading.value) return
+    if ((!text && chatImages.value.length === 0) || loading.value) return
 
     const [providerId, modelId] = (selectedModel.value || '|').split('|')
     if (!preCheckSend(providerId, modelId)) return
 
+    const display = displayInput?.trim() || text
+    const userImages = chatImages.value.map((image) => image.url)
+    const history = messages.value
+        .map((m) => ({
+            role: m.role,
+            content: m.content || (imageParts(m.parts).length ? t('chatImage.placeholder') : ''),
+        }))
+        .filter((m) => m.content)
+    const record = await ensureSession(display || t('chatImage.message'))
+    const sessionId = record?.id || 0
+
+    // Screenshots go to disk; the model still receives the inline data URL this turn.
+    const userParts: AgentLivePart[] = []
+    for (const [index, image] of chatImages.value.entries()) {
+        userParts.push({
+            key: `user-image-${index}`,
+            type: 'image',
+            url: sessionId ? await saveChatImage(sessionId, image.url) : image.url,
+            name: image.name,
+        })
+    }
+
     inputText.value = ''
-    addMessage('user', displayInput?.trim() || text)
+    clearImages()
+    if (sessionId) {
+        await insertAgentMessage({sessionId, role: 'user', content: display, parts: JSON.stringify(userParts)})
+    }
+    addMessage('user', display, userParts)
+
+    const clientId = `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    currentClientId.value = clientId
+    const liveMessage = addMessage('assistant', '')
+    liveMessage.live = true
+    liveMessage.parts = []
+    const unsubscribe = window.$mapi.opencodeAgent.onProgress((data) => {
+        if (!data || data.clientId !== clientId) return
+        const target = messages.value.find((m) => m.id === liveMessage.id)
+        if (!target) return
+        target.parts = buildLiveParts(data.messages || [])
+        scrollToBottom()
+    })
+    const finishLive = (content: string, result?: any) => {
+        liveMessage.live = false
+        liveMessage.content = content
+        if (result?.messages?.length) {
+            liveMessage.session = {
+                messages: result.messages,
+                requestId: result.requestId,
+                durationMs: result.durationMs,
+            }
+        }
+        scrollToBottom()
+    }
     scrollToBottom()
 
     loading.value = true
     const startedAt = Date.now()
+    let stage = 'start'
+    let turnMessageIds: string[] = []
     try {
         debugLog('ContextStart', {providerId, modelId, promptLength: text.length})
+        stage = 'xml'
         const xmlInfo = await getXmlInfo()
         debugLog('XmlReady', {xmlLength: xmlInfo.length, duration: Date.now() - startedAt})
+        stage = 'screenshot'
         const screenshot = await getScreenshot()
         debugLog('ScreenshotReady', {hasScreenshot: !!screenshot, duration: Date.now() - startedAt})
+        stage = 'deviceInfo'
         const deviceBasicInfo = await getDeviceBasicInfo()
         debugLog('DeviceBasicInfoReady', {infoLength: deviceBasicInfo.length, duration: Date.now() - startedAt})
-        const result = await runTaskCodeAgentCore({
-            providerId,
-            modelId,
+        stage = 'provider'
+        const {provider, providerRecord} = buildAgentProvider(providerId, modelId)
+        stage = 'agent'
+        const result = await window.$mapi.opencodeAgent.runTaskAgent({
+            provider,
             requirement: text,
             currentCode: props.currentCode,
             deviceBasicInfo,
             xmlInfo,
-            screenshot,
-            selectedDeviceId: props.selectedDeviceId,
-            chat: (pid, mid, input, options, runtimeOptions) =>
-                modelStore.chat(pid, mid, input, options, runtimeOptions),
-            collectXml: collectDeviceXmlByLa,
-            collectScreenshot: collectDeviceScreenshotByLa,
-            runPython: runTaskPythonCode,
+            screenshotDataUrl: screenshot,
+            userImages,
             updateReadyMessage: t('task.updateToolReady'),
+            deviceId: props.selectedDeviceId,
+            clientId,
+            // Task exploration + code generation may run long; idle guard still applies.
+            timeoutMs: 3600000,
+            opencodeSessionId: record?.opencode_session_id || '',
+            business: 'task-chat',
+            businessId: props.businessId || '',
+            title: record?.title || undefined,
+            history,
         })
         debugLog('AgentResult', {
             ok: result.ok,
@@ -343,48 +566,66 @@ const sendPrompt = async (input: string, displayInput?: string) => {
             requestId: result.requestId,
             duration: Date.now() - startedAt,
         })
-        if (result.ask) {
-            const options = (result.ask.options || [])
-                .map((item) => item.trim())
-                .filter((item) => item && item !== '自己填')
-            addMessage('assistant', t('task.needMoreInfo'), {
-                question: result.ask.question,
-                options,
-                choice: options[0] || customAskChoice,
-                custom: '',
-                answered: '',
-                sourcePrompt: text,
-            })
-        } else if (result.ok && result.code) {
+        turnMessageIds = result.newMessageIds || []
+        if (result.opencodeSessionId && record) {
+            record.opencode_session_id = result.opencodeSessionId
+        }
+        if (result.ok && result.code) {
             updatePreviewDialog.value?.show(props.currentCode, result.code)
-            addMessage('assistant', result.message || t('task.updateToolReady'))
+            finishLive(result.message || t('task.updateToolReady'), result)
         } else {
-            addMessage('assistant', result.message || t('task.noUpdateToolCall'))
+            const message = result.message || t('task.noUpdateToolCall')
+            const mapped =
+                providerId === 'buildIn' && providerRecord
+                    ? mapModelError(message, providerRecord, result.error?.code)
+                    : message
+            finishLive(mapped, result)
         }
     } catch (e: any) {
-        debugLog('Error', {message: e.message || `${e}`, duration: Date.now() - startedAt})
-        addMessage('assistant', `Error: ${e.message || e}`)
+        debugLog('Error', {
+            message: e.message || `${e}`,
+            stage,
+            stack: String(e?.stack || '').slice(0, 2000),
+            duration: Date.now() - startedAt,
+        })
+        finishLive(`Error: ${e.message || e}`)
     } finally {
+        unsubscribe()
+        currentClientId.value = ''
         loading.value = false
         scrollToBottom()
     }
+
+    // A turn that produced only tool steps still needs its row, otherwise the
+    // steps have no anchor when the session is reopened.
+    if (sessionId && (liveMessage.content || turnMessageIds.length)) {
+        await insertAgentMessage({
+            sessionId,
+            role: 'assistant',
+            content: liveMessage.content,
+            opencodeMessageIds: turnMessageIds,
+        })
+        const needTitle = Boolean(record && !record.title)
+        const title = needTitle ? display.slice(0, 30) : record?.title || ''
+        await updateAgentSession(sessionId, {
+            providerId,
+            modelId,
+            opencodeSessionId: record?.opencode_session_id || '',
+            ...(needTitle ? {title} : {}),
+        })
+        if (record && !record.title) record.title = title
+        sessions.value = await listAgentSessions({business: 'task-chat', businessId: props.businessId || ''})
+    }
 }
 
-const doClearDialog = () => {
-    messages.value = []
+const doClearDialog = async () => {
+    if (props.businessId) {
+        await doNewSession()
+    } else {
+        messages.value = []
+    }
     inputText.value = ''
     Dialog.tipSuccess(t('task.chatClearDialogDone'))
-}
-
-const doSubmitAsk = async (msg: ChatMessage) => {
-    if (!msg.ask) return
-    const answer = msg.ask.choice === customAskChoice ? msg.ask.custom.trim() : msg.ask.choice.trim()
-    if (!answer || loading.value) return
-    msg.ask.answered = answer
-    const prompt = [msg.ask.sourcePrompt, '', t('task.questionAnswer', {question: msg.ask.question, answer})]
-        .filter((item) => item)
-        .join('\n')
-    await sendPrompt(prompt, answer)
 }
 
 const doCopyDialogLog = async () => {
@@ -414,6 +655,9 @@ defineExpose({
     },
     testPreviewUpdate: (code: string) => {
         updatePreviewDialog.value?.show(props.currentCode, code)
+    },
+    testShowSession: (session: AgentSessionSnapshot | any[]) => {
+        sessionDialog.value?.show(session)
     },
     testGenerateFromDeviceContext: async (prompt: string) => {
         if (!props.selectedDeviceId) {
@@ -455,8 +699,43 @@ defineExpose({
     clearMessages: () => {
         messages.value = []
     },
+    getLastRequirement: () => {
+        const last = [...messages.value].reverse().find((m) => m.role === 'user')
+        return last?.content || ''
+    },
     doClearDialog,
     doCopyDialogLog,
+    doNewSession,
+    doRenameSession,
+    doDeleteSession,
+    onSelectSession,
+    testSessionState: () => ({
+        businessId: props.businessId || '',
+        activeSessionId: activeSessionId.value,
+        messages: messages.value.length,
+        sessions: sessions.value.map((item) => ({
+            id: item.id,
+            title: item.title,
+            opencode: item.opencode_session_id,
+            count: Number(item.message_count || 0),
+        })),
+    }),
+    testSeedSessionMessages: async (arg: {sessionId: number; user: string; assistant: string}) => {
+        await insertAgentMessage({sessionId: arg.sessionId, role: 'user', content: arg.user})
+        await insertAgentMessage({sessionId: arg.sessionId, role: 'assistant', content: arg.assistant})
+        if (arg.sessionId === activeSessionId.value) await loadSessionMessages(arg.sessionId)
+    },
+})
+
+onUnmounted(() => {
+    testActionUnset('task.chat.newSession')
+    testActionUnset('task.chat.selectSession')
+    testActionUnset('task.chat.renameSession')
+    testActionUnset('task.chat.deleteSession')
+    testActionUnset('task.chat.sessionState')
+    testActionUnset('task.chat.seedSessionMessages')
+    testActionUnset('task.chat.imageCount')
+    testActionUnset('task.chat.addImage')
 })
 
 const onPreviewConfirm = (code: string) => {
@@ -466,8 +745,52 @@ const onPreviewConfirm = (code: string) => {
 </script>
 
 <template>
-    <div class="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
-        <div ref="messageContainer" class="flex-1 overflow-y-auto px-3 py-3 space-y-3">
+    <div class="flex flex-col h-full min-h-0 bg-gray-50 dark:bg-gray-900">
+        <TaskAgentSessionDialog ref="sessionDialog" />
+        <div
+            v-if="businessId"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+        >
+            <a-select
+                :model-value="activeSessionId"
+                class="flex-1 min-w-0"
+                :disabled="loading"
+                aria-label="选择任务会话"
+                @change="onSelectSession"
+            >
+                <a-option v-for="session in sessions" :key="session.id" :value="session.id">
+                    {{ sessionLabel(session) }}
+                </a-option>
+            </a-select>
+            <a-button type="text" aria-label="新建会话" :title="'新建会话'" @click="doNewSession">
+                <template #icon><i-lucide-plus class="w-4 h-4" aria-hidden="true" /></template>
+            </a-button>
+            <a-button
+                type="text"
+                aria-label="重命名会话"
+                title="重命名会话"
+                :disabled="!activeSessionId"
+                @click="doRenameActive"
+            >
+                <template #icon><i-lucide-pencil class="w-4 h-4" aria-hidden="true" /></template>
+            </a-button>
+            <a-button
+                type="text"
+                aria-label="删除会话"
+                title="删除会话"
+                :disabled="!activeSessionId"
+                @click="doDeleteActive"
+            >
+                <template #icon><i-lucide-trash-2 class="w-4 h-4" aria-hidden="true" /></template>
+            </a-button>
+        </div>
+        <div
+            v-else-if="!businessId"
+            class="shrink-0 px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-[11px] text-gray-500 dark:text-gray-400"
+        >
+            保存任务后，这里的 AI 对话会按任务保存
+        </div>
+        <div ref="messageContainer" class="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-3">
             <div
                 v-if="messages.length === 0"
                 class="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500 select-none"
@@ -490,152 +813,78 @@ const onPreviewConfirm = (code: string) => {
                             : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-bl-none'
                     "
                 >
+                    <AgentParts v-if="msg.role === 'assistant' && msg.parts?.length" :parts="msg.parts" class="mb-1" />
+                    <ChatImageList
+                        v-if="msg.role === 'user' && imageParts(msg.parts).length"
+                        :images="imageParts(msg.parts)"
+                        size="md"
+                        class="mb-1"
+                    />
                     <div v-if="msg.content">{{ msg.content }}</div>
                     <div
-                        v-if="msg.ask"
-                        class="mt-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-3 whitespace-normal"
+                        v-if="msg.stepsMissing"
+                        class="mt-1 text-xs text-gray-400"
+                        data-testid="chat-steps-unavailable"
                     >
-                        <div v-if="msg.ask.answered" class="space-y-2">
-                            <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                                <i-lucide-check class="w-4 h-4" aria-hidden="true" />
-                                <span class="font-medium">{{ $t('task.answered') }}</span>
-                            </div>
-                            <div class="text-gray-800 dark:text-gray-100 whitespace-pre-wrap">
-                                {{ msg.ask.question }}
-                            </div>
-                            <div
-                                class="pl-3 border-l-2 border-[rgb(var(--primary-5))] text-gray-600 dark:text-gray-300 whitespace-pre-wrap"
-                            >
-                                {{ msg.ask.answered }}
-                            </div>
-                        </div>
-                        <div v-else class="space-y-3">
-                            <div class="font-medium text-gray-800 dark:text-gray-100 whitespace-pre-wrap">
-                                {{ msg.ask.question }}
-                            </div>
-                            <div class="space-y-2">
-                                <button
-                                    v-for="(item, index) in msg.ask.options"
-                                    :key="item"
-                                    class="w-full flex items-start gap-3 p-2 rounded-lg border text-left transition-all"
-                                    :class="
-                                        msg.ask.choice === item
-                                            ? 'border-[rgb(var(--primary-5))] bg-blue-50 dark:bg-blue-900/30'
-                                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-[rgb(var(--primary-5))]'
-                                    "
-                                    @click="msg.ask.choice = item"
-                                >
-                                    <span
-                                        class="shrink-0 w-5 h-5 rounded-full border flex items-center justify-center text-xs"
-                                        :class="
-                                            msg.ask.choice === item
-                                                ? 'border-[rgb(var(--primary-5))] bg-[var(--color-primary)] text-white'
-                                                : 'border-gray-300 dark:border-gray-500 text-gray-500'
-                                        "
-                                    >
-                                        {{ index + 1 }}
-                                    </span>
-                                    <span class="flex-1 text-gray-700 dark:text-gray-200">{{ item }}</span>
-                                    <i-lucide-check
-                                        v-if="msg.ask.choice === item"
-                                        class="w-4 h-4 text-[var(--color-primary)] shrink-0"
-                                        aria-hidden="true"
-                                    />
-                                </button>
-                                <div
-                                    class="flex items-start gap-3 p-2 rounded-lg border transition-all"
-                                    :class="
-                                        msg.ask.choice === customAskChoice
-                                            ? 'border-[rgb(var(--primary-5))] bg-blue-50 dark:bg-blue-900/30'
-                                            : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800'
-                                    "
-                                >
-                                    <button
-                                        class="shrink-0 w-5 h-5 rounded-full border flex items-center justify-center text-xs"
-                                        :class="
-                                            msg.ask.choice === customAskChoice
-                                                ? 'border-[rgb(var(--primary-5))] bg-[var(--color-primary)] text-white'
-                                                : 'border-gray-300 dark:border-gray-500 text-gray-500'
-                                        "
-                                        @click="msg.ask.choice = customAskChoice"
-                                    >
-                                        <i-lucide-edit-3 class="w-3 h-3" aria-hidden="true" />
-                                    </button>
-                                    <a-textarea
-                                        v-model="msg.ask.custom"
-                                        :placeholder="$t('task.fillSelf')"
-                                        class="flex-1"
-                                        :auto-size="{minRows: 1, maxRows: 6}"
-                                        @focus="msg.ask.choice = customAskChoice"
-                                        @input="msg.ask.choice = customAskChoice"
-                                    />
-                                </div>
-                            </div>
-                            <a-button
-                                type="primary"
-                                long
-                                :loading="loading"
-                                :disabled="
-                                    msg.ask.choice === customAskChoice ? !msg.ask.custom.trim() : !msg.ask.choice
-                                "
-                                @click="doSubmitAsk(msg)"
-                            >
-                                {{ $t('task.submitAnswer') }}
-                            </a-button>
-                        </div>
+                        {{ $t('chat.stepsUnavailable') }}
                     </div>
-                </div>
-            </div>
-
-            <div v-if="loading" class="flex justify-start">
-                <div
-                    class="max-w-[85%] rounded-xl px-3 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-bl-none flex items-center gap-2"
-                >
-                    <span class="relative flex h-2 w-2">
-                        <span
-                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[rgb(var(--primary-5))] opacity-75"
-                        ></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-primary)]"></span>
-                    </span>
-                    <span class="text-xs text-gray-400">{{ $t('task.chatGenerating') }}</span>
+                    <div v-if="msg.live" class="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                        <span class="relative flex h-2 w-2">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[rgb(var(--primary-5))] opacity-75"
+                            ></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-primary)]"></span>
+                        </span>
+                        <span>{{ $t('task.chatGenerating') }}</span>
+                    </div>
+                    <a-button
+                        v-if="msg.session"
+                        type="text"
+                        class="!px-0 text-xs mt-1"
+                        @click="sessionDialog?.show(msg.session)"
+                    >
+                        <template #icon>
+                            <i-lucide-message-square class="w-3.5 h-3.5" aria-hidden="true" />
+                        </template>
+                        查看会话消息（{{ msg.session.messages.length }}）
+                    </a-button>
                 </div>
             </div>
         </div>
 
-        <div
-            class="shrink-0 px-3 py-2 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 space-y-2"
-        >
-            <a-textarea
+        <div class="shrink-0 px-3 pb-3 pt-2" @paste="addFromPaste">
+            <ChatComposer
                 v-model="inputText"
+                :images="chatImages"
+                :loading="loading"
+                :can-send="canSend"
                 :placeholder="$t('task.chatPlaceholder')"
-                :auto-size="{minRows: 2, maxRows: 6}"
-                class="w-full"
-                @keydown.enter.exact.prevent="doSend"
-            />
-            <div class="flex items-center gap-2">
-                <div class="flex-1">
+                send-test-id="task-chat-send"
+                @send="doSend"
+                @stop="doStop"
+                @remove-image="removeImage"
+                @add-files="addFiles"
+                @add-data-url="addDataUrl"
+            >
+                <template #model>
                     <ModelSelector v-model="selectedModel" :filter="(m) => m.caps?.vision" />
-                </div>
-                <a-button type="primary" :loading="loading" @click="doSend" class="shrink-0">
-                    <template #icon><i-lucide-message-square /></template>
-                    {{ $t('task.chatSend') }}
-                </a-button>
-                <a-dropdown trigger="click">
-                    <a-button class="shrink-0" :aria-label="$t('task.chatMoreActions')">
-                        <template #icon><i-lucide-ellipsis-vertical /></template>
-                    </a-button>
-                    <template #content>
-                        <a-doption @click="doClearDialog">
-                            <template #icon><i-lucide-trash-2 /></template>
-                            {{ $t('task.chatClearDialog') }}
-                        </a-doption>
-                        <a-doption @click="doCopyDialogLog">
-                            <template #icon><i-lucide-file-text /></template>
-                            {{ $t('task.chatDialogLog') }}
-                        </a-doption>
-                    </template>
-                </a-dropdown>
-            </div>
+                    <a-dropdown trigger="click">
+                        <a-button type="text" class="shrink-0" :aria-label="$t('task.chatMoreActions')">
+                            <template #icon><i-lucide-ellipsis-vertical /></template>
+                        </a-button>
+                        <template #content>
+                            <a-doption @click="doClearDialog">
+                                <template #icon><i-lucide-trash-2 /></template>
+                                {{ $t('task.chatClearDialog') }}
+                            </a-doption>
+                            <a-doption @click="doCopyDialogLog">
+                                <template #icon><i-lucide-file-text /></template>
+                                {{ $t('task.chatDialogLog') }}
+                            </a-doption>
+                        </template>
+                    </a-dropdown>
+                </template>
+            </ChatComposer>
         </div>
         <TaskUpdatePreviewDialog ref="updatePreviewDialog" @confirm="onPreviewConfirm" />
         <LoginRequiredDialog ref="loginRequiredDialog" />

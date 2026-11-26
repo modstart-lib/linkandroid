@@ -8,6 +8,10 @@ const get = async (): Promise<any> => {
     return ipcRenderer.invoke('user:get')
 }
 
+const save = async (data: {apiToken: string; user: any; data: any; basic: any}): Promise<void> => {
+    return ipcRenderer.invoke('user:save', data)
+}
+
 const refresh = async () => {
     return ipcRenderer.invoke('user:refresh')
 }
@@ -37,6 +41,7 @@ const apiPost = async (
 export default {
     open,
     get,
+    save,
     refresh,
     getApiToken,
     getWebEnterUrl,

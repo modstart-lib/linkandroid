@@ -7,11 +7,14 @@
 
 import adbkitPkg from '@devicefarmer/adbkit'
 import {Cron} from 'croner'
+import fs from 'node:fs'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {Log} from '../log/index'
 import Apps from '../app/index'
 import DBMain from '../db/main'
+import {AppEnv} from '../env'
+import {Events} from '../event/main'
 import {isPackaged, resolveAdbBin} from '../../lib/env'
 
 const {Adb} = adbkitPkg as any
@@ -20,6 +23,7 @@ const _dirname = path.dirname(fileURLToPath(import.meta.url))
 
 interface TaskRow {
     id: number
+    uuid?: string
     name: string
     description: string
     code: string
@@ -60,6 +64,34 @@ const buildPythonEnv = () => {
         : path.join(basePath, 'env/task/_aienv/bin/python')
     const libPath = path.join(basePath, 'env/task/lib')
     return {pythonPath, libPath, taskDir: path.join(basePath, 'env/task')}
+}
+
+/**
+ * 任务项目化后优先在项目目录内执行入口文件；目录缺失时回退内联代码。
+ */
+const buildRunCommand = (task: TaskRow) => {
+    const {pythonPath, libPath, taskDir} = buildPythonEnv()
+    let command = [pythonPath, '-u', '-c', task.code || '']
+    let cwd = taskDir
+    if (task.uuid) {
+        try {
+            const projectRoot = path.resolve(AppEnv.dataRoot || '', 'projects', task.uuid)
+            let entry = 'main.py'
+            const manifestFile = path.join(projectRoot, 'linkandroid.json')
+            if (fs.existsSync(manifestFile)) {
+                const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'))
+                if (manifest && manifest.entry) entry = String(manifest.entry)
+            }
+            const entryFile = path.resolve(projectRoot, entry)
+            if (entryFile.startsWith(projectRoot + path.sep) && fs.existsSync(entryFile)) {
+                command = [pythonPath, '-u', entryFile]
+                cwd = projectRoot
+            }
+        } catch (e: any) {
+            Log.error('TaskScheduler.projectPathFailed', {taskId: task.id, error: e?.message || String(e)})
+        }
+    }
+    return {command, cwd, libPath, taskDir}
 }
 
 /**
@@ -144,13 +176,19 @@ const parseBoundDevices = async (task: TaskRow): Promise<string[]> => {
 const executeScheduledTask = async (task: TaskRow) => {
     const now = new Date().toISOString()
     let runId: number | string | null = null
+    let deviceIds: string[] = []
+    let logOutput = ''
 
     try {
+        // 定时任务优先使用任务保存的「运行设置」设备, 未配置则自动发现
+        const boundDevices = await parseBoundDevices(task)
+        deviceIds = boundDevices.length > 0 ? boundDevices : await discoverOnlineDevices()
+
         // 创建 pending 记录
         runId = await DBMain.insert(
             `INSERT INTO task_run (created_at, updated_at, task_id, device_id, status, log, started_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [now, now, task.id, 'scheduler', 'pending', '', null],
+            [now, now, task.id, deviceIds.join(',') || 'scheduler', 'pending', '', null],
         )
 
         // 更新为 running
@@ -161,16 +199,11 @@ const executeScheduledTask = async (task: TaskRow) => {
             runId,
         ])
 
-        const {pythonPath, libPath, taskDir} = buildPythonEnv()
-        // 定时任务优先使用任务保存的「运行设置」设备, 未配置则自动发现
-        const boundDevices = await parseBoundDevices(task)
-        const deviceIds = boundDevices.length > 0 ? boundDevices : await discoverOnlineDevices()
+        const {command, cwd, libPath} = buildRunCommand(task)
 
-        let logOutput = ''
-
-        const controller = await Apps.spawnShell([pythonPath, '-c', task.code], {
+        const controller = await Apps.spawnShell(command, {
             shell: false,
-            cwd: taskDir,
+            cwd,
             stdout: (data: string) => {
                 logOutput += data
             },
@@ -195,14 +228,34 @@ const executeScheduledTask = async (task: TaskRow) => {
         Log.info('TaskScheduler.executeSuccess', {taskId: task.id, taskName: task.name})
     } catch (e: any) {
         const errMsg = e?.message || String(e)
+        const failureLog = [logOutput, errMsg].filter((item) => !!String(item || '').trim()).join('\n')
         const finishedAt = new Date().toISOString()
         if (runId) {
             await DBMain.update(
                 `UPDATE task_run SET updated_at = ?, status = ?, log = ?, finished_at = ? WHERE id = ?`,
-                [finishedAt, 'failed', errMsg, finishedAt, runId],
+                [finishedAt, 'failed', failureLog, finishedAt, runId],
             ).catch(() => {})
         }
         Log.error('TaskScheduler.executeFailed', {taskId: task.id, taskName: task.name, error: errMsg})
+        // 定时任务失败后交给渲染层弹出修复会话（弹窗展示失败日志并自动修复、重跑）
+        try {
+            Events.broadcast(
+                'TaskScheduledFailed',
+                {
+                    taskId: task.id,
+                    runId,
+                    deviceId: deviceIds[0] || '',
+                    deviceIds,
+                    log: failureLog,
+                },
+                {limit: true, scopes: ['main']},
+            )
+        } catch (broadcastError: any) {
+            Log.error('TaskScheduler.broadcastFailed', {
+                taskId: task.id,
+                error: broadcastError?.message || broadcastError,
+            })
+        }
     } finally {
         lastTriggeredMinute.set(task.id, currentMinuteKey())
     }
@@ -214,13 +267,17 @@ const executeScheduledTask = async (task: TaskRow) => {
 const doSchedulerTick = async () => {
     try {
         const tasks: TaskRow[] = await DBMain.select(
-            `SELECT id, name, description, code, language, run_mode, cron_expression, device_ids, run_on_all_devices
+            `SELECT id, uuid, name, description, code, language, run_mode, cron_expression, device_ids, run_on_all_devices
              FROM task
              WHERE run_mode = 'scheduled' AND cron_expression != ''`,
         )
 
         const now = new Date()
         const nowMinuteKey = currentMinuteKey(now)
+        // croner 的 match() 按秒级判断，5 段表达式要求秒=0；调度器每 30 秒扫描一次，
+        // 直接用当前时间会永远不命中。这里对齐到分钟边界，同一分钟由 lastTriggeredMinute 去重。
+        const matchAt = new Date(now)
+        matchAt.setSeconds(0, 0)
 
         for (const task of tasks) {
             try {
@@ -230,7 +287,7 @@ const doSchedulerTick = async () => {
                 }
 
                 const job = new Cron(task.cron_expression)
-                if (!job.match(now)) {
+                if (!job.match(matchAt)) {
                     continue
                 }
 
@@ -268,7 +325,7 @@ export const runTaskById = async (
     deviceIds?: string[],
 ): Promise<{runId: number | string | null; success: boolean; log: string}> => {
     const task: TaskRow | undefined = await DBMain.first(
-        `SELECT id, name, description, code, language, run_mode, cron_expression, device_ids, run_on_all_devices
+        `SELECT id, uuid, name, description, code, language, run_mode, cron_expression, device_ids, run_on_all_devices
          FROM task WHERE id = ?`,
         [taskId],
     )
@@ -305,10 +362,10 @@ export const runTaskById = async (
             now,
             runId,
         ])
-        const {pythonPath, libPath, taskDir} = buildPythonEnv()
-        const controller = await Apps.spawnShell([pythonPath, '-c', task.code], {
+        const {command, cwd, libPath} = buildRunCommand(task)
+        const controller = await Apps.spawnShell(command, {
             shell: false,
-            cwd: taskDir,
+            cwd,
             stdout: (data: string) => {
                 logOutput += data
             },

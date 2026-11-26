@@ -8,6 +8,7 @@ const routes = [
             {path: '', component: () => import('./pages/Home.vue')},
             {path: 'home', component: () => import('./pages/Home.vue')},
             {path: 'device', component: () => import('./pages/Device.vue')},
+            {path: 'ai', component: () => import('./pages/Ai.vue')},
             {path: 'task', component: () => import('./pages/Task.vue')},
             {path: 'setting', component: () => import('./pages/Setting.vue')},
         ],

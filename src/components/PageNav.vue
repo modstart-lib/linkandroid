@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import {t} from '../lang'
+import defaultAvatar from '../assets/image/avatar.svg'
 
 
 const route = useRouter()
@@ -13,6 +14,8 @@ const activeTab = computed(() => {
             return 'home'
         case '/device':
             return 'device'
+        case '/ai':
+            return 'ai'
         case '/task':
             return 'task'
         case '/setting':
@@ -37,6 +40,17 @@ const activeTab = computed(() => {
                     <i-lucide-smartphone class="text-xl" />
                 </div>
                 <div class="text-sm">{{ $t('nav.device') }}</div>
+            </a>
+            <a
+                class="page-nav-item block text-center py-3"
+                :class="activeTab === 'ai' ? 'active' : ''"
+                @click="$router.push('/ai')"
+                href="javascript:;"
+            >
+                <div class="flex justify-center">
+                    <i-lucide-bot class="text-xl" />
+                </div>
+                <div class="text-sm">{{ $t('nav.ai') }}</div>
             </a>
             <a
                 class="page-nav-item block text-center py-3"

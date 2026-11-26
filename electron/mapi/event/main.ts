@@ -14,6 +14,7 @@ type BroadcastType =
     | 'HotkeyWatch'
     | 'Notice'
     | 'MonitorEvent'
+    | 'TaskScheduledFailed'
     | 'UpdaterState'
 
 const broadcast = (

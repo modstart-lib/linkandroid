@@ -49,6 +49,32 @@ const getZipFileContent = async (path: string, pathInZip: string) => {
     })
 }
 
+const UNZIP_MAX_ENTRIES = 2000
+const UNZIP_MAX_TOTAL_BYTES = 50 * 1024 * 1024
+
+const unzipSafeRelPath = (dest: string, fileName: string) => {
+    const name = String(fileName || '').replace(/\\/g, '/')
+    if (!name.replace(/\/+$/, '')) return null
+    if (name.startsWith('/') || /^[a-zA-Z]:/.test(name)) {
+        throw new Error('ZipPathInvalid')
+    }
+    const segments = name.split('/')
+    if (segments.some((segment) => segment === '..' || segment === '.')) {
+        throw new Error('ZipPathInvalid')
+    }
+    const base = path.resolve(dest)
+    const target = path.resolve(base, name)
+    if (target !== base && !target.startsWith(base + path.sep)) {
+        throw new Error('ZipPathInvalid')
+    }
+    return target
+}
+
+const isSymlinkEntry = (entry: any) => {
+    const attributes = entry?.externalFileAttributes || 0
+    return (attributes >>> 16 && (attributes >>> 16) & 0o170000) === 0o120000
+}
+
 const unzip = async (
     zipPath: string,
     dest: string,
@@ -73,9 +99,17 @@ const unzip = async (
                 reject(err)
                 return
             }
+            let entryCount = 0
+            let totalBytes = 0
+            const fail = (e: any) => {
+                try {
+                    zipfile.close()
+                } catch {}
+                reject(e instanceof Error ? e : new Error(String(e)))
+            }
             zipfile.on('error', function (err: any) {
                 // console.log('unzip error', err)
-                reject(err)
+                fail(err)
             })
             zipfile.on('end', function () {
                 // console.log('unzip end')
@@ -85,30 +119,48 @@ const unzip = async (
                 if (option.process) {
                     option.process('start', entry)
                 }
-                // console.log('unzip entry', dest, entry.fileName)
-                const destPath = dest + '/' + entry.fileName
-                if (/\/$/.test(entry.fileName)) {
-                    // console.log('unzip mkdir', destPath)
-                    fs.mkdirSync(destPath, {recursive: true})
-                    zipfile.readEntry()
-                } else {
-                    const dirname = destPath.replace(/\/[^/]+$/, '')
-                    if (!fs.existsSync(dirname)) {
-                        fs.mkdirSync(dirname, {recursive: true})
+                try {
+                    if (isSymlinkEntry(entry)) {
+                        throw new Error('ZipSymlinkRejected')
                     }
-                    zipfile.openReadStream(entry, function (err: any, readStream: any) {
-                        if (err) {
-                            reject(err)
-                            return
+                    entryCount++
+                    totalBytes += Number(entry.uncompressedSize || 0)
+                    if (entryCount > UNZIP_MAX_ENTRIES || totalBytes > UNZIP_MAX_TOTAL_BYTES) {
+                        throw new Error('ZipTooLarge')
+                    }
+                    const isDir = /\/$/.test(String(entry.fileName || '').replace(/\\/g, '/'))
+                    const destPath = unzipSafeRelPath(dest, entry.fileName)
+                    if (!destPath) {
+                        zipfile.readEntry()
+                        return
+                    }
+                    if (isDir) {
+                        fs.mkdirSync(destPath, {recursive: true})
+                        zipfile.readEntry()
+                    } else {
+                        const dirname = path.dirname(destPath)
+                        if (!fs.existsSync(dirname)) {
+                            fs.mkdirSync(dirname, {recursive: true})
                         }
-                        readStream.on('end', function () {
-                            if (option.process) {
-                                option.process('end', entry)
+                        zipfile.openReadStream(entry, function (err: any, readStream: any) {
+                            if (err) {
+                                fail(err)
+                                return
                             }
-                            zipfile.readEntry()
+                            readStream.on('end', function () {
+                                if (option.process) {
+                                    option.process('end', entry)
+                                }
+                                zipfile.readEntry()
+                            })
+                            readStream.on('error', function (err: any) {
+                                fail(err)
+                            })
+                            readStream.pipe(fs.createWriteStream(destPath))
                         })
-                        readStream.pipe(fs.createWriteStream(destPath))
-                    })
+                    }
+                } catch (e) {
+                    fail(e)
                 }
             })
             zipfile.readEntry()

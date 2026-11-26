@@ -10,6 +10,8 @@ export interface RunDeviceConfig {
     cronExpression: string
     runOnAllDevices: boolean
     deviceIds: string[]
+    /** 运行失败时是否自动让 AI 修复并重跑 */
+    autoRepair: boolean
 }
 
 const visible = ref(false)
@@ -22,6 +24,7 @@ const runMode = ref<'manual' | 'scheduled'>('manual')
 const cronExpression = ref('')
 const selectedDeviceIds = ref<string[]>([])
 const runOnAllDevices = ref(false)
+const autoRepair = ref(true)
 
 const filterRecords = computed(() => {
     let records = deviceStore.records
@@ -60,6 +63,7 @@ const show = (config?: Partial<RunDeviceConfig>) => {
     runMode.value = config?.runMode || 'manual'
     cronExpression.value = config?.cronExpression || ''
     runOnAllDevices.value = config?.runOnAllDevices || false
+    autoRepair.value = config?.autoRepair !== false
     selectedDeviceIds.value = config?.deviceIds ? [...config.deviceIds] : []
     searchKeywords.value = ''
     filterGroupId.value = ''
@@ -76,6 +80,7 @@ const doConfirm = () => {
         cronExpression: cronExpression.value,
         runOnAllDevices: runOnAllDevices.value,
         deviceIds: [...selectedDeviceIds.value],
+        autoRepair: autoRepair.value,
     })
     visible.value = false
 }
@@ -97,6 +102,9 @@ onMounted(() => {
         runMode.value = payload.mode
         if (payload.cron !== undefined) cronExpression.value = payload.cron
     })
+    testActionSet('task.deviceSelect.setAutoRepair', (value: boolean) => {
+        autoRepair.value = !!value
+    })
 })
 
 onUnmounted(() => {
@@ -105,6 +113,7 @@ onUnmounted(() => {
     testActionUnset('task.deviceSelect.getDeviceCount')
     testActionUnset('task.deviceSelect.confirm')
     testActionUnset('task.deviceSelect.setRunMode')
+    testActionUnset('task.deviceSelect.setAutoRepair')
 })
 
 defineExpose({show})
@@ -212,6 +221,15 @@ defineExpose({show})
                         {{ $t('task.runOnAllDevices') }}
                     </a-checkbox>
                     <a-tooltip :content="$t('task.runOnAllDevicesInfo')">
+                        <i-lucide-info class="text-gray-400 text-sm cursor-help" />
+                    </a-tooltip>
+                </div>
+
+                <!-- Auto repair toggle -->
+                <div class="flex items-center gap-2">
+                    <a-switch v-model="autoRepair" />
+                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ $t('task.autoRepair') }}</span>
+                    <a-tooltip :content="$t('task.autoRepairInfo')">
                         <i-lucide-info class="text-gray-400 text-sm cursor-help" />
                     </a-tooltip>
                 </div>

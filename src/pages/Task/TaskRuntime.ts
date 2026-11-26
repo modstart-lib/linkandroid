@@ -68,15 +68,30 @@ export const runTaskPythonCode = async (
         error?: (msg: string, exitCode: number, process: any) => void
         env?: Record<string, any>
         deviceIds?: string[]
+        projectId?: number
     },
 ) => {
     option?.preparing?.()
     const runtime = await getTaskRuntime(deviceId, option?.deviceIds)
     const llmEnv = await getLlmEnv()
     option?.started?.()
-    return await window.$mapi.app.spawnShell([runtime.pythonPath, '-u', '-c', code], {
+    // Tasks run from their project directory so sibling files can be imported.
+    let command = [runtime.pythonPath, '-u', '-c', code]
+    let cwd = runtime.taskDir
+    if (option?.projectId) {
+        try {
+            const info = await window.$mapi.project.pathInfo(option.projectId)
+            if (info.exists && info.dir) {
+                command = [runtime.pythonPath, '-u', `${info.dir}/${info.entry}`]
+                cwd = info.dir
+            }
+        } catch {
+            // fall back to inline code
+        }
+    }
+    return await window.$mapi.app.spawnShell(command, {
         shell: false,
-        cwd: runtime.taskDir,
+        cwd,
         stdout: option?.stdout,
         stderr: option?.stderr,
         success: option?.success,

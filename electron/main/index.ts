@@ -104,7 +104,7 @@ AppEnv.dataRootIsDefault = isDefaultDataRoot(AppEnv.dataRoot)
 if (!fs.existsSync(AppEnv.dataRoot)) {
     fs.mkdirSync(AppEnv.dataRoot, {recursive: true})
 }
-for (const dir of ['db', 'logs', 'storage']) {
+for (const dir of ['db', 'logs', 'storage', 'projects']) {
     if (!fs.existsSync(path.join(AppEnv.dataRoot, dir))) {
         fs.mkdirSync(path.join(AppEnv.dataRoot, dir), {recursive: true})
     }

@@ -4,6 +4,7 @@ import {useRouter} from 'vue-router'
 import PageNav from './../components/PageNav.vue'
 import {AppConfig} from '../config'
 import AppQuitConfirm from '../components/AppQuitConfirm.vue'
+import TaskScheduledRepairHost from '../components/TaskScheduledRepairHost.vue'
 import {useDragWindow} from '../components/common/dragWindow'
 import {isDev} from '../lib/env'
 import {t} from '../lang'
@@ -108,6 +109,7 @@ const doDebugToggle = () => {
         </div>
     </div>
     <AppQuitConfirm ref="appQuitConfirm" />
+    <TaskScheduledRepairHost />
     <!-- 调试弹窗 -->
     <template v-if="isDev">
         <div class="fixed top-10 left-0 z-50">

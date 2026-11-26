@@ -35,9 +35,9 @@ watch(
     },
 )
 
-const mapModelError = (e: any, provider: Provider) => {
+export const mapModelError = (e: any, provider: Provider, code?: string) => {
     if (provider.id === 'buildIn') {
-        const msg = e + ''
+        const msg = `${code || ''} ${e}`
         const showCharge = () => {
             window.$mapi.user
                 .open({
@@ -55,6 +55,11 @@ const mapModelError = (e: any, provider: Provider) => {
             },
             // one-api / new-api proxy error code
             insufficient_user_quota: {
+                msg: t('error.energyInsufficient'),
+                callback: showCharge,
+            },
+            // OpenCode provider quota error surfaced by the agent worker
+            'provider.quota': {
                 msg: t('error.energyInsufficient'),
                 callback: showCharge,
             },

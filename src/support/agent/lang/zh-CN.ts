@@ -1,0 +1,17 @@
+export default {
+    'chatImage.hint': 'Ctrl+V 粘贴截图',
+    'chatImage.max': '最多 {count} 张，请先删除 1 张',
+    'chatImage.tooLarge': '图片过大，请换一张',
+    'chatImage.failed': '图片处理失败，请重试',
+    'chatImage.message': '图片消息',
+    'chatImage.placeholder': '（图片）',
+    'chatImage.noVision': '当前模型未标记支持看图',
+    'chatImage.remove': '移除图片',
+    'chatComposer.add': '添加图片',
+    'chatComposer.pick': '选择图片',
+    'chatComposer.paste': '粘贴图片',
+    'chatComposer.send': '发送',
+    'chatComposer.stop': '停止',
+    'chatComposer.noClipboardImage': '剪贴板里没有图片',
+    'chatComposer.imageFilter': '图片',
+}

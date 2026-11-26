@@ -365,6 +365,7 @@ type DefsMapi = {
             basic: {}
         }>
         refresh: () => Promise<void>
+        save: (data: {apiToken: string; user: any; data: any; basic: any}) => Promise<void>
         getApiToken: () => Promise<string>
         getWebEnterUrl: (url: string) => Promise<string>
         openWebUrl: (url: string) => Promise<void>
@@ -536,6 +537,140 @@ type DefsMapi = {
         >
         getNextRunTime: (cronExpression: string) => Promise<string | null>
         resetTaskTrigger: (taskId: number) => Promise<void>
+    }
+    project: {
+        save: (data: {
+            id?: number
+            name: string
+            description?: string
+            requirement?: string
+            code: string
+            language?: string
+            runMode?: string
+            cronExpression?: string
+            deviceIds?: string[]
+            runOnAllDevices?: boolean
+            copyFromId?: number
+        }) => Promise<any>
+        remove: (id: number) => Promise<void>
+        copy: (id: number) => Promise<any>
+        pathInfo: (id: number) => Promise<{id: number; uuid?: string; dir: string; entry: string; exists: boolean}>
+        listFiles: (id: number) => Promise<Array<{path: string; size: number; isDir: boolean; updatedAt: string}>>
+        readFile: (id: number, relPath: string) => Promise<string>
+        writeFile: (id: number, relPath: string, content: string) => Promise<void>
+        deleteFile: (id: number, relPath: string) => Promise<void>
+        renameFile: (id: number, fromPath: string, toPath: string) => Promise<void>
+        openDir: (id: number) => Promise<string>
+        
+        manifest: (id: number) => Promise<any>
+    }
+    
+    opencodeAgent: {
+        runTaskAgent: (input: {
+            provider: {
+                type: string
+                apiUrl: string
+                apiHost: string
+                apiPath: string
+                apiKey: string
+                modelId: string
+            }
+            requirement: string
+            currentCode: string
+            deviceBasicInfo: string
+            xmlInfo: string
+            screenshotDataUrl?: string
+            userImages?: string[]
+            updateReadyMessage: string
+            failureLog?: string
+            deviceId?: string
+            clientId?: string
+            timeoutMs?: number
+            opencodeSessionId?: string
+            business?: 'ai-chat' | 'task-chat' | 'task-repair' | 'generate'
+            businessId?: string
+            refId?: string
+            title?: string
+        }) => Promise<{
+            ok: boolean
+            code?: string
+            message: string
+            requestId: string
+            durationMs: number
+            messages?: any[]
+            error?: {code?: string; message: string}
+            opencodeSessionId: string
+            newMessageIds?: string[]
+        }>
+        interrupt: (input?: {clientId?: string}) => Promise<{ok: boolean}>
+        onProgress: (callback: (data: {clientId?: string; messages: any[]}) => void) => () => void
+        runChatAgent: (input: {
+            provider: {
+                type: string
+                apiUrl: string
+                apiHost: string
+                apiPath: string
+                apiKey: string
+                modelId: string
+            }
+            history: {role: 'user' | 'assistant'; content: string}[]
+            text: string
+            images?: string[]
+            deviceId?: string
+            devices?: Array<{id: string; name?: string; model?: string; status?: string}>
+            clientId?: string
+            timeoutMs?: number
+            opencodeSessionId?: string
+            business?: 'ai-chat' | 'task-chat' | 'task-repair' | 'generate'
+            businessId?: string
+            refId?: string
+            title?: string
+        }) => Promise<{
+            ok: boolean
+            message: string
+            requestId: string
+            durationMs: number
+            messages?: any[]
+            error?: {code?: string; message: string}
+            opencodeSessionId: string
+            newMessageIds?: string[]
+        }>
+        generateText: (input: {
+            provider: {
+                type: string
+                apiUrl: string
+                apiHost: string
+                apiPath: string
+                apiKey: string
+                modelId: string
+            }
+            prompt: string
+            systemPrompt?: string
+            timeoutMs?: number
+            opencodeSessionId?: string
+            business?: 'ai-chat' | 'task-chat' | 'task-repair' | 'generate'
+            businessId?: string
+            refId?: string
+            title?: string
+        }) => Promise<{
+            code: number
+            msg: string
+            data?: {content?: string}
+            durationMs: number
+            opencodeSessionId?: string
+        }>
+        sessionRemove: (input: {opencodeSessionId: string}) => Promise<{ok: boolean}>
+        sessionRemoveBusiness: (input: {
+            business: Array<'ai-chat' | 'task-chat' | 'task-repair' | 'generate'>
+            businessId: string
+        }) => Promise<{removed: number}>
+        sessionList: (input: {
+            business?: 'ai-chat' | 'task-chat' | 'task-repair' | 'generate'
+            businessId?: string
+        }) => Promise<{
+            sessions: Array<{id: string; title: string; metadata?: Record<string, any>}>
+        }>
+        sessionContext: (input: {opencodeSessionId: string}) => Promise<{messages: any[]}>
     }
 }
 

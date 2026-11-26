@@ -1,0 +1,17 @@
+export default {
+    'chatImage.hint': 'Paste a screenshot with Ctrl+V',
+    'chatImage.max': 'Up to {count} images, remove one first',
+    'chatImage.tooLarge': 'This image is too large, try another one',
+    'chatImage.failed': 'Failed to process the image, please retry',
+    'chatImage.message': 'Image message',
+    'chatImage.placeholder': '(image)',
+    'chatImage.noVision': 'The selected model is not marked as vision-capable',
+    'chatImage.remove': 'Remove image',
+    'chatComposer.add': 'Add image',
+    'chatComposer.pick': 'Choose image',
+    'chatComposer.paste': 'Paste image',
+    'chatComposer.send': 'Send',
+    'chatComposer.stop': 'Stop',
+    'chatComposer.noClipboardImage': 'No image in the clipboard',
+    'chatComposer.imageFilter': 'Images',
+}

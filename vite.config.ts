@@ -155,6 +155,27 @@ export default defineConfig(({command}) => {
                         },
                     },
                 },
+                {
+                    entry: "electron/agent/worker.ts",
+                    vite: {
+                        build: {
+                            target: "es2015",
+                            sourcemap: undefined,
+                            minify: minify,
+                            outDir: "dist-electron/agent",
+                            lib: {
+                                formats: ["cjs"],
+                                fileName: "worker",
+                            },
+                            rollupOptions: {
+                                external: externalPackages,
+                                output: {
+                                    format: "cjs",
+                                },
+                            },
+                        },
+                    },
+                },
             ]),
             renderer(),
         ],

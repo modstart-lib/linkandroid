@@ -8,6 +8,9 @@ ipcMain.handle('misc:getZipFileContent', async (_, path: string, pathInZip: stri
 ipcMain.handle('misc:unzip', async (_, zipPath: string, dest: string) => {
     return await index.unzip(zipPath, dest)
 })
+ipcMain.handle('misc:zip', async (_, zipPath: string, sourceDir: string, option?: any) => {
+    return await index.zip(zipPath, sourceDir, option)
+})
 ipcMain.handle('misc:getNetworkInterfaces', async () => {
     return index.getNetworkInterfaces()
 })

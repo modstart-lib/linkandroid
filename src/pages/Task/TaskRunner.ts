@@ -30,6 +30,7 @@ const updateRunRecord = async (id: number | string, status: string, log: string,
 const runPythonCode = async (task: TaskRunTarget, deviceId: string, deviceIds: string[]) => {
     const controller = await runTaskPythonCode(task.code, deviceId, {
         deviceIds,
+        projectId: task.id,
         env: {
             LINKANDROID_TASK_ID: `${task.id}`,
             LINKANDROID_TASK_NAME: task.name,

@@ -68,3 +68,6 @@ __pycache__/
 # OpenCode
 _temp/
 DEV_*.md
+
+# 本地证据目录（mk-dev-plan）
+.mk-evidence/

@@ -19,6 +19,9 @@ import scrcpy from './scrcpy/render'
 import serve from './serve/render'
 import power from './power/render'
 import task from './task/render'
+import project from './project/render'
+
+import opencodeAgent from './opencode-agent/render'
 
 export const MAPI = {
     init(env: typeof AppEnv = null) {
@@ -43,6 +46,9 @@ export const MAPI = {
                 serve,
                 power,
                 task,
+                project,
+                
+                opencodeAgent,
             })
             db.init()
             event.init()

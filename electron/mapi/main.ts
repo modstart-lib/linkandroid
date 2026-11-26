@@ -15,6 +15,10 @@ import adb from './adb/main'
 import httpserver from './httpserver/main'
 import power from './power/main'
 import task from './task/main'
+import project from './project/main'
+
+import opencodeAgent from './opencode-agent/main'
+import {startAgentMaintenance} from './opencode-agent/maintain'
 
 const $mapi = {
     app,
@@ -34,24 +38,31 @@ const $mapi = {
     httpserver,
     power,
     task,
+    project,
+    
+    opencodeAgent,
 }
 
 export const MAPI = {
     async init() {
         await $mapi.user.init()
         await $mapi.db.init()
+        await $mapi.project.ensureMigrated()
         await $mapi.event.init()
         await $mapi.serve.start()
         await $mapi.httpserver.start()
+        $mapi.opencodeAgent.register()
     },
     ready() {
         $mapi.keys.ready()
         // 启动定时任务调度器
         $mapi.task.start()
+        startAgentMaintenance()
     },
     destroy() {
         $mapi.keys.destroy()
         $mapi.task.stop()
+        $mapi.opencodeAgent.destroy()
         $mapi.serve.stop()
         $mapi.httpserver.stop()
     },

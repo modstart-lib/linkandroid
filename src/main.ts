@@ -14,6 +14,7 @@ import './style.less'
 
 import {reportErrorRender} from '../electron/mapi/log/beacon-render'
 import {useSettingStore} from './store/modules/setting'
+import {model} from './module/Model/store/model'
 import {TaskManager} from './task'
 import {initTestRegistry, registerNavigate} from './utils/test'
 
@@ -98,4 +99,7 @@ registerNavigate(async (path) => {
 app.mount('#app').$nextTick(() => {
     postMessage({payload: 'removeLoading'}, '*')
     logRendererInfo('mounted', {href: location.href})
+    // Re-read model providers once the app is fully ready; the first load can race
+    // the storage bootstrap and leave custom providers missing.
+    model.init().then()
 })

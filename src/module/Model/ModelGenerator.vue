@@ -2,6 +2,7 @@
 import ModelSelector from './ModelSelector.vue'
 import {onMounted, ref, watch} from 'vue'
 import {StorageUtil} from '../../lib/storage'
+import {Dialog} from '../../lib/dialog'
 import {useModelStore} from './store/model'
 import {StringUtil} from '../../lib/util'
 import {ModelChatResult} from './provider/provider'
@@ -48,7 +49,34 @@ const chat = async (
         }
     }
     const [providerId, modelId] = (selectedModel.value || '|').split('|')
-    const ret = await modelStore.chat(providerId, modelId, prompt, chatParam)
+    if (!providerId || !modelId) {
+        Dialog.tipError(t('hint.selectModel'))
+        return {code: -1, msg: t('hint.selectModel')}
+    }
+    const provider = modelStore.providers.find((p) => p.id === providerId)
+    const model = provider?.data.models.find((m) => m.id === modelId)
+    if (!provider) {
+        return {code: -1, msg: 'provider not found'}
+    }
+    if (providerId === 'buildIn' && !provider.apiUrl) {
+        Dialog.tipError(t('error.energyInsufficient'))
+        return {code: -1, msg: t('error.energyInsufficient')}
+    }
+    if (!model) {
+        return {code: -1, msg: 'model not found'}
+    }
+    const ret = (await window.$mapi.opencodeAgent.generateText({
+        provider: {
+            type: provider.type,
+            apiUrl: provider.apiUrl,
+            apiHost: provider.data.apiHost,
+            apiPath: provider.apiPath ?? '/v1',
+            apiKey: provider.data.apiKey,
+            modelId: model.id,
+        },
+        prompt,
+        systemPrompt: chatParam.systemPrompt || undefined,
+    })) as ModelChatResult
     if (ret.code) {
         return ret
     }

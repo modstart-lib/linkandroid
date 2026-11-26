@@ -203,7 +203,9 @@ const post = async <T>(
     )
     let url = api
     if (!api.startsWith('http:') && !api.startsWith('https:')) {
-        url = `${AppConfig.apiBaseUrl}/${api}`
+        // LINKANDROID_API_BASE lets local development point the client at a local backend
+        const apiBaseUrl = (process.env.LINKANDROID_API_BASE || AppConfig.apiBaseUrl || '').replace(/\/+$/, '')
+        url = `${apiBaseUrl}/${api.replace(/^\/+/, '')}`
     }
     const apiToken = await User.getApiToken()
     let json = null,
