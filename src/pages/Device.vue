@@ -195,6 +195,18 @@ onMounted(() => {
         if (!device) return null
         return await deviceStore.buildMirrorArgs(device)
     })
+    testActionSet('device.mirror.toggle', async (deviceId: string) => {
+        const device = deviceStore.records.find((r) => r.id === deviceId)
+        if (!device) return false
+        await deviceStore.doMirror(device)
+        return true
+    })
+    testActionSet('device.mirror.state', (deviceId: string) => {
+        const device = deviceStore.records.find((r) => r.id === deviceId)
+        if (!device) return null
+        const runtime = deviceStore.runtimeOf(device)
+        return {mirroring: !!runtime.mirrorController, appMirrors: runtime.appMirrors.map((m) => m.package)}
+    })
     testActionSet('device.shouldAutoMirror', async (deviceId: string) => {
         const device = deviceStore.records.find((r) => r.id === deviceId)
         if (!device) return false
@@ -223,6 +235,8 @@ onUnmounted(() => {
     testActionUnset('device.batchAction')
     testActionUnset('device.getSelectedCount')
     testActionUnset('device.mirrorArgs')
+    testActionUnset('device.mirror.toggle')
+    testActionUnset('device.mirror.state')
     testActionUnset('device.shouldAutoMirror')
     testActionUnset('device.displayOverrideFormat')
     testActionUnset('device.mirrorAppArgs')

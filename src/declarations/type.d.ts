@@ -516,6 +516,7 @@ type DefsMapi = {
         stop: () => Promise<void>
         getPort: () => Promise<number>
         getAddress: () => Promise<string>
+        shortcutsSync: () => Promise<boolean>
     }
     power: {
         start: (reason?: 'prevent-app-suspension' | 'prevent-display-sleep') => Promise<number>

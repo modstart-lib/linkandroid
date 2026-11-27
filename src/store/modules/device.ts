@@ -866,9 +866,12 @@ export const deviceStore = defineStore('device', {
                 // 立即清理会被覆盖回「正在投屏」，导致按钮状态与窗口不一致
                 setTimeout(() => {
                     const current = getDeviceRuntime(device).value
+                    // 运行态读到的是 Vue 响应式代理，必须取原始对象才能按引用比较；
+                    // 否则这里永远不相等，关闭投屏后 mirrorController 不被清空，
+                    // 卡片一直显示「投屏中」，再次点击只会停止已退出的进程
                     if (appPackage) {
                         current.appMirrors = current.appMirrors.filter((m) => m.package !== appPackage)
-                    } else if (current.mirrorController === session.controller) {
+                    } else if (toRaw(current.mirrorController) === session.controller) {
                         current.mirrorController = null
                     }
                     this.releaseMirrorPower(device)

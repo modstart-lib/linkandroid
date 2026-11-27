@@ -4,6 +4,7 @@ import SettingAbout from '../components/Setting/SettingAbout.vue'
 import SettingBasic from '../components/Setting/SettingBasic.vue'
 import SettingCli from '../components/Setting/SettingCli.vue'
 import SettingPython from '../components/Setting/SettingPython.vue'
+import SettingShortcut from '../components/Setting/SettingShortcut.vue'
 import {t} from '../lang'
 
 import {testActionSet, testActionUnset} from '../utils/test'
@@ -22,6 +23,9 @@ onMounted(() => {
     testActionSet('setting.tab.python', () => {
         activeTab.value = 'python'
     })
+    testActionSet('setting.tab.shortcut', () => {
+        activeTab.value = 'shortcut'
+    })
     testActionSet('setting.tab.about', () => {
         activeTab.value = 'about'
     })
@@ -38,6 +42,7 @@ onBeforeUnmount(() => {
     
     testActionUnset('setting.tab.cli')
     testActionUnset('setting.tab.python')
+    testActionUnset('setting.tab.shortcut')
     testActionUnset('setting.tab.about')
     testActionUnset('setting-about.prepare')
 })
@@ -97,6 +102,17 @@ onBeforeUnmount(() => {
             </div>
             <div
                 class="setting-tab p-2 rounded-lg mb-4 cursor-pointer"
+                :class="activeTab === 'shortcut' ? 'tab-active' : ''"
+                @click="activeTab = 'shortcut'"
+                data-testid="setting-tab-shortcut"
+            >
+                <div class="text-base flex items-center gap-2 whitespace-nowrap">
+                    <i-lucide-keyboard />
+                    {{ t('page.setting.shortcut') }}
+                </div>
+            </div>
+            <div
+                class="setting-tab p-2 rounded-lg mb-4 cursor-pointer"
                 :class="activeTab === 'cli' ? 'tab-active' : ''"
                 @click="activeTab = 'cli'"
             >
@@ -134,6 +150,15 @@ onBeforeUnmount(() => {
                         <span>{{ t('setting.python.tab') }}</span>
                     </div>
                     <SettingPython />
+                </div>
+            </div>
+            <div v-show="activeTab === 'shortcut'">
+                <div class="p-6">
+                    <div class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <i-lucide-keyboard class="text-2xl" />
+                        <span>{{ t('page.setting.shortcut') }}</span>
+                    </div>
+                    <SettingShortcut />
                 </div>
             </div>
             <div v-show="activeTab === 'cli'">

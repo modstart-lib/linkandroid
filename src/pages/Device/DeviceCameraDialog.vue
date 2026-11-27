@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {computed, onMounted, onUnmounted, ref, toRaw} from 'vue'
 import {t} from '../../lang'
 import {testActionSet, testActionUnset} from '../../utils/test'
 import {Dialog} from '../../lib/dialog'
@@ -289,13 +289,14 @@ const doStartCamera = async () => {
                 stderrText = (stderrText + data).slice(-4000)
             },
             success: () => {
-                if (runtime.cameraController === controller) {
+                // 运行态读到的是响应式代理，取原始对象才能与 controller 按引用比较
+                if (toRaw(runtime.cameraController) === controller) {
                     runtime.cameraController = null
                 }
             },
             error: (msg: string) => {
                 failed = true
-                if (runtime.cameraController === controller) {
+                if (toRaw(runtime.cameraController) === controller) {
                     runtime.cameraController = null
                 }
                 const detail = stderrText.trim() || String(msg)

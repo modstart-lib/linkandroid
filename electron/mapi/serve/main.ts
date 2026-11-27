@@ -4,6 +4,8 @@ import {WebSocket, WebSocketServer} from 'ws'
 import {t} from '../../config/lang'
 import {Apps} from '../app'
 import {Log} from '../log/main'
+import shortcuts from './shortcuts'
+import type {ShortcutRunner} from './shortcuts'
 
 // 生成 8 位十六进制随机 id（协议要求）
 const genId = () => randomBytes(4).toString('hex')
@@ -19,6 +21,37 @@ const deviceTopMode: Map<string, boolean> = new Map()
 // 每个设备的屏幕开关状态（true=亮屏，false=息屏）
 const deviceScreenOn: Map<string, boolean> = new Map()
 
+// 生成面板配置（根据设备随动状态和置顶状态动态生成）
+const getPanelConfig = (deviceId: string) => {
+    const isFollowMode = deviceFollowMode.get(deviceId) || false
+    const isTopMode = deviceTopMode.get(deviceId) || false
+    const isScreenOn = deviceScreenOn.get(deviceId)
+    // 默认 true（亮屏），除非显式设为 false
+    const screenState = isScreenOn !== undefined ? isScreenOn : true
+    return {
+        type: 'panel',
+        data: {
+            buttons: [
+                {id: 'home', icon: 'home', title: t('panel.home')},
+                {id: 'back', icon: 'back', title: t('panel.back')},
+                {id: 'recent', icon: 'task', title: t('panel.recent')},
+                {id: 'volume_up', icon: 'v-plus', title: t('panel.volumeUp')},
+                {id: 'volume_down', icon: 'v-minus', title: t('panel.volumeDown')},
+                {id: 'screenshot', icon: 'screenshot', title: t('panel.screenshot')},
+                {id: 'rotate', icon: 'rotate', title: t('panel.rotate')},
+                {
+                    id: 'screen_power',
+                    icon: screenState ? 'screen-on' : 'screen-off',
+                    title: t('panel.screenPower'),
+                },
+                {id: 'follow', icon: isFollowMode ? 'follow_active' : 'follow', title: t('panel.follow')},
+                {id: 'toggle_top', icon: isTopMode ? 'top_active' : 'top', title: t('panel.toggleTop')},
+                {id: 'close', icon: 'quit', title: t('panel.close')},
+            ],
+        },
+    }
+}
+
 const start = async (): Promise<number> => {
     if (wss) {
         Log.info('WebSocket server already running on port ' + wsPort)
@@ -33,37 +66,6 @@ const start = async (): Promise<number> => {
             const url = new URL(req.url || '', `ws://localhost:${wsPort}`)
             const clientType = url.searchParams.get('type') || 'Unknown'
             const deviceId = url.searchParams.get('deviceId') || ''
-
-            // 生成面板配置（根据设备随动状态和置顶状态动态生成）
-            const getPanelConfig = (deviceId: string) => {
-                const isFollowMode = deviceFollowMode.get(deviceId) || false
-                const isTopMode = deviceTopMode.get(deviceId) || false
-                const isScreenOn = deviceScreenOn.get(deviceId)
-                // 默认 true（亮屏），除非显式设为 false
-                const screenState = isScreenOn !== undefined ? isScreenOn : true
-                return {
-                    type: 'panel',
-                    data: {
-                        buttons: [
-                            {id: 'home', icon: 'home', title: t('panel.home')},
-                            {id: 'back', icon: 'back', title: t('panel.back')},
-                            {id: 'recent', icon: 'task', title: t('panel.recent')},
-                            {id: 'volume_up', icon: 'v-plus', title: t('panel.volumeUp')},
-                            {id: 'volume_down', icon: 'v-minus', title: t('panel.volumeDown')},
-                            {id: 'screenshot', icon: 'screenshot', title: t('panel.screenshot')},
-                            {id: 'rotate', icon: 'rotate', title: t('panel.rotate')},
-                            {
-                                id: 'screen_power',
-                                icon: screenState ? 'screen-on' : 'screen-off',
-                                title: t('panel.screenPower'),
-                            },
-                            {id: 'follow', icon: isFollowMode ? 'follow_active' : 'follow', title: t('panel.follow')},
-                            {id: 'toggle_top', icon: isTopMode ? 'top_active' : 'top', title: t('panel.toggleTop')},
-                            {id: 'close', icon: 'quit', title: t('panel.close')},
-                        ],
-                    },
-                }
-            }
 
             // 存储客户端信息到ws对象上，用于随动功能
             ;(ws as any)._clientType = clientType
@@ -126,6 +128,18 @@ const start = async (): Promise<number> => {
                         } else if (data.type === 'ready') {
                             ws.send(JSON.stringify(getPanelConfig(deviceId)))
                             Log.info(`Sent panel config to DeviceMirror: deviceId=${deviceId}`)
+                            // 投屏窗口就绪后下发当前设备的自定义快捷键
+                            shortcuts
+                                .loadItems()
+                                .then((items) => {
+                                    if (ws.readyState === WebSocket.OPEN) {
+                                        ws.send(JSON.stringify(shortcuts.buildMessage(items, deviceId)))
+                                        Log.info(`Sent shortcuts to DeviceMirror: deviceId=${deviceId}`)
+                                    }
+                                })
+                                .catch((error) => {
+                                    Log.error(`Failed to send shortcuts: ${error.message}`)
+                                })
                             // 查询设备实际屏幕状态，确保图标与真实状态一致
                             ws.send(
                                 JSON.stringify({
@@ -144,70 +158,26 @@ const start = async (): Promise<number> => {
                             }
                         } else if (data.type === 'panel_button_click') {
                             const buttonId = data.data?.id
-                            if (buttonId === 'follow') {
-                                const currentState = deviceFollowMode.get(deviceId) || false
-                                deviceFollowMode.set(deviceId, !currentState)
-                                Log.info(`FollowMode toggled for ${deviceId}: ${!currentState}`)
-                                ws.send(JSON.stringify(getPanelConfig(deviceId)))
-                            } else if (buttonId === 'toggle_top') {
-                                const currentState = deviceTopMode.get(deviceId) || false
-                                const newState = !currentState
-                                deviceTopMode.set(deviceId, newState)
-                                Log.info(`TopMode toggled for ${deviceId}: ${newState}`)
-                                ws.send(
-                                    JSON.stringify({
-                                        type: 'top',
-                                        data: {
-                                            enable: newState,
+                            if (buttonId) {
+                                handlePanelButton(deviceId, buttonId, ws)
+                            }
+                        } else if (data.type === 'shortcut') {
+                            // 投屏窗口内命中用户配置的快捷键
+                            const shortcutId = data.data?.id
+                            if (shortcutId) {
+                                shortcuts
+                                    .handleShortcut(
+                                        deviceId,
+                                        shortcutId,
+                                        {
+                                            width: Number(data.data?.width) || 0,
+                                            height: Number(data.data?.height) || 0,
                                         },
-                                    }),
-                                )
-                                ws.send(JSON.stringify(getPanelConfig(deviceId)))
-                            } else if (buttonId === 'screen_power') {
-                                const currentState = deviceScreenOn.get(deviceId)
-                                const newState = currentState !== undefined ? !currentState : false
-                                deviceScreenOn.set(deviceId, newState)
-                                Log.info(`Screen power toggled for ${deviceId}: ${newState ? 'on' : 'off'}`)
-                                // 通过 scrcpy 控制协议设置屏幕电源（不触发锁屏）
-                                ws.send(
-                                    JSON.stringify({
-                                        type: 'screen_power',
-                                        id: genId(),
-                                        data: {action: newState ? 'on' : 'off'},
-                                    }),
-                                )
-                                ws.send(JSON.stringify(getPanelConfig(deviceId)))
-                                const isFollowMode = deviceFollowMode.get(deviceId) || false
-                                if (isFollowMode) {
-                                    handlePanelButtonFollowMode(deviceId, buttonId)
-                                }
-                            } else if (buttonId === 'rotate') {
-                                Log.info(`Rotate device requested for ${deviceId}`)
-                                // 旋转手机屏幕方向（scrcpy ROTATE_DEVICE 控制消息）
-                                ws.send(
-                                    JSON.stringify({
-                                        type: 'rotate',
-                                        id: genId(),
-                                    }),
-                                )
-                                const isFollowMode = deviceFollowMode.get(deviceId) || false
-                                if (isFollowMode) {
-                                    broadcastRotateToOtherDevices(deviceId)
-                                }
-                            } else if (buttonId === 'close') {
-                                ws.send(
-                                    JSON.stringify({
-                                        type: 'quit',
-                                    }),
-                                )
-                            } else {
-                                data.deviceId = deviceId
-                                data.type = 'DevicePanelButtonClick'
-                                broadcast('Render', data)
-                                const isFollowMode = deviceFollowMode.get(deviceId) || false
-                                if (isFollowMode && isPanelButtonFollowable(buttonId)) {
-                                    handlePanelButtonFollowMode(deviceId, buttonId)
-                                }
+                                        shortcutRunner,
+                                    )
+                                    .catch((error) => {
+                                        Log.error(`Shortcut ${shortcutId} failed: ${error.message}`)
+                                    })
                             }
                         } else if (isDeviceEvent(data.type)) {
                             const isFollowMode = deviceFollowMode.get(deviceId) || false
@@ -268,6 +238,114 @@ const broadcast = (clientType: string, message: object) => {
             }
         })
     }
+}
+
+// 处理面板按钮动作：投屏窗口点击与快捷键触发共用同一套逻辑
+const handlePanelButton = (deviceId: string, buttonId: string, ws: WebSocket) => {
+    if (buttonId === 'follow') {
+        const currentState = deviceFollowMode.get(deviceId) || false
+        deviceFollowMode.set(deviceId, !currentState)
+        Log.info(`FollowMode toggled for ${deviceId}: ${!currentState}`)
+        ws.send(JSON.stringify(getPanelConfig(deviceId)))
+    } else if (buttonId === 'toggle_top') {
+        const currentState = deviceTopMode.get(deviceId) || false
+        const newState = !currentState
+        deviceTopMode.set(deviceId, newState)
+        Log.info(`TopMode toggled for ${deviceId}: ${newState}`)
+        ws.send(
+            JSON.stringify({
+                type: 'top',
+                data: {
+                    enable: newState,
+                },
+            }),
+        )
+        ws.send(JSON.stringify(getPanelConfig(deviceId)))
+    } else if (buttonId === 'screen_power') {
+        const currentState = deviceScreenOn.get(deviceId)
+        const newState = currentState !== undefined ? !currentState : false
+        deviceScreenOn.set(deviceId, newState)
+        Log.info(`Screen power toggled for ${deviceId}: ${newState ? 'on' : 'off'}`)
+        // 通过 scrcpy 控制协议设置屏幕电源（不触发锁屏）
+        ws.send(
+            JSON.stringify({
+                type: 'screen_power',
+                id: genId(),
+                data: {action: newState ? 'on' : 'off'},
+            }),
+        )
+        ws.send(JSON.stringify(getPanelConfig(deviceId)))
+        const isFollowMode = deviceFollowMode.get(deviceId) || false
+        if (isFollowMode) {
+            handlePanelButtonFollowMode(deviceId, buttonId)
+        }
+    } else if (buttonId === 'rotate') {
+        Log.info(`Rotate device requested for ${deviceId}`)
+        // 旋转手机屏幕方向（scrcpy ROTATE_DEVICE 控制消息）
+        ws.send(
+            JSON.stringify({
+                type: 'rotate',
+                id: genId(),
+            }),
+        )
+        const isFollowMode = deviceFollowMode.get(deviceId) || false
+        if (isFollowMode) {
+            broadcastRotateToOtherDevices(deviceId)
+        }
+    } else if (buttonId === 'close') {
+        ws.send(
+            JSON.stringify({
+                type: 'quit',
+            }),
+        )
+    } else {
+        broadcast('Render', {
+            type: 'DevicePanelButtonClick',
+            deviceId,
+            data: {id: buttonId},
+        })
+        const isFollowMode = deviceFollowMode.get(deviceId) || false
+        if (isFollowMode && isPanelButtonFollowable(buttonId)) {
+            handlePanelButtonFollowMode(deviceId, buttonId)
+        }
+    }
+}
+
+// 向指定设备的投屏连接发送消息
+const sendToDeviceMirror = (deviceId: string, message: object) => {
+    const clientSet = clients.get('DeviceMirror')
+    if (!clientSet) {
+        return
+    }
+    const messageStr = JSON.stringify(message)
+    clientSet.forEach((client) => {
+        if ((client as any)._deviceId === deviceId && client.readyState === WebSocket.OPEN) {
+            client.send(messageStr)
+        }
+    })
+}
+
+const shortcutRunner: ShortcutRunner = {
+    send: (deviceId, message) => sendToDeviceMirror(deviceId, message),
+    panel: (deviceId, buttonId) => {
+        clients.get('DeviceMirror')?.forEach((client) => {
+            if ((client as any)._deviceId === deviceId && client.readyState === WebSocket.OPEN) {
+                handlePanelButton(deviceId, buttonId, client)
+            }
+        })
+    },
+}
+
+// 配置变化后把最新快捷键同步给已连接的投屏窗口（按设备分别下发全局 + 单机配置）
+const sendShortcuts = async () => {
+    const items = await shortcuts.loadItems()
+    clients.get('DeviceMirror')?.forEach((client) => {
+        if (client.readyState !== WebSocket.OPEN) {
+            return
+        }
+        const deviceId = (client as any)._deviceId || ''
+        client.send(JSON.stringify(shortcuts.buildMessage(items, deviceId)))
+    })
 }
 
 // 向指定设备的 DeviceManage 客户端发送消息
@@ -492,6 +570,12 @@ ipcMain.handle('serve:getPort', async () => {
 
 ipcMain.handle('serve:getAddress', async () => {
     return getAddress()
+})
+
+// 快捷键配置改动后，把最新配置推给已打开的投屏窗口
+ipcMain.handle('serve:shortcutsSync', async () => {
+    await sendShortcuts()
+    return true
 })
 
 export default {

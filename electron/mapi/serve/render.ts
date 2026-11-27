@@ -16,9 +16,14 @@ const getAddress = async (): Promise<string> => {
     return await ipcRenderer.invoke('serve:getAddress')
 }
 
+const shortcutsSync = async (): Promise<boolean> => {
+    return await ipcRenderer.invoke('serve:shortcutsSync')
+}
+
 export default {
     start,
     stop,
     getPort,
     getAddress,
+    shortcutsSync,
 }
