@@ -83,6 +83,7 @@ export const runTaskPythonCode = async (
         stdout?: (data: string, process: any) => void
         stderr?: (data: string, process: any) => void
         success?: (process: any) => void
+        stopped?: (exitCode: number) => void
         error?: (msg: string, exitCode: number, process: any) => void
         env?: Record<string, any>
         deviceIds?: string[]
@@ -119,13 +120,25 @@ export const runTaskPythonCode = async (
             // fall back to inline code
         }
     }
-    return await window.$mapi.app.spawnShell(command, {
+    let stopped = false
+    const controller = await window.$mapi.app.spawnShell(command, {
         shell: false,
         cwd,
+        // A Python exception exits with 1; do not inherit the Windows rule that
+        // treats exit code 1 as success, or a broken task reports success
+        successExitCodes: [0],
         stdout: option?.stdout,
         stderr: option?.stderr,
         success: option?.success,
-        error: option?.error,
+        error: (msg: string, exitCode: number, process: any) => {
+            // A user-initiated stop also ends non-zero; report it as stopped so
+            // it is never mistaken for a failure that triggers auto repair
+            if (stopped) {
+                option?.stopped?.(exitCode)
+                return
+            }
+            option?.error?.(msg, exitCode, process)
+        },
         env: {
             ...runtime.env,
             ...llmEnv,
@@ -133,6 +146,13 @@ export const runTaskPythonCode = async (
             ...(option?.env || {}),
         },
     })
+    return {
+        ...controller,
+        stop: () => {
+            stopped = true
+            controller.stop()
+        },
+    }
 }
 
 export const collectDeviceXmlByLa = async (deviceId: string) => {

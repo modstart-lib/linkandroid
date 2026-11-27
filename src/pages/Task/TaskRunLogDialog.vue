@@ -57,6 +57,14 @@ const doStopRun = () => {
     }
 }
 
+const queuedWaitRunId = ref<number | string | null>(null)
+
+/** 排队未开始时取消，主进程会把等待中的那条记录标成已取消 */
+const doCancelQueued = async () => {
+    if (!queuedWaitRunId.value) return
+    await window.$mapi.task.cancelQueuedRun(queuedWaitRunId.value)
+}
+
 /** 优先使用任务保存的「运行设置」设备; 未配置则自动取所有已连接设备 */
 const resolveTaskDeviceIds = (task: {device_ids?: string; run_on_all_devices?: number}): string[] => {
     const connectedDeviceIds = useDeviceStore()
@@ -102,15 +110,44 @@ const runTaskInternal = async (task: {
 
     const deviceId = deviceIds[0]
 
+    // 同一任务只跑一轮：忙时排队，上一轮结束后自动开始
+    const gateToken = `manual-${task.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const gate = await window.$mapi.task.acquireRun(task.id, deviceIds, gateToken)
+    let queuedRunId: number | string | null = null
+    if (gate.status === 'queued' && gate.runId) {
+        queuedRunId = gate.runId
+        queuedWaitRunId.value = gate.runId
+        logPanel.value?.printSystem(t('task.queuedWaiting'))
+        const waited = await window.$mapi.task.waitRunGranted(gate.runId)
+        queuedWaitRunId.value = null
+        if (waited.status !== 'granted') {
+            logPanel.value?.printSystem(t('task.queuedCancelled'))
+            isRunning.value = false
+            return
+        }
+    }
+    const releaseGate = () => {
+        void window.$mapi.task.releaseRun(task.id, gateToken)
+    }
+
     // Create run record
     const now = new Date().toISOString()
     let runId: number | string | null = null
     try {
-        runId = await window.$mapi.db.insert(
-            `INSERT INTO task_run (created_at, updated_at, task_id, device_id, status, log, started_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [now, now, task.id, deviceIds.join(','), 'running', '', now],
-        )
+        if (queuedRunId) {
+            runId = queuedRunId
+            await window.$mapi.db.update(
+                `UPDATE task_run SET updated_at = ?, status = ?, started_at = ? WHERE id = ?`,
+                [now, 'running', now, runId],
+            )
+        } else {
+            runId = await window.$mapi.db.insert(
+                `INSERT INTO task_run (created_at, updated_at, task_id, device_id, status, log, started_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [now, now, task.id, deviceIds.join(','), 'running', '', now],
+            )
+        }
     } catch (e) {
+        releaseGate()
         logPanel.value?.printError(mapError(e))
         isRunning.value = false
         return
@@ -137,6 +174,7 @@ const runTaskInternal = async (task: {
                 isRunning.value = false
                 runController = null
                 repairRunning = false
+                releaseGate()
                 if (runId) {
                     const plainLog = logPanel.value?.getPlainText() || ''
                     await window.$mapi.db.update(
@@ -146,11 +184,27 @@ const runTaskInternal = async (task: {
                 }
                 emit('done')
             },
+            stopped: async () => {
+                logPanel.value?.printSystem(t('task.runStopped'))
+                isRunning.value = false
+                runController = null
+                repairRunning = false
+                releaseGate()
+                if (runId) {
+                    const plainLog = logPanel.value?.getPlainText() || ''
+                    await window.$mapi.db.update(
+                        `UPDATE task_run SET updated_at = ?, status = ?, log = ?, finished_at = ? WHERE id = ?`,
+                        [new Date().toISOString(), 'failed', plainLog, new Date().toISOString(), runId],
+                    )
+                }
+                emit('done')
+            },
             error: async (msg: string) => {
                 logPanel.value?.printError(t('task.runFailed') + ': ' + msg)
                 missingDeps.value = await taskMissingDependencies(task.id)
                 isRunning.value = false
                 runController = null
+                releaseGate()
                 if (runId) {
                     const plainLog = logPanel.value?.getPlainText() || ''
                     await window.$mapi.db.update(
@@ -177,6 +231,7 @@ const runTaskInternal = async (task: {
         runController = controller
     } catch (e) {
         isRunning.value = false
+        releaseGate()
         logPanel.value?.printError(mapError(e))
         missingDeps.value = await taskMissingDependencies(task.id)
         if (runId) {
@@ -377,7 +432,11 @@ defineExpose({doRun, doRunFromScheduledFailure, doClose})
                     <template #icon><i-lucide-package-plus /></template>
                     {{ t('task.depsInstallButton') }}（{{ missingDeps.join(', ') }}）
                 </a-button>
-                <a-button v-if="isRunning" status="danger" @click="doStopRun">
+                <a-button v-if="queuedWaitRunId" status="warning" @click="doCancelQueued">
+                    <template #icon><i-lucide-circle-slash /></template>
+                    {{ $t('task.queuedCancel') }}
+                </a-button>
+                <a-button v-if="isRunning && !queuedWaitRunId" status="danger" @click="doStopRun">
                     <template #icon><i-lucide-circle-pause /></template>
                     {{ $t('task.stop') }}
                 </a-button>

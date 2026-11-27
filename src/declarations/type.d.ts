@@ -82,6 +82,7 @@ type DefsMapi = {
                 outputEncoding?: string
                 env?: Record<string, any>
                 shell?: boolean
+                successExitCodes?: number[]
             } | null,
         ) => Promise<{
             stop: () => void
@@ -421,6 +422,9 @@ type DefsMapi = {
         ) => Promise<{
             stop: Function | null
             devicePath: string
+            timeLimit: number
+            stopRequested: boolean
+            limitReached: boolean
         }>
         watch: (callback: (type: string, data: any) => void) => Promise<void>
         fileList: (serial: string, filePath: string) => Promise<any>

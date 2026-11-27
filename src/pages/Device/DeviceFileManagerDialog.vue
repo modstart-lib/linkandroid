@@ -4,6 +4,7 @@ import {testActionSet, testActionUnset} from '../../utils/test'
 import FileExt from '../../components/common/FileExt.vue'
 import {t} from '../../lang'
 import {Dialog} from '../../lib/dialog'
+import {mapError} from '../../lib/error'
 import {DeviceRecord, EnumDeviceStatus} from '../../types/Device'
 import {useDeviceStore} from '../../store/modules/device'
 
@@ -11,6 +12,7 @@ type FileRecord = {
     checked: boolean
     name: string
     size: number
+    sizeBytes?: number
     isDirectory: boolean
     updateTime: string
 }
@@ -100,12 +102,14 @@ const doRefresh = async () => {
                 checked: false,
                 name: f.name,
                 size: f.size,
+                sizeBytes: f.sizeBytes,
                 isDirectory: f.type === 'directory',
                 updateTime: f.updateTime,
             }
         })
     } catch (e: any) {
-        Dialog.tipError(e.message || t('device.fileListError'))
+        fileRecords.value = []
+        Dialog.tipError(mapError(e?.message || e || t('device.fileListError')))
     } finally {
         Dialog.loadingOff()
     }
@@ -141,51 +145,148 @@ const doEditPathConfirm = () => {
     doRefresh().then()
 }
 
+// 传输进度：上传 / 下载期间在弹窗内展示，不使用全局遮罩（否则挡住进度条）
+const transferRunning = ref(false)
+const transferTitle = ref('')
+const transferDetail = ref('')
+const transferPercent = ref(0)
+
+const joinPath = (base: string, name: string) => {
+    return `${(base || '').replace(/\/+$/, '')}/${name}`
+}
+
+const resetTransfer = () => {
+    transferRunning.value = false
+    transferTitle.value = ''
+    transferDetail.value = ''
+    transferPercent.value = 0
+}
+
+const onTransferProgress = (stats: {bytesTransferred?: number; percent?: number | null}) => {
+    if (typeof stats?.percent === 'number') transferPercent.value = stats.percent
+}
+
 const doDelete = async () => {
-    await Dialog.confirm(t('device.fileDeleteConfirm'))
     const files = checkedFileRecords.value
     if (files.length === 0) {
         Dialog.tipError(t('device.fileSelectFirst'))
         return
     }
-    Dialog.loadingOn(t('device.fileDeleting'))
-    for (let f of files) {
-        await window.$mapi.adb.fileDelete(device.value.id, filePath.value + '/' + f.name)
+    try {
+        await Dialog.confirm(t('device.fileDeleteConfirm'))
+    } catch {
+        return
     }
-    Dialog.loadingOff()
-    Dialog.tipSuccess(t('device.fileDeleteSuccess'))
+    Dialog.loadingOn(t('device.fileDeleting'))
+    const failed: string[] = []
+    let deleted = 0
+    try {
+        for (let f of files) {
+            try {
+                await window.$mapi.adb.fileDelete(device.value.id, joinPath(filePath.value, f.name))
+                deleted++
+            } catch (e: any) {
+                failed.push(`${f.name}：${mapError(e?.message || e || '')}`)
+            }
+        }
+    } finally {
+        Dialog.loadingOff()
+    }
+    if (failed.length === 0) {
+        Dialog.tipSuccess(t('device.fileDeleteSuccess'))
+    } else if (deleted === 0) {
+        Dialog.tipError(`${t('common.failed')}：${failed.join('、')}`)
+    } else {
+        Dialog.tipError(
+            t('device.fileDeletePartial', {
+                success: `${deleted}`,
+                failed: `${failed.length}`,
+            }) + `：${failed.join('、')}`,
+        )
+    }
     doRefresh().then()
+}
+
+const uploadPath = async (path: string) => {
+    const fileName = window.$mapi.app.isPlatform('win') ? path.split('\\').pop() : path.split('/').pop()
+    const devicePath = joinPath(filePath.value, fileName || '')
+    transferRunning.value = true
+    transferTitle.value = t('device.fileUploading')
+    transferDetail.value = fileName || ''
+    transferPercent.value = 0
+    let uploaded = false
+    try {
+        await window.$mapi.adb.filePush(device.value.id, path, devicePath, {
+            progress: onTransferProgress,
+        })
+        uploaded = true
+        Dialog.tipSuccess(t('common.success'))
+    } catch (e: any) {
+        Dialog.tipError(mapError(e?.message || e || ''))
+    } finally {
+        resetTransfer()
+        // 失败时不刷新，避免同一条设备错误再弹一次
+        if (uploaded) doRefresh().then()
+    }
 }
 
 const doUpload = async () => {
     const path = await window.$mapi.file.openFile()
-    if (path) {
-        Dialog.loadingOn(t('device.fileUploading'))
-        const fileName = window.$mapi.app.isPlatform('win') ? path.split('\\').pop() : path.split('/').pop()
-        const devicePath = filePath.value + '/' + fileName
-        await window.$mapi.adb.filePush(device.value.id, path, devicePath)
-        Dialog.loadingOff()
-        Dialog.tipSuccess(t('common.success'))
-        doRefresh().then()
-    }
+    if (!path) return
+    await uploadPath(path)
+}
+
+const pullFile = async (deviceId: string, sourcePath: string, targetPath: string) => {
+    await window.$mapi.adb.filePull(deviceId, sourcePath, targetPath, {
+        progress: onTransferProgress,
+    })
 }
 
 const doDownload = async () => {
     const path = await window.$mapi.file.openDirectory()
-    if (path) {
-        const files = checkedFileRecords.value
-        Dialog.loadingOn(t('status.downloading'))
-        for (let f of files) {
-            const sourcePath = filePath.value + '/' + f.name
+    if (!path) return
+    const files = checkedFileRecords.value
+    if (files.length === 0) {
+        Dialog.tipError(t('device.fileSelectFirst'))
+        return
+    }
+    transferRunning.value = true
+    transferTitle.value = t('status.downloading')
+    transferPercent.value = 0
+    const failed: string[] = []
+    let downloaded = 0
+    try {
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i]
+            const sourcePath = joinPath(filePath.value, f.name)
             const targetPath = path + '/' + f.name
-            if (f.isDirectory) {
-                await downloadDirectory(device.value.id, sourcePath, targetPath)
-            } else {
-                await window.$mapi.adb.filePull(device.value.id, sourcePath, targetPath)
+            transferDetail.value = `(${i + 1}/${files.length}) ${f.name}`
+            transferPercent.value = 0
+            try {
+                if (f.isDirectory) {
+                    await downloadDirectory(device.value.id, sourcePath, targetPath)
+                } else {
+                    await pullFile(device.value.id, sourcePath, targetPath)
+                }
+                downloaded++
+            } catch (e: any) {
+                failed.push(`${f.name}：${mapError(e?.message || e || '')}`)
             }
         }
-        Dialog.loadingOff()
+    } finally {
+        resetTransfer()
+    }
+    if (failed.length === 0) {
         Dialog.tipSuccess(t('device.downloadSuccess'))
+    } else if (downloaded === 0) {
+        Dialog.tipError(`${t('common.failed')}：${failed.join('、')}`)
+    } else {
+        Dialog.tipError(
+            t('device.fileDownloadPartial', {
+                success: `${downloaded}`,
+                failed: `${failed.length}`,
+            }) + `：${failed.join('、')}`,
+        )
     }
 }
 
@@ -200,7 +301,7 @@ const downloadDirectory = async (deviceId: string, sourcePath: string, targetPat
         if (f.type === 'directory') {
             await downloadDirectory(deviceId, newSourcePath, newTargetPath)
         } else {
-            await window.$mapi.adb.filePull(deviceId, newSourcePath, newTargetPath)
+            await pullFile(deviceId, newSourcePath, newTargetPath)
         }
     }
 }
@@ -243,6 +344,7 @@ function testSeed() {
             checked: false,
             name: 'Download',
             size: 0,
+            sizeBytes: 0,
             isDirectory: true,
             updateTime: '2024-01-01 10:00:00',
         },
@@ -250,6 +352,7 @@ function testSeed() {
             checked: false,
             name: 'demo.txt',
             size: 12,
+            sizeBytes: 12,
             isDirectory: false,
             updateTime: '2024-01-02 10:00:00',
         },
@@ -284,6 +387,7 @@ onMounted(() => {
     testActionSet('device.fileManager.editPath', (path: string) => testEditPath(path))
     testActionSet('device.fileManager.up', () => testEditPath(''))
     testActionSet('device.fileManager.selectFirst', () => selectFirst())
+    testActionSet('device.fileManager.uploadPath', (path: string) => uploadPath(path))
 })
 
 onUnmounted(() => {
@@ -298,6 +402,7 @@ onUnmounted(() => {
     testActionUnset('device.fileManager.editPath')
     testActionUnset('device.fileManager.up')
     testActionUnset('device.fileManager.selectFirst')
+    testActionUnset('device.fileManager.uploadPath')
 })
 
 defineExpose({
@@ -307,6 +412,10 @@ defineExpose({
     doUp,
     doEditPath,
     doEditPathConfirm,
+    doDelete,
+    doUpload,
+    doDownload,
+    uploadPath,
     toggleView,
     toggleSortByName,
     toggleSortByModifiedTime,
@@ -361,25 +470,33 @@ defineExpose({
                         </a-input>
                     </div>
                 </div>
+                <div v-if="transferRunning" class="pb-2">
+                    <a-progress :percent="transferPercent" size="small" :show-text="true" />
+                    <div class="text-xs text-gray-500 mt-1">{{ transferTitle }} {{ transferDetail }}</div>
+                </div>
                 <div class="py-2 flex items-center">
-                    <a-button class="mr-1" @click="doUp" :disabled="filePathSeg.length === 0">
+                    <a-button class="mr-1" @click="doUp" :disabled="filePathSeg.length === 0 || transferRunning">
                         <template #icon>
                             <i-lucide-chevron-left />
                         </template>
                     </a-button>
-                    <a-button class="mr-1" @click="doUpload">
+                    <a-button class="mr-1" @click="doUpload" :disabled="transferRunning">
                         <template #icon>
                             <i-lucide-upload />
                         </template>
                         {{ $t('common.addFile') }}
                     </a-button>
-                    <a-button class="mr-1" @click="doDownload">
+                    <a-button class="mr-1" @click="doDownload" :disabled="transferRunning">
                         <template #icon>
                             <i-lucide-download />
                         </template>
                         {{ $t('common.download') }}
                     </a-button>
-                    <a-button class="mr-1" @click="doDelete" :disabled="checkedFileRecords.length === 0">
+                    <a-button
+                        class="mr-1"
+                        @click="doDelete"
+                        :disabled="checkedFileRecords.length === 0 || transferRunning"
+                    >
                         <template #icon>
                             <i-lucide-trash-2 />
                         </template>

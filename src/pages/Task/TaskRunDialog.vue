@@ -98,6 +98,10 @@ const showDetail = (record: any) => {
 
 const doDeleteRecord = async (record: any) => {
     try {
+        // 删除「等待中」的记录同时取消排队，避免队列里留着一条没人跑的记录
+        if (record.status === 'pending') {
+            await window.$mapi.task.cancelQueuedRun(record.id)
+        }
         await window.$mapi.db.delete('DELETE FROM task_run WHERE id = ?', [record.id])
         Dialog.tipSuccess(t('task.runRecordDeleted'))
         await loadData()

@@ -11,10 +11,12 @@ const props = defineProps<{
 
 onMounted(() => {
     testActionSet('device.record.show', () => recordDialog.value?.show(props.device))
+    testActionSet('device.record.fill', (data: any) => recordDialog.value?.testFill(data))
 })
 
 onBeforeUnmount(() => {
     testActionUnset('device.record.show')
+    testActionUnset('device.record.fill')
 })
 </script>
 

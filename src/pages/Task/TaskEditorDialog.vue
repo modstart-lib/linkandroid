@@ -80,6 +80,13 @@ const logPanel = ref<InstanceType<typeof LogPanel> | null>(null)
 const sessionViewer = ref<InstanceType<typeof TaskAgentSessionDialog> | null>(null)
 const repairSessionId = ref(0)
 let runController: {stop: () => void; send: (data: any) => void} | null = null
+const queuedWaitRunId = ref<number | string | null>(null)
+
+/** 排队未开始时取消调试运行 */
+const doCancelQueued = async () => {
+    if (!queuedWaitRunId.value) return
+    await window.$mapi.task.cancelQueuedRun(queuedWaitRunId.value)
+}
 
 // Device related
 const deviceStore = useDeviceStore()
@@ -365,6 +372,7 @@ const runTaskInternal = async () => {
     }
 
     isRunning.value = true
+    let releaseGate = () => {}
     try {
         const entryCode = files.entryCode.value
         // Save first: writes linkandroid.json + 入口文件，并写回其他文件的修改
@@ -396,6 +404,51 @@ const runTaskInternal = async () => {
         emit('update')
 
         const deviceId = runDeviceIds.value[0]
+
+        // 同一任务只跑一轮：忙时排队，上一轮结束后自动开始调试运行
+        const gateToken = `debug-${formData.value.id}-${Date.now()}`
+        let debugRunId: number | string | null = null
+        if (formData.value.id > 0) {
+            const gate = await window.$mapi.task.acquireRun(formData.value.id, [...runDeviceIds.value], gateToken)
+            if (gate.status === 'queued' && gate.runId) {
+                debugRunId = gate.runId
+                queuedWaitRunId.value = gate.runId
+                logPanel.value?.printSystem(t('task.queuedWaiting'))
+                const waited = await window.$mapi.task.waitRunGranted(gate.runId)
+                queuedWaitRunId.value = null
+                if (waited.status !== 'granted') {
+                    logPanel.value?.printSystem(t('task.queuedCancelled'))
+                    isRunning.value = false
+                    return
+                }
+                const startedAt = new Date().toISOString()
+                await window.$mapi.db
+                    .update(`UPDATE task_run SET updated_at = ?, status = ?, started_at = ? WHERE id = ?`, [
+                        startedAt,
+                        'running',
+                        startedAt,
+                        debugRunId,
+                    ])
+                    .catch(() => {})
+            }
+        }
+        releaseGate = () => {
+            if (formData.value.id > 0) void window.$mapi.task.releaseRun(formData.value.id, gateToken)
+        }
+        const finishDebugRun = async (status: string) => {
+            if (!debugRunId) return
+            const finishedAt = new Date().toISOString()
+            await window.$mapi.db
+                .update(`UPDATE task_run SET updated_at = ?, status = ?, log = ?, finished_at = ? WHERE id = ?`, [
+                    finishedAt,
+                    status,
+                    logPanel.value?.getPlainText() || '',
+                    finishedAt,
+                    debugRunId,
+                ])
+                .catch(() => {})
+        }
+
         const controller = await runTaskPythonCode(entryCode, deviceId, {
             projectId: formData.value.id,
             preparing: () => {
@@ -410,16 +463,29 @@ const runTaskInternal = async () => {
             stderr: (data: string) => {
                 logPanel.value?.printErrorChunk(data)
             },
-            success: () => {
+            success: async () => {
                 logPanel.value?.printSystem(t('task.runSuccess'))
                 isRunning.value = false
                 runController = null
                 repairRunning = false
+                releaseGate()
+                await finishDebugRun('success')
+            },
+            stopped: async () => {
+                logPanel.value?.printSystem(t('task.runStopped'))
+                isRunning.value = false
+                runController = null
+                repairRunning = false
+                releaseGate()
+                await finishDebugRun('failed')
+                emit('update')
             },
             error: async (msg: string) => {
                 logPanel.value?.printError(t('task.runFailed') + ': ' + msg)
                 isRunning.value = false
                 runController = null
+                releaseGate()
+                await finishDebugRun('failed')
                 if (repairRunning) {
                     repairRunning = false
                     emit('update')
@@ -443,6 +509,7 @@ const runTaskInternal = async () => {
         runController = controller
     } catch (e) {
         isRunning.value = false
+        releaseGate()
         logPanel.value?.printError(mapError(e))
         Dialog.tipError(mapError(e))
     }
@@ -819,7 +886,21 @@ defineExpose({
                             >
                                 <template #actions>
                                     <div class="flex items-center gap-1">
-                                        <a-button v-if="isRunning" size="mini" status="danger" @click="doStopRun">
+                                        <a-button
+                                            v-if="queuedWaitRunId"
+                                            size="mini"
+                                            status="warning"
+                                            @click="doCancelQueued"
+                                        >
+                                            <template #icon><i-lucide-circle-slash /></template>
+                                            {{ $t('task.queuedCancel') }}
+                                        </a-button>
+                                        <a-button
+                                            v-if="isRunning && !queuedWaitRunId"
+                                            size="mini"
+                                            status="danger"
+                                            @click="doStopRun"
+                                        >
                                             <template #icon><i-lucide-circle-pause /></template>
                                             {{ $t('task.stop') }}
                                         </a-button>

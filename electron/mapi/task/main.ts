@@ -34,6 +34,24 @@ ipcMain.handle('task:getNextRunTime', async (event, cronExpression: string): Pro
     return scheduler.getNextRunTime(cronExpression)
 })
 
+// ── 运行闸门（手动运行与定时任务共用）──
+
+ipcMain.handle('task:acquireRun', async (event, taskId: number, deviceIds: string[] = [], token: string = '') => {
+    return await scheduler.acquireRun(taskId, deviceIds, token)
+})
+
+ipcMain.handle('task:waitRunGranted', async (event, runId: number | string) => {
+    return await scheduler.waitRunGranted(runId)
+})
+
+ipcMain.handle('task:cancelQueuedRun', async (event, runId: number | string) => {
+    return await scheduler.cancelQueuedRun(runId)
+})
+
+ipcMain.handle('task:releaseRun', async (event, taskId: number, token: string) => {
+    scheduler.releaseRun(taskId, token)
+})
+
 // ── 测试辅助 ──
 
 ipcMain.handle('task:resetTaskTrigger', async (event, taskId: number) => {

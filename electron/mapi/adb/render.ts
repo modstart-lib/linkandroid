@@ -124,6 +124,10 @@ const getDisplaySize = async (deviceId: string): Promise<{width: number; height:
     return null
 }
 
+// Android screenrecord stops a single clip at 180 seconds by default; pin the
+// value so the UI can tell the user the real limit instead of ending silently
+const SCREENRECORD_TIME_LIMIT = 180
+
 const screenrecord = async (
     deviceId: string,
     option?: {
@@ -131,10 +135,14 @@ const screenrecord = async (
     },
 ) => {
     option = option || ({} as any)
+    const startTimeInMs = Date.now()
     const controller = {
         stop: null as Function | null,
         devicePath: null as string | null,
         errorMessage: null as string | null,
+        timeLimit: SCREENRECORD_TIME_LIMIT,
+        stopRequested: false,
+        limitReached: false,
     }
     controller.devicePath = '/sdcard/LinkAndroid_screenshot_' + TimeUtil.timestampInMs() + '.mp4'
 
@@ -152,6 +160,9 @@ const screenrecord = async (
     // Explicit bit-rate for better encoder compatibility (4Mbps default)
     screenrecordArgs.push('--bit-rate', '4000000')
 
+    // Explicit time limit so the recording length is known and can be reported
+    screenrecordArgs.push('--time-limit', String(SCREENRECORD_TIME_LIMIT))
+
     screenrecordArgs.push(controller.devicePath)
 
     const shellControl = await spawnShell(screenrecordArgs, {
@@ -166,7 +177,12 @@ const screenrecord = async (
         },
         success: (data) => {
             // console.log('screenrecord.success', data)
-            option.progress?.('success', {})
+            // Stopped by the device itself (time limit hit) instead of the user
+            if (!controller.stopRequested) {
+                const elapsedSeconds = Math.round((Date.now() - startTimeInMs) / 1000)
+                controller.limitReached = elapsedSeconds >= SCREENRECORD_TIME_LIMIT - 2
+            }
+            option.progress?.('success', {limitReached: controller.limitReached})
         },
         error: (err) => {
             // console.log('screenrecord.error', err)
@@ -174,6 +190,7 @@ const screenrecord = async (
         },
     })
     controller.stop = () => {
+        controller.stopRequested = true
         shellControl.stop()
     }
     return controller
@@ -222,12 +239,20 @@ const fileList = async (id: string, filePath: string) => {
             type: item.isFile() ? 'file' : 'directory',
             name: item.name,
             size: FileUtil.formatSize(item.size),
+            sizeBytes: item.size,
             updateTime: dayjs(item.mtimeMs).format('YYYY-MM-DD HH:mm:ss'),
         }))
     } catch (error: any) {
         console.error('adb.fileList.error', error.message)
-        return []
+        // Let the renderer report the real reason instead of showing an empty folder
+        throw error
     }
+}
+
+/** Transfer progress percent, null when the total size is unknown. */
+const transferPercent = (transferred: number, total: number): number | null => {
+    if (!total || total <= 0) return null
+    return Math.max(0, Math.min(100, Math.round((transferred / total) * 100)))
 }
 
 const filePush = async (
@@ -239,10 +264,17 @@ const filePush = async (
     } = null,
 ) => {
     const {progress} = options || {}
+    let total = 0
+    try {
+        total = fs.statSync(localPath).size
+    } catch {
+        // local size unknown — progress stays indeterminate
+    }
     const transfer = await (await getClient()).getDevice(id).push(localPath, devicePath)
     return new Promise((resolve, reject) => {
-        transfer.on('progress', (stats) => {
-            progress?.(stats)
+        transfer.on('progress', (stats: any) => {
+            const bytesTransferred = stats?.bytesTransferred || 0
+            progress?.({bytesTransferred, percent: transferPercent(bytesTransferred, total)})
         })
         transfer.on('end', () => {
             resolve({
@@ -265,10 +297,17 @@ const filePull = async (
     } = null,
 ) => {
     const {progress} = option || {}
-    const transfer = await (await getClient()).getDevice(id).pull(devicePath)
-    transfer.on('progress', (stats) => {
-        // console.log('filePull.progress', stats)
-        progress?.(stats)
+    const device = (await getClient()).getDevice(id)
+    let total = 0
+    try {
+        total = (await device.stat(devicePath)).size || 0
+    } catch {
+        // device side size unknown — progress stays indeterminate
+    }
+    const transfer = await device.pull(devicePath)
+    transfer.on('progress', (stats: any) => {
+        const bytesTransferred = stats?.bytesTransferred || 0
+        progress?.({bytesTransferred, percent: transferPercent(bytesTransferred, total)})
     })
     return new Promise((resolve, reject) => {
         transfer.on('end', () => {

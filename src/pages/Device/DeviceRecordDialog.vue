@@ -20,6 +20,8 @@ const recordData = ref({
     startTimeInMs: 0,
     endTimeInMs: 0,
     duration: 0,
+    timeLimit: 180,
+    limitReached: false,
     mp4Param: {},
     gifParam: {
         fps: 10,
@@ -38,6 +40,8 @@ const recordData = ref({
     startTimeInMs: number
     endTimeInMs: number
     duration: number
+    timeLimit: number
+    limitReached: boolean
     mp4Param: {}
     gifParam: {
         fps: number
@@ -46,6 +50,9 @@ const recordData = ref({
 })
 const recordTime = computed(() => {
     return TimeUtil.secondsToTime(recordData.value.duration)
+})
+const recordTimeLimit = computed(() => {
+    return TimeUtil.secondsToTime(recordData.value.timeLimit)
 })
 const show = (d: DeviceRecord) => {
     if (EnumDeviceStatus.CONNECTED !== d.status) {
@@ -56,6 +63,7 @@ const show = (d: DeviceRecord) => {
     recordData.value.status = 'idle'
     recordData.value.format = 'mp4'
     recordData.value.duration = 0
+    recordData.value.limitReached = false
     recordData.value.errorMessage = ''
     visible.value = true
 }
@@ -67,6 +75,7 @@ const doRecordStart = async () => {
     recordData.value.startTimeInMs = Date.now()
     recordData.value.endTimeInMs = 0
     recordData.value.duration = 0
+    recordData.value.limitReached = false
     recordData.value.devicePath = null
     recordData.value.localTempDir = null
     recordData.value.localTempMp4Path = null
@@ -77,6 +86,10 @@ const doRecordStart = async () => {
     recordController = await $mapi.adb.screenrecord(device.value.id, {
         progress: (type: string, data: any) => {
             if (type === 'success') {
+                recordData.value.limitReached = !!data?.limitReached
+                if (recordData.value.limitReached) {
+                    $mapi.app.toast(t('device.recordLimitReached', {time: recordTimeLimit.value}))
+                }
                 doRecordProcess().then()
             } else if (type === 'error') {
                 recordData.value.status = 'fail'
@@ -85,6 +98,7 @@ const doRecordStart = async () => {
         },
     })
     recordData.value.devicePath = recordController.devicePath
+    recordData.value.timeLimit = recordController.timeLimit || recordData.value.timeLimit
     recordData.value.errorMessage = recordController.errorMessage || ''
     // console.log('doRecordStart.end', recordController)
 }
@@ -176,8 +190,14 @@ onBeforeUnmount(() => {
     clearInterval(durationRefreshTimer)
 })
 
+const testFill = (data: any) => {
+    visible.value = true
+    Object.assign(recordData.value, data || {})
+}
+
 defineExpose({
     show,
+    testFill,
 })
 </script>
 
@@ -222,6 +242,11 @@ defineExpose({
                                 {{ $t('device.recordFpsUnit') }}
                             </template>
                         </a-input-number>
+                    </a-form-item>
+                    <a-form-item>
+                        <a-typography-text type="secondary" class="text-xs">
+                            {{ $t('device.recordLimitTip', {time: recordTimeLimit}) }}
+                        </a-typography-text>
                     </a-form-item>
                     <a-form-item>
                         <a-button type="primary" class="mr-1" @click="doRecordStart">
@@ -278,6 +303,11 @@ defineExpose({
                                 <a-tag v-else-if="recordData.status === 'fail'" size="large">
                                     {{ $t('device.recordDuration', {time: recordTime}) }}
                                 </a-tag>
+                            </div>
+                            <div class="mr-2">
+                                <a-typography-text v-if="recordData.limitReached" type="warning" class="text-xs">
+                                    {{ $t('device.recordLimitReached', {time: recordTimeLimit}) }}
+                                </a-typography-text>
                             </div>
                             <div class="flex-grow">&nbsp;</div>
                         </div>

@@ -43,6 +43,7 @@ declare module 'vue' {
     ILucideCircleAlert: typeof import('~icons/lucide/circle-alert')['default']
     ILucideCircleCheck: typeof import('~icons/lucide/circle-check')['default']
     ILucideCirclePause: typeof import('~icons/lucide/circle-pause')['default']
+    ILucideCircleSlash: typeof import('~icons/lucide/circle-slash')['default']
     ILucideCircleX: typeof import('~icons/lucide/circle-x')['default']
     ILucideClipboard: typeof import('~icons/lucide/clipboard')['default']
     ILucideClock: typeof import('~icons/lucide/clock')['default']
