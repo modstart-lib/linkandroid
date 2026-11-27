@@ -13,6 +13,7 @@ import {ipcMain, shell} from 'electron'
 import * as crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
+import {t} from '../../config/lang'
 import {AppEnv} from '../env'
 import {Log} from '../log/main'
 import DBMain from '../db/main'
@@ -328,7 +329,7 @@ const copy = async (id: number): Promise<any> => {
     const manifest = row.uuid ? readManifest(row.uuid) : null
     const entry = manifest?.entry || DEFAULT_ENTRY
     const saved = await save({
-        name: `${row.name} 副本`,
+        name: t('task.copySuffix', {name: row.name}),
         description: row.description || '',
         requirement: row.requirement || '',
         code: row.code || '',
@@ -662,7 +663,7 @@ const packageTaskName = (pkg: ZipPackage, file: string) => {
     return (
         normalizeTaskName(pkg.manifest?.name || '') ||
         normalizeTaskName(path.basename(file).replace(/\.zip$/i, '')) ||
-        '导入的任务'
+        t('task.importedTaskName')
     )
 }
 

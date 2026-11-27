@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {t} from '../../lang'
 import type {ChatImage} from './useChatImages'
 import {CHAT_IMAGE_MAX} from './useChatImages'
 
@@ -26,7 +27,7 @@ const emit = defineEmits<{
             v-if="removable"
             class="shrink-0 rounded bg-[rgba(234,0,86,0.08)] px-1.5 py-0.5 text-[11px] font-medium text-[#c3004e] dark:bg-[rgba(238,36,103,0.16)] dark:text-[#ff8fb0]"
         >
-            待发送
+            {{ t('chatImage.pending') }}
         </span>
         <div
             v-for="(image, index) in images"

@@ -175,7 +175,7 @@ defineExpose({
                     <div v-if="device?.type === EnumDeviceType.WIFI" class="flex mb-3">
                         <div class="flex-grow">
                             <div>{{ $t('device.ipAddress') }}</div>
-                            <div class="text-gray-400 text-xs">无线调试重新开启后 IP 可能变化</div>
+                            <div class="text-gray-400 text-xs">{{ $t('device.wirelessIpChangeHint') }}</div>
                         </div>
                         <div>
                             <a-input v-model="formData.host" style="width: 16rem" />
@@ -184,7 +184,7 @@ defineExpose({
                     <div v-if="device?.type === EnumDeviceType.WIFI" class="flex mb-3">
                         <div class="flex-grow">
                             <div>{{ $t('device.port') }}</div>
-                            <div class="text-gray-400 text-xs">无线调试重新开启后端口可能变化</div>
+                            <div class="text-gray-400 text-xs">{{ $t('device.wirelessPortChangeHint') }}</div>
                         </div>
                         <div>
                             <a-input v-model="formData.port" style="width: 16rem" />

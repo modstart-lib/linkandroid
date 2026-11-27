@@ -3,6 +3,7 @@
  * timeouts and provider failure mapping. Business differences live in profiles.
  */
 import {randomBytes} from 'node:crypto'
+import {t} from '../../config/lang'
 import {createProviderPlugin, loadSdk, MODEL_ID, PROVIDER_ID} from './provider'
 import {
     agentDbPath,
@@ -258,8 +259,8 @@ export const runAgent = async <TResult>(
             if (options?.isAborted?.()) {
                 result = {
                     ok: false,
-                    message: '已停止',
-                    error: {code: 'aborted', message: '已停止'},
+                    message: t('agent.stopped'),
+                    error: {code: 'aborted', message: t('agent.stopped')},
                 } as unknown as TResult
                 break
             }
@@ -270,8 +271,8 @@ export const runAgent = async <TResult>(
                         ok: false,
                         message:
                             waited.reason === 'idle'
-                                ? `模型 ${Math.round(idleMs / 60000)} 分钟没有任何新进展，已中断`
-                                : `模型响应超时（${timeoutMs}ms）`,
+                                ? t('agent.idleTimeout', {count: Math.round(idleMs / 60000)})
+                                : t('agent.responseTimeout', {ms: timeoutMs}),
                         error: {code: 'timeout', message: waited.reason},
                     } as unknown as TResult
                 }
@@ -286,7 +287,7 @@ export const runAgent = async <TResult>(
                 profile.fallback?.(input, state, 'max-rounds') ??
                 ({
                     ok: false,
-                    message: 'Agent 已达到最大轮次',
+                    message: t('agent.maxRounds'),
                     error: {code: 'no_result', message: 'no_result'},
                 } as unknown as TResult)
         }

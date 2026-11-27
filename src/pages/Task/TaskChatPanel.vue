@@ -270,7 +270,7 @@ const doNewSession = async () => {
 }
 
 const doRenameSession = async (id: number, current: string) => {
-    const title = await Dialog.prompt('请输入会话名称', current || '')
+    const title = await Dialog.prompt(t('ai.renamePlaceholder'), current || '')
     if (!title) return
     const value = title.trim()
     if (!value) return
@@ -282,7 +282,7 @@ const doRenameSession = async (id: number, current: string) => {
 const doDeleteSession = async (id: number) => {
     const record = sessions.value.find((item) => item.id === id)
     try {
-        await Dialog.confirm(`确定删除会话「${record?.title || t('ai.untitled')}」？`)
+        await Dialog.confirm(t('ai.deleteConfirm', {name: record?.title || t('ai.untitled')}))
     } catch {
         return
     }
@@ -755,20 +755,20 @@ const onPreviewConfirm = (code: string) => {
                 :model-value="activeSessionId"
                 class="flex-1 min-w-0"
                 :disabled="loading"
-                aria-label="选择任务会话"
+                :aria-label="$t('task.chatSelectSession')"
                 @change="onSelectSession"
             >
                 <a-option v-for="session in sessions" :key="session.id" :value="session.id">
                     {{ sessionLabel(session) }}
                 </a-option>
             </a-select>
-            <a-button type="text" aria-label="新建会话" :title="'新建会话'" @click="doNewSession">
+            <a-button type="text" :aria-label="$t('ai.newSession')" :title="$t('ai.newSession')" @click="doNewSession">
                 <template #icon><i-lucide-plus class="w-4 h-4" aria-hidden="true" /></template>
             </a-button>
             <a-button
                 type="text"
-                aria-label="重命名会话"
-                title="重命名会话"
+                :aria-label="$t('ai.rename')"
+                :title="$t('ai.rename')"
                 :disabled="!activeSessionId"
                 @click="doRenameActive"
             >
@@ -776,8 +776,8 @@ const onPreviewConfirm = (code: string) => {
             </a-button>
             <a-button
                 type="text"
-                aria-label="删除会话"
-                title="删除会话"
+                :aria-label="$t('ai.delete')"
+                :title="$t('ai.delete')"
                 :disabled="!activeSessionId"
                 @click="doDeleteActive"
             >
@@ -788,7 +788,7 @@ const onPreviewConfirm = (code: string) => {
             v-else-if="!businessId"
             class="shrink-0 px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-[11px] text-gray-500 dark:text-gray-400"
         >
-            保存任务后，这里的 AI 对话会按任务保存
+            {{ $t('task.chatSaveHint') }}
         </div>
         <div ref="messageContainer" class="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-3">
             <div
@@ -846,7 +846,7 @@ const onPreviewConfirm = (code: string) => {
                         <template #icon>
                             <i-lucide-message-square class="w-3.5 h-3.5" aria-hidden="true" />
                         </template>
-                        查看会话消息（{{ msg.session.messages.length }}）
+                        {{ $t('task.chatViewMessages', {count: msg.session.messages.length}) }}
                     </a-button>
                 </div>
             </div>

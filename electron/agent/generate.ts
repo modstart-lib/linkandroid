@@ -3,6 +3,7 @@
  * database but has no business record or UI entry; the store is trimmed by the
  * periodic maintenance job.
  */
+import {t} from '../config/lang'
 import {createProviderPlugin, loadSdk, MODEL_ID, PROVIDER_ID} from './core/provider'
 import {createAgentHost, closeHost, withTimeout} from './core/run'
 import {applySessionMeta, buildSessionMeta, openOrCreateSession, sessionTitle} from './core/session'
@@ -42,7 +43,10 @@ export const runGenerateText = async (input: GenerateTextInput): Promise<Generat
             },
         })
         host = await createAgentHost(input.dataRoot, [providerPlugin, generatePlugin])
-        const title = sessionTitle(input, `通用生成 · ${new Date().toLocaleString('zh-CN', {hour12: false})}`)
+        const title = sessionTitle(
+            input,
+            t('agent.genericSessionTitle', {time: new Date().toLocaleString(undefined, {hour12: false})}),
+        )
         const opened = await openOrCreateSession(host, input.dataRoot, input, title)
         sessionID = opened.session.id
         await applySessionMeta(
@@ -66,7 +70,7 @@ export const runGenerateText = async (input: GenerateTextInput): Promise<Generat
         if (!generated) {
             return {
                 code: -1,
-                msg: `模型响应超时（${timeoutMs}ms）`,
+                msg: t('agent.responseTimeout', {ms: timeoutMs}),
                 durationMs: Date.now() - startedAt,
                 opencodeSessionId: sessionID,
             }

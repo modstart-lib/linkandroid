@@ -366,7 +366,7 @@ defineExpose({doRun, doRunFromScheduledFailure, doClose})
             <div class="flex items-center justify-end gap-2 px-5 pb-4 shrink-0">
                 <a-button v-if="repairSessionId" @click="doShowRepairSession">
                     <template #icon><i-lucide-bot /></template>
-                    查看 AI 修复会话
+                    {{ $t('task.viewRepairSession') }}
                 </a-button>
                 <a-button
                     v-if="missingDeps.length && !isRunning"

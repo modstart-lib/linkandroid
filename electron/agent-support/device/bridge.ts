@@ -1,6 +1,7 @@
 import {spawn, type ChildProcessWithoutNullStreams} from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import {t} from '../../config/lang'
 
 /** Paths + env needed to talk to the device through the bundled Python runtime. */
 export type DeviceRuntime = {
@@ -202,7 +203,9 @@ export const createDeviceBridge = (
                     if (!item) continue
                     clearTimeout(item.timer)
                     pending.delete(message.id)
-                    const text = String(message.out || '') + (message.err ? `\n[工具执行异常]\n${message.err}` : '')
+                    const text =
+                        String(message.out || '') +
+                        (message.err ? `\n${t('deviceTool.outputErrorHeader')}\n${message.err}` : '')
                     item.resolve(text.trim())
                 } catch {}
             }
@@ -213,11 +216,11 @@ export const createDeviceBridge = (
         proc.on('exit', (code) => {
             if (child === proc) child = null
             const detail = stderrBuffer.trim()
-            failPending(`设备工具进程已退出（code=${code}）${detail ? `：${detail}` : ''}`)
+            failPending(t('deviceTool.processExited', {code, detail: detail ? `: ${detail}` : ''}))
         })
         proc.on('error', (error: Error) => {
             if (child === proc) child = null
-            failPending(`设备工具进程启动失败：${error.message}`)
+            failPending(t('deviceTool.processStartFailed', {error: error.message}))
         })
     }
 
@@ -225,26 +228,26 @@ export const createDeviceBridge = (
         call: (code: string, timeoutMs = 25000) =>
             new Promise<string>((resolve, reject) => {
                 if (closed) {
-                    reject(new Error('设备工具已关闭'))
+                    reject(new Error(t('deviceTool.closed')))
                     return
                 }
                 if (!child) start()
                 const proc = child
                 if (!proc) {
-                    reject(new Error('设备工具进程不可用'))
+                    reject(new Error(t('deviceTool.unavailable')))
                     return
                 }
                 const id = ++sequence
                 const timer = setTimeout(() => {
                     pending.delete(id)
-                    reject(new Error('设备操作超时'))
+                    reject(new Error(t('deviceTool.timeout')))
                 }, timeoutMs)
                 pending.set(id, {resolve, reject, timer})
                 proc.stdin.write(JSON.stringify({id, code}) + '\n')
             }),
         close: () => {
             closed = true
-            failPending('设备工具已关闭')
+            failPending(t('deviceTool.closed'))
             const proc = child
             child = null
             if (!proc) return

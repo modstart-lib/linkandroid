@@ -1,3 +1,4 @@
+import {t} from '../../config/lang'
 import type {DeviceBridge} from './bridge'
 
 export type AgentDeviceInfo = {
@@ -32,18 +33,19 @@ type DeviceTarget = {id: string; label: string}
 
 const labelOf = (device: AgentDeviceInfo) => device.name || device.model || device.id
 
-const statusText = (status?: string) => (String(status || '').toLowerCase() === 'offline' ? '离线' : '在线')
+const statusText = (status?: string) =>
+    String(status || '').toLowerCase() === 'offline' ? t('deviceTool.offline') : t('deviceTool.online')
 
 const describeDevices = (devices: AgentDeviceInfo[], defaultId: string) => {
-    if (devices.length === 0) return '当前没有可操作的手机。'
+    if (devices.length === 0) return t('deviceTool.noDevices')
     const lines = devices.map((device, index) => {
         const parts = [labelOf(device), `（${device.id}）`]
         if (device.model && device.model !== labelOf(device)) parts.push(`· ${device.model}`)
         parts.push(`· ${statusText(device.status)}`)
-        if (device.id === defaultId) parts.push('（默认）')
+        if (device.id === defaultId) parts.push(t('deviceTool.defaultMark'))
         return `${index + 1}. ${parts.join(' ')}`
     })
-    return [`可操作手机（${devices.length} 台）：`, ...lines].join('\n')
+    return [t('deviceTool.listTitle', {count: devices.length}), ...lines].join('\n')
 }
 
 /** Resolve model-supplied names/serials to real device ids (whitelist). */
@@ -62,14 +64,14 @@ const resolveTargets = (input: any, devices: AgentDeviceInfo[]): DeviceTarget[] 
             devices.find((item) => (item.name || '').includes(value) && value.length > 1) ||
             devices.find((item) => value.length > 3 && item.id.includes(value))
         if (!device) {
-            const list = devices.map((item) => `${labelOf(item)}（${item.id}）`).join('、')
-            throw new Error(`未知设备「${value}」。可操作的手机：${list || '无'}`)
+            const list = devices.map((item) => `${labelOf(item)}（${item.id}）`).join(t('common.listSeparator'))
+            throw new Error(t('deviceTool.unknownDevice', {name: value, list: list || t('deviceTool.noneList')}))
         }
         return {id: device.id, label: labelOf(device)}
     })
     const unique = found.filter((item, index) => found.findIndex((other) => other.id === item.id) === index)
     if (unique.length > MAX_BATCH_DEVICES) {
-        throw new Error(`一次最多同时操作 ${MAX_BATCH_DEVICES} 台手机，收到 ${unique.length} 台`)
+        throw new Error(t('deviceTool.batchTooMany', {max: MAX_BATCH_DEVICES, count: unique.length}))
     }
     return unique
 }
@@ -100,7 +102,7 @@ const runOnTargets = (targets: DeviceTarget[], action: (deviceExpr: string, batc
                 `    _p = ${pyStr(`${target.label}｜`)}`,
                 ...indent(action(expr, true)),
                 'except Exception as error:',
-                `    print(${pyStr(`${target.label}｜失败：`)} + str(error)[:200])`,
+                `    print(${pyStr(t('deviceTool.perDeviceFailed', {label: target.label}))} + str(error)[:200])`,
             ].join('\n')
         })
         .join('\n')
@@ -119,14 +121,14 @@ export const registerDeviceTools = (
         calls++
         if (calls > MAX_DEVICE_TOOL_CALLS) {
             return {
-                content: `工具调用次数已达上限（${MAX_DEVICE_TOOL_CALLS} 次）。请直接总结当前结果。`,
+                content: t('deviceTool.callLimit', {max: MAX_DEVICE_TOOL_CALLS}),
             }
         }
         try {
             const text = await bridge.call(code, timeoutMs)
             return {content: (text || 'ok').slice(0, 18000)}
         } catch (error: any) {
-            return {content: `工具执行失败：${error?.message || error}`}
+            return {content: t('deviceTool.executionFailed', {error: error?.message || error})}
         }
     }
     const define = (tool: any) => editor.add({options: {codemode: false}, ...tool})
@@ -139,7 +141,7 @@ export const registerDeviceTools = (
         try {
             targets = resolveTargets(input, devices)
         } catch (error: any) {
-            return {content: `设备参数无效：${error?.message || error}`}
+            return {content: t('deviceTool.invalidParams', {error: error?.message || error})}
         }
         const timeout = targets.length > 1 ? Math.min(baseTimeout * targets.length, 180000) : baseTimeout
         return run(runOnTargets(targets, action), timeout)
@@ -178,7 +180,7 @@ export const registerDeviceTools = (
                 toolInput,
                 (deviceExpr, batch) => {
                     const detail = batch
-                        ? ["print(_p + 'hint=多台模式只返回摘要；需要元素详情请单独 observe 这一台')"]
+                        ? [`print(_p + ${pyStr(`hint=${t('deviceTool.batchObserveHint')}`)})`]
                         : [
                               `if ${toolInput?.full ? 'True' : 'False'}:`,
                               '    print(xml[:6000])',
@@ -262,7 +264,7 @@ export const registerDeviceTools = (
                 !toolInput?.desc &&
                 !toolInput?.id
             ) {
-                return {content: '未提供点击目标：需要 text / desc / id 之一，或 x + y 坐标'}
+                return {content: t('deviceTool.tapNoTarget')}
             }
             return execute(toolInput, () => {
                 const lines: string[] = []
@@ -291,7 +293,7 @@ export const registerDeviceTools = (
             required: ['text'],
         },
         execute: async (toolInput: any) => {
-            if (!toolInput?.text) return {content: '缺少 text'}
+            if (!toolInput?.text) return {content: t('deviceTool.missingText')}
             return execute(toolInput, () => [
                 `ok = device.inputText(${pyStr(toolInput.text)}, clear=${pyBool(Boolean(toolInput.clear))})`,
                 "print(_p + 'input_ok=' + str(ok))",
@@ -316,7 +318,7 @@ export const registerDeviceTools = (
                 recent: 'ok = device.recent()',
                 enter: "ok = device.press('enter')",
             }
-            if (!code[key]) return {content: 'key 只能是 home / back / recent / enter'}
+            if (!code[key]) return {content: t('deviceTool.invalidKey')}
             return execute(toolInput, () => [
                 code[key],
                 "print(_p + 'key_ok=' + str(ok))",
@@ -339,7 +341,7 @@ export const registerDeviceTools = (
         execute: async (toolInput: any) => {
             const direction = String(toolInput?.direction || '')
             if (!['up', 'down', 'left', 'right'].includes(direction)) {
-                return {content: 'direction 只能是 up/down/left/right'}
+                return {content: t('deviceTool.invalidDirection')}
             }
             return execute(toolInput, () => [
                 `device.swipeExt(${pyStr(direction)})`,
@@ -360,7 +362,7 @@ export const registerDeviceTools = (
         },
         execute: async (toolInput: any) => {
             const pkg = String(toolInput?.package || '').trim()
-            if (!pkg) return {content: '缺少 package'}
+            if (!pkg) return {content: t('deviceTool.missingPackage')}
             return execute(toolInput, () => [
                 `ok = device.appStart(${pyStr(pkg)})`,
                 'la.sleep(2)',

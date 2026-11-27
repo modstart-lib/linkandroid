@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
+import {t} from '../../lang'
 import type {AgentLivePart} from './types'
 
 const props = defineProps<{
@@ -11,17 +12,17 @@ type SinglePart = Extract<AgentLivePart, {type: 'reasoning' | 'text'}>
 type Block = {kind: 'single'; key: string; part: SinglePart} | {kind: 'tools'; key: string; parts: ToolPart[]}
 
 const TOOL_LABELS: Record<string, string> = {
-    device_list: '手机列表',
-    device_observe: '观察界面',
-    device_tap: '点击',
-    device_input: '输入文字',
-    device_key: '按键',
-    device_swipe: '滑动',
-    device_open_app: '打开应用',
-    device_app_list: '应用列表',
-    device_sleep: '等待',
-    device_reconnect: '重连设备',
-    task_update: '提交任务代码',
+    device_list: 'agentParts.tool.deviceList',
+    device_observe: 'agentParts.tool.deviceObserve',
+    device_tap: 'agentParts.tool.deviceTap',
+    device_input: 'agentParts.tool.deviceInput',
+    device_key: 'agentParts.tool.deviceKey',
+    device_swipe: 'agentParts.tool.deviceSwipe',
+    device_open_app: 'agentParts.tool.deviceOpenApp',
+    device_app_list: 'agentParts.tool.deviceAppList',
+    device_sleep: 'agentParts.tool.deviceSleep',
+    device_reconnect: 'agentParts.tool.deviceReconnect',
+    task_update: 'agentParts.tool.taskUpdate',
 }
 
 const expanded = ref<Record<string, boolean>>({})
@@ -65,7 +66,7 @@ const blocks = computed<Block[]>(() => {
     return result
 })
 
-const toolLabel = (name: string) => TOOL_LABELS[name] || name
+const toolLabel = (name: string) => (TOOL_LABELS[name] ? t(TOOL_LABELS[name]) : name)
 
 const isFailure = (status: string) => status === 'error' || status === 'failed'
 const isRunning = (status: string) => status === 'running' || status === 'streaming'
@@ -87,9 +88,9 @@ const groupDotClass = (parts: ToolPart[]) => {
 }
 
 const statusText = (status: string) => {
-    if (isFailure(status)) return '失败'
-    if (isRunning(status)) return '执行中'
-    return '完成'
+    if (isFailure(status)) return t('agentParts.failed')
+    if (isRunning(status)) return t('agentParts.running')
+    return t('agentParts.completed')
 }
 
 const formatDuration = (ms?: number) => {
@@ -104,7 +105,7 @@ const toolSummary = (part: ToolPart) => {
     const device = input.device
         ? String(input.device)
         : Array.isArray(input.devices) && input.devices.length
-          ? input.devices.join('、')
+          ? input.devices.join(t('common.listSeparator'))
           : ''
     for (const key of ['text', 'package', 'desc', 'id', 'direction', 'key', 'seconds', 'x']) {
         const value = input[key]
@@ -138,10 +139,10 @@ const inputEntries = (part: ToolPart) =>
             >
                 <i-lucide-triangle-alert class="w-3.5 h-3.5 text-amber-500 shrink-0" aria-hidden="true" />
                 <span class="font-medium text-amber-700 dark:text-amber-300">
-                    无法识别的工具调用 · {{ unknownParts.length }} 次
+                    {{ $t('agentParts.unknownTitle', {count: unknownParts.length}) }}
                 </span>
                 <span class="flex-1 min-w-0 truncate text-[11px] text-amber-600/80 dark:text-amber-400/80">
-                    模型把代码行当成了工具名，已忽略
+                    {{ $t('agentParts.unknownHint') }}
                 </span>
                 <i-lucide-chevron-right
                     class="w-3.5 h-3.5 text-amber-500 transition-transform shrink-0"
@@ -157,8 +158,7 @@ const inputEntries = (part: ToolPart) =>
                     {{ item.name }}<span v-if="item.count > 1" class="text-amber-500"> ×{{ item.count }}</span>
                 </div>
                 <div class="text-amber-600/80 dark:text-amber-400/80 pt-1">
-                    可用工具只有观察界面、点击、输入、按键、滑动、打开应用等设备工具和「提交任务代码」。出现这类调用时
-                    Agent 会重新提示模型改用正确工具。
+                    {{ $t('agentParts.unknownDetail') }}
                 </div>
             </div>
         </div>
@@ -166,16 +166,18 @@ const inputEntries = (part: ToolPart) =>
             <div v-if="block.kind === 'tools'">
                 <div class="flex items-center gap-1.5 pl-[26px] pr-2 pb-0.5 text-[11px] text-gray-400">
                     <span class="w-1.5 h-1.5 rounded-full" :class="groupDotClass(block.parts)"></span>
-                    <span>执行过程</span>
+                    <span>{{ $t('agentParts.process') }}</span>
                     <span>·</span>
-                    <span>{{ block.parts.length }} 步</span>
+                    <span>{{ $t('agentParts.steps', {count: block.parts.length}) }}</span>
                     <span v-if="failedCount(block.parts)" class="text-red-600 dark:text-red-400">
-                        · {{ failedCount(block.parts) }} 失败
+                        · {{ $t('agentParts.failedCount', {count: failedCount(block.parts)}) }}
                     </span>
                     <span v-else-if="runningCount(block.parts)" class="text-blue-600 dark:text-blue-400">
-                        · 执行中
+                        · {{ $t('agentParts.running') }}
                     </span>
-                    <span v-else class="text-emerald-600 dark:text-emerald-400">· 完成</span>
+                    <span v-else class="text-emerald-600 dark:text-emerald-400"
+                        >· {{ $t('agentParts.completed') }}</span
+                    >
                 </div>
                 <div v-for="part in block.parts" :key="part.key">
                     <button
@@ -296,18 +298,18 @@ const inputEntries = (part: ToolPart) =>
                                 v-if="isRunning(part.status)"
                                 class="px-1 rounded text-[10px] text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/30"
                             >
-                                执行中
+                                {{ $t('agentParts.running') }}
                             </span>
                             <span
                                 v-else-if="isFailure(part.status)"
                                 class="px-1 rounded text-[10px] text-red-600 bg-red-100 dark:text-red-300 dark:bg-red-900/40"
                             >
-                                失败
+                                {{ $t('agentParts.failed') }}
                             </span>
                             <i-lucide-check
                                 v-else-if="isCompleted(part.status)"
                                 class="w-3 h-3 text-emerald-500"
-                                aria-label="完成"
+                                :aria-label="$t('agentParts.completed')"
                             />
                         </span>
                         <span
@@ -346,16 +348,17 @@ const inputEntries = (part: ToolPart) =>
                                 class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
                                 @click="toggle(part.key)"
                             >
-                                收起
+                                {{ $t('agentParts.collapse') }}
                             </button>
                         </div>
                         <div class="px-3 py-2 space-y-1.5 text-xs">
                             <div class="text-gray-500">
-                                <span class="text-gray-400">工具：</span>{{ toolLabel(part.name) }}
+                                <span class="text-gray-400">{{ $t('agentParts.toolLabel') }}</span
+                                >{{ toolLabel(part.name) }}
                                 <span class="text-gray-400">（{{ part.name }}）</span>
                             </div>
                             <div v-if="inputEntries(part).length" class="text-gray-500 break-words">
-                                <span class="text-gray-400">参数：</span>
+                                <span class="text-gray-400">{{ $t('agentParts.paramsLabel') }}</span>
                                 <span v-for="entry in inputEntries(part)" :key="entry.key" class="mr-2 inline-block">
                                     {{ entry.key }}={{
                                         entry.value.length > 80 ? `${entry.value.slice(0, 80)}…` : entry.value
@@ -363,13 +366,13 @@ const inputEntries = (part: ToolPart) =>
                                 </span>
                             </div>
                             <div>
-                                <div class="text-gray-400 mb-0.5">结果</div>
+                                <div class="text-gray-400 mb-0.5">{{ $t('agentParts.result') }}</div>
                                 <pre
                                     v-if="part.output"
                                     class="whitespace-pre-wrap break-words max-h-60 overflow-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-2 text-gray-500"
                                     >{{ part.output }}</pre
                                 >
-                                <div v-else class="text-gray-400">暂无输出</div>
+                                <div v-else class="text-gray-400">{{ $t('agentParts.noOutput') }}</div>
                             </div>
                         </div>
                     </div>
@@ -405,8 +408,12 @@ const inputEntries = (part: ToolPart) =>
                                 aria-hidden="true"
                             />
                         </span>
-                        <span class="font-medium text-gray-700 dark:text-gray-200">思考</span>
-                        <span class="text-[11px] text-gray-400">· {{ block.part.text.length }} 字</span>
+                        <span class="font-medium text-gray-700 dark:text-gray-200">{{
+                            $t('agentParts.thinking')
+                        }}</span>
+                        <span class="text-[11px] text-gray-400"
+                            >· {{ $t('agentParts.chars', {count: block.part.text.length}) }}</span
+                        >
                         <span class="flex-1"></span>
                     </button>
                     <div

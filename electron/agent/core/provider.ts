@@ -1,4 +1,5 @@
 /** Model injection shared by every agent profile. */
+import {t} from '../../config/lang'
 import type {AgentProvider} from './types'
 
 export const PROVIDER_ID = 'linkandroid'
@@ -31,7 +32,7 @@ export const createProviderPlugin = async (provider: AgentProvider) => {
     const modelId = provider.modelId || MODEL_ID
     const baseURL = resolveBaseUrl(provider)
     if (!baseURL) {
-        throw new Error('模型地址为空')
+        throw new Error(t('agent.modelHostEmpty'))
     }
     return Plugin.define({
         id: 'linkandroid-provider',

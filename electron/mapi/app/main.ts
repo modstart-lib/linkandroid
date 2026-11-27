@@ -4,6 +4,7 @@ import {existsSync} from 'node:fs'
 import {resolve} from 'node:path'
 import {AppConfig} from '../../../src/config'
 import {CommonConfig} from '../../config/common'
+import {t} from '../../config/lang'
 import {WindowConfig} from '../../config/window'
 import {isDev, isMac, platformArch, platformName, platformUUID, platformVersion} from '../../lib/env'
 import {preloadDefault, rendererDistPath} from '../../lib/env-main'
@@ -440,7 +441,7 @@ ipcMain.handle('app:ensureAienv', async () => {
         pythonRel = '_aienv/Scripts/python.exe'
         scriptName = 'init-windows.sh'
     } else {
-        return {ok: false, error: `不支持的平台: ${plat}`}
+        return {ok: false, error: t('app.errorUnsupportedPlatform', {platform: plat})}
     }
 
     const pythonPath = resolve(basePath, 'env/task', pythonRel)
@@ -454,10 +455,10 @@ ipcMain.handle('app:ensureAienv', async () => {
             if (stderr.includes('Library not loaded') && stderr.includes('Python.framework')) {
                 return {
                     ok: false,
-                    error: 'Python 运行环境框架缺失（Python.framework 未找到），请重新安装应用',
+                    error: t('app.errorPythonFrameworkMissing'),
                 }
             }
-            return {ok: false, error: `Python 运行环境异常: ${stderr}`}
+            return {ok: false, error: t('app.errorPythonBroken', {detail: stderr})}
         }
         return {ok: true}
     }
@@ -465,12 +466,12 @@ ipcMain.handle('app:ensureAienv', async () => {
     // In packaged mode, the app bundle is read-only and the Python env must be pre-bundled.
     // If _aienv is missing, the build is corrupted — don't attempt to run the init script.
     if (!isDev) {
-        return {ok: false, error: 'Python 运行环境未找到，应用程序已损坏，请重新安装'}
+        return {ok: false, error: t('app.errorPythonMissing')}
     }
 
     const scriptPath = resolve(basePath, 'env/task', scriptName)
     if (!existsSync(scriptPath)) {
-        return {ok: false, error: `初始化脚本未找到: ${scriptPath}`}
+        return {ok: false, error: t('app.errorInitScriptMissing', {path: scriptPath})}
     }
 
     try {
@@ -478,9 +479,9 @@ ipcMain.handle('app:ensureAienv', async () => {
         const taskDir = resolve(basePath, 'env/task')
         await Apps.shell(cmd, {cwd: taskDir})
         const ok = existsSync(pythonPath)
-        return {ok, error: ok ? undefined : 'Python 环境初始化后仍不可用，请尝试手动运行 env/task/init-*.sh'}
+        return {ok, error: ok ? undefined : t('app.errorPythonStillUnavailable')}
     } catch (e: any) {
-        return {ok: false, error: `初始化 Python 环境失败: ${e.message}`}
+        return {ok: false, error: t('app.errorPythonInitFailed', {message: e.message})}
     }
 })
 

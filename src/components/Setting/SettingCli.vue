@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {t} from '../../lang'
 
 const showFullDoc = ref(false)
@@ -14,10 +14,10 @@ const commands = [
     {name: 'linkandroid task history <id>', desc: 'cli.cmdTaskHistoryDesc'},
 ]
 
-const authConfigPaths = [
-    '~/.linkandroid/client.json      ← 入口配置（dataRoot）',
-    '~/.linkandroid/data/cli-auth.json  ← HTTP 认证信息',
-]
+const authConfigPaths = computed(() => [
+    `~/.linkandroid/client.json      ← ${t('cli.authConfigEntry')}`,
+    `~/.linkandroid/data/cli-auth.json  ← ${t('cli.authConfigToken')}`,
+])
 const authConfigContent = JSON.stringify({port: 12345, token: 'your-auth-token'}, null, 2)
 
 const doCopy = async (text: string) => {
@@ -104,7 +104,7 @@ $ linkandroid task list
   "tasks": [
     {
       "id": 1,
-      "name": "Seed 任务"
+      "name": "{{ t('cli.exampleTaskName') }}"
     }
   ]
 }</pre
@@ -120,8 +120,8 @@ $ linkandroid task list
 $ linkandroid task get 1
 {
   "id": 1,
-  "name": "Seed 任务",
-  "description": "用于自动化测试的任务",
+  "name": "{{ t('cli.exampleTaskName') }}",
+  "description": "{{ t('cli.exampleTaskDesc') }}",
   "language": "python"
 }</pre
                     >
@@ -215,8 +215,8 @@ $ linkandroid task history 1
                     <p class="text-sm text-gray-500 mb-2">{{ t('cli.authDesc') }}</p>
                     <p class="text-sm text-gray-500 mb-2">{{ t('cli.fullDocAuthNote') }}</p>
                     <pre class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-sm font-mono overflow-x-auto">
-~/.linkandroid/client.json         ← 入口配置（dataRoot）
-~/.linkandroid/data/cli-auth.json  ← HTTP 认证信息</pre
+~/.linkandroid/client.json         ← {{ t('cli.authConfigEntry') }}
+~/.linkandroid/data/cli-auth.json  ← {{ t('cli.authConfigToken') }}</pre
                     >
                 </div>
 
@@ -258,8 +258,8 @@ $ linkandroid task list
   "data": [
     {
       "id": 1,
-      "name": "Seed 任务",
-      "description": "用于自动化测试的任务",
+      "name": "{{ t('cli.exampleTaskName') }}",
+      "description": "{{ t('cli.exampleTaskDesc') }}",
       "language": "python"
     }
   ]
@@ -274,8 +274,8 @@ $ linkandroid task get 1
   "code": 0,
   "data": {
     "id": 1,
-    "name": "Seed 任务",
-    "description": "用于自动化测试的任务",
+    "name": "{{ t('cli.exampleTaskName') }}",
+    "description": "{{ t('cli.exampleTaskDesc') }}",
     "language": "python",
     "code": "print('hello')"
   }

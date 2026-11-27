@@ -1,4 +1,5 @@
 export default {
+    'chatImage.pending': '待发送',
     'chatImage.hint': 'Ctrl+V 粘贴截图',
     'chatImage.max': '最多 {count} 张，请先删除 1 张',
     'chatImage.tooLarge': '图片过大，请换一张',

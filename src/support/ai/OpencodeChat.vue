@@ -386,7 +386,7 @@ const seedTestMessages = async (count: number) => {
                     durationMs: 5000,
                     status: 'error',
                     input: {full: false},
-                    output: '工具执行失败：设备操作超时',
+                    output: t('deviceTool.executionFailed', {error: t('deviceTool.timeout')}),
                 },
                 {
                     key: 'demo-t5',
@@ -442,7 +442,13 @@ const seedAllParts = async () => {
         ['device_app_list', 'completed', {}, 'app_count=86\ncom.xingin.xhs', 450],
         ['device_sleep', 'completed', {seconds: 2}, 'sleep_done=true', 1000],
         ['device_reconnect', 'completed', {}, 'reconnect_ok=true', 300],
-        ['device_observe', 'error', {full: false}, '工具执行失败：设备操作超时', 5000],
+        [
+            'device_observe',
+            'error',
+            {full: false},
+            t('deviceTool.executionFailed', {error: t('deviceTool.timeout')}),
+            5000,
+        ],
         ['task_update', 'completed', {code: '完整任务代码'}, 'accepted', 200],
     ]
     const parts: AgentLivePart[] = [
@@ -584,7 +590,8 @@ defineExpose({loadMessages, doSend})
                     <div class="mx-auto w-full max-w-[44rem]">
                         <div v-if="item.role === 'user'" class="border-l-2 border-[var(--color-primary)] pl-[24px]">
                             <div class="text-[11px] text-gray-400 mb-1">
-                                你<span v-if="item.timestamp" class="ml-1.5 tabular-nums">{{
+                                {{ $t('chat.you')
+                                }}<span v-if="item.timestamp" class="ml-1.5 tabular-nums">{{
                                     timeText(item.timestamp)
                                 }}</span>
                             </div>

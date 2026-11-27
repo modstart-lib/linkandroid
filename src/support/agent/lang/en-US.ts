@@ -1,4 +1,5 @@
 export default {
+    'chatImage.pending': 'Pending',
     'chatImage.hint': 'Paste a screenshot with Ctrl+V',
     'chatImage.max': 'Up to {count} images, remove one first',
     'chatImage.tooLarge': 'This image is too large, try another one',

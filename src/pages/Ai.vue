@@ -338,7 +338,7 @@ onUnmounted(() => {
                                 >
                                     <span class="truncate min-w-0">{{ deviceLabel(session.device_id) }}</span>
                                     <span v-if="messageCount(session) > 0" class="shrink-0">
-                                        · {{ messageCount(session) }} 条
+                                        · {{ $t('ai.messagesCount', {count: messageCount(session)}) }}
                                     </span>
                                     <span v-if="session.model_id" class="truncate font-mono min-w-0">
                                         · {{ session.model_id }}
@@ -402,7 +402,7 @@ onUnmounted(() => {
                             {{ deviceLabel(activeSession.device_id) }}
                         </span>
                         <span v-if="messageCount(activeSession) > 0" class="ml-auto shrink-0 text-[11px] text-gray-400">
-                            {{ messageCount(activeSession) }} 条
+                            {{ $t('ai.messagesCount', {count: messageCount(activeSession)}) }}
                         </span>
                     </div>
                 </div>

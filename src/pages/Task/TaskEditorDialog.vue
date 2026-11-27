@@ -825,7 +825,7 @@ defineExpose({
                                         </a-button>
                                         <a-button v-if="repairSessionId" size="mini" @click="doShowRepairSession">
                                             <template #icon><i-lucide-bot /></template>
-                                            查看 AI 修复会话
+                                            {{ $t('task.viewRepairSession') }}
                                         </a-button>
                                         <a-button size="mini" @click="doClearLog">
                                             <template #icon><i-lucide-trash-2 /></template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
+import {t} from '../../lang'
 import type {TaskFileItem} from './useTaskFiles'
 
 const props = defineProps<{
@@ -51,7 +52,7 @@ const confirmName = () => {
     nameVisible.value = false
 }
 
-const shortcutHint = computed(() => (props.disabled ? '保存任务后可管理多个文件' : '入口文件 main.py 不能被删除或改名'))
+const shortcutHint = computed(() => (props.disabled ? t('task.file.disabledHint') : t('task.file.mainFileLocked')))
 </script>
 
 <template>
@@ -59,7 +60,7 @@ const shortcutHint = computed(() => (props.disabled ? '保存任务后可管理�
         <div
             class="shrink-0 flex items-center justify-between gap-1 px-2 py-2 border-b border-gray-200 dark:border-gray-700"
         >
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">项目文件</span>
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ $t('task.file.panelTitle') }}</span>
             <a-tooltip :content="$t('task.file.add')">
                 <a-button
                     type="text"

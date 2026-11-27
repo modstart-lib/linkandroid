@@ -3,6 +3,7 @@
  * Conversation history lives in the OpenCode session; only a legacy session
  * without a stored id replays its messages on the first turn.
  */
+import {t} from '../../config/lang'
 import {createDeviceBridge, type DeviceRuntime} from '../device/bridge'
 import {AI_DEVICE_TOOL_NAMES, registerDeviceTools, type AgentDeviceInfo} from '../device/tools'
 import {buildAiSystemPrompt} from './prompt'
@@ -76,7 +77,7 @@ export const aiProfile: AgentProfile<ChatAgentInput, ChatAgentResult> = {
             .replace(/\s+/g, ' ')
             .trim()
             .slice(0, 24)
-        return summary ? `控制手机 · ${summary}` : '控制手机'
+        return summary ? `${t('ai.title')} · ${summary}` : t('ai.title')
     },
 
     createState: () => ({retryText: '', allowedTools: new Set<string>(), replayed: false}),
@@ -163,7 +164,7 @@ export const aiProfile: AgentProfile<ChatAgentInput, ChatAgentResult> = {
             ].join('\n')
             return null
         }
-        return {ok: false, message: '模型没有返回内容'}
+        return {ok: false, message: t('ai.chatFailed')}
     },
 
     teardown: (_input, state) => {

@@ -32,8 +32,8 @@ export type AutoRepairResult = {
 }
 
 const attemptText = (failureLog: string, refId?: string | number) => {
-    const label = refId ? `运行记录 ${refId}` : '内联运行'
-    return `失败日志（${label}）：\n${(failureLog || '').slice(-8000)}`
+    const label = refId ? t('task.repairRunRef', {id: refId}) : t('task.repairInlineRun')
+    return t('task.repairAttemptLog', {label, log: (failureLog || '').slice(-8000)})
 }
 
 /**
@@ -47,7 +47,9 @@ const prepareRepairSession = async (input: AutoRepairInput) => {
         const id = await createAgentSession({
             business: 'task-repair',
             businessId: input.taskUuid,
-            title: input.taskName ? `${input.taskName} · 自动修复` : '自动修复',
+            title: input.taskName
+                ? t('task.repairSessionTitle', {name: input.taskName})
+                : t('task.repairSessionTitleShort'),
             refId: input.refId ? String(input.refId) : '',
         })
         session = await findLatestAgentSession({business: 'task-repair', businessId: input.taskUuid})
@@ -59,7 +61,7 @@ const prepareRepairSession = async (input: AutoRepairInput) => {
     await insertAgentMessage({
         sessionId: session.id,
         role: 'user',
-        content: `第 ${attempt} 次修复\n${attemptText(input.failureLog, input.refId)}`,
+        content: t('task.repairAttempt', {attempt, log: attemptText(input.failureLog, input.refId)}),
     })
     await updateAgentSession(session.id, {refId: input.refId ? String(input.refId) : '', touch: true})
     return session
@@ -106,7 +108,7 @@ export const autoRepairTask = async (input: AutoRepairInput): Promise<AutoRepair
         business: 'task-repair',
         businessId: input.taskUuid || '',
         refId: input.refId ? String(input.refId) : '',
-        title: session?.title || (input.taskName ? `${input.taskName} · 自动修复` : undefined),
+        title: session?.title || (input.taskName ? t('task.repairSessionTitle', {name: input.taskName}) : undefined),
     })
 
     if (session) {

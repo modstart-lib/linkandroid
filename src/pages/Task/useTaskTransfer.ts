@@ -113,7 +113,8 @@ export const useTaskTransfer = () => {
             conflicts
                 .slice(0, 3)
                 .map((item) => item.name)
-                .join('、') + (conflicts.length > 3 ? ` 等 ${conflicts.length} 个` : '')
+                .join(t('common.listSeparator')) +
+            (conflicts.length > 3 ? t('task.importConflictMore', {count: conflicts.length}) : '')
         const content =
             conflicts.length === 1
                 ? t('task.importOverwriteConfirmOne', {name: conflicts[0].name})
