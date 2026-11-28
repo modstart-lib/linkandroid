@@ -1,224 +1,206 @@
-<div align="center">
-  <img src="demo/image/home.png" alt="LinkAndroid Banner" width="800" />
-</div>
-
-<h1 align="center">LinkAndroid — All-in-One Android Phone Connection Assistant</h1>
-
-<div align="center">
-  <a href="https://linkandroid.com" target="_blank">
-    <img src="https://img.shields.io/badge/Web-linkandroid.com-blue?style=flat-square" alt="Website" />
-  </a>
-  <img src="https://img.shields.io/badge/Framework-TS%20%7C%20Vue3%20%7C%20Electron-blue?style=flat-square" alt="Framework" />
-  <a href="https://github.com/modstart-lib/linkandroid" target="_blank">
-    <img src="https://img.shields.io/github/stars/modstart-lib/linkandroid.svg?style=flat-square" alt="GitHub Stars" />
-  </a>
-  <a href="https://gitee.com/modstart-lib/linkandroid" target="_blank">
-    <img src="https://gitee.com/modstart-lib/linkandroid/badge/star.svg?style=flat-square" alt="Gitee Stars" />
-  </a>
-  <a href="https://gitcode.com/modstart-lib/linkandroid" target="_blank">
-    <img src="https://gitcode.com/modstart-lib/linkandroid/star/badge.svg?style=flat-square" alt="GitCode Stars" />
-  </a>
-  <br/>
-  <strong>English</strong> · <a href="./README.md">简体中文</a>
-</div>
-
 <p align="center">
-  <strong>LinkAndroid</strong> is a cross-platform desktop application built with Electron that seamlessly connects your Android devices to your computer. After connecting via USB or Wi-Fi, you can <strong>screen mirror with keyboard/mouse control, capture and beautify screenshots, record GIF/MP4 screencasts, manage files and apps, run ADB Shell commands, automate tasks with Python scripts, and integrate 47+ AI models</strong> — all from one unified interface.
+  <img src="./assets/readme/hero-en.svg" width="100%" alt="LinkAndroid: connect an Android phone to your computer to mirror it, move files, open a shell and run scripts">
 </p>
 
 <p align="center">
-  <b>🚀 Open Source · Cross-Platform · Powerful · Easy to Use</b>
+  <a href="https://linkandroid.com"><strong>Download</strong></a> ·
+  <a href="https://github.com/modstart-lib/linkandroid">GitHub</a> ·
+  <a href="https://gitee.com/modstart-lib/linkandroid">Gitee</a> ·
+  <a href="https://gitcode.com/modstart-lib/linkandroid">GitCode</a> ·
+  <a href="./README.md">简体中文</a>
 </p>
 
----
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-EA0056?style=flat-square" alt="Windows, macOS and Linux" />
+  <img src="https://img.shields.io/badge/license-Apache--2.0-EA0056?style=flat-square" alt="Apache-2.0 license" />
+  <img src="https://img.shields.io/github/stars/modstart-lib/linkandroid.svg?style=flat-square" alt="GitHub Stars" />
+  <img src="https://gitee.com/modstart-lib/linkandroid/badge/star.svg?style=flat-square" alt="Gitee Stars" />
+</p>
 
-## 📦 Installation
+LinkAndroid is an Electron desktop client that connects an Android phone to your computer over adb. Pair it with a USB cable, a QR code, a 6-digit code, an IP address or LAN discovery; once connected, screen mirroring, screenshots and recording, files, apps and a shell all live in one window.
 
-| Platform | Instructions |
-|----------|-------------|
-| **Windows** | Download the installer from [linkandroid.com](https://linkandroid.com) and install with one click |
-| **macOS** | Download the DMG from [linkandroid.com](https://linkandroid.com) and install with one click |
-| **Linux** | Download the AppImage from [linkandroid.com](https://linkandroid.com) and install with one click |
+Repetitive work can be written as Python tasks and put on a schedule, or triggered from the CLI and the local HTTP API.
 
----
+## Install and connect
 
-## ✨ Features
+Installers for Windows, macOS and Linux are on [linkandroid.com](https://linkandroid.com).
 
-### 🔗 Multi-Device Connection & Management
+1. Enable Developer options → USB debugging, plug in the cable, tap Allow on the phone
+2. The phone appears as a card on the Devices page
+3. Click the mirror icon on the card; the screen opens in its own window with mouse and keyboard control
 
-Connect multiple Android devices simultaneously via USB or Wi-Fi with flexible pairing options.
+adb, scrcpy, ffmpeg and the Python environment for tasks ship with the app, so there is no separate platform-tools install.
 
-![Device List](demo/image/device.png)
+## The interface
 
-- **USB Plug & Connect** — Auto-detect devices plugged in via USB
-- **Wireless QR Pairing** — Scan a QR code to pair over Wi-Fi
-- **Pairing Code** — Enter a 6-digit code for quick pairing
-- **Wi-Fi Direct** — Connect manually via IP:port
-- **mDNS Auto-Discovery** — Automatically scan your LAN for Android devices
-- **Device Grouping** — Organize devices into groups for fast filtering
+![Devices page](demo/image/home.png)
 
-| QR Pairing | Pairing Code | Group Management |
-|:----------:|:------------:|:----------------:|
-| ![Wireless QR Pairing](demo/image/device-wireless-pairing.png) | ![Pairing Code](demo/image/device-pairing-code.png) | ![Device Groups](demo/image/device-group-select.png) |
+The Devices page is the main screen. The rail on the left is navigation; each device card carries six icons for mirroring, camera, screenshot, recording, files and device settings, and the more menu adds a command line, pinning and connection switching. Connected devices show a green Connected badge, wireless ones show their IP, and with many phones you can group them and filter by state or group above the list. The interface ships in Chinese and English, and the theme can be light, dark or follow the system.
 
-### 🖥️ Screen Mirroring & Control (Scrcpy)
+## How it works
 
-Low-latency screen mirroring powered by [scrcpy](https://github.com/Genymobile/scrcpy). Full keyboard and mouse input forwarding for controlling your phone directly from your computer.
+![The phone connects over adb to the desktop app](assets/readme/workflow-en.svg)
 
-- **One-Click Mirror** — High-quality, low-latency screen casting
-- **Reverse Control** — Use your keyboard and mouse to interact with your phone
-- **OTG Mode** — Turn your PC into a keyboard/mouse emulator
-- **Camera Streaming** — Stream your phone's camera with selectable resolution and FPS
-- **Follow Mode** — Sync operations across multiple devices
-- **Adjustable Settings** — Bitrate, framerate, always-on-top, window border, and more
+The desktop app talks to the phone over adb. Mirroring runs on scrcpy, recording on ffmpeg, scripts in the bundled virtualenv; they all end up as icons on the device card.
 
-| Camera Stream | Mirror Settings |
-|:-------------:|:--------------:|
-| ![Camera](demo/image/device-camera.png) | ![Mirror Settings](demo/image/device-setting.png) |
+## Connecting a phone
 
-### 📸 Screenshot with Beautifier
+| Method | Steps | Requirements |
+| --- | --- | --- |
+| USB | Plug in, then tap Allow USB debugging on the phone | Developer options enabled |
+| QR pairing | Click QR pairing and scan the code with the phone | Android 11+, same LAN |
+| Pairing code | The phone shows a 6-digit code; enter it on the computer | Android 11+, within 60 seconds |
+| Direct IP | Enter `IP:port`, for example `192.168.1.100:5555` | Wireless debugging enabled |
+| mDNS | Open the connect panel; devices on the subnet appear | Same subnet |
 
-Take screenshots with a single click, then instantly open the built-in beautifier to add device frames, gradient backgrounds, and polish — perfect for sharing on social media.
+| QR pairing | Pairing code |
+|:---:|:---:|
+| ![QR pairing](demo/image/device-wireless-pairing.png) | ![Pairing code](demo/image/device-pairing-code.png) |
 
-### 🎥 GIF / MP4 Screen Recording
+## Mirroring and control
 
-Record your phone screen in **MP4** or **GIF** format with customizable duration and quality. Ideal for demos, tutorials, and bug reproduction.
+Mirroring runs on scrcpy: clicks, scrolling and keystrokes go straight to the phone, and latency and image quality follow the bitrate and frame rate set per device. For native input feel, OTG mode turns the computer into a keyboard and mouse without mirroring.
 
-![Screen Recording](demo/image/device-record.png)
+Settings → Shortcuts binds a key combination to an action: launch an app, tap or long-press a coordinate, repeated taps, swipe, type text, press a panel button. The shortcut fires while the mirror window is focused, other keys still reach the phone, and system shortcuts are left alone.
 
-### 📁 File Manager
+Device settings apply per phone: auto mirror on connect, turn the screen off while mirroring, always on top, forward audio, show the side panel, block sleep, borderless window; bitrate defaults to 8M and frame rate can be 30 to 240. Custom parameters are appended to the scrcpy command line as-is, for example `--crop 720:1280:0:0`.
 
-A full-featured file browser for your Android device. Upload, download, delete, and rename files directly from your desktop. Switch between list and grid views, sort by name, date, or size.
+Camera mode is a second video source: pick the front or rear camera, resolution, frame rate, zoom and bitrate. In that window, hold Alt (Cmd on macOS) with the arrow keys to rotate, `Shift` with arrow keys to flip, `↑/↓` to zoom, `T` for the torch and `F` for fullscreen.
 
-![File Manager](demo/image/device-file-manager.png)
+| Camera settings | Mirroring settings |
+|:---:|:---:|
+| ![Camera settings](demo/image/device-camera.png) | ![Device settings](demo/image/device-setting.png) |
 
-### 📱 App Manager
+## Screenshots and recording
 
-Browse installed apps with icons, batch uninstall applications, or install APK files via the built-in file picker. Manage everything on your phone without touching the phone.
+A screenshot opens the built-in beautifier, where you add a device frame and a gradient background before exporting. Recording produces MP4 or GIF, the GIF frame rate is adjustable from 1 to 30 (10 by default), and a single recording is capped at 3 minutes.
 
-### 💻 Command Terminal
+![Recording](demo/image/device-record.png)
 
-Built-in **ADB Shell** terminal with a quick-access command palette. Run adb commands and Android shell commands with ease. Commonly used commands are one click away.
+## Files and apps
 
-| ADB Shell | Command Palette |
-|:---------:|:--------------:|
-| ![ADB Shell](demo/image/device-adb-shell.png) | ![Shell Tool](demo/image/device-shell-tool.png) |
+The file manager has list and grid views and sorts by name, time or size. Upload, download and batch delete sit in the toolbar above the list, and Add file pushes a file from the computer to the phone. App management lists installed apps with their package names and icons, uninstalls them in batches, and installs any APK you pick.
 
-### 🤖 Script Automation
+| Files | Apps |
+|:---:|:---:|
+| ![File manager](demo/image/device-file-manager.png) | ![App manager](demo/image/device-app-manager.png) |
 
-Write and execute Python automation scripts for batch operations and workflow automation across one or multiple devices.
+## Command line
 
-- **Visual Code Editor** — Built-in editor with syntax highlighting (CodeMirror 6)
-- **Cron Scheduling** — Schedule tasks to run automatically using cron expressions
-- **Multi-Device Execution** — Run the same task across multiple devices simultaneously
-- **Run Logs** — Full execution history with detailed logs
-- **HTTP API** — Trigger tasks remotely via REST API (port 53070)
+Pick Command line from the more menu on a device card to get an interactive terminal attached to that phone:
 
-| Task List | Task Editor |
-|:---------:|:----------:|
-| ![Task Management](demo/image/task.png) | ![Task Editor](demo/image/task-editor.png) |
-
-### 🌐 CLI Remote Control & HTTP API
-
-The built-in HTTP server provides a RESTful API for remote control and CI/CD integration:
-
-| Endpoint | Description |
-|----------|-------------|
-| `POST /api/devices` | List connected devices |
-| `POST /api/task/list` | List all tasks |
-| `POST /api/task/get` | Get task by ID |
-| `POST /api/task/run` | Trigger a task remotely (optional `deviceId`; auto-selects first online device if omitted) |
-| `POST /api/task/history` | View task execution history |
-
-Bearer Token authentication is supported for secure access.
-
-### 🧠 AI Model Integration
-
-Built-in support for **47+ AI model providers**, including OpenAI, DeepSeek, Zhipu AI, Alibaba Qwen, local Ollama, Anthropic Claude, Google Gemini, and many more.
-
-- **Unified Management** — Manage API keys and model configurations for all providers in one place
-- **AI-Assisted Coding** — Generate task scripts with AI help directly in the task editor
-- **Flexible Prompts** — Configure prompt parameters, temperature, and more
-
-![Model Settings](demo/image/setting-model.png)
-
-### 🌍 Internationalization (i18n)
-
-Supports **English** and **Simplified Chinese** with automatic language detection based on system preferences — no manual configuration needed.
-
-### 🌗 Dark Mode
-
-Choose from **Light**, **Dark**, or **Follow System** themes for a comfortable viewing experience in any environment.
-
----
-
-## 🖼️ More Screenshots
-
-| Default Device Settings | Wi-Fi Connection | Settings | About |
-|:----------------------:|:----------------:|:--------:|:-----:|
-| ![Default Settings](demo/image/device-default-setting.png) | ![Connect WiFi](demo/image/device-connect-wifi.png) | ![Settings](demo/image/setting.png) | ![About](demo/image/setting-about.png) |
-
----
-
-## 🚀 Development
-
-> Tested with **Node.js 24** only.
-
-```bash
-# Clone the repository
-git clone https://github.com/modstart-lib/linkandroid.git
-cd linkandroid
-
-# Install dependencies
-npm install
-
-# Start development mode (launches Electron window)
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview build (Vite build only, no packaging)
-npm run build:preview
+```text
+shell@demo:/ $ ls
+Download  Pictures  demo-screenshot.png
 ```
 
-### Available Commands
+A separate Command tools window runs adb and scrcpy as subcommands; type `help` for usage, `clear` to clear the screen, `exit` to leave.
+
+| Device terminal | Command tools |
+|:---:|:---:|
+| ![Device terminal](demo/image/device-adb-shell.png) | ![Command tools](demo/image/device-shell-tool.png) |
+
+## Script tasks
+
+Tasks are Python. The bundled `la` library wraps uiautomator2, so tapping by coordinate or by text, starting and stopping apps, swiping and screenshots are a few lines each:
+
+```python
+import la
+
+device = la.device()
+device.home()
+device.appStart("com.tencent.mm")
+la.sleep(3)
+device.tapText("Contacts", timeout=5)
+```
+
+- Save a task and it can hold several files, with `main.py` as the entry point
+- The right panel has three tabs: phone preview, AI edit, developer docs; Run debug executes on the selected phone
+- Tasks can run on a cron schedule, across several phones at once, and every run keeps a log
+- requests and Pillow are preinstalled, and scripts can call the configured model through `la.llm.call()`
+
+| Task list | Task editor |
+|:---:|:---:|
+| ![Task list](demo/image/task.png) | ![Task editor](demo/image/task-editor.png) |
+
+## Triggering from outside
+
+The app serves HTTP on local port `53070` with Bearer token auth:
+
+| Endpoint | Description |
+| --- | --- |
+| `POST /api/devices` | List devices |
+| `POST /api/task/list` | List tasks |
+| `POST /api/task/get` | Get a task by ID |
+| `POST /api/task/run` | Run a task; pass `deviceId`, or it picks the first online phone |
+| `POST /api/task/history` | Run history for a task |
+
+```bash
+curl -X POST "http://127.0.0.1:53070/api/task/run" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"id": 1, "deviceId": "your-device-id"}'
+```
+
+The `linkandroid` CLI reads the port and token from `~/.linkandroid/data/cli-auth.json`, so there is nothing to configure:
+
+```bash
+linkandroid devices           # list connected devices
+linkandroid task list         # list tasks
+linkandroid task run <id>     # run a task, --device to pick a phone
+linkandroid task history <id> # run history
+linkandroid skill             # print the full guide and API reference
+```
+
+## AI models
+
+Settings → Models manages providers: the official balance, third-party gateways, or your own API key for OpenAI, DeepSeek, Gemini, Claude, Qwen, Zhipu, and local servers such as Ollama and LM Studio. Configuration for 47+ providers is built in.
+
+Once a model is set, AI edit in the task editor rewrites scripts with it, and `la.llm.call()` inside a script uses the same configuration.
+
+![Model settings](demo/image/setting-model.png)
+
+## Development
+
+Node.js 24 is required, and 24 is the only version tested.
+
+```bash
+git clone https://github.com/modstart-lib/linkandroid.git
+cd linkandroid
+npm install
+npm run dev            # Vite + Electron
+npm run build:preview  # Vite build only, no packaging
+npm run build          # full build and package
+```
 
 | Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Vite dev server + Electron |
-| `npm run dev:mac` | Kill existing process, then start dev mode (macOS) |
-| `npm run build:preview` | Code format check + Vite build |
-| `npm run build` | Full build + electron-builder packaging |
-| `npm run build:mac` | Package for macOS |
-| `npm run build:win` | Package for Windows |
-| `npm run build:linux` | Package for Linux |
-| `npm run format` | Format code with Prettier |
+| --- | --- |
+| `npm run dev` | Dev mode, opens the Electron window |
+| `npm run dev:mac` | Kills the previous process first, then starts |
+| `npm run build` | Build plus electron-builder packaging |
+| `npm run build:mac` / `build:win` / `build:linux` | Package for one platform |
+| `make build-cli` | Build the Go `linkandroid` CLI |
 
----
+There are two halves: `electron/` is the main process, handling adb, scrcpy, files, task scheduling and the HTTP server; `src/` is the Vue 3 + Arco Design renderer, with pages in `src/pages` and feature modules in `src/module`.
 
-## 🤝 Contributing
+## Known limits
 
-Contributions, issues, and feature requests are welcome!
+- QR and code pairing need Android 11's wireless debugging; older phones use USB or a direct IP
+- Wireless connections need the phone and computer on the same LAN, and a pairing code is valid for 60 seconds
+- USB debugging has to be on, and its menu path differs between vendors
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Contributing
 
----
+Issues and pull requests are welcome. Keep `npm run build:preview` passing, and add tests for modules you add or change in the UI.
 
-## 💬 Community
+## Community
 
-> When adding a friend, please leave a note: **LinkAndroid**
+> Add the account with the note **LinkAndroid**.
 
-| WeChat Group | QQ Group |
-|:------------:|:--------:|
-| <img src="https://open.tecmz.com/code_dynamic/wx" width="200" alt="WeChat Group" /> | <img src="https://open.tecmz.com/code_dynamic/qq" width="200" alt="QQ Group" /> |
+| WeChat group | QQ group |
+|:----------:|:---------:|
+| <img src="https://open.tecmz.com/code_dynamic/wx" width="200" alt="WeChat group" /> | <img src="https://open.tecmz.com/code_dynamic/qq" width="200" alt="QQ group" /> |
 
----
+## License
 
-## 📄 License
-
-This project is licensed under the [Apache-2.0](./LICENSE) License.
+[Apache-2.0](./LICENSE)

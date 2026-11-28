@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360"
+     role="img" aria-labelledby="hero-title hero-desc">
+  <title id="hero-title">LinkAndroid：在电脑上连接并操作 Android 手机</title>
+  <desc id="hero-desc">左侧是项目名和一句话说明，右侧是一张设备卡，列出投屏镜像、文件管理、命令行三项操作。</desc>
+
+  <rect width="1200" height="360" rx="26" fill="#F4F2F3"/>
+
+  <g id="title-block"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif">
+    <text x="56" y="86" font-size="17" letter-spacing="1.4" fill="#666D78"
+          font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">ANDROID 桌面客户端 · ELECTRON / VUE 3</text>
+    <text x="54" y="154" font-size="62" font-weight="700" letter-spacing="-1.5" fill="#15171B">LinkAndroid</text>
+    <text x="56" y="200" font-size="24" fill="#3B3F46">插上 USB 或连上同一个 Wi-Fi，就在电脑上</text>
+    <text x="56" y="232" font-size="24" fill="#3B3F46">投屏、管理文件、开 Shell、跑脚本任务。</text>
+    <rect x="56" y="271" width="10" height="10" rx="2" fill="#EA0056"/>
+    <text x="78" y="282" font-size="20" fill="#23262B">adb、scrcpy、ffmpeg、Python 已随包提供</text>
+    <text x="56" y="318" font-size="16" fill="#666D78"
+          font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">Windows · macOS · Linux · Apache-2.0</text>
+  </g>
+
+  <g id="device-card">
+    <rect x="664" y="48" width="480" height="264" rx="18" fill="#FFFFFF" stroke="#DED8DA" stroke-width="1.5"/>
+    <text x="700" y="97" font-size="21" font-weight="600" fill="#15171B"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans CJK SC', sans-serif">演示手机</text>
+    <rect x="1016" y="76" width="92" height="30" rx="15" fill="#E8F8EC"/>
+    <circle cx="1032" cy="91" r="4" fill="#00B42A"/>
+    <text x="1044" y="96" font-size="16" fill="#0B7A2B"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans CJK SC', sans-serif">已连接</text>
+
+    <g stroke="#EFEBEC" stroke-width="1">
+      <line x1="700" y1="174" x2="1108" y2="174"/>
+      <line x1="700" y1="226" x2="1108" y2="226"/>
+    </g>
+
+    <g fill="none" stroke="#5B6068" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+      <!-- mirror: screen with a stand -->
+      <rect x="702" y="140" width="20" height="13" rx="2"/>
+      <line x1="706" y1="157" x2="718" y2="157"/>
+      <!-- folder -->
+      <path d="M702 195h6l2 3h12v10h-20z"/>
+      <!-- terminal -->
+      <rect x="702" y="244" width="20" height="16" rx="2"/>
+      <path d="M705 249l3 3-3 3"/>
+      <line x1="711" y1="255" x2="716" y2="255"/>
+    </g>
+
+    <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans CJK SC', sans-serif">
+      <text x="740" y="155" font-size="20" fill="#23262B">投屏镜像</text>
+      <text x="740" y="207" font-size="20" fill="#23262B">文件管理</text>
+      <text x="740" y="259" font-size="20" fill="#23262B">命令行</text>
+    </g>
+    <g font-size="16" fill="#666D78" text-anchor="end"
+       font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+      <text x="1108" y="155">scrcpy</text>
+      <text x="1108" y="207">上传 / 下载</text>
+      <text x="1108" y="259">adb shell</text>
+    </g>
+  </g>
+</svg>

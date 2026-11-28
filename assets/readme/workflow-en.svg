@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360"
+     role="img" aria-labelledby="flow-title flow-desc">
+  <title id="flow-title">How LinkAndroid works</title>
+  <desc id="flow-desc">The phone connects over adb to the desktop app, which exposes mirroring, files and apps, a command line and script tasks.</desc>
+
+  <defs>
+    <marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#EA0056"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="360" rx="26" fill="#F4F2F3"/>
+
+  <g id="phone"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">
+    <rect x="56" y="94" width="88" height="168" rx="16" fill="#FFFFFF" stroke="#15171B" stroke-width="3"/>
+    <rect x="64" y="102" width="72" height="152" rx="8" fill="#F4F2F3"/>
+    <line x1="88" y1="246" x2="112" y2="246" stroke="#15171B" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="100" cy="122" r="3" fill="#00B42A"/>
+    <text x="100" y="300" font-size="20" fill="#23262B" text-anchor="middle">Android phone</text>
+    <text x="100" y="324" font-size="16" fill="#666D78" text-anchor="middle"
+          font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">USB debugging on</text>
+  </g>
+
+  <g id="link-in">
+    <line x1="164" y1="178" x2="248" y2="178" stroke="#B4B9C2" stroke-width="1.8" marker-end="url(#flow-arrow)"/>
+    <text x="206" y="164" font-size="16" fill="#666D78" text-anchor="middle"
+          font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">adb</text>
+  </g>
+
+  <g id="desktop-tile">
+    <rect x="262" y="103" width="320" height="150" rx="16" fill="#15171B"/>
+    <text x="292" y="160" font-size="26" font-weight="700" fill="#FFFFFF"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">LinkAndroid</text>
+    <text x="292" y="188" font-size="18" fill="#C9CDD4"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">Desktop app</text>
+    <text x="292" y="220" font-size="15" fill="#9AA0AA"
+          font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">adb · scrcpy · ffmpeg · python</text>
+  </g>
+
+  <g id="link-out">
+    <line x1="594" y1="178" x2="684" y2="178" stroke="#B4B9C2" stroke-width="1.8" marker-end="url(#flow-arrow)"/>
+  </g>
+
+  <g id="surfaces" stroke="#DED9DA" stroke-width="1">
+    <line x1="700" y1="124" x2="1144" y2="124"/>
+    <line x1="700" y1="178" x2="1144" y2="178"/>
+    <line x1="700" y1="232" x2="1144" y2="232"/>
+  </g>
+
+  <g id="surface-labels" font-size="21" fill="#23262B"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans CJK SC', sans-serif">
+    <text x="700" y="104">Mirroring</text>
+    <text x="700" y="158">Files &amp; apps</text>
+    <text x="700" y="212">Command line</text>
+    <text x="700" y="266">Script tasks</text>
+  </g>
+  <g id="surface-notes" font-size="17" fill="#666D78" text-anchor="end">
+    <text x="1144" y="104" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">scrcpy</text>
+    <text x="1144" y="158" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">upload / APK</text>
+    <text x="1144" y="212" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">adb shell</text>
+    <text x="1144" y="266" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">python · cron</text>
+  </g>
+</svg>
