@@ -25,4 +25,5 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(devicesCmd)
+	rootCmd.AddCommand(skillCmd)
 }
