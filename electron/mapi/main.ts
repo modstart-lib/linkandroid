@@ -16,6 +16,7 @@ import httpserver from './httpserver/main'
 import power from './power/main'
 import task from './task/main'
 import project from './project/main'
+import history from './history/main'
 import pyenv from './pyenv/main'
 
 import opencodeAgent from './opencode-agent/main'
@@ -40,6 +41,7 @@ const $mapi = {
     power,
     task,
     project,
+    history,
     pyenv,
     
     opencodeAgent,
@@ -50,6 +52,7 @@ export const MAPI = {
         await $mapi.user.init()
         await $mapi.db.init()
         await $mapi.project.ensureMigrated()
+        await $mapi.history.init()
         await $mapi.event.init()
         await $mapi.serve.start()
         await $mapi.httpserver.start()

@@ -9,7 +9,8 @@ import LoginRequiredDialog from '../../components/common/LoginRequiredDialog.vue
 import LLMRechargeDialog from '../../components/common/LLMRechargeDialog.vue'
 import {StorageUtil} from '../../lib/storage'
 import {testActionSet, testActionUnset} from '../../utils/test'
-import TaskUpdatePreviewDialog from './TaskUpdatePreviewDialog.vue'
+import TaskUpdatePreviewDialog, {type PreviewMeta} from './TaskUpdatePreviewDialog.vue'
+import {buildLineDiff, diffStats} from '../../lib/diff'
 import TaskAgentSessionDialog, {type AgentSessionSnapshot} from './TaskAgentSessionDialog.vue'
 import {collectDeviceScreenshotByLa, collectDeviceXmlByLa, runTaskPythonCode} from './TaskRuntime'
 import {pythonString} from './TaskChatUtils'
@@ -470,6 +471,7 @@ const sendPrompt = async (input: string, displayInput?: string) => {
 
     const display = displayInput?.trim() || text
     const userImages = chatImages.value.map((image) => image.url)
+    const codeBefore = props.currentCode
     const history = messages.value
         .map((m) => ({
             role: m.role,
@@ -544,7 +546,7 @@ const sendPrompt = async (input: string, displayInput?: string) => {
         const result = await window.$mapi.opencodeAgent.runTaskAgent({
             provider,
             requirement: text,
-            currentCode: props.currentCode,
+            currentCode: codeBefore,
             deviceBasicInfo,
             xmlInfo,
             screenshotDataUrl: screenshot,
@@ -571,7 +573,12 @@ const sendPrompt = async (input: string, displayInput?: string) => {
             record.opencode_session_id = result.opencodeSessionId
         }
         if (result.ok && result.code) {
-            updatePreviewDialog.value?.show(props.currentCode, result.code)
+            updatePreviewDialog.value?.show(codeBefore, result.code, {
+                source: 'chat',
+                taskUuid: props.businessId || '',
+                sessionId,
+                oldCode: codeBefore,
+            })
             finishLive(result.message || t('task.updateToolReady'), result)
         } else {
             const message = result.message || t('task.noUpdateToolCall')
@@ -738,7 +745,22 @@ onUnmounted(() => {
     testActionUnset('task.chat.addImage')
 })
 
-const onPreviewConfirm = (code: string) => {
+const onPreviewConfirm = async (code: string, meta?: PreviewMeta) => {
+    if (meta?.taskUuid && meta.oldCode !== code) {
+        const diff = buildLineDiff(meta.oldCode, code)
+        await window.$mapi.history
+            .record({
+                uuid: meta.taskUuid,
+                taskName: props.taskName,
+                source: 'chat',
+                sessionId: meta.sessionId,
+                previousCode: meta.oldCode,
+                nextCode: code,
+                diff,
+                stats: diffStats(diff),
+            })
+            .catch(() => {})
+    }
     emit('updateCode', code)
     Dialog.tipSuccess(t('task.updateApplied'))
 }

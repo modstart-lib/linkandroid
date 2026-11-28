@@ -1,6 +1,7 @@
 import {t} from '../../lang'
 import {collectDeviceScreenshotByLa, collectDeviceXmlByLa} from './TaskRuntime'
 import {resolveTaskChatModel} from '../../support/agent/agentModel'
+import {buildLineDiff, diffStats} from '../../lib/diff'
 import {
     createAgentSession,
     findLatestAgentSession,
@@ -122,6 +123,24 @@ export const autoRepairTask = async (input: AutoRepairInput): Promise<AutoRepair
             opencodeSessionId: result.opencodeSessionId || session.opencode_session_id,
             touch: true,
         })
+    }
+
+    // Keep the pre-repair code so the user can compare or restore it later.
+    if (input.taskUuid && result.ok && result.code && result.code !== input.code) {
+        const diff = buildLineDiff(input.code, result.code)
+        await window.$mapi.history
+            .record({
+                uuid: input.taskUuid,
+                taskName: input.taskName,
+                source: 'repair',
+                sessionId: session?.id || 0,
+                refId: input.refId ? String(input.refId) : '',
+                previousCode: input.code,
+                nextCode: result.code,
+                diff,
+                stats: diffStats(diff),
+            })
+            .catch(() => {})
     }
 
     return {

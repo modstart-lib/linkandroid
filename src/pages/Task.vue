@@ -11,6 +11,7 @@ import {testActionSet, testActionUnset} from '../utils/test'
 import TaskEditorDialog from './Task/TaskEditorDialog.vue'
 import TaskRunDialog from './Task/TaskRunDialog.vue'
 import TaskRunLogDialog from './Task/TaskRunLogDialog.vue'
+import TaskHistoryDialog from './Task/TaskHistoryDialog.vue'
 import {useTaskTransfer} from './Task/useTaskTransfer'
 
 
@@ -39,6 +40,8 @@ const searchKeywords = ref('')
 const editorDialog = ref<InstanceType<typeof TaskEditorDialog> | null>(null)
 const runDialog = ref<InstanceType<typeof TaskRunDialog> | null>(null)
 const runLogDialog = ref<InstanceType<typeof TaskRunLogDialog> | null>(null)
+const historyDialog = ref<InstanceType<typeof TaskHistoryDialog> | null>(null)
+const historyMap = ref<Record<string, {unread: number; total: number; latestAt: string; latestSource: string}>>({})
 const transfer = useTaskTransfer()
 
 const deviceStore = useDeviceStore()
@@ -62,6 +65,7 @@ const loadData = async () => {
     loading.value = true
     try {
         records.value = await window.$mapi.db.select(`SELECT * FROM task ORDER BY updated_at DESC`)
+        historyMap.value = await window.$mapi.history.summaries().catch(() => ({}))
     } catch (e) {
         Dialog.tipError(mapError(e))
     } finally {
@@ -91,6 +95,18 @@ const doEdit = (record: TaskRecord) => {
     editorDialog.value?.show(record)
 }
 
+const doShowHistory = (record: TaskRecord) => {
+    if (!record.uuid) return
+    historyDialog.value?.show({
+        uuid: record.uuid,
+        name: record.name,
+    })
+}
+
+const onHistoryRestored = async () => {
+    await loadData()
+}
+
 const doCopy = async (record: TaskRecord) => {
     editorDialog.value?.copy(record)
 }
@@ -113,6 +129,9 @@ const doExportAll = async () => {
 const deleteRecord = async (record: TaskRecord) => {
     try {
         await window.$mapi.project.remove(record.id)
+        if (record.uuid) {
+            await window.$mapi.history.remove(record.uuid).catch(() => {})
+        }
         Dialog.tipSuccess(t('task.deleteSuccess'))
         await loadData()
     } catch (e) {
@@ -400,6 +419,15 @@ onUnmounted(() => {
                                         <i-lucide-bot class="text-xs" />
                                         {{ $t('task.autoRepairOff') }}
                                     </span>
+                                    <span
+                                        v-if="r.uuid && historyMap[r.uuid]?.unread"
+                                        class="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full inline-flex items-center gap-1 shrink-0 cursor-pointer"
+                                        :title="$t('task.history.aiModified')"
+                                        @click="doShowHistory(r)"
+                                    >
+                                        <i-lucide-history class="text-xs" />
+                                        {{ $t('task.history.aiModified') }}
+                                    </span>
                                 </div>
                                 <div v-if="r.description" class="text-xs text-gray-400 mt-0.5 truncate">
                                     {{ r.description }}
@@ -453,6 +481,10 @@ onUnmounted(() => {
                                     <template #icon><i-lucide-folder-open /></template>
                                     {{ $t('task.openProjectDir') }}
                                 </a-doption>
+                                <a-doption v-if="r.uuid" @click="doShowHistory(r)">
+                                    <template #icon><i-lucide-history /></template>
+                                    {{ $t('task.history.title') }}
+                                </a-doption>
                                 <a-doption @click="doDelete(r)">
                                     <template #icon><i-lucide-trash-2 /></template>
                                     {{ $t('common.delete') }}
@@ -467,6 +499,7 @@ onUnmounted(() => {
     <TaskEditorDialog ref="editorDialog" @update="refreshAll" />
     <TaskRunDialog ref="runDialog" />
     <TaskRunLogDialog ref="runLogDialog" @done="refreshAll" />
+    <TaskHistoryDialog ref="historyDialog" @restored="onHistoryRestored" @read="loadData" />
     
 </template>
 

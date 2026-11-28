@@ -581,6 +581,53 @@ type DefsMapi = {
         manifest: (id: number) => Promise<any>
         setDependencies: (id: number, dependencies: string[]) => Promise<string[]>
     }
+    history: {
+        record: (input: {
+            uuid: string
+            taskName?: string
+            source: 'repair' | 'chat' | 'restore'
+            sessionId?: number
+            refId?: string
+            previousCode: string
+            nextCode: string
+            diff: Array<{type: 'same' | 'add' | 'remove'; text: string}>
+            stats: {added: number; removed: number}
+        }) => Promise<{seq: number; at: string} | null>
+        list: (uuid: string) => Promise<{
+            readSeq: number
+            versions: Array<{
+                seq: number
+                at: string
+                source: 'baseline' | 'repair' | 'chat' | 'restore'
+                sessionId: number
+                refId: string
+                taskName: string
+                added: number
+                removed: number
+                size: number
+            }>
+        }>
+        read: (
+            uuid: string,
+            seq: number,
+        ) => Promise<{
+            seq: number
+            at: string
+            source: 'baseline' | 'repair' | 'chat' | 'restore'
+            sessionId: number
+            refId: string
+            taskName: string
+            code: string
+            diff: Array<{type: 'same' | 'add' | 'remove'; text: string}>
+            stats: {added: number; removed: number}
+        } | null>
+        markRead: (uuid: string, seq?: number) => Promise<void>
+        summaries: () => Promise<
+            Record<string, {unread: number; total: number; latestAt: string; latestSource: string}>
+        >
+        remove: (uuid: string) => Promise<void>
+        tidy: (uuid: string) => Promise<void>
+    }
     pyenv: {
         info: () => Promise<{
             pythonVersion: string

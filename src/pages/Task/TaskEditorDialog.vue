@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import {computed, nextTick, onMounted, onUnmounted, ref} from 'vue'
+import {computed, nextTick, ref} from 'vue'
 import {t} from '../../lang'
 import {Dialog} from '../../lib/dialog'
 import {mapError} from '../../lib/error'
-import {testActionSet, testActionUnset} from '../../utils/test'
 import {useDeviceStore} from '../../store/modules/device'
 import {EnumDeviceStatus} from '../../types/Device'
 import CodeEditor from '../../components/common/CodeEditor.vue'
@@ -17,9 +16,12 @@ import TaskFilesPanel from './TaskFilesPanel.vue'
 import {useTaskFiles} from './useTaskFiles'
 import {runTaskPythonCode, taskMissingDependencies} from './TaskRuntime'
 import {autoRepairTask} from './TaskAutoRepair'
-import {hasTaskChatModel, firstEnabledModel} from '../../support/agent/agentModel'
+import {hasTaskChatModel} from '../../support/agent/agentModel'
 import TaskAgentSessionDialog from './TaskAgentSessionDialog.vue'
 import {loadAgentSession} from '../../support/agent/agentSession'
+import TaskRepairNotice from './TaskRepairNotice.vue'
+import TaskHistoryDialog from './TaskHistoryDialog.vue'
+import {useTaskEditorTestActions} from './useTaskEditorTestActions'
 
 const emit = defineEmits<{
     update: []
@@ -79,6 +81,8 @@ let repairRunning = false
 const logPanel = ref<InstanceType<typeof LogPanel> | null>(null)
 const sessionViewer = ref<InstanceType<typeof TaskAgentSessionDialog> | null>(null)
 const repairSessionId = ref(0)
+const historyRefresh = ref(0)
+const historyDialog = ref<InstanceType<typeof TaskHistoryDialog> | null>(null)
 let runController: {stop: () => void; send: (data: any) => void} | null = null
 const queuedWaitRunId = ref<number | string | null>(null)
 
@@ -183,6 +187,7 @@ device.tapText("联系人", timeout=5)`,
     } else {
         files.reset(0, formData.value.code, 'main.py')
     }
+    historyRefresh.value++
 }
 
 /** main.py is the source of truth: refresh the editor with the on-disk code. */
@@ -199,6 +204,32 @@ const refreshProjectFiles = async (id: number) => {
     } catch {
         // fall back to the database snapshot already loaded
     }
+}
+
+const openHistory = () => {
+    if (!formData.value.uuid) return
+    historyDialog.value?.show({
+        uuid: formData.value.uuid,
+        name: formData.value.name,
+    })
+}
+
+const doShowHistory = () => {
+    if (!formData.value.uuid) return
+    if (files.hasDirty.value) {
+        // Restoring a version overwrites the current code; save or discard first.
+        Dialog.confirm(t('task.history.unsavedConfirm')).then(() => openHistory())
+        return
+    }
+    openHistory()
+}
+
+const onHistoryRestored = async () => {
+    if (formData.value.id > 0) {
+        await refreshProjectFiles(formData.value.id)
+    }
+    historyRefresh.value++
+    emit('update')
 }
 
 const copy = (record: any) => {
@@ -283,6 +314,10 @@ const doSave = async () => {
         }
         Dialog.tipSuccess(t('task.saveSuccess'))
         // Keep dialog open; title auto-updates based on id
+        if (formData.value.uuid) {
+            await window.$mapi.history.markRead(formData.value.uuid).catch(() => {})
+            historyRefresh.value++
+        }
         emit('update')
     } catch (e) {
         Dialog.tipError(mapError(e))
@@ -569,6 +604,7 @@ const tryAutoRepair = async (failureLog: string) => {
     logPanel.value?.printSystem(t('task.repairApplied'))
     isRunning.value = false
     repairRunning = true
+    historyRefresh.value++
     await runTaskInternal()
 }
 
@@ -586,37 +622,6 @@ const fillForm = (
     if (data.deviceId) {
         selectedDeviceId.value = data.deviceId
         runDeviceIds.value = [data.deviceId]
-    }
-}
-
-
-
-const testPreviewDevice = async () => {
-    rightTab.value = 'preview'
-    await nextTick()
-    await devicePreviewPanel.value?.doPreview()
-}
-
-const testSelectFirstLocator = () => {
-    rightTab.value = 'preview'
-    return devicePreviewPanel.value?.testSelectFirstLocator() || ''
-}
-
-const testGetSelectedLocator = () => {
-    return devicePreviewPanel.value?.getSelectedLocator() || ''
-}
-
-const testGetCode = () => {
-    return files.entryCode.value
-}
-
-const testGetRunConfig = () => {
-    return {
-        runMode: runDeviceConfig.value.runMode,
-        cronExpression: runDeviceConfig.value.cronExpression,
-        runOnAllDevices: runDeviceConfig.value.runOnAllDevices,
-        deviceIds: [...runDeviceConfig.value.deviceIds],
-        autoRepair: runDeviceConfig.value.autoRepair,
     }
 }
 
@@ -694,59 +699,21 @@ const close = (force = false) => {
     visible.value = false
 }
 
-onMounted(() => {
-    testActionSet('task.editor.fill', (data: any) => fillForm(data))
-    testActionSet('task.editor.save', () => doSave())
-    testActionSet('task.editor.run', () => doRun())
-    
-    testActionSet('task.editor.previewDevice', () => testPreviewDevice())
-    testActionSet('task.editor.selectFirstLocator', () => testSelectFirstLocator())
-    testActionSet('task.editor.getSelectedLocator', () => testGetSelectedLocator())
-    testActionSet('task.editor.getCode', () => testGetCode())
-    testActionSet('task.editor.getActiveCode', () => files.activeContent.value)
-    testActionSet('task.editor.getRunConfig', () => testGetRunConfig())
-    testActionSet('task.editor.files', () => ({
-        entry: files.entry.value,
-        active: files.activePath.value,
-        files: files.visibleFiles.value.map((file) => file.path),
-        dirty: files.dirtyPaths.value,
-    }))
-    testActionSet('task.editor.fileOpen', async (path: string) => doSelectFile(path))
-    testActionSet('task.editor.fileCreate', async (path: string) => doCreateFile(path))
-    testActionSet('task.editor.fileRename', async (arg: {from: string; to: string}) => doRenameFile(arg.from, arg.to))
-    testActionSet('task.editor.fileDelete', async (path: string) => {
-        if (formData.value.id > 0) await files.removeFile(formData.value.id, path)
-    })
-    testActionSet('task.editor.fileWrite', async (arg: {path: string; content: string}) => {
-        await doSelectFile(arg.path)
-        files.setActiveContent(arg.content)
-        if (arg.path === files.entry.value) formData.value.code = arg.content
-    })
-    testActionSet('task.editor.close', () => close(true))
-    testActionSet('task.editor.showDeviceSelect', () => doShowDeviceSelect())
-    
-})
-
-onUnmounted(() => {
-    testActionUnset('task.editor.fill')
-    testActionUnset('task.editor.save')
-    testActionUnset('task.editor.run')
-    
-    testActionUnset('task.editor.previewDevice')
-    testActionUnset('task.editor.selectFirstLocator')
-    testActionUnset('task.editor.getSelectedLocator')
-    testActionUnset('task.editor.getCode')
-    testActionUnset('task.editor.getActiveCode')
-    testActionUnset('task.editor.getRunConfig')
-    testActionUnset('task.editor.files')
-    testActionUnset('task.editor.fileOpen')
-    testActionUnset('task.editor.fileCreate')
-    testActionUnset('task.editor.fileRename')
-    testActionUnset('task.editor.fileDelete')
-    testActionUnset('task.editor.fileWrite')
-    testActionUnset('task.editor.close')
-    testActionUnset('task.editor.showDeviceSelect')
-    
+const editorTestActions = useTaskEditorTestActions({
+    formData,
+    files,
+    chatPanel,
+    devicePreviewPanel,
+    runDeviceConfig,
+    rightTab,
+    fillForm,
+    doSave,
+    doRun,
+    doSelectFile,
+    doCreateFile,
+    doRenameFile,
+    doShowDeviceSelect,
+    close,
 })
 
 defineExpose({
@@ -755,11 +722,7 @@ defineExpose({
     fillForm,
     doSave,
     doRun,
-    
-    testPreviewDevice,
-    testSelectFirstLocator,
-    testGetSelectedLocator,
-    testGetCode,
+    ...editorTestActions,
     close,
 })
 </script>
@@ -837,6 +800,13 @@ defineExpose({
                             </span>
                         </a-button>
                     </a-tooltip>
+                    <!-- AI change history -->
+                    <a-tooltip :content="$t('task.history.title')">
+                        <a-button :disabled="!formData.uuid" @click="doShowHistory">
+                            <template #icon><i-lucide-history /></template>
+                            {{ $t('task.history.title') }}
+                        </a-button>
+                    </a-tooltip>
                     <!-- Save button -->
                     <a-button type="primary" @click="doSave">
                         <template #icon><i-lucide-check /></template>
@@ -864,6 +834,11 @@ defineExpose({
                                 />
                             </div>
                             <div class="flex-1 min-w-0 min-h-0 overflow-hidden p-2 flex flex-col">
+                                <TaskRepairNotice
+                                    :uuid="formData.uuid"
+                                    :refresh-token="historyRefresh"
+                                    @show-history="doShowHistory"
+                                />
                                 <CodeEditor
                                     v-model="editorCode"
                                     language="python"
@@ -970,5 +945,6 @@ defineExpose({
         <TaskRunDeviceSelectDialog ref="deviceSelectDialog" @confirm="onDeviceSelectConfirm" />
         <TaskDepsDialog ref="depsDialog" />
         <TaskAgentSessionDialog ref="sessionViewer" />
+        <TaskHistoryDialog ref="historyDialog" @restored="onHistoryRestored" />
     </div>
 </template>

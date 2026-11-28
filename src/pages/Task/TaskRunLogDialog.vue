@@ -9,6 +9,7 @@ import {runTaskPythonCode, taskMissingDependencies} from './TaskRuntime'
 import {autoRepairTask} from './TaskAutoRepair'
 import {hasTaskChatModel} from '../../support/agent/agentModel'
 import TaskAgentSessionDialog from './TaskAgentSessionDialog.vue'
+import TaskHistoryDialog from './TaskHistoryDialog.vue'
 import {loadAgentSession} from '../../support/agent/agentSession'
 
 const emit = defineEmits<{
@@ -20,6 +21,8 @@ const isRunning = ref(false)
 const logPanel = ref<InstanceType<typeof LogPanel> | null>(null)
 const taskName = ref('')
 const sessionViewer = ref<InstanceType<typeof TaskAgentSessionDialog> | null>(null)
+const historyDialog = ref<InstanceType<typeof TaskHistoryDialog> | null>(null)
+const historyTaskUuid = ref('')
 const repairSessionId = ref(0)
 const missingDeps = ref<string[]>([])
 const installingDeps = ref(false)
@@ -270,6 +273,7 @@ const doInstallDeps = async () => {
 
 const doRun = async (task: {
     id: number
+    uuid?: string
     name: string
     code: string
     language: string
@@ -282,6 +286,7 @@ const doRun = async (task: {
     repairRunning = false
     repairSessionId.value = 0
     currentRunId = null
+    historyTaskUuid.value = task.uuid || ''
     await runTaskInternal(task)
 }
 
@@ -308,6 +313,7 @@ const doRunFromScheduledFailure = async (
     repairRunning = false
     repairSessionId.value = 0
     currentRunId = failure.runId ?? null
+    historyTaskUuid.value = task.uuid || ''
     currentTask = task
     taskName.value = task.name
     isRunning.value = false
@@ -387,6 +393,19 @@ const tryAutoRepair = async (
     await runTaskInternal(nextTask)
 }
 
+const doShowHistory = () => {
+    if (!historyTaskUuid.value || !currentTask) return
+    historyDialog.value?.show({
+        uuid: historyTaskUuid.value,
+        name: currentTask.name,
+    })
+}
+
+const onHistoryRestored = (code: string) => {
+    if (currentTask) currentTask.code = code
+    emit('done')
+}
+
 const doClose = () => {
     if (isRunning.value) {
         doStopRun()
@@ -419,6 +438,10 @@ defineExpose({doRun, doRunFromScheduledFailure, doClose})
                 />
             </div>
             <div class="flex items-center justify-end gap-2 px-5 pb-4 shrink-0">
+                <a-button v-if="historyTaskUuid" @click="doShowHistory">
+                    <template #icon><i-lucide-history /></template>
+                    {{ $t('task.history.title') }}
+                </a-button>
                 <a-button v-if="repairSessionId" @click="doShowRepairSession">
                     <template #icon><i-lucide-bot /></template>
                     {{ $t('task.viewRepairSession') }}
@@ -446,5 +469,6 @@ defineExpose({doRun, doRunFromScheduledFailure, doClose})
             </div>
         </div>
         <TaskAgentSessionDialog ref="sessionViewer" />
+        <TaskHistoryDialog ref="historyDialog" @restored="onHistoryRestored" />
     </a-modal>
 </template>

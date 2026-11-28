@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppQuitConfirm: typeof import('./components/AppQuitConfirm.vue')['default']
     AudioPlayer: typeof import('./components/common/AudioPlayer.vue')['default']
+    CodeDiffView: typeof import('./components/common/CodeDiffView.vue')['default']
     CodeEditor: typeof import('./components/common/CodeEditor.vue')['default']
     CodeViewerDialog: typeof import('./components/common/CodeViewerDialog.vue')['default']
     CronEditor: typeof import('./components/common/CronEditor.vue')['default']

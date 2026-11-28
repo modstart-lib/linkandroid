@@ -20,6 +20,7 @@ import serve from './serve/render'
 import power from './power/render'
 import task from './task/render'
 import project from './project/render'
+import history from './history/render'
 import pyenv from './pyenv/render'
 
 import opencodeAgent from './opencode-agent/render'
@@ -48,6 +49,7 @@ export const MAPI = {
                 power,
                 task,
                 project,
+                history,
                 pyenv,
                 
                 opencodeAgent,
